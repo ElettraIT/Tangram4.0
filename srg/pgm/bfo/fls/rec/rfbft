@@ -1,0 +1,716 @@
+      *    *===========================================================*
+      *    * Record file [bft] Bolle fornitori testate                 *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-bft-num-prt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-bft-ide-dat                    *
+      *    *                         rf-bft-dat-reg                    *
+      *    *                         rf-bft-num-prt                    *
+      *    *                                                           *
+      *    *          "IDEDOC    " = rf-bft-dat-reg                    *
+      *    *                         rf-bft-cod-dpz                    *
+      *    *                         rf-bft-cod-tmb                    *
+      *    *                         rf-bft-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZARCDAT " = rf-bft-cod-dpz                    *
+      *    *                         rf-bft-tip-arc                    *
+      *    *                         rf-bft-cod-arc                    *
+      *    *                         rf-bft-dat-reg                    *
+      *    *                         rf-bft-num-doc                    *
+      *    *                         rf-bft-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZTMBDAT " = rf-bft-cod-dpz                    *
+      *    *                         rf-bft-cod-tmb                    *
+      *    *                         rf-bft-dat-reg                    *
+      *    *                         rf-bft-num-doc                    *
+      *    *                         rf-bft-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZBCH    " = rf-bft-cod-dpz                    *
+      *    *                         rf-bft-flg-bch                    *
+      *    *                         rf-bft-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-bft.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.dd.nnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-bft-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento per la bolla fornitore                 *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-tmb             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di fatturazione fornitori           *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito, in quanto non   *
+      *        *        sono gestite le fatture accompagnatorie per i  *
+      *        *        fornitori                                      *
+      *        *-------------------------------------------------------*
+           05  rf-bft-prt-ftf             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di magazzino                        *
+      *        *-------------------------------------------------------*
+           05  rf-bft-prt-mag             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di magazzino aggiuntivo             *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente gestito per i movimenti di    *
+      *        *       magazzino relativi alle ubicazioni.             *
+      *        *       Ereditato da righe nel campo 'rf-bfr-orm-prt'   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-pr2-mag             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No movimento che interessa la fatturazione         *
+      *        * - 01 : No                                             *
+      *        * - 02 : Si, il documento sara' successivamente sotto-  *
+      *        *            posto a fatturazione da parte del fornito- *
+      *        *            re                                         *
+      *        * - 03 : Si, il documento stesso e' anche una fattura   *
+      *        *                                                       *
+      *        * N.B. : Il valore 03 non e' attualmente ammesso, in    *
+      *        *        quanto non sono gestite le fatture accompa-    *
+      *        *        gnatorie per i fornitori                       *
+      *        *-------------------------------------------------------*
+           05  rf-bft-int-ftr             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento di fatturazione                        *
+      *        *                                                       *
+      *        * - Se movimento che interessa la fatturazione 01       *
+      *        *      - Valore fisso Spaces, non significativo         *
+      *        *                                                       *
+      *        * - Se documento che interessa la fatturazione 02       *
+      *        *      - Valore fisso Spaces, non significativo         *
+      *        *                                                       *
+      *        * - Se movimento che interessa la fatturazione 03       *
+      *        *      - Codice tipo movimento di fatturazione corri-   *
+      *        *        spondente alla componente 'fattura' del pre-   *
+      *        *        sente tipo movimento di bollettazione          *
+      *        *                                                       *
+      *        * N.B. : Attualmente il valore di questo campo sara'    *
+      *        *        sempre a spaces, in quanto non sono gestite    *
+      *        *        le fatture accompagnatorie per i fornitori     *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tmo-ftr             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha ricevuto il documento        *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione                                    *
+      *        *-------------------------------------------------------*
+           05  rf-bft-dat-reg             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio per il movimento                        *
+      *        *                                                       *
+      *        * - N : No tipo archivio                                *
+      *        * - C : Cliente                                         *
+      *        * - F : Fornitore                                       *
+      *        * - D : Deposito                                        *
+      *        *                                                       *
+      *        * N.B. : Se il documento interessa la fatturazione, ov- *
+      *        *        vero la fatturazione fornitori, il tipo archi- *
+      *        *        vio deve essere pari a 'F'                     *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio                       *
+      *        *-------------------------------------------------------*
+           05  rf-bft-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio per la fatturazione                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-arc-plf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio per la fatturazione   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-dpz-plf             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo indirizzo di spedizione                          *
+      *        * - 01 : alla sede legale                               *
+      *        * - 02 : manuale                                        *
+      *        * - 03 : alla sede                                      *
+      *        * - 04 : alla dipendenza                                *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tip-ids             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento del fornitore                          *
+      *        *-------------------------------------------------------*
+           05  rf-bft-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento del fornitore                        *
+      *        *-------------------------------------------------------*
+           05  rf-bft-num-doc             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *-------------------------------------------------------*
+           05  rf-bft-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bft-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bft-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-bft-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-bft-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Assoggettamento iva per il documento                  *
+      *        * - 00000 : Soggetto iva                                *
+      *        * - nnnnn : Titolo di esenzione                         *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ass-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Conto di contabilita' generale usato come contropar-  *
+      *        * tita acquisti per l'intero documento                  *
+      *        * - 0000000 : A seconda delle righe fatturate           *
+      *        * - nnnnnnn : Conto di contropartita acquisti           *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ctp-acq             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro pagamenti al fornitore                        *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-inl-pgt             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice listino applicato dal fornitore                *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-lst             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in riga associata al fornitore       *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-bft-csr-aaf             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in riga associate al fornitore               *
+      *        *-------------------------------------------------------*
+           05  rf-bft-psr-aaf occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in chiusura associato al fornitore   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-bft-csc-aaf             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto chiusura associato al fornitore              *
+      *        *-------------------------------------------------------*
+           05  rf-bft-psc-aaf             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Voci descrittive in bolla fornitore                   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-bft-voc-des occurs 06   pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice forma di pagamento per il documento            *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-fop             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sconto pagamento associato alla forma di pagamento    *
+      *        *-------------------------------------------------------*
+           05  rf-bft-scp-aap             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca di appoggio per pagamenti da ef-  *
+      *        * fettuarsi al fornitore a mezzo circuiti bancari       *
+      *        *-------------------------------------------------------*
+           05  rf-bft-nos-ban             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI dell'istituto di credito di appoggio per   *
+      *        * pagamenti da effettuarsi al fornitore a mezzo banca,  *
+      *        * tramite bonifico                                      *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-abi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice sportello CAB per l'istituto di credito di ap- *
+      *        * poggio per pagamenti da effettuarsi al fornitore a    *
+      *        * mezzo banca, tramite bonifico                         *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-cab             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente nello sportello dell'istituto   *
+      *        * di credito di appoggio per pagamenti da effettuarsi   *
+      *        * al fornitore a mezzo banca, tramite bonifico          *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ccc-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente postale di appoggio per paga-   *
+      *        * menti da effettuarsi al fornitore a mezzo c/c posta-  *
+      *        * le, per bonifici postali al fornitore                 *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ccp-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese incasso per il documento        *
+      *        *-------------------------------------------------------*
+           05  rf-bft-add-spi             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese bollo per il documento          *
+      *        *-------------------------------------------------------*
+           05  rf-bft-add-spb             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo incasso alternativo per incassi elettronici,     *
+      *        * normalmente destinati a risolversi in una dispo-      *
+      *        * sizione di pagamento                                  *
+      *        * - 01 : Nessuna preferenza                             *
+      *        * - 02 : Ri.Ba.                                         *
+      *        * - 03 : M.av.                                          *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ipr-iel             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza pagamento nel caso che la forma di pa-  *
+      *        * gamento preveda un codice di pagamento con data di    *
+      *        * decorrenza manuale                                    *
+      *        *-------------------------------------------------------*
+           05  rf-bft-pag-dsm             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare della quota a forfait nel caso che la forma *
+      *        * di pagamento preveda un codice di pagamento relativa  *
+      *        * ad una quota a forfait, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-bft-pag-qaf             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare dell'acconto nel caso che la forma di paga- *
+      *        * mento preveda la deduzione dell'acconto relativamente *
+      *        * ad uno dei tre codici di pagamento previsti,          *
+      *        * in valuta                                             *
+      *        *-------------------------------------------------------*
+           05  rf-bft-pag-act             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice acquisitore per le provvigioni sul documento   *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-aqt             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'acquisitore, in valuta base                         *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-pvf-aqt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice intermediario per le provvigioni sul documento *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-cod-ime             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'intermediario, in valuta base                       *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-pvf-ime             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Totali di suddivisione per le righe, in valuta        *
+      *        * - 01 : Totale merce                                   *
+      *        * - 02 : Totale servizi                                 *
+      *        * - 03 : Totale imballi                                 *
+      *        * - 04 : Totale libero 4                                *
+      *        * - 05 : Totale libero 5                                *
+      *        * - 06 : Totale libero 6                                *
+      *        * - 07 : Totale libero 7                                *
+      *        * - 08 : Totale libero 8                                *
+      *        * - 09 : Totale extra                                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tot-rig occurs 09   pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto in chiusura, in valuta                 *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tot-scc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in chiusura                                  *
+      *        *-------------------------------------------------------*
+           05  rf-bft-per-scc             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto in chiusura           *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bft-civ-scc             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto in chiusura *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ccp-scc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto pagamento, in valuta                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tot-scp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto pagamento                                    *
+      *        *-------------------------------------------------------*
+           05  rf-bft-per-scp             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto pagamento             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bft-civ-scp             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto pagamento   *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ccp-scp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No addebito spese e modalita' di addebito          *
+      *        *-------------------------------------------------------*
+           05  rf-bft-spe-add occurs 06.
+      *            *---------------------------------------------------*
+      *            * Si/No addebito spese                              *
+      *            * - 0 : No addebito                                 *
+      *            * - 1 : Si addebito                                 *
+      *            *---------------------------------------------------*
+               10  rf-bft-spe-snx         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di addebito spese                       *
+      *            * - 1 : Addebito a percentuale fissa                *
+      *            * - 2 : Addebito a percentuale variabile            *
+      *            * - 3 : Addebito ad importo fisso                   *
+      *            * - 4 : Addebito ad importo variabile               *
+      *            *---------------------------------------------------*
+               10  rf-bft-spe-mad         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale di addebito della spesa               *
+      *            *---------------------------------------------------*
+               10  rf-bft-spe-per         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di imponibile per la percentuale della spesa *
+      *            * - 00 : Non significativo                          *
+      *            * - 01 : Totale lordo                               *
+      *            * - 02 : Totale netto                               *
+      *            * - 03 : Su una combinazione delle voci seguenti    *
+      *            * - 11 : Totale merci                               *
+      *            * - 12 : Totale servizi                             *
+      *            * - 13 : Totale imballi                             *
+      *            * - 14 : Totale libero 4                            *
+      *            * - 15 : Totale libero 5                            *
+      *            * - 16 : Totale libero 6                            *
+      *            * - 17 : Totale libero 7                            *
+      *            * - 18 : Totale libero 8                            *
+      *            * - 19 : Totale extra                               *
+      *            *---------------------------------------------------*
+               10  rf-bft-spe-ibl         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Totalizzatori da considerarsi per la determina-   *
+      *            * zione dell'imponibile per la percentuale della    *
+      *            * spesa, in valuta                                  *
+      *            *                                                   *
+      *            * Solo se l'imponibile per la percentuale e' pari a *
+      *            * 03                                                *
+      *            *                                                   *
+      *            * Per ogni totalizzatore deve essere specificato un *
+      *            * valore di un carattere, dove :                    *
+      *            *                                                   *
+      *            * - N : Non concorre a formare l'imponibile         *
+      *            * - S : Concorre a formare l'imponibile             *
+      *            *                                                   *
+      *            * Il significato dei totalizzatori e' di tipo posi- *
+      *            * zionale, con la seguente codifica :               *
+      *            *                                                   *
+      *            * 1 : Totale merci                                  *
+      *            * 2 : Totale servizi                                *
+      *            * 3 : Totale imballi                                *
+      *            * 4 : Totale libero 4                               *
+      *            * 5 : Totale libero 5                               *
+      *            * 6 : Totale libero 6                               *
+      *            * 7 : Totale libero 7                               *
+      *            * 8 : Totale libero 8                               *
+      *            * 9 : Totale extra                                  *
+      *            *---------------------------------------------------*
+               10  rf-bft-ibt-spe.
+                   15  rf-bft-ibx-spe  occurs 09
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Importo di addebito della spesa, in valuta        *
+      *            *---------------------------------------------------*
+               10  rf-bft-spe-imp         pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Codice iva per la spesa                           *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non e'    *
+      *            *        soggetta ad un particolare codice iva, ma  *
+      *            *        che l'importo spesa va' sventagliato in    *
+      *            *        proporzione ai codici iva gia' presenti    *
+      *            *        nel documento                              *
+      *            *---------------------------------------------------*
+               10  rf-bft-spe-civ         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice contropartita per la spesa                 *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non si    *
+      *            *        riferisce ad una particolare contropartita,*
+      *            *        ma che l'importo spesa va' sventagliato in *
+      *            *        proporzione alle contropartite gia' pre-   *
+      *            *        senti nel documento                        *
+      *            *---------------------------------------------------*
+               10  rf-bft-spe-ccp         pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese incasso                       *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bft-civ-spi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese incasso             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ccp-spi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese incasso calcolate, in valuta            *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tot-sic             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese incasso aggiuntive, in valuta           *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tot-sia             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese bollo, in valuta                        *
+      *        *-------------------------------------------------------*
+           05  rf-bft-tot-spb             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese bollo                         *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bft-civ-spb             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese bollo               *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ccp-spb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo per movimento di contabilita' gene- *
+      *        * rale relativo al documento                            *
+      *        *                                                       *
+      *        * N.B. : La data di registrazione per il movimento di   *
+      *        *        contabilita' generale relativo al documento e' *
+      *        *        sempre pari alla data di registrazione         *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-prt-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero registrazioni di contabilita' generale genera- *
+      *        * te per il documento                                   *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-nrg-mgd             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento per movimento di contabilita' ge- *
+      *        * nerale relativo al documento                          *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-dri-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento per movimento di contabilita'   *
+      *        * generale relativo al documento                        *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-nri-mgd             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero scadenza della prima scadenza generata per la  *
+      *        * gestione del portafoglio effetti passivi              *
+      *        *                                                       *
+      *        * N.B. : Le scadenze successive alla prima hanno un nu- *
+      *        *        mero scadenza in progressione di uno in uno    *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-nps-sdb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di scadenze generate per la gestione del por-  *
+      *        * tafoglio effetti attivi : 00..96                      *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ctr-sdb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto iva                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bft-iva-cst.
+      *            *---------------------------------------------------*
+      *            * Righe del castelletto iva                         *
+      *            *---------------------------------------------------*
+               10  rf-bft-iva-rig occurs 06.
+      *                *-----------------------------------------------*
+      *                * Codice iva                                    *
+      *                *-----------------------------------------------*
+                   15  rf-bft-iva-cod     pic  9(05)                  .
+      *                *-----------------------------------------------*
+      *                * Imponibile iva, in valuta                     *
+      *                *-----------------------------------------------*
+                   15  rf-bft-iva-ibl     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto contropartite contabili, esclusa iva      *
+      *        *-------------------------------------------------------*
+           05  rf-bft-ctp-cst.
+      *            *---------------------------------------------------*
+      *            * Righe del castelletto contropartite               *
+      *            *---------------------------------------------------*
+               10  rf-bft-ctp-rig occurs 10.
+      *                *-----------------------------------------------*
+      *                * Codice contropartita                          *
+      *                *-----------------------------------------------*
+                   15  rf-bft-ctp-cod     pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Importo contropartita, in valuta              *
+      *                *-----------------------------------------------*
+                   15  rf-bft-ctp-imp     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Flag di bolla fornitore completamente chiusa          *
+      *        * - Spaces : Non ancora completamente chiusa            *
+      *        * - #      : Completamente chiusa                       *
+      *        *-------------------------------------------------------*
+           05  rf-bft-flg-bch             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-bft-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-bft-flg-blo.
+                   15  rf-bft-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            * 01 : Flag di documento in attesa di verifica      *
+      *            *       - Spaces : verificato                       *
+      *            *       - '#'    : in attesa di verifica            *
+      *            *                                                   *
+      *            *      N.B.: Soggetto a personalizzazione           *
+      *            *                                                   *
+      *            * 02 : Flag di documento in attesa di spunta        *
+      *            *       - Spaces : da spuntare                      *
+      *            *       - '#'    : spuntato completamente           *
+      *            *                                                   *
+      *            *      N.B.: Gestione tablet                        *
+      *            *                                                   *
+      *            * 03 : (libero)                                     *
+      *            *---------------------------------------------------*
+               10  rf-bft-flg-nbl.
+                   15  rf-bft-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-bft-flg-pul             pic  x(01)                  .
+           
+           
+           
+           
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione di origine per il documento       *
+      *        *                                                       *
+      *        * N.B. : Solo se diverso da quello contenuto nel tipo   *
+      *        *        documento                                      *
+      *        *-------------------------------------------------------*
+______*    05  rf-bft-cod-dsl             pic  x(07)                  .
+
+           
+           
+           
+           
+           
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-bft-alx-exp.
+               10  filler  occurs 80      pic  x(01)                  .

@@ -1,0 +1,33 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione righe bolla                  *
+      *    *-----------------------------------------------------------*
+       esp-rig-bir-opn-000.
+           move      "pgm/bol/prg/obj/pbol301x"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-rig-bir-pth      .
+           move      "OP"                 to   w-esp-rig-bir-ope      .
+           perform   esp-rig-bir-cll-000  thru esp-rig-bir-cll-999    .
+       esp-rig-bir-opn-999.
+           exit.
+       esp-rig-bir-cls-000.
+           move      "CL"                 to   w-esp-rig-bir-ope      .
+           perform   esp-rig-bir-cll-000  thru esp-rig-bir-cll-999    .
+           move      "C?"                 to   w-esp-rig-bir-ope      .
+           perform   esp-rig-bir-cll-000  thru esp-rig-bir-cll-999    .
+           if        w-esp-rig-bir-ope    not  = spaces
+                     go to esp-rig-bir-cls-999.
+           cancel    w-esp-rig-bir-pth                                .
+       esp-rig-bir-cls-999.
+           exit.
+       esp-rig-bir-esp-000.
+           move      "ES"                 to   w-esp-rig-bir-ope      .
+           perform   esp-rig-bir-cll-000  thru esp-rig-bir-cll-999    .
+           go to     esp-rig-bir-esp-999.
+       esp-rig-bir-esp-999.
+           exit.
+       esp-rig-bir-cll-000.
+           call      w-esp-rig-bir-pth   using w-esp-rig-bir          .
+       esp-rig-bir-cll-999.
+           exit.

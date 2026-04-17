@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione codice operazione per      *
+      *    * comunicazione IVA                                         *
+      *    *-----------------------------------------------------------*
+       cod-mne-zti-opn-000.
+           move      "pgm/cge/prg/obj/acmnzti0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zti-pth      .
+           move      "OP"                 to   w-cod-mne-zti-ope      .
+           perform   cod-mne-zti-cll-000  thru cod-mne-zti-cll-999    .
+       cod-mne-zti-opn-999.
+           exit.
+       cod-mne-zti-cls-000.
+           move      "CL"                 to   w-cod-mne-zti-ope      .
+           perform   cod-mne-zti-cll-000  thru cod-mne-zti-cll-999    .
+           move      "C?"                 to   w-cod-mne-zti-ope      .
+           perform   cod-mne-zti-cll-000  thru cod-mne-zti-cll-999    .
+           if        w-cod-mne-zti-ope    not  = spaces
+                     go to cod-mne-zti-cls-999.
+           cancel    w-cod-mne-zti-pth                                .
+       cod-mne-zti-cls-999.
+           exit.
+       cod-mne-zti-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zti-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0750"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zti-foi-999.
+           move      "pgm/cge/prg/obj/pcge0750"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zti-ope      .
+           go to     cod-mne-zti-foi-999.
+       cod-mne-zti-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zti-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0760"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zti-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/cge/prg/obj/pcge0760"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zti-ope      .
+           go to     cod-mne-zti-foi-999.
+       cod-mne-zti-foi-999.
+           exit.
+       cod-mne-zti-cll-000.
+           call      w-cod-mne-zti-pth   using w-cod-mne-zti
+                                               v
+                                               s                      .
+       cod-mne-zti-cll-999.
+           exit.
+

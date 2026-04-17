@@ -1,0 +1,231 @@
+      *    *===========================================================*
+      *    * Lettura tabella tipi operazione per gestione Iva intra-   *
+      *    * comunitaria                                               *
+      *    *-----------------------------------------------------------*
+       top-iic-let-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione a seconda del tipo di lettura ri-    *
+      *              * chiesta                                         *
+      *              *-------------------------------------------------*
+           if        w-top-iic-tab-tle    =    "C"
+                     go to top-iic-let-100
+           else if   w-top-iic-tab-tle    =    "S"
+                     go to top-iic-let-500
+           else if   w-top-iic-tab-tle    =    "N"
+                     go to top-iic-let-600.
+       top-iic-let-100.
+      *              *-------------------------------------------------*
+      *              * Se tipo di lettura 'C' : Per codice             *
+      *              *-------------------------------------------------*
+       top-iic-let-125.
+      *                  *---------------------------------------------*
+      *                  * Deviazione a seconda del valore del codice  *
+      *                  *---------------------------------------------*
+           if        w-top-iic-tab-top    =    zero
+                     go to top-iic-let-200
+           else      go to top-iic-let-300.
+       top-iic-let-200.
+      *                  *---------------------------------------------*
+      *                  * Se valore del codice : a zero               *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Flag in uscita a spaces                 *
+      *                      *-----------------------------------------*
+           move      spaces               to   w-top-iic-tab-flg      .
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione record, tranne il codi- *
+      *                      * ce                                      *
+      *                      *-----------------------------------------*
+           perform   top-iic-let-920      thru top-iic-let-929        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     top-iic-let-999.
+       top-iic-let-300.
+      *                  *---------------------------------------------*
+      *                  * Se valore del codice diverso da zero        *
+      *                  *---------------------------------------------*
+       top-iic-let-325.
+      *                      *-----------------------------------------*
+      *                      * Inizializzazione indice di scansione    *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-top-iic-tab-inx      .
+       top-iic-let-350.
+      *                      *-----------------------------------------*
+      *                      * Incremento indice di scansione          *
+      *                      *-----------------------------------------*
+           add       1                    to   w-top-iic-tab-inx      .
+       top-iic-let-375.
+      *                      *-----------------------------------------*
+      *                      * Test se oltre il max numero elementi    *
+      *                      *-----------------------------------------*
+           if        w-top-iic-tab-inx    not  > w-top-iic-tab-max
+                     go to top-iic-let-425.
+       top-iic-let-400.
+      *                      *-----------------------------------------*
+      *                      * Se oltre il max numero elementi         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Flag in uscita a non-spaces         *
+      *                          *-------------------------------------*
+           move      "#"                  to   w-top-iic-tab-flg      .
+      *                          *-------------------------------------*
+      *                          * Normalizzazione record, tranne il   *
+      *                          * codice                              *
+      *                          *-------------------------------------*
+           perform   top-iic-let-920      thru top-iic-let-929        .
+      *                          *-------------------------------------*
+      *                          * Descrizione a tutti puntini         *
+      *                          *-------------------------------------*
+           move      all   "."            to   w-top-iic-tab-des      .
+      *                          *-------------------------------------*
+      *                          * Uscita                              *
+      *                          *-------------------------------------*
+           go to     top-iic-let-999.
+       top-iic-let-425.
+      *                      *-----------------------------------------*
+      *                      * Se non oltre il max numero elementi     *
+      *                      *-----------------------------------------*
+       top-iic-let-450.
+      *                          *-------------------------------------*
+      *                          * Confronto tra il codice cercato ed  *
+      *                          * il codice dell'elemento in tabella  *
+      *                          * esaminato. Se non sono uguali rici- *
+      *                          * clo ad indice successivo            *
+      *                          *-------------------------------------*
+           if        w-top-iic-tab-cdy
+                    (w-top-iic-tab-inx)   not  = w-top-iic-tab-top
+                     go to top-iic-let-350.
+       top-iic-let-475.
+      *                          *-------------------------------------*
+      *                          * Se elemento trovato                 *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Flag in uscita a spaces         *
+      *                              *---------------------------------*
+           move      spaces               to   w-top-iic-tab-flg      .
+      *                              *---------------------------------*
+      *                              * Da tabella a record             *
+      *                              *---------------------------------*
+           move      w-top-iic-tab-ely
+                    (w-top-iic-tab-inx)   to   w-top-iic-tab-rec      .
+      *                              *---------------------------------*
+      *                              * Uscita                          *
+      *                              *---------------------------------*
+           go to     top-iic-let-999.
+       top-iic-let-500.
+      *              *-------------------------------------------------*
+      *              * Se tipo di lettura 'S' : Start iniziale         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Flag in uscita a spaces                     *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-flg      .
+      *                  *---------------------------------------------*
+      *                  * Indice a zero                               *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-top-iic-tab-inx      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     top-iic-let-999.
+       top-iic-let-600.
+      *              *-------------------------------------------------*
+      *              * Se tipo di lettura 'N' : Read next              *
+      *              *-------------------------------------------------*
+       top-iic-let-625.
+      *                  *---------------------------------------------*
+      *                  * Incremento indice di scansione              *
+      *                  *---------------------------------------------*
+           add       1                    to   w-top-iic-tab-inx      .
+       top-iic-let-650.
+      *                  *---------------------------------------------*
+      *                  * Test se oltre il max numero elementi        *
+      *                  *---------------------------------------------*
+           if        w-top-iic-tab-inx    not  > w-top-iic-tab-max
+                     go to top-iic-let-700.
+       top-iic-let-675.
+      *                  *---------------------------------------------*
+      *                  * Se oltre il max numero elementi             *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Flag in uscita a non-spaces             *
+      *                      *-----------------------------------------*
+           move      "#"                  to   w-top-iic-tab-flg      .
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione del codice              *
+      *                      *-----------------------------------------*
+           perform   top-iic-let-900      thru top-iic-let-909        .
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione record, tranne il codi- *
+      *                      * ce                                      *
+      *                      *-----------------------------------------*
+           perform   top-iic-let-920      thru top-iic-let-929        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     top-iic-let-999.
+       top-iic-let-700.
+      *                  *---------------------------------------------*
+      *                  * Se non oltre il max numero elementi         *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Flag in uscita a spaces                 *
+      *                      *-----------------------------------------*
+           move      spaces               to   w-top-iic-tab-flg      .
+      *                      *-----------------------------------------*
+      *                      * Da tabella a record                     *
+      *                      *-----------------------------------------*
+           move      w-top-iic-tab-ely
+                    (w-top-iic-tab-inx)   to   w-top-iic-tab-rec      .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     top-iic-let-999.
+       top-iic-let-900.
+      *              *-------------------------------------------------*
+      *              * Subroutine di normalizzazione del solo codice   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Codice                                      *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-top-iic-tab-top      .
+       top-iic-let-909.
+           exit.
+       top-iic-let-920.
+      *              *-------------------------------------------------*
+      *              * Subroutine di normalizzazione del record, tran- *
+      *              * ne il codice                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Mnemonico                                   *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-mne      .
+      *                  *---------------------------------------------*
+      *                  * Decsrizione                                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-des      .
+      *                  *---------------------------------------------*
+      *                  * Flag 1                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-f01      .
+      *                  *---------------------------------------------*
+      *                  * Flag 2                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-f02      .
+      *                  *---------------------------------------------*
+      *                  * Flag 3                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-f03      .
+      *                  *---------------------------------------------*
+      *                  * Flag 4                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-f04      .
+      *                  *---------------------------------------------*
+      *                  * Flag 5                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-top-iic-tab-f05      .
+       top-iic-let-929.
+           exit.
+       top-iic-let-999.
+           exit.

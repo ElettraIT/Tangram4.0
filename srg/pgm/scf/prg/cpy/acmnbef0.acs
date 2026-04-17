@@ -1,0 +1,93 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione codice banca estera forni- *
+      *    * tori                                                      *
+      *    *-----------------------------------------------------------*
+       cod-mne-bef-opn-000.
+           move      "pgm/scf/prg/obj/acmnbef0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-bef-pth      .
+           move      "OP"                 to   w-cod-mne-bef-ope      .
+           perform   cod-mne-bef-cll-000  thru cod-mne-bef-cll-999    .
+       cod-mne-bef-opn-999.
+           exit.
+       cod-mne-bef-cls-000.
+           move      "CL"                 to   w-cod-mne-bef-ope      .
+           perform   cod-mne-bef-cll-000  thru cod-mne-bef-cll-999    .
+           move      "C?"                 to   w-cod-mne-bef-ope      .
+           perform   cod-mne-bef-cll-000  thru cod-mne-bef-cll-999    .
+           if        w-cod-mne-bef-ope    not  = spaces
+                     go to cod-mne-bef-cls-999.
+           cancel    w-cod-mne-bef-pth                                .
+       cod-mne-bef-cls-999.
+           exit.
+       cod-mne-bef-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-bef-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pscf2000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-bef-foi-999.
+           move      "pgm/scf/prg/obj/pscf2000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-bef-ope      .
+           go to     cod-mne-bef-foi-999.
+       cod-mne-bef-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-bef-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pscf2010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-bef-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "cod-dcf"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      07                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-bef-dcf    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "PV"                 to   s-ope                  .
+           move      "dpz-dcf"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      w-cod-mne-bef-dpz    to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/scf/prg/obj/pscf2010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-bef-ope      .
+           go to     cod-mne-bef-foi-999.
+       cod-mne-bef-foi-999.
+           exit.
+       cod-mne-bef-cll-000.
+           call      w-cod-mne-bef-pth   using w-cod-mne-bef
+                                               v
+                                               s                      .
+       cod-mne-bef-cll-999.
+           exit.
+

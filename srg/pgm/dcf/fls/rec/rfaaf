@@ -1,0 +1,336 @@
+      *    *===========================================================*
+      *    * Record file [aaf] Archivio dati per l'acquisto prodotti   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "PRFNFM    " = rf-aaf-tip-mag                    *
+      *    *                         rf-aaf-num-pro                    *
+      *    *                         rf-aaf-cod-dcf                    *
+      *    *                         rf-aaf-fda-pif                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-aaf-ide-dat                    *
+      *    *                         rf-aaf-tip-mag                    *
+      *    *                         rf-aaf-num-pro                    *
+      *    *                         rf-aaf-cod-dcf                    *
+      *    *                         rf-aaf-fda-pif                    *
+      *    *                                                           *
+      *    *          "FNPRFM    " = rf-aaf-cod-dcf                    *
+      *    *                         rf-aaf-tip-mag                    *
+      *    *                         rf-aaf-num-pro                    *
+      *    *                         rf-aaf-fda-pif                    *
+      *    *                                                           *
+      *    *          "PRFMFN    " = rf-aaf-tip-mag                    *
+      *    *                         rf-aaf-num-pro                    *
+      *    *                         rf-aaf-fda-pif                    *
+      *    *                         rf-aaf-cod-dcf                    *
+      *    *                                                           *
+      *    *          "DCFCOPSFN " = rf-aaf-cod-dcf                    *
+      *    *                         rf-aaf-cop-sfn                    *
+      *    *                         rf-aaf-tip-mag                    *
+      *    *                         rf-aaf-num-pro                    *
+      *    *                         rf-aaf-fda-pif                    *
+      *    *                                                           *
+      *    *          "COPSFN    " = rf-aaf-cop-sfn                    *
+      *    *                         rf-aaf-tip-mag                    *
+      *    *                         rf-aaf-cod-dcf                    *
+      *    *                         rf-aaf-num-pro                    *
+      *    *                         rf-aaf-fda-pif                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-aaf.
+      *        *-------------------------------------------------------*
+      *        * Informazioni generali                                 *
+      *        *-------------------------------------------------------*
+           05  rf-aaf-inf-gen.
+      *            *---------------------------------------------------*
+      *            * Data di sistema di ultimo inserimento/modifica    *
+      *            *---------------------------------------------------*
+               10  rf-aaf-ide-dat         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice utente di ultimo inserimento/modifica      *
+      *            *---------------------------------------------------*
+               10  rf-aaf-ide-ute         pic  x(08)                  .
+      *            *---------------------------------------------------*
+      *            * Fase di ultimo inserimento/modifica               *
+      *            *---------------------------------------------------*
+               10  rf-aaf-ide-fas         pic  x(06)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo codice di magazzino                          *
+      *            *                                                   *
+      *            * - 01 : Prodotti di vendita                        *
+      *            * - 03 : Materie prime                              *
+      *            * - 04 : Materiali vari                             *
+      *            *---------------------------------------------------*
+               10  rf-aaf-tip-mag         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice prodotto numerico                          *
+      *            *---------------------------------------------------*
+               10  rf-aaf-num-pro         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice del fornitore                              *
+      *            *---------------------------------------------------*
+               10  rf-aaf-cod-dcf         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Formato di acquisizione presso il fornitore       *
+      *            *---------------------------------------------------*
+               10  rf-aaf-fda-pif         pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per l'identificazione del prodotto se-   *
+      *        * condo quanto stabilito dal fornitore                  *
+      *        *-------------------------------------------------------*
+           05  rf-aaf-inf-sfn.
+      *            *---------------------------------------------------*
+      *            * Codice prodotto per il fornitore                  *
+      *            *                                                   *
+      *            * N.B. : vedi anche 'pdk' di 'dcp' per future       *
+      *            *        implementazioni                            *
+      *            *---------------------------------------------------*
+               10  rf-aaf-cop-sfn         pic  x(14)                  .
+      *            *---------------------------------------------------*
+      *            * Descrizione prodotto per il fornitore             *
+      *            *                                                   *
+      *            * N.B. : Se il campo e' tutto a spazi, per conven-  *
+      *            *        zione significa che la descrizione del     *
+      *            *        prodotto deve essere presa dall'anagrafica *
+      *            *        del codice magazzino                       *
+      *            *---------------------------------------------------*
+               10  rf-aaf-dep-sfn         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Presenza della descrizione alternativa di max 400 *
+      *            * caratteri per il fornitore                        *
+      *            *                                                   *
+      *            * - 0 : No                                          *
+      *            * - 1 : Si                                          *
+      *            *                                                   *
+      *            * N.B. : Se il campo precedente indica che la des-  *
+      *            *        crizione deve essere presa dall'anagrafica *
+      *            *        del codice magazzino, questo campo non e'  *
+      *            *        significativo                              *
+      *            *---------------------------------------------------*
+               10  rf-aaf-xdp-sfn         pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per la trasformazione delle unita' di    *
+      *        * misura                                                *
+      *        *-------------------------------------------------------*
+           05  rf-aaf-inf-tum.
+      *            *---------------------------------------------------*
+      *            * Si/No trasformazione unita' di misura             *
+      *            *                                                   *
+      *            *   - N : No, nessuna trasformazione                *
+      *            *                                                   *
+      *            *   - S : Si trasformazione, il fornitore utilizza  *
+      *            *         per la vendita una diversa unita' di mi-  *
+      *            *         sura rispetto a quella utilizzata nella   *
+      *            *         gestione del magazzino, pertanto quanti-  *
+      *            *         ta' e prezzo validi per gli ordini si ri- *
+      *            *         feriscono all'unita' di misura adottata   *
+      *            *         dal fornitore                             *
+      *            *                                                   *
+      *            *   - P : Si trasformazione, il fornitore utilizza  *
+      *            *         per la vendita una diversa unita' di mi-  *
+      *            *         sura rispetto a quella utilizzata nella   *
+      *            *         gestione del magazzino, pero' accetta     *
+      *            *         ordini nella unita di misura utilizzata   *
+      *            *         nella gestione del magazzino, fermo re-   *
+      *            *         stando pero' che fatturera' in termini    *
+      *            *         della sua unita' di misura                *
+      *            *---------------------------------------------------*
+               10  rf-aaf-snx-tum         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Unita' di misura utilizzata dal fornitore         *
+      *            *                                                   *
+      *            * Solo se snx-tum pari a 'S' o 'P'                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-umf-tum         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali utilizzato dal fornitore per e-   *
+      *            * sprimere la quantita' nella sua unita' di misura  *
+      *            *                                                   *
+      *            * Solo se snx-tum pari a 'S' o 'P'                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-nde-tum         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente moltiplicatore, per cui va' molti-   *
+      *            * plicata la quantita' espressa nell'unita' di mi-  *
+      *            * sura del fornitore, per ridurla alla unita' di    *
+      *            * misura utilizzata da noi                          *
+      *            *                                                   *
+      *            * Solo se snx-tum pari a 'S' o 'P'                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-cmo-tum         pic  9(06)v9(03)            .
+      *            *---------------------------------------------------*
+      *            * Coefficiente divisore, per cui va' divisa la      *
+      *            * quantita' espressa nell'unita' di misura del      *
+      *            * fornitore, per ridurla alla unita' di misura      *
+      *            * utilizzata da noi                                 *
+      *            *                                                   *
+      *            * Solo se snx-tum pari a 'S' o 'P'                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-cdi-tum         pic  9(06)v9(03)            .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per la gestione ordini a fornitori       *
+      *        *-------------------------------------------------------*
+           05  rf-aaf-inf-orf.
+      *            *---------------------------------------------------*
+      *            * Codice dipendenza del fornitore                   *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-aaf-dpz-dcf         pic  x(04)                  .
+      *            *---------------------------------------------------*
+      *            * Annotazioni                                       *
+      *            *                                                   *
+      *            * N.B. : Campo sostituito da record [pdx]           *
+      *            *---------------------------------------------------*
+               10  rf-aaf-ann-not         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Tempo di consegna pattuito con il fornitore,      *
+      *            * espresso in numero di giorni dall'ordine al       *
+      *            * ricevimento                                       *
+      *            *---------------------------------------------------*
+               10  rf-aaf-tmp-cns         pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Sigla valuta per il prezzo d'acquisto pattuito    *
+      *            * con il fornitore                                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-sgl-vlt         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta per il prezzo       *
+      *            * d'acquisto pattuito con il fornitore              *
+      *            *---------------------------------------------------*
+               10  rf-aaf-dec-vlt         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per il prezzo d'acquisto pattuito *
+      *            * con il fornitore                                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-dec-prz         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo prezzo di acquisto                           *
+      *            * - 01 : Specifico per l'acquisto                   *
+      *            * - 02 : Stesso prezzo listino base di vendita      *
+      *            *                                                   *
+      *            * N.B. : Se tipo codice di magazzino 03 (materie    *
+      *            *        prime) il campo viene forzato al valore 01 *
+      *            *---------------------------------------------------*
+               10  rf-aaf-tip-pza         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Lotto di acquisto                                 *
+      *            *---------------------------------------------------*
+               10  rf-aaf-lot-acq         pic  9(10)v9(03)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di applicazione prezzo e sconti              *
+      *            * - 01 : Indipendentemente dalla quantita'          *
+      *            * - 02 : A seconda della quantita'                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-tap-pes         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Data aggiornamento prezzi d'acquisto e sconti     *
+      *            * pattuiti con il fornitore                         *
+      *            *---------------------------------------------------*
+               10  rf-aaf-uda-pes         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sigla valuta di riferimento in caso di legame va- *
+      *            * lutario per il prezzo di acquisto                 *
+      *            *---------------------------------------------------*
+               10  rf-aaf-lgv-vlt         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Decimali valuta di riferimento in caso di legame  *
+      *            * valutario per il prezzo di acquisto               *
+      *            *                                                   *
+      *            * N.B. : Significativo solo se sigla valuta di ri-  *
+      *            *        ferimento in caso di legame valutario e'   *
+      *            *        a sua volta significativo                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-lgv-dcv         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio di riferimento in caso di legame   *
+      *            * valutario per il prezzo di acquisto               *
+      *            *                                                   *
+      *            * N.B. : Significativo solo se sigla valuta di ri-  *
+      *            *        ferimento in caso di legame valutario e'   *
+      *            *        a sua volta significativo                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-lgv-tdc         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio di riferimento in caso di  *
+      *            * legame valutario per il prezzo di acquisto        *
+      *            *                                                   *
+      *            * N.B. : Significativo solo se sigla valuta di ri-  *
+      *            *        ferimento in caso di legame valutario e'   *
+      *            *        a sua volta significativo                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-lgv-cdc         pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Percentuale di tolleranza sul cambio di riferi-   *
+      *            * mento in caso di legame valutario per il prezzo   *
+      *            * di acquisto                                       *
+      *            *                                                   *
+      *            * N.B. : Significativo solo se sigla valuta di ri-  *
+      *            *        ferimento in caso di legame valutario e'   *
+      *            *        a sua volta significativo                  *
+      *            *---------------------------------------------------*
+               10  rf-aaf-lgv-pdt         pic  9(01)v9(02)            .
+      *            *---------------------------------------------------*
+      *            * Tabella prezzi d'acquisto, e sconti, pattuiti con *
+      *            * il fornitore                                      *
+      *            *---------------------------------------------------*
+               10  rf-aaf-tbl-pes.
+      *                *-----------------------------------------------*
+      *                * Elementi della tabella                        *
+      *                *                                               *
+      *                * Nota : Se il tipo applicazione prezzo e scon- *
+      *                *        ti e' al valore 01, cioe' indipendente *
+      *                *        dalla quantita', esistera' solamente   *
+      *                *        il primo elemento di questa tabella,   *
+      *                *        con quantita' di riferimento a zero.   *
+      *                *-----------------------------------------------*
+                   15  rf-aaf-ele-pes occurs 06.
+      *                    *-------------------------------------------*
+      *                    * Quantita' di riferimento per prezzi e     *
+      *                    * sconti, espressa in conformita' alla u-   *
+      *                    * nita' di misura del fornitore             *
+      *                    *-------------------------------------------*
+                       20  rf-aaf-qta-pes pic  9(06)v9(03)            .
+      *                    *-------------------------------------------*
+      *                    * Prezzo unitario fino al non superamento   *
+      *                    * della quantita', riferito alla quantita'  *
+      *                    * unitaria in termini di unita' di misura   *
+      *                    * del fornitore. In valuta.                 *
+      *                    *-------------------------------------------*
+                       20  rf-aaf-prz-pes pic  9(09)                  .
+      *                    *-------------------------------------------*
+      *                    * Categoria di sconto in riga applicata fi- *
+      *                    * no al non superamento della quantita'     *
+      *                    *                                           *
+      *                    * N.B. : Campo attualmente non gestito      *
+      *                    *-------------------------------------------*
+                       20  rf-aaf-csr-pes pic  9(05)                  .
+      *                    *-------------------------------------------*
+      *                    * % di sconto in riga 1..5 applicate fino   *
+      *                    * al non superamento della quantita'        *
+      *                    *-------------------------------------------*
+                       20  rf-aaf-psr-pes occurs 05
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * % di maggiorazione del prezzo di acquisto         *
+      *            *                                                   *
+      *            * N.B.: Gestita solo in presenza di apposita perso- *
+      *            *       nalizzazione                                *
+      *            *---------------------------------------------------*
+               10  rf-aaf-per-mpa         pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per applicazioni speciali                *
+      *        *-------------------------------------------------------*
+           05  rf-aaf-inf-aps.
+      *            *---------------------------------------------------*
+      *            * Riferimento a listino fornitore                   *
+      *            *---------------------------------------------------*
+               10  rf-aaf-rif-lst         pic  x(20)                  .
+      *            *---------------------------------------------------*
+      *            * % ricarico su costo totale                        *
+      *            *---------------------------------------------------*
+               10  rf-aaf-per-ric         pic  9(06)v9(03)            .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  rf-aaf-alx-exp.
+                   15  filler occurs  11  pic  x(01)                  .

@@ -1,0 +1,286 @@
+      *    *===========================================================*
+      *    * Record file [mmr] Movimenti per gestione magazzino : ri-  *
+      *    *                   ghe                                     *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "DATREG    " = rf-mmr-dat-reg                    *
+      *    *                         rf-mmr-num-prt                    *
+      *    *                         rf-mmr-num-prg                    *
+      *    *                                                           *
+      *    *          "DATMAG    " = rf-mmr-dat-reg                    *
+      *    *                         rf-mmr-tip-mag                    *
+      *    *                         rf-mmr-num-mag                    *
+      *    *                         rf-mmr-num-prt                    *
+      *    *                         rf-mmr-num-prg                    *
+      *    *                                                           *
+      *    *          "DPZMAG    " = rf-mmr-cod-dpz                    *
+      *    *                         rf-mmr-tip-mag                    *
+      *    *                         rf-mmr-num-mag                    *
+      *    *                         rf-mmr-dat-reg                    *
+      *    *                         rf-mmr-num-prt                    *
+      *    *                         rf-mmr-num-prg                    *
+      *    *                                                           *
+      *    *          "MAGDAT    " = rf-mmr-tip-mag                    *
+      *    *                         rf-mmr-num-mag                    *
+      *    *                         rf-mmr-dat-reg                    *
+      *    *                         rf-mmr-num-prt                    *
+      *    *                         rf-mmr-num-prg                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-mmr.
+      *        *-------------------------------------------------------*
+      *        * Data di registrazione movimento di gest. mag.         *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-dat-reg             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di gest. mag. : s.aa.dd.nnnnnn      *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo entro il protocollo                *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-num-prg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza                                     *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice causale per gestione magazzino                 *
+      *        *                                                       *
+      *        * N.B.: Da testata movimento                            *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-cod-cau             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di trattamento per il valore per la causale      *
+      *        *                                                       *
+      *        *   - N : Nessun trattamento del valore                 *
+      *        *   - I : Trattamento del valore per impostazione       *
+      *        *   - S : Trattamento del valore, ma senza impostazione *
+      *        *         in quanto valorizzazione al costo standard    *
+      *        *   - C : Trattamento del solo valore, senza quantita'  *
+      *        *         come costo aggiuntivo                         *
+      *        *   - X : Trattamento del solo valore, senza quantita'  *
+      *        *         come costo aggiuntivo riferito alla fine e-   *
+      *        *         sercizio precedente                           *
+      *        *   - R : Trattamento del solo valore, senza quantita'  *
+      *        *         come rettifica ad un costo                    *
+      *        *   - Y : Trattamento del solo valore, senza quantita'  *
+      *        *         come rettifica ad un costo riferito alla fi-  *
+      *        *         ne esercizio precedente                       *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-trt-val             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimentazione di magazzino                      *
+      *        *                                                       *
+      *        * - 01 : Carico                                         *
+      *        * - 02 : Scarico                                        *
+      *        * - 03 : Movimentazione interna                         *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-tip-mdm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Trattamento conto merce per il tipo documento         *
+      *        *                                                       *
+      *        * - 01 : Puo' riferirsi ad un altro documento il quale  *
+      *        *        era un documento di movimentazione di merce in *
+      *        *        conto                                          *
+      *        * - 02 : Non puo' riferirsi ad un altro documento       *
+      *        * - 03 : Il documento stesso e' una movimentazione di   *
+      *        *        merce in conto                                 *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-trt-mic             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo conto merce per il tipo documento                *
+      *        *                                                       *
+      *        * - Spaces : Non significativo                          *
+      *        * - N      : Merce presso terzi ma non di loro pro-     *
+      *        *            prieta'                                    *
+      *        * - T      : Merce presso di noi ma non di nostra pro-  *
+      *        *            prieta'                                    *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-tip-mic             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto merce effettivo, da testata documento    *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-cod-ctm             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento, da testata documento                  *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento, da testata documento                *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-num-doc             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione effettivo                         *
+      *        *                                                       *
+      *        * N.B. : Questo campo attualmente ospita l'ubicazione   *
+      *        *        di origine per la movimentazione interna       *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-cod-dsl             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione di destinazione effettivo         *
+      *        *                                                       *
+      *        * N.B. : Questo campo attualmente ospita l'ubicazione   *
+      *        *        di destinazione per la movimentazione interna  *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-cod-dsd             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio effettivo, da testata documento         *
+      *        *                                                       *
+      *        * - Spaces : No tipo archivio                           *
+      *        * - N      : No tipo archivio                           *
+      *        * - C      : Cliente                                    *
+      *        * - F      : Fornitore                                  *
+      *        * - D      : Nostra dipendenza                          *
+      *        * - A      : Agente (Incaricato alla vendita)           *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio, da testata documento                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza relativo al codice archivio, da te- *
+      *        * stata documento                                       *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino                              *
+      *        *                                                       *
+      *        * - 01 : Prodotti di vendita                            *
+      *        * - 02 : Semilavorati                                   *
+      *        * - 03 : Materie prime                                  *
+      *        * - 04 : Materiali vari                                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico magazzino                             *
+      *        *                                                       *
+      *        * - Se prodotto di vendita   : codice su [dcp]          *
+      *        * - Se semilavorato          : codice su [dps]          *
+      *        * - Se materia prima         : codice su [dpm]          *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-num-mag             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice alfanumerico magazzino relativo al codice nu-  *
+      *        * merico                                                *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-alf-mag             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della variante di magazzino                     *
+      *        *                                                       *
+      *        * N.B. : Questo campo attualmente non e' gestito        *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-var-mag             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Unita' di misura da anagrafica codice magazzino       *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-udm-ana             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Unita' di misura per il movimento                     *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-udm-mov             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero partita di magazzino : s.aa.dd.nnnnnn          *
+      *        *                                                       *
+      *        * N.B. : Questo campo attualmente non e' gestito        *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-num-pmg             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento di riferimento                         *
+      *        *                                                       *
+      *        * Questo campo attualmente e' gestito solo se presente  *
+      *        * la personalizzazione 'pgm/mag/mov/mag300[trp-ttm]'    *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-ddo-rif             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento di riferimento                       *
+      *        *                                                       *
+      *        * Questo campo attualmente e' gestito solo se presente  *
+      *        * la personalizzazione 'pgm/mag/mov/mag300[trp-ttm]'    *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-ndo-rif             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' movimento                                   *
+      *        *                                                       *
+      *        * N.B. : Se il tipo trattamento del valore indica un    *
+      *        *        costo aggiuntivo o una rettifica di costo,     *
+      *        *        questo campo viene forzato a zero              *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-qta-mov             pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Costo unitario diretto, ovvero da impostazione        *
+      *        *                                                       *
+      *        * N.B. : Se il tipo trattamento del valore non indica   *
+      *        *        un trattamento del valore da impostazione di-  *
+      *        *        retta, questo campo viene forzato a zero, a    *
+      *        *        meno che non sia presente la personalizzazione *
+      *        *        'pgm/mag/mov/mag300[trp-ttm]'                  *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-cun-mov             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore globale movimento                              *
+      *        *                                                       *
+      *        * N.B. : Se il tipo trattamento del valore non indica   *
+      *        *        un trattamento del valore da impostazione di-  *
+      *        *        retta, ne' un costo aggiuntivo, ne' una retti- *
+      *        *        fica di costo, questo campo viene forzato a    *
+      *        *        zero, a meno che non sia presente la persona-  *
+      *        *        lizzazione 'pgm/mag/mov/mag300[trp-ttm]'       *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-val-mov             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *                                                   *
+      *            * Nota : I flags 01..05 sono riservati per imple-   *
+      *            *        mentazioni standard                        *
+      *            *        I flags 06..07 sono riservati per imple-   *
+      *            *        mentazioni su misura                       *
+      *            *---------------------------------------------------*
+               10  rf-mmr-flg-blo.
+                   15  rf-mmr-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            * Nota : I flags 01..02 sono riservati per imple-   *
+      *            *        mentazioni standard                        *
+      *            *        Il flag 03 e' riservato per implementa-    *
+      *            *        zioni su misura                            *
+      *            *---------------------------------------------------*
+               10  rf-mmr-flg-nbl.
+                   15  rf-mmr-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice responsabile di magazzino per la riga          *
+      *        *                                                       *
+      *        * ___ DA IMPLEMENTARE ___                               *
+      *        *-------------------------------------------------------*
+______*    05  rf-mmr-cod-rsm             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmr-alx-exp.
+               10  filler     occurs 30   pic  x(01)                  .

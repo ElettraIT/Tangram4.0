@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per modulo di determinazione set archivi da   *
+      *    * statistiche di vendita sul fatturato                      *
+      *    *-----------------------------------------------------------*
+       mdl-gen-set-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   w-mod-set-tip-ope      .
+           perform   mdl-gen-set-cll-000  thru mdl-gen-set-cll-999    .
+       mdl-gen-set-opn-999.
+           exit.
+
+       mdl-gen-set-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   w-mod-set-tip-ope      .
+           perform   mdl-gen-set-cll-000  thru mdl-gen-set-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   w-mod-set-tip-ope      .
+           perform   mdl-gen-set-cll-000  thru mdl-gen-set-cll-999    .
+           if        w-mod-set-exi-sts    not  = spaces
+                     go to mdl-gen-set-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/svf/prg/obj/msetsvf0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       mdl-gen-set-cls-999.
+           exit.
+
+       mdl-gen-set-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/svf/prg/obj/msetsvf0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using w-mod-set              .
+       mdl-gen-set-cll-999.
+           exit.
+

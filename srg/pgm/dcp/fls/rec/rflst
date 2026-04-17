@@ -1,0 +1,148 @@
+      *    *===========================================================*
+      *    * Record file [lst] Listini prezzi prodotti                 *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "LSTPRO    " = rf-lst-tip-rec                    *
+      *    *                         rf-lst-cod-lst                    *
+      *    *                         rf-lst-cod-cli                    *
+      *    *                         rf-lst-sgl-vlt                    *
+      *    *                         rf-lst-num-pro                    *
+      *    *                                                           *
+      *    *          "PROLST    " = rf-lst-tip-rec                    *
+      *    *                         rf-lst-num-pro                    *
+      *    *                         rf-lst-sgl-vlt                    *
+      *    *                         rf-lst-cod-lst                    *
+      *    *                         rf-lst-cod-cli                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-lst.
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        *                                                       *
+      *        * - 01 : Listini alternativi per prodotti               *
+      *        * - 02 : Prezzi netti concordati per cliente            *
+      *        * - 03 : Prezzi per campagne promozionali               *
+      *        *                                                       *
+      *        * - 11 : Listini contributi ecologici per prodotti      *
+      *        *                                                       *
+      *        * - 6x : Prezzi a quantita' per cliente                 *
+      *        * - 7x : Prezzi a quantita' per prodotto                *
+      *        *                                                       *
+      *        * N.B. : i tipi record 6x e 7x rappresentano gli        *
+      *        *        scaglioni di prezzo per cliente o listino fino *
+      *        *        ad un massimo di 9 elementi                    *
+      *        *                                                       *
+      *        *        - 61..69 : scaglioni prezzi cliente quantita'  *
+      *        *        - 71..79 : scaglioni prezzi listino quantita'  *
+      *        *-------------------------------------------------------*
+           05  rf-lst-tip-rec             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice listino alternativo                            *
+      *        *                                                       *
+      *        * Solo se tipo record 01 o 11 o 7x                      *
+      *        *                                                       *
+      *        * Se tipo record 11 : il codice contiene la fascia di   *
+      *        *                     appartenenza                      *
+      *        *-------------------------------------------------------*
+           05  rf-lst-cod-lst             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente                                        *
+      *        *                                                       *
+      *        * Solo se tipo record 02 o 7x                           *
+      *        *                                                       *
+      *        * Se tipo record 03, codice dipendenza __ DA IMPL _     *
+      *        *-------------------------------------------------------*
+           05  rf-lst-cod-cli             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della valuta                                    *
+      *        *-------------------------------------------------------*
+           05  rf-lst-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali della valuta                          *
+      *        *-------------------------------------------------------*
+           05  rf-lst-dec-vlt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto numerico                              *
+      *        *-------------------------------------------------------*
+           05  rf-lst-num-pro             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Prezzo                                                *
+      *        *                                                       *
+      *        * Se tipo record 01 : Prezzo di listino alternativo     *
+      *        * Se tipo record 02 : Prezzo netto concordato per il    *
+      *        *                     cliente                           *
+      *        * Se tipo record 03 : Prezzo per campagna promozionale  *
+      *        *                                                       *
+      *        * Se tipo record 11 : Importo unitario contributo       *
+      *        *                                                       *
+      *        * Se tipo record 6x : Prezzo di listino riferito a qta' *
+      *        * Se tipo record 7x : Prezzo cliente riferito a qta'    *
+      *        *-------------------------------------------------------*
+           05  rf-lst-prz-lst             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice categoria provvigioni associata al listino     *
+      *        *                                                       *
+      *        * Se tipi record 11, 6x e 7x : non gestito              *
+      *        *-------------------------------------------------------*
+           05  rf-lst-cat-pvg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione associate direttamente al listino    *
+      *        *                                                       *
+      *        * Se tipi record 11, 6x e 7x : non gestito              *
+      *        *-------------------------------------------------------*
+           05  rf-lst-per-pvg occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice categoria sconto associata al listino          *
+      *        *                                                       *
+      *        * Se tipi record 11, 6x e 7x : non gestito              *
+      *        *-------------------------------------------------------*
+           05  rf-lst-cat-sco             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di sconto associate direttamente al listino         *
+      *        *                                                       *
+      *        * Se tipo record 11 : non gestito                       *
+      *        *-------------------------------------------------------*
+           05  rf-lst-per-sco occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Si/no utilizzo del prezzo                             *
+      *        *                                                       *
+      *        * Se tipi record 11, 6x e 7x : non gestito              *
+      *        *-------------------------------------------------------*
+           05  rf-lst-snx-prz             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no utilizzo delle % di provvigione nella determi-  *
+      *        * nazione delle provvigioni per agente                  *
+      *        *                                                       *
+      *        * Se tipi record 11, 6x e 7x : non gestito              *
+      *        *-------------------------------------------------------*
+           05  rf-lst-snx-pvg             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no utilizzo delle % di sconto nella determinazione *
+      *        * degli sconti                                          *
+      *        *                                                       *
+      *        * Se tipi record 11, 6x e 7x : non gestito              *
+      *        *-------------------------------------------------------*
+           05  rf-lst-snx-sco             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' iniziale                            *
+      *        *                                                       *
+      *        * Solo se tipo record 02 o 03                           *
+      *        *-------------------------------------------------------*
+           05  rf-lst-dva-ini             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' finale                              *
+      *        *                                                       *
+      *        * Solo se tipo record 02 o 03                           *
+      *        *-------------------------------------------------------*
+           05  rf-lst-dva-fin             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' di riferimento                              *
+      *        *                                                       *
+      *        * Solo se tipi record 11, 6x e 7x                       *
+      *        *-------------------------------------------------------*
+           05  rf-lst-qta-rif             pic  9(08)v9(03)            .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-lst-alx-exp.
+               10  filler occurs 20       pic  x(01)                  .

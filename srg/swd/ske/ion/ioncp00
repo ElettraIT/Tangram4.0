@@ -1,0 +1,172 @@
+      *================================================================*
+      *                                                                *
+      * Tipi operazione previsti :                                     *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "OP"        Apertura del file .                                *
+      *                                                                *
+      *             Input  : f-ope = "OP"                              *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-use-err : il file e' locked   *
+      *                              - e-fil-inc : il file non ha il   *
+      *                                      formato corretto          *
+      *                              - e-opn-err : il file non esiste  *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "CL"        Chiusura del file .                                *
+      *                                                                *
+      *             Input  : f-ope = "CL"                              *
+      *                                                                *
+      *             Output : nessuno                                   *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "NO"        Normalizzazione del record logico r-xyz .          *
+      *                                                                *
+      *             Input  : f-ope = "NO"                              *
+      *                                                                *
+      *             Output : nessuno                                   *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "ST"        Start per chiave primaria .                        *
+      *                                                                *
+      *             Input  : f-ope = "ST"                              *
+      *                                                                *
+      *                      f-cfr = tipo di confronto                 *
+      *                              NL : not less then                *
+      *                              GT : greater  then                *
+      *                              EQ : equal    to                  *
+      *                                                                *
+      *                              inoltre                           *
+      *                                                                *
+      *                      e' necessario aver preparato tutti i cam- *
+      *                      pi del record che concorrono a formare la *
+      *                      chiave primaria                           *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-end-fil : invalid key         *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "RN"        Read next - with no lock .                         *
+      *                                                                *
+      *             Input  : f-ope = "RN"                              *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-end-fil : at end              *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "GN"        Get next - with lock .                             *
+      *                                                                *
+      *             Input  : f-ope = "GN"                              *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-end-fil : invalid key         *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "RD"        Read record per chiave primaria - with no lock .   *
+      *                                                                *
+      *             Input  : f-ope = "RD"                              *
+      *                                                                *
+      *                              inoltre                           *
+      *                                                                *
+      *                      e' necessario aver preparato tutti i cam- *
+      *                      pi del record che concorrono a formare la *
+      *                      chiave primaria                           *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-not-fnd : invalid key         *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "GT"        Get record per chiave primaria - with lock .       *
+      *                                                                *
+      *             Input  : f-ope = "GT"                              *
+      *                                                                *
+      *                              inoltre                           *
+      *                                                                *
+      *                      e' necessario aver preparato tutti i cam- *
+      *                      pi del record che concorrono a formare la *
+      *                      chiave primaria                           *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-not-fnd : invalid key         *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "RL"        Release records del file precedentemente bloccati  *
+      *             per mezzo di "GT" o "GN" (unlock).                 *
+      *                                                                *
+      *             Input  : f-ope = "RL"                              *
+      *                                                                *
+      *             Output : nessuno                                   *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "DE"        Delete record .                                    *
+      *                                                                *
+      *             Input  : f-ope = "DE"                              *
+      *                                                                *
+      *                              inoltre                           *
+      *                                                                *
+      *                      e' necessario aver preparato tutti i cam- *
+      *                      pi del record che concorrono a formare la *
+      *                      chiave primaria                           *
+      *                                                                *
+      *             Output : nessuno                                   *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "UP"        Update records del file precedentemente bloccati   *
+      *             per mezzo di "GT" o "GN" .                         *
+      *                                                                *
+      *             Input  : f-ope = "UP"                              *
+      *                                                                *
+      *                              inoltre                           *
+      *                                                                *
+      *                      e' necessario che tutti i campi del re-   *
+      *                      cord che concorrono a formare la chiave   *
+      *                      primaria risultino inalterati rispetto    *
+      *                      all'ultima esecuzione di "GT" o "GN" che  *
+      *                      ha causato l bloccaggio del record pre-   *
+      *                      liminare all' "UP"                        *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-not-fnd : invalid key         *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "PT"        Put record .                                       *
+      *                                                                *
+      *             Input  : f-ope = "PT"                              *
+      *                                                                *
+      *                              inoltre                           *
+      *                                                                *
+      *                      e' necessario aver preparato tutti i cam- *
+      *                      pi del record che concorrono a formare la *
+      *                      chiave primaria                           *
+      *                                                                *
+      *             Output : f-sts = - e-not-err : nessun errore       *
+      *                              - e-dup-key : invalid key         *
+      *                                                                *
+      *             -------------------------------------------------- *
+      *                                                                *
+      * "FP"        Force put record .                                 *
+      *                                                                *
+      *             Input  : f-ope = "FP"                              *
+      *                                                                *
+      *                              inoltre                           *
+      *                                                                *
+      *                      e' necessario aver preparato tutti i cam- *
+      *                      pi del record che concorrono a formare la *
+      *                      chiave primaria                           *
+      *                                                                *
+      *             Output : nessuno                                   *
+      *                                                                *
+      *================================================================*

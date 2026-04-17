@@ -1,0 +1,163 @@
+      *    *===========================================================*
+      *    * Record file [mgi] Archivio movimenti iva (ex 'moi')       *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "DATPRT    " = rf-wgi-dat-reg                    *
+      *    *                         rf-wgi-num-prt                    *
+      *    *                                                           *
+      *    * Indici : "DATDOC    " = rf-wgi-tip-rec                    *
+      *    *                         rf-wgi-dat-reg                    *
+      *    *                         rf-wgi-cod-num                    *
+      *    *                         rf-wgi-prt-iva                    *
+      *    *                         rf-wgi-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-wgi.
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        *                                                       *
+      *        *  - 'C' = Clienti                                      *
+      *        *  - 'F' = Fornitori                                    *
+      *        *  - 'V' = Corrispettivi                                *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-tip-rec             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita           *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-dat-reg             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita'           *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-num-prt             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento                                      *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-num-doc             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerazione                                    *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-cod-num             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Protocollo iva per stampa su giornale                 *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-prt-iva             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice causale contabile                              *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-cod-cau             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento iva                                    *
+      *        *                                                       *
+      *        * - 1 : Dare cliente Italia o Estero non CEE            *
+      *        * - 2 : Avere cliente Italia o Estero non CEE           *
+      *        * - 3 : Corrispettivi Italia o Estero non CEE           *
+      *        *                                                       *
+      *        * - 4 : Dare fornitore Italia o Estero non CEE          *
+      *        * - 5 : Avere fornitore Italia o Estero non CEE         *
+      *        * - 6 : Bolla doganale Estero non CEE                   *
+      *        *                                                       *
+      *        * - A : Dare cliente Estero CEE                         *
+      *        * - B : Avere cliente Estero CEE                        *
+      *        *                                                       *
+      *        * - D : Dare fornitore Estero CEE                       *
+      *        * - E : Avere fornitore Estero CEE                      *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-tip-iva             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto iva                                       *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-cst-iva   occurs 6.
+      *            *---------------------------------------------------*
+      *            * Imponibile                                        *
+      *            *---------------------------------------------------*
+               10  rf-wgi-ibl-iva         pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Aliquota iva                                      *
+      *            *---------------------------------------------------*
+               10  rf-wgi-cod-iva         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Importo iva                                       *
+      *            *---------------------------------------------------*
+               10  rf-wgi-imp-iva         pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Totale documento                                      *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-tot-doc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente o fornitore                            *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di avvenuta stampa giornale                      *
+      *        *                                                       *
+      *        * Per giornale iva vendite o corrispettivi:             *
+      *        *                                                       *
+      *        * - Spaces : registrazione non stampata                 *
+      *        * - S      : registrazione stampata                     *
+      *        *                                                       *
+      *        * Per giornale iva acquisti:                            *
+      *        *                                                       *
+      *        * - Spaces : registrazione non stampata in assoluto     *
+      *        * - S      : stampata solo nel giornale iva acquisti    *
+      *        * - I      : stampata solo nel giornale iva a debito su *
+      *        *            acquisti intracomunitari                   *
+      *        * - T      : stampata sia nel giornale iva acquisti che *
+      *        *            nel giornale iva a debito su acquisti in-  *
+      *        *            tracomunitari                              *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-flg-gio             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag se il movimento si riferisce all'anno corrente o *
+      *        * a quello precedente, relativo alle Note di Variazione *
+      *        *                                                       *
+      *        * - Spaces : relativo all'anno in corso                 *
+      *        * - P      : relativo all'anno precedente               *
+      *        *                                                       *
+      *        * N.B.: flag non piu' utilizzato in quanto l'elenco     *
+      *        *       clienti e fornitori non e' piu' obbligatorio    *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-flg-cop             pic  x(01)                  .           
+      *        *-------------------------------------------------------*
+      *        * Flag di regime fiscale particolare                    *
+      *        *                                                       *
+      *        * - Spaces o N : Normale regime fiscale                 *
+      *        * - S          : Regime di Scissione Pagamenti          *
+      *        * - R          : Regime di Reverse Charge               *
+      *        * - E          : Esclusione da dichiarazione annuale    *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-flg-rfp             pic  x(01)                  .           
+      *        *-------------------------------------------------------*
+      *        * Codice fornitore reale per bolla doganale             *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-cod-fbd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla numerazione                                     *
+      *        *                                                       *
+      *        * N.B.: solo per registrazione 'Clienti'                *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-sgl-num             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di acquisizione del documento                    *
+      *        *                                                       *
+      *        * N.B.: solo per registrazione 'Fornitori'              *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-dat-acq             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-wgi-alx-exp.
+               10  filler     occurs 61   pic  x(01)                  .

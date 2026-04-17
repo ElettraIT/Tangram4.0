@@ -1,0 +1,70 @@
+===============================================
+       Note per la gestione fatture XML
+===============================================
+
+Procedura
+---------
+
+- fat001 : inserimento dei parametri per l'invio (!!!)
+
+- (fat420)
+
+- (1) fat420a : Creazione distinta
+- (2) fat420b : Stampa distinta
+- (3) fat420m : Manutenzione distinta
+- (4) fat420c : Generazione documenti elettronici - XML
+
+                - viene eseguito per ciascuna fattura il modulo 'mfatxml0'
+                  che genera i file delle singole fatture nella cartella
+                  preposta ad ospitarli in 'asc'
+                  Operazione ripetibile in quanto riscrive i file 'XML'
+
+- (5) fat420d : Invio documenti elettronici
+
+
+                - il programma genera una lista col numero della distinta
+                  (99999.txt) nella stessa cartella delle fatture 'XML'.
+                  A lista completata, viene eseguito lo script esterno
+                  (t_zip_add) che legge la lista e crea un unico file   
+                  'ZIP' contenente tutti i file 'XML' presenti in elenco.
+                  Successivamente, viene eseguito lo script esterno per
+                  l'invio della mail al destinatario Ministeriale (SDI)
+                  (t_sender_XXX) con il file 'ZIP' allegato, contenente
+                  le fatture 'XML'
+
+- (6) fat420d : Re-invio documenti elettronici
+- (7) fat420e : Eliminazione distinta
+
+N.B.: il numero distinta corrisponde al numero di 'lotto' documenti inviato
+
+Per-requisiti software
+----------------------
+
+(scaricabili da http://www.dkb.it/zip/tools)
+
+/abd/etc/t_sender           Modulo di invio PERL
+
+Directory da predisporre
+------------------------
+
+/abd/asc/AZI/fat/AAAA       Per i file XML generati
+
+File da predisporre
+-------------------
+
+/abd/asc/AZI/tmp/sxml.txt   File per soggetto mail fatture PDF
+
+/abd/asc/AZI/tmp/mxml.txt   File per messaggio mail fatture PDF
+                            (formattabile HTML)
+
+
+
+Note e promemoria
+=================
+
+- MEMO : {GEP} [zpg] Implementare campo di decodifica modalita' di pagamento
+
+- MEMO : per la lettura dei file 'XML' - eventuale implementazione SCF
+        (/abd/etc/t_fat_xml_imp e 'aut600')
+                                           
+- MEMO : smantellare 'pfat310g'

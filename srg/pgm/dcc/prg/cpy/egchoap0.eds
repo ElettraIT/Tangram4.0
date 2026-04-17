@@ -1,0 +1,751 @@
+      *    *===========================================================*
+      *    * Editing giorni di chiusura e orario di apertura           *
+      *    *-----------------------------------------------------------*
+       edt-gch-oap-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione settimana lavorativa, ovvero    *
+      *              * giorni di apertura                              *
+      *              *-------------------------------------------------*
+           if        w-gch-oap-gdl-nls    =    spaces
+                     move  "AAAAACC"      to   w-gch-oap-gdl-nls      .
+       edt-gch-oap-050.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione orari di apertura               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Mattino, inizio                             *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oam-oin    not  numeric
+                     move  zero           to   w-gch-oap-oam-oin      .
+      *                  *---------------------------------------------*
+      *                  * Mattino, fine                               *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oam-ofi    not  numeric
+                     move  zero           to   w-gch-oap-oam-ofi      .
+      *                  *---------------------------------------------*
+      *                  * Pomeriggio, inizio                          *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oap-oin    not  numeric
+                     move  zero           to   w-gch-oap-oap-oin      .
+      *                  *---------------------------------------------*
+      *                  * Pomeriggio, fine                            *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oap-ofi    not  numeric
+                     move  zero           to   w-gch-oap-oap-ofi      .
+      *                  *---------------------------------------------*
+      *                  * Mattino, inizio e fine                      *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oam-oin    =    zero or
+                     w-gch-oap-oam-ofi    =    zero
+                     move  zero           to   w-gch-oap-oam-oin
+                     move  zero           to   w-gch-oap-oam-ofi      .
+      *                  *---------------------------------------------*
+      *                  * Pomeriggio, inizio e fine                   *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oap-oin    =    zero or
+                     w-gch-oap-oap-ofi    =    zero
+                     move  zero           to   w-gch-oap-oap-oin
+                     move  zero           to   w-gch-oap-oap-ofi      .
+       edt-gch-oap-200.
+      *              *-------------------------------------------------*
+      *              * Giorni di chiusura                              *
+      *              *-------------------------------------------------*
+       edt-gch-oap-210.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione valore editato              *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-gch-oap-gch-edt      .
+      *                  *---------------------------------------------*
+      *                  * Se il valore in input indica che non devono *
+      *                  * mai essere stampati i giorni di chiusura :  *
+      *                  * continuazione                               *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-inp-sng    =    "N"
+                     go to edt-gch-oap-600.
+      *                  *---------------------------------------------*
+      *                  * Se il valore in input indica che la stampa  *
+      *                  * non deve essere eseguita nel caso di sola   *
+      *                  * chiusura per Sabato+Domenica, ed i giorni   *
+      *                  * di chiusura sono proprio Sabato+Domenica :  *
+      *                  * continuazione                               *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-inp-sng    =    "#"   and
+                     w-gch-oap-gdl-nls    =    "AAAAACC"
+                     go to edt-gch-oap-600.
+       edt-gch-oap-215.
+      *                  *---------------------------------------------*
+      *                  * Casi speciali                               *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Chiusura feriale al pomeriggio          *
+      *                      *-----------------------------------------*
+           if        w-gch-oap-gdl-nls    =    "MMMMMCC"
+                     move  "Chiusura : - tutti i pomeriggi          "
+                                          to   w-gch-oap-gch-edx (01)
+                     move  "             dal lunedi' al venerdi'    "
+                                          to   w-gch-oap-gch-edx (02)
+                     move  "           - sabato e domenica          "
+                                          to   w-gch-oap-gch-edx (03)
+                     go to edt-gch-oap-600.
+      *                      *-----------------------------------------*
+      *                      * Chiusura feriale al mattino             *
+      *                      *-----------------------------------------*
+           if        w-gch-oap-inp-sng    =    "PPPPPCC"
+                     move  "Chiusura : - tutte le mattine           "
+                                          to   w-gch-oap-gch-edx (01)
+                     move  "             dal lunedi' al venerdi'    "
+                                          to   w-gch-oap-gch-edx (02)
+                     move  "           - sabato e domenica          "
+                                          to   w-gch-oap-gch-edx (03)
+                     go to edt-gch-oap-600.
+      *                      *-----------------------------------------*
+      *                      * Chiusura feriale al pomeriggio          *
+      *                      * esclusi sabato e domenica               *
+      *                      *-----------------------------------------*
+           if        w-gch-oap-inp-sng    =    "#"   and
+                     w-gch-oap-gdl-nls    =    "MMMMMCC"
+                     move  "Chiusura : - tutti i pomeriggi          "
+                                          to   w-gch-oap-gch-edx (01)
+                     move  "             dal lunedi' al venerdi'    "
+                                          to   w-gch-oap-gch-edx (02)
+                     go to edt-gch-oap-600.
+      *                      *-----------------------------------------*
+      *                      * Chiusura feriale al mattino             *
+      *                      * esclusi sabato e domenica               *
+      *                      *-----------------------------------------*
+           if        w-gch-oap-inp-sng    =    "#"   and
+                     w-gch-oap-gdl-nls    =    "PPPPPCC"
+                     move  "Chiusura : - tutte le mattine           "
+                                          to   w-gch-oap-gch-edx (01)
+                     move  "             dal lunedi' al venerdi'    "
+                                          to   w-gch-oap-gch-edx (02)
+                     go to edt-gch-oap-600.
+       edt-gch-oap-220.
+      *                  *---------------------------------------------*
+      *                  * Costruzione della tabella dei giorni di     *
+      *                  * chiusura da evidenziare, e conteggio del    *
+      *                  * numero degli stessi                         *
+      *                  *---------------------------------------------*
+       edt-gch-oap-230.
+      *                      *-----------------------------------------*
+      *                      * Numero giorni da evidenziare : zero     *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-gch-oap-war-nge      .
+      *                      *-----------------------------------------*
+      *                      * Indice su elementi della tabella : zero *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-gch-oap-war-ige      .
+       edt-gch-oap-240.
+      *                      *-----------------------------------------*
+      *                      * Incremento indice su elementi della ta- *
+      *                      * bella                                   *
+      *                      *-----------------------------------------*
+           add       1                    to   w-gch-oap-war-ige      .
+      *                      *-----------------------------------------*
+      *                      * Se oltre il max : fine costruzione ta-  *
+      *                      * bella                                   *
+      *                      *-----------------------------------------*
+           if        w-gch-oap-war-ige    >    7
+                     go to edt-gch-oap-400.
+      *                      *-----------------------------------------*
+      *                      * Se il giorno in esame corrisponde ad    *
+      *                      * uno dei max 2 giorni che comunque non   *
+      *                      * devono essere stampati : si ignora il   *
+      *                      * giorno                                  *
+      *                      *-----------------------------------------*
+           if        w-gch-oap-war-ige    =    w-gch-oap-inp-gn1 or
+                     w-gch-oap-war-ige    =    w-gch-oap-inp-gn2
+                     go to edt-gch-oap-240.
+      *                      *-----------------------------------------*
+      *                      * Giorno in esame in area di comodo       *
+      *                      *-----------------------------------------*
+           move      w-gch-oap-gdl-nls
+                    (w-gch-oap-war-ige : 01)
+                                          to   w-gch-oap-war-ges      .
+      *                      *-----------------------------------------*
+      *                      * Se il giorno in esame non e' giorno di  *
+      *                      * chiusura : si ignora il giorno          *
+      *                      *-----------------------------------------*
+           if        w-gch-oap-war-ges    not  = "C" and
+                     w-gch-oap-war-ges    not  = "M" and
+                     w-gch-oap-war-ges    not  = "P"
+                     go to edt-gch-oap-240.
+       edt-gch-oap-250.
+      *                      *-----------------------------------------*
+      *                      * Incremento numero giorni da evidenziare *
+      *                      *-----------------------------------------*
+           add       1                    to   w-gch-oap-war-nge      .
+       edt-gch-oap-260.
+      *                      *-----------------------------------------*
+      *                      * Memorizzazione numero giorno 1..7       *
+      *                      *-----------------------------------------*
+           move      w-gch-oap-war-ige    to   w-gch-oap-war-gge
+                                              (w-gch-oap-war-nge)     .
+      *                      *-----------------------------------------*
+      *                      * Memorizzazione tipo di chiusura         *
+      *                      *-----------------------------------------*
+           move      w-gch-oap-war-ges    to   w-gch-oap-war-cge
+                                              (w-gch-oap-war-nge)     .
+       edt-gch-oap-270.
+      *                      *-----------------------------------------*
+      *                      * Memorizzazione lunghezza literal e li-  *
+      *                      * teral di descrizione                    *
+      *                      *-----------------------------------------*
+       edt-gch-oap-280.
+      *                          *-------------------------------------*
+      *                          * Deviazione a seconda del numero di  *
+      *                          * giorno nella settimana, 01 .. 07    *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ige    =    01
+                     go to edt-gch-oap-310
+           else if   w-gch-oap-war-ige    =    02
+                     go to edt-gch-oap-320
+           else if   w-gch-oap-war-ige    =    03
+                     go to edt-gch-oap-330
+           else if   w-gch-oap-war-ige    =    04
+                     go to edt-gch-oap-340
+           else if   w-gch-oap-war-ige    =    05
+                     go to edt-gch-oap-350
+           else if   w-gch-oap-war-ige    =    06
+                     go to edt-gch-oap-360
+           else if   w-gch-oap-war-ige    =    07
+                     go to edt-gch-oap-370.
+       edt-gch-oap-310.
+      *                          *-------------------------------------*
+      *                          * Lunedi'                             *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ges    =    "M"
+                     move  "Lunedi' pomeriggio"
+                                          to   w-gch-oap-war-les
+           else if   w-gch-oap-war-ges    =    "P"
+                     move  "Lunedi' mattina"
+                                          to   w-gch-oap-war-les
+           else      move  "Lunedi'"
+                                          to   w-gch-oap-war-les      .
+           go to     edt-gch-oap-380.
+       edt-gch-oap-320.
+      *                          *-------------------------------------*
+      *                          * Martedi'                            *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ges    =    "M"
+                     move  "Martedi' pomeriggio"
+                                          to   w-gch-oap-war-les
+           else if   w-gch-oap-war-ges    =    "P"
+                     move  "Martedi' mattina"
+                                          to   w-gch-oap-war-les
+           else      move  "Martedi'"
+                                          to   w-gch-oap-war-les      .
+           go to     edt-gch-oap-380.
+       edt-gch-oap-330.
+      *                          *-------------------------------------*
+      *                          * Mercoledi'                          *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ges    =    "M"
+                     move  "Mercoledi' pomeriggio"
+                                          to   w-gch-oap-war-les
+           else if   w-gch-oap-war-ges    =    "P"
+                     move  "Mercoledi' mattina"
+                                          to   w-gch-oap-war-les
+           else      move  "Mercoledi'"
+                                          to   w-gch-oap-war-les      .
+           go to     edt-gch-oap-380.
+       edt-gch-oap-340.
+      *                          *-------------------------------------*
+      *                          * Giovedi'                            *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ges    =    "M"
+                     move  "Giovedi' pomeriggio"
+                                          to   w-gch-oap-war-les
+           else if   w-gch-oap-war-ges    =    "P"
+                     move  "Giovedi' mattina"
+                                          to   w-gch-oap-war-les
+           else      move  "Giovedi'"
+                                          to   w-gch-oap-war-les      .
+           go to     edt-gch-oap-380.
+       edt-gch-oap-350.
+      *                          *-------------------------------------*
+      *                          * Venerdi'                            *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ges    =    "M"
+                     move  "Venerdi' pomeriggio"
+                                          to   w-gch-oap-war-les
+           else if   w-gch-oap-war-ges    =    "P"
+                     move  "Venerdi' mattina"
+                                          to   w-gch-oap-war-les
+           else      move  "Venerdi'"
+                                          to   w-gch-oap-war-les      .
+           go to     edt-gch-oap-380.
+       edt-gch-oap-360.
+      *                          *-------------------------------------*
+      *                          * Sabato                              *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ges    =    "M"
+                     move  "Sabato pomeriggio"
+                                          to   w-gch-oap-war-les
+           else if   w-gch-oap-war-ges    =    "P"
+                     move  "Sabato mattina"
+                                          to   w-gch-oap-war-les
+           else      move  "Sabato"
+                                          to   w-gch-oap-war-les      .
+           go to     edt-gch-oap-380.
+       edt-gch-oap-370.
+      *                          *-------------------------------------*
+      *                          * Domenica                            *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-ges    =    "M"
+                     move  "Domenica pomeriggio"
+                                          to   w-gch-oap-war-les
+           else if   w-gch-oap-war-ges    =    "P"
+                     move  "Domenica mattina"
+                                          to   w-gch-oap-war-les
+           else      move  "Domenica"
+                                          to   w-gch-oap-war-les      .
+           go to     edt-gch-oap-380.
+       edt-gch-oap-380.
+      *                          *-------------------------------------*
+      *                          * Calcolo lunghezza literal           *
+      *                          *-------------------------------------*
+           move      zero                 to   w-gch-oap-war-x01      .
+           inspect   w-gch-oap-war-les
+                                      tallying w-gch-oap-war-x01
+                                  for trailing spaces                 .
+           move      22                   to   w-gch-oap-war-x02      .
+           subtract  w-gch-oap-war-x01    from w-gch-oap-war-x02      .
+      *                          *-------------------------------------*
+      *                          * Memorizzazione lunghezza literal    *
+      *                          *-------------------------------------*
+           move      w-gch-oap-war-x02    to   w-gch-oap-war-lge
+                                              (w-gch-oap-war-nge)     .
+      *                          *-------------------------------------*
+      *                          * Memorizzazione valore literal       *
+      *                          *-------------------------------------*
+           move      w-gch-oap-war-les    to   w-gch-oap-war-vge
+                                              (w-gch-oap-war-nge)     .
+       edt-gch-oap-390.
+      *                      *-----------------------------------------*
+      *                      * Riciclo su giorno successivo            *
+      *                      *-----------------------------------------*
+           go to     edt-gch-oap-240.
+       edt-gch-oap-400.
+      *                  *---------------------------------------------*
+      *                  * Costruzione del valore editato in base alla *
+      *                  * tabella costruita                           *
+      *                  *---------------------------------------------*
+       edt-gch-oap-410.
+      *                      *-----------------------------------------*
+      *                      * Se zero elementi da evidenziare         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Test                                *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-nge    not  = zero
+                     go to edt-gch-oap-420.
+      *                          *-------------------------------------*
+      *                          * Nessuna azione                      *
+      *                          *-------------------------------------*
+           go to     edt-gch-oap-600.
+       edt-gch-oap-420.
+      *                      *-----------------------------------------*
+      *                      * Se solo un elemento da evidenziare      *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Test                                *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-nge    not  = 1
+                     go to edt-gch-oap-430.
+      *                          *-------------------------------------*
+      *                          * Editing                             *
+      *                          *-------------------------------------*
+           move      01                   to   w-gch-oap-war-x01      .
+      *
+           move      10                   to   w-gch-oap-war-x02      .
+           move      "Chiusura :"         to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (01)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (01)
+                                          to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+      *                          *-------------------------------------*
+      *                          * Continuazione                       *
+      *                          *-------------------------------------*
+           go to     edt-gch-oap-600.
+       edt-gch-oap-430.
+      *                      *-----------------------------------------*
+      *                      * Se due elementi da evidenziare          *
+      *                      *-----------------------------------------*
+       edt-gch-oap-431.
+      *                          *-------------------------------------*
+      *                          * Test                                *
+      *                          *-------------------------------------*
+           if        w-gch-oap-war-nge    not  = 2
+                     go to edt-gch-oap-440.
+      *                          *-------------------------------------*
+      *                          * Test se i due elementi possono es-  *
+      *                          * sere evidenziati in una sola riga,  *
+      *                          * e deviazione in conseguenza         *
+      *                          *-------------------------------------*
+           move      w-gch-oap-war-lge (1)
+                                          to   w-gch-oap-war-x01      .
+           add       w-gch-oap-war-lge (2)
+                                          to   w-gch-oap-war-x01      .
+           if        w-gch-oap-war-x01    >    26
+                     go to edt-gch-oap-433.
+       edt-gch-oap-432.
+      *                          *-------------------------------------*
+      *                          * Editing possibile su di una sola    *
+      *                          * riga                                *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Editing                         *
+      *                              *---------------------------------*
+           move      01                   to   w-gch-oap-war-x01      .
+      *
+           move      10                   to   w-gch-oap-war-x02      .
+           move      "Chiusura :"         to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (01)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (01)
+                                          to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      01                   to   w-gch-oap-war-x02      .
+           move      "e"                  to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (02)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (02)
+                                          to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+      *                              *---------------------------------*
+      *                              * Continuazione                   *
+      *                              *---------------------------------*
+           go to     edt-gch-oap-600.
+       edt-gch-oap-433.
+      *                          *-------------------------------------*
+      *                          * Editing necessariamente su due ri-  *
+      *                          * ghe                                 *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Editing riga 1                  *
+      *                              *---------------------------------*
+           move      01                   to   w-gch-oap-war-x01      .
+      *
+           move      12                   to   w-gch-oap-war-x02      .
+           move      "Chiusura : -"       to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (01)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (01)
+                                          to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+      *                              *---------------------------------*
+      *                              * Editing riga 2                  *
+      *                              *---------------------------------*
+           move      01                   to   w-gch-oap-war-x01      .
+      *
+           move      12                   to   w-gch-oap-war-x02      .
+           move      "           -"       to   w-gch-oap-gch-edx (02)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (02)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (02)
+                                          to   w-gch-oap-gch-edx (02)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+      *                              *---------------------------------*
+      *                              * Continuazione                   *
+      *                              *---------------------------------*
+           go to     edt-gch-oap-600.
+       edt-gch-oap-440.
+      *                      *-----------------------------------------*
+      *                      * Se piu' di due elementi da evidenziare  *
+      *                      * ne vengono comunque evidenziati max 3,  *
+      *                      * e sempre su tre righe                   *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Editing riga 1                      *
+      *                          *-------------------------------------*
+           move      01                   to   w-gch-oap-war-x01      .
+      *
+           move      12                   to   w-gch-oap-war-x02      .
+           move      "Chiusura : -"       to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (01)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (01)
+                                          to   w-gch-oap-gch-edx (01)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+      *                          *-------------------------------------*
+      *                          * Editing riga 2                      *
+      *                          *-------------------------------------*
+           move      01                   to   w-gch-oap-war-x01      .
+      *
+           move      12                   to   w-gch-oap-war-x02      .
+           move      "           -"       to   w-gch-oap-gch-edx (02)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (02)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (02)
+                                          to   w-gch-oap-gch-edx (02)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+      *                          *-------------------------------------*
+      *                          * Editing riga 3                      *
+      *                          *-------------------------------------*
+           move      01                   to   w-gch-oap-war-x01      .
+      *
+           move      12                   to   w-gch-oap-war-x02      .
+           move      "           -"       to   w-gch-oap-gch-edx (03)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+           add       w-gch-oap-war-x02    to   w-gch-oap-war-x01      .
+           add       1                    to   w-gch-oap-war-x01      .
+      *
+           move      w-gch-oap-war-lge (03)
+                                          to   w-gch-oap-war-x02      .
+           move      w-gch-oap-war-vge (03)
+                                          to   w-gch-oap-gch-edx (03)
+                                              (w-gch-oap-war-x01 :
+                                               w-gch-oap-war-x02 )    .
+      *                          *-------------------------------------*
+      *                          * Continuazione                       *
+      *                          *-------------------------------------*
+           go to     edt-gch-oap-600.
+       edt-gch-oap-600.
+      *              *-------------------------------------------------*
+      *              * Orario di apertura                              *
+      *              *-------------------------------------------------*
+       edt-gch-oap-610.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione valore editato              *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-gch-oap-oap-edt      .
+      *                  *---------------------------------------------*
+      *                  * Se il valore in input indica che non deve   *
+      *                  * mai essere stampato l'orario di apertura :  *
+      *                  * continuazione                               *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-inp-sno    =    "N"
+                     go to edt-gch-oap-800.
+      *                  *---------------------------------------------*
+      *                  * Se i valori sono tutti a zero : continua-   *
+      *                  * zione                                       *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oam-oin    =    zero and
+                     w-gch-oap-oam-ofi    =    zero and
+                     w-gch-oap-oap-oin    =    zero and
+                     w-gch-oap-oap-ofi    =    zero
+                     go to edt-gch-oap-800.
+       edt-gch-oap-620.
+      *                  *---------------------------------------------*
+      *                  * Editing orari di apertura                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Mattino inizio                          *
+      *                      *-----------------------------------------*
+           move      w-gch-oap-oam-oin    to   w-gch-oap-war-oda      .
+           move      w-gch-oap-war-oar
+                    (01 : 02)             to   w-gch-oap-war-eo1
+                                              (01 : 02)               .
+           move      ":"                  to   w-gch-oap-war-eo1
+                                              (03 : 01)               .
+           move      w-gch-oap-war-oar
+                    (03 : 02)             to   w-gch-oap-war-eo1
+                                              (04 : 02)               .
+           if        w-gch-oap-war-eo1    =    "00:00"
+                     move  spaces         to   w-gch-oap-war-eo1      .
+      *                      *-----------------------------------------*
+      *                      * Mattino fine                            *
+      *                      *-----------------------------------------*
+           move      w-gch-oap-oam-ofi    to   w-gch-oap-war-oda      .
+           move      w-gch-oap-war-oar
+                    (01 : 02)             to   w-gch-oap-war-eo2
+                                              (01 : 02)               .
+           move      ":"                  to   w-gch-oap-war-eo2
+                                              (03 : 01)               .
+           move      w-gch-oap-war-oar
+                    (03 : 02)             to   w-gch-oap-war-eo2
+                                              (04 : 02)               .
+           if        w-gch-oap-war-eo2    =    "00:00"
+                     move  spaces         to   w-gch-oap-war-eo2      .
+      *                      *-----------------------------------------*
+      *                      * Pomeriggio inizio                       *
+      *                      *-----------------------------------------*
+           move      w-gch-oap-oap-oin    to   w-gch-oap-war-oda      .
+           move      w-gch-oap-war-oar
+                    (01 : 02)             to   w-gch-oap-war-eo3
+                                              (01 : 02)               .
+           move      ":"                  to   w-gch-oap-war-eo3
+                                              (03 : 01)               .
+           move      w-gch-oap-war-oar
+                    (03 : 02)             to   w-gch-oap-war-eo3
+                                              (04 : 02)               .
+           if        w-gch-oap-war-eo3    =    "00:00"
+                     move  spaces         to   w-gch-oap-war-eo3      .
+      *                      *-----------------------------------------*
+      *                      * Pomeriggio fine                         *
+      *                      *-----------------------------------------*
+           move      w-gch-oap-oap-ofi    to   w-gch-oap-war-oda      .
+           move      w-gch-oap-war-oar
+                    (01 : 02)             to   w-gch-oap-war-eo4
+                                              (01 : 02)               .
+           move      ":"                  to   w-gch-oap-war-eo4
+                                              (03 : 01)               .
+           move      w-gch-oap-war-oar
+                    (03 : 02)             to   w-gch-oap-war-eo4
+                                              (04 : 02)               .
+           if        w-gch-oap-war-eo4    =    "00:00"
+                     move  spaces         to   w-gch-oap-war-eo4      .
+       edt-gch-oap-630.
+      *                  *---------------------------------------------*
+      *                  * Deviazione a seconda se:                    *
+      *                  *  - Solo al mattino                          *
+      *                  *  - Solo al pomeriggio                       *
+      *                  *  - Orario continuato                        *
+      *                  *  - Mattina e pomeriggio distinti            *
+      *                  *---------------------------------------------*
+           if        w-gch-oap-oap-oin    =    zero
+                     go to edt-gch-oap-640.
+           if        w-gch-oap-oam-oin    =    zero
+                     go to edt-gch-oap-650.
+           if        w-gch-oap-oam-ofi    =    w-gch-oap-oap-oin
+                     go to edt-gch-oap-660
+           else      go to edt-gch-oap-670.
+       edt-gch-oap-640.
+      *                  *---------------------------------------------*
+      *                  * Solo al mattino                             *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Editing                                 *
+      *                      *-----------------------------------------*
+           string    "Orario   : ["
+                                delimited by   size
+                     w-gch-oap-war-eo1
+                                delimited by   size
+                     "  "
+                                delimited by   size
+                     w-gch-oap-war-eo2
+                                delimited by   size
+                     " ]"
+                                delimited by   size
+                                          into w-gch-oap-oap-edt      .
+      *                      *-----------------------------------------*
+      *                      * Continuazione                           *
+      *                      *-----------------------------------------*
+           go to     edt-gch-oap-800.
+       edt-gch-oap-650.
+      *                  *---------------------------------------------*
+      *                  * Solo al pomeriggio                          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Editing                                 *
+      *                      *-----------------------------------------*
+           string    "Orario   : ["
+                                delimited by   size
+                     w-gch-oap-war-eo3
+                                delimited by   size
+                     "  "
+                                delimited by   size
+                     w-gch-oap-war-eo4
+                                delimited by   size
+                     " ]"
+                                delimited by   size
+                                          into w-gch-oap-oap-edt      .
+      *                      *-----------------------------------------*
+      *                      * Continuazione                           *
+      *                      *-----------------------------------------*
+           go to     edt-gch-oap-800.
+       edt-gch-oap-660.
+      *                  *---------------------------------------------*
+      *                  * Orario continuato                           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Editing                                 *
+      *                      *-----------------------------------------*
+           string    "Orario   : Continuato ["
+                                delimited by   size
+                     w-gch-oap-war-eo1
+                                delimited by   size
+                     "  "
+                                delimited by   size
+                     w-gch-oap-war-eo4
+                                delimited by   size
+                     " ]"
+                                delimited by   size
+                                          into w-gch-oap-oap-edt      .
+      *                      *-----------------------------------------*
+      *                      * Continuazione                           *
+      *                      *-----------------------------------------*
+           go to     edt-gch-oap-800.
+       edt-gch-oap-670.
+      *                  *---------------------------------------------*
+      *                  * Mattina e pomeriggio distinti               *
+      *                  *---------------------------------------------*
+           string    "Orario   : ["
+                                delimited by   size
+                     w-gch-oap-war-eo1
+                                delimited by   size
+                     "  "
+                                delimited by   size
+                     w-gch-oap-war-eo2
+                                delimited by   size
+                     "] ["
+                                delimited by   size
+                     w-gch-oap-war-eo3
+                                delimited by   size
+                     "  "
+                                delimited by   size
+                     w-gch-oap-war-eo4
+                                delimited by   size
+                     "]"
+                                delimited by   size
+                                          into w-gch-oap-oap-edt      .
+      *                      *-----------------------------------------*
+      *                      * Continuazione                           *
+      *                      *-----------------------------------------*
+           go to     edt-gch-oap-800.
+       edt-gch-oap-800.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     edt-gch-oap-999.
+       edt-gch-oap-999.
+           exit.
+

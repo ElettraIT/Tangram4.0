@@ -1,0 +1,55 @@
+      *    *===========================================================*
+      *    * Subroutines per generazione Documenti di Trasporto 'XML'  *
+      *    * per EDI di Metel (DESADV)                                *
+      *                                                                *
+      *                    ___ DA IMPLEMENTARE ___                     *
+      *                                                                *
+      *    *-----------------------------------------------------------*
+       mod-bol-xml-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   m-bol-xml-tip-ope      .
+           perform   mod-bol-xml-cll-000  thru mod-bol-xml-cll-999    .
+       mod-bol-xml-opn-999.
+           exit.
+
+       mod-bol-xml-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   m-bol-xml-tip-ope      .
+           perform   mod-bol-xml-cll-000  thru mod-bol-xml-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   m-bol-xml-tip-ope      .
+           perform   mod-bol-xml-cll-000  thru mod-bol-xml-cll-999    .
+           if        m-bol-xml-exi-sts    not  = spaces
+                     go to mod-bol-xml-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/bol/prg/obj/mbolxml0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       mod-bol-xml-cls-999.
+           exit.
+
+       mod-bol-xml-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/bol/prg/obj/mbolxml0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using m-bol-xml              .
+       mod-bol-xml-cll-999.
+           exit.
+

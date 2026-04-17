@@ -1,0 +1,1335 @@
+      *    *===========================================================*
+      *    * Esportazione [iir]                                        *
+      *    *-----------------------------------------------------------*
+       exe-exp-iir-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione file area generica                 *
+      *              *-------------------------------------------------*
+           move      "iic "               to   f-xxx-are              .
+           move      "iir "               to   f-xxx-nam              .
+           move      "std_iic_iir"        to   f-xxx-npe              .
+      *              *-------------------------------------------------*
+      *              * Richiesta di conferma, se manuale               *
+      *              *-------------------------------------------------*
+           perform   ric-cnf-man-000      thru ric-cnf-man-999        .
+      *              *-------------------------------------------------*
+      *              * Se non confermato : ad uscita                   *
+      *              *-------------------------------------------------*
+           if        f-xxx-sts            not  = "S"
+                     go to exe-exp-iir-999.
+      *              *-------------------------------------------------*
+      *              * Eventuali forzature se esecuzione batch         *
+      *              *-------------------------------------------------*
+           if        w-exe-flg-btc        =    "S"
+                     go to exe-exp-iir-010.
+      *              *-------------------------------------------------*
+      *              * Messaggio di programma in esecuzione            *
+      *              *-------------------------------------------------*
+           move      "PE"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       exe-exp-iir-010.
+      *              *-------------------------------------------------*
+      *              * Numero records letti e scritti a zero           *
+      *              *-------------------------------------------------*
+           move      zero                 to   f-xxx-nrl              .
+           move      zero                 to   f-xxx-nrs              .
+       exe-exp-iir-020.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * [iir]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/iic/fls/ioc/obj/iofiir"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iir                 .
+      *                  *---------------------------------------------*
+      *                  * Open generica file sequenziale di output    *
+      *                  *---------------------------------------------*
+           perform   opn-seq-out-000      thru opn-seq-out-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se errori                              *
+      *                  *---------------------------------------------*
+           if        g-sts                =    e-not-err
+                     go to exe-exp-iir-100.
+      *                  *---------------------------------------------*
+      *                  * Se errori                                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore sull'input          *
+      *                      *-----------------------------------------*
+           perform   msg-inp-err-000      thru msg-inp-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-exp-iir-999.
+       exe-exp-iir-100.
+      *              *-------------------------------------------------*
+      *              * Start su file [iir]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "DATREG    "         to   f-key                  .
+           move      zero                 to   rf-iir-dat-reg         .
+           move      zero                 to   rf-iir-num-prt         .
+           move      zero                 to   rf-iir-num-prg         .
+           move      "pgm/iic/fls/ioc/obj/iofiir"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iir                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-iir-800.
+       exe-exp-iir-200.
+      *              *-------------------------------------------------*
+      *              * Next su [iir]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/iic/fls/ioc/obj/iofiir"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iir                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-iir-800.
+       exe-exp-iir-300.
+      *              *-------------------------------------------------*
+      *              * Max su [iir]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-iir-400.
+      *              *-------------------------------------------------*
+      *              * Sel su [iir]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-iir-500.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records letti                 *
+      *              *-------------------------------------------------*
+           perform   inc-rec-let-000      thru inc-rec-let-999        .
+           if        w-exe-flg-brk        not  = spaces
+                     go to exe-exp-iir-800.
+       exe-exp-iir-550.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare record sequenziale          *
+      *              *-------------------------------------------------*
+           move      spaces               to   g-rec                  .
+       exe-exp-iir-600.
+      *              *-------------------------------------------------*
+      *              * Composizione record in output                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-str-out          .
+      *                  *---------------------------------------------*
+      *                  * Protocollo                                  *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-num-prt       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      11                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Progressivo                                 *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      05                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-num-prg       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      05                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Data registrazione                          *
+      *                  *---------------------------------------------*
+           move      "D "                 to   w-scr-str-tip          .
+           move      rf-iir-dat-reg       to   w-scr-dat-dat          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo operazione                             *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      04                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-top-iic       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      04                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Mese di riferimento                         *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-mes-rif       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Trimestre di riferimento                    *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-tri-rif       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Anno di riferimento                         *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      03                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-ann-rif       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ammontare                                   *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-aml-ope       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ammontare                                   *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-aml-pre       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ammontare                                   *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-avl-ope       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ammontare                                   *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-avl-pre       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice della nomenclatura combinata         *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      08                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-cdn-cdm       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "A "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      08                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice della nomenclatura combinata         *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      08                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-cnc-pre       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "A "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      08                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Massa netta                                 *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      10                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-mas-net       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      10                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Quantita'                                   *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      10                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-qen-ums       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      10                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valore statistico                           *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-vls-iml       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valore statistico                           *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iir-vls-pre       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice ISO                                  *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iir-iso-org       to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo magazzino                              *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-tip-mag       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice magazzino                            *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iir-num-mag       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      07                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valuta - SQL                                *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-exe-sgl-vlt          .
+           move      zero                 to   w-exe-dec-vlt          .
+           move      spaces               to   w-exe-tdc-vlt          .
+           move      zero                 to   w-exe-cdc-vlt          .
+           perform   exe-gen-vlt-000      thru exe-gen-vlt-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione                          *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-exe-ctr-001          .
+       exe-exp-iir-640.
+           add       1                    to   w-exe-ctr-001          .
+           if        w-exe-ctr-001        >    07
+                     go to exe-exp-iir-648.
+      *                  *---------------------------------------------*
+      *                  * Flag bloccanti                              *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iir-flg-blx
+                    (w-exe-ctr-001)       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     exe-exp-iir-640.
+       exe-exp-iir-648.
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione                          *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-exe-ctr-001          .
+       exe-exp-iir-650.
+           add       1                    to   w-exe-ctr-001          .
+           if        w-exe-ctr-001        >    03
+                     go to exe-exp-iir-658.
+      *                  *---------------------------------------------*
+      *                  * Flag non bloccanti                          *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iir-flg-nbx
+                    (w-exe-ctr-001)       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     exe-exp-iir-650.
+       exe-exp-iir-658.
+      *                  *---------------------------------------------*
+      *                  * Flag di pulizia                             *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iir-flg-pul       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "Af"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-iir-690.
+      *              *-------------------------------------------------*
+      *              * Composizione carattere di fine record           *
+      *              *-------------------------------------------------*
+           move      "fr"                 to   w-scr-str-tip          .
+           move      w-scr-fso-cfr        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-iir-700.
+      *              *-------------------------------------------------*
+      *              * Scrittura record in output                      *
+      *              *-------------------------------------------------*
+           move      w-out-str-out        to   g-rec                  .
+           perform   put-nxt-out-000      thru put-nxt-out-999        .
+       exe-exp-iir-720.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records scritti               *
+      *              *-------------------------------------------------*
+           perform   inc-rec-scr-000      thru inc-rec-scr-999        .
+       exe-exp-iir-750.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [iir]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-iir-200.
+       exe-exp-iir-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [iir]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/iic/fls/ioc/obj/iofiir"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iir                 .
+       exe-exp-iir-850.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione nr records letti e scritti      *
+      *              *-------------------------------------------------*
+           perform   vis-rec-let-000      thru vis-rec-let-999        .
+           perform   vis-rec-scr-000      thru vis-rec-scr-999        .
+      *              *-------------------------------------------------*
+      *              * Accettazione presa visione                      *
+      *              *-------------------------------------------------*
+           perform   acc-pre-vis-000      thru acc-pre-vis-999        .
+       exe-exp-iir-900.
+      *              *-------------------------------------------------*
+      *              * Scrittura rullino messaggi                      *
+      *              *-------------------------------------------------*
+           perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
+       exe-exp-iir-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [iit]                                        *
+      *    *-----------------------------------------------------------*
+       exe-exp-iit-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione file area generica                 *
+      *              *-------------------------------------------------*
+           move      "iic "               to   f-xxx-are              .
+           move      "iit "               to   f-xxx-nam              .
+           move      "std_iic_iit"        to   f-xxx-npe              .
+      *              *-------------------------------------------------*
+      *              * Richiesta di conferma, se manuale               *
+      *              *-------------------------------------------------*
+           perform   ric-cnf-man-000      thru ric-cnf-man-999        .
+      *              *-------------------------------------------------*
+      *              * Se non confermato : ad uscita                   *
+      *              *-------------------------------------------------*
+           if        f-xxx-sts            not  = "S"
+                     go to exe-exp-iit-999.
+      *              *-------------------------------------------------*
+      *              * Eventuali forzature se esecuzione batch         *
+      *              *-------------------------------------------------*
+           if        w-exe-flg-btc        =    "S"
+                     go to exe-exp-iit-010.
+      *              *-------------------------------------------------*
+      *              * Messaggio di programma in esecuzione            *
+      *              *-------------------------------------------------*
+           move      "PE"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       exe-exp-iit-010.
+      *              *-------------------------------------------------*
+      *              * Numero records letti e scritti a zero           *
+      *              *-------------------------------------------------*
+           move      zero                 to   f-xxx-nrl              .
+           move      zero                 to   f-xxx-nrs              .
+       exe-exp-iit-020.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * [iit]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/iic/fls/ioc/obj/iofiit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iit                 .
+      *                  *---------------------------------------------*
+      *                  * Open generica file sequenziale di output    *
+      *                  *---------------------------------------------*
+           perform   opn-seq-out-000      thru opn-seq-out-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se errori                              *
+      *                  *---------------------------------------------*
+           if        g-sts                =    e-not-err
+                     go to exe-exp-iit-100.
+      *                  *---------------------------------------------*
+      *                  * Se errori                                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore sull'input          *
+      *                      *-----------------------------------------*
+           perform   msg-inp-err-000      thru msg-inp-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-exp-iit-999.
+       exe-exp-iit-100.
+      *              *-------------------------------------------------*
+      *              * Start su file [iit]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "DATREG    "         to   f-key                  .
+           move      zero                 to   rf-iit-dat-reg         .
+           move      zero                 to   rf-iit-num-prt         .
+           move      "pgm/iic/fls/ioc/obj/iofiit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iit                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-iit-800.
+       exe-exp-iit-200.
+      *              *-------------------------------------------------*
+      *              * Next su [iit]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/iic/fls/ioc/obj/iofiit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iit                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-iit-800.
+       exe-exp-iit-300.
+      *              *-------------------------------------------------*
+      *              * Max su [iit]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-iit-400.
+      *              *-------------------------------------------------*
+      *              * Sel su [iit]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-iit-500.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records letti                 *
+      *              *-------------------------------------------------*
+           perform   inc-rec-let-000      thru inc-rec-let-999        .
+           if        w-exe-flg-brk        not  = spaces
+                     go to exe-exp-iit-800.
+       exe-exp-iit-550.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare record sequenziale          *
+      *              *-------------------------------------------------*
+           move      spaces               to   g-rec                  .
+       exe-exp-iit-600.
+      *              *-------------------------------------------------*
+      *              * Composizione record in output                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-str-out          .
+      *                  *---------------------------------------------*
+      *                  * Protocollo                                  *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-num-prt       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      11                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Data registrazione                          *
+      *                  *---------------------------------------------*
+           move      "D "                 to   w-scr-str-tip          .
+           move      rf-iit-dat-reg       to   w-scr-dat-dat          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo operazione                             *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      04                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-top-iic       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      04                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Data movimento di contabilita'              *
+      *                  *---------------------------------------------*
+           move      rf-iit-dtr-cge       to   w-exe-dep-dat          .
+           move      rf-iit-prt-cge       to   w-exe-dep-prt          .
+           perform   exe-gen-dep-000      thru exe-gen-dep-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo archivio                               *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-tip-arc       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice archivio                             *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-cod-arc       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      07                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice archivio                             *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-arc-pre       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      07                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice ISO                                  *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-iso-opc       to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice ISO                                  *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-iso-ocp       to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice IVA                                  *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-cdi-opi       to   w-scr-str-ele          .
+           move      16                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice IVA                                  *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-cdi-ocp       to   w-scr-str-ele          .
+           move      16                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Natura                                      *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-cdn-dtr       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Natura                                      *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-cdn-dtp       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Regime                                      *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-cod-rgm       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Consegna                                    *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-cod-cdc       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Trasporto                                   *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-iit-cod-mdt       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice ISO                                  *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-iso-pod       to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice provincia                            *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-pvc-ood       to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ammontare                                   *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      rf-iit-tco-eiv       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valuta - SQL                                *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-exe-sgl-vlt          .
+           move      zero                 to   w-exe-dec-vlt          .
+           move      spaces               to   w-exe-tdc-vlt          .
+           move      zero                 to   w-exe-cdc-vlt          .
+           perform   exe-gen-vlt-000      thru exe-gen-vlt-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione                          *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-exe-ctr-001          .
+       exe-exp-iit-640.
+           add       1                    to   w-exe-ctr-001          .
+           if        w-exe-ctr-001        >    07
+                     go to exe-exp-iit-648.
+      *                  *---------------------------------------------*
+      *                  * Flag bloccanti                              *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-flg-blx
+                    (w-exe-ctr-001)       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     exe-exp-iit-640.
+       exe-exp-iit-648.
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione                          *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-exe-ctr-001          .
+       exe-exp-iit-650.
+           add       1                    to   w-exe-ctr-001          .
+           if        w-exe-ctr-001        >    03
+                     go to exe-exp-iit-658.
+      *                  *---------------------------------------------*
+      *                  * Flag non bloccanti                          *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-flg-nbx
+                    (w-exe-ctr-001)       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     exe-exp-iit-650.
+       exe-exp-iit-658.
+      *                  *---------------------------------------------*
+      *                  * Flag di pulizia                             *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-flg-pul       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Data ultima modifica                        *
+      *                  *---------------------------------------------*
+           move      "D "                 to   w-scr-str-tip          .
+           move      rf-iit-ide-dat       to   w-scr-dat-dat          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Utente ultima modifica                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-ide-ute       to   w-scr-str-ele          .
+           move      08                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Fase ultima modifica                        *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-iit-ide-fas       to   w-scr-str-ele          .
+           move      06                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "Af"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-iit-690.
+      *              *-------------------------------------------------*
+      *              * Composizione carattere di fine record           *
+      *              *-------------------------------------------------*
+           move      "fr"                 to   w-scr-str-tip          .
+           move      w-scr-fso-cfr        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-iit-700.
+      *              *-------------------------------------------------*
+      *              * Scrittura record in output                      *
+      *              *-------------------------------------------------*
+           move      w-out-str-out        to   g-rec                  .
+           perform   put-nxt-out-000      thru put-nxt-out-999        .
+       exe-exp-iit-720.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records scritti               *
+      *              *-------------------------------------------------*
+           perform   inc-rec-scr-000      thru inc-rec-scr-999        .
+       exe-exp-iit-750.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [iit]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-iit-200.
+       exe-exp-iit-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [iit]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/iic/fls/ioc/obj/iofiit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-iit                 .
+       exe-exp-iit-850.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione nr records letti e scritti      *
+      *              *-------------------------------------------------*
+           perform   vis-rec-let-000      thru vis-rec-let-999        .
+           perform   vis-rec-scr-000      thru vis-rec-scr-999        .
+      *              *-------------------------------------------------*
+      *              * Accettazione presa visione                      *
+      *              *-------------------------------------------------*
+           perform   acc-pre-vis-000      thru acc-pre-vis-999        .
+       exe-exp-iit-900.
+      *              *-------------------------------------------------*
+      *              * Scrittura rullino messaggi                      *
+      *              *-------------------------------------------------*
+           perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
+       exe-exp-iit-999.
+           exit.
+

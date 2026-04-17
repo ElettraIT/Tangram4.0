@@ -1,0 +1,429 @@
+      *    *===========================================================*
+      *    * Subroutines comuni ai programmi della serie 'xpg7xx'      *
+      *    *                                                           *
+      *    *  - Composizione singolo campo                             *
+      *    *-----------------------------------------------------------*
+
+      *    *===========================================================*
+      *    * Composizione singolo campo                                *
+      *    *                                                           *
+      *    * FORMATO : 999,'XXXXXXXX','YYYYY',999                      *
+      *    *-----------------------------------------------------------*
+       cmp-sng-fld-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del tipo elemento        *
+      *              *-------------------------------------------------*
+           if        w-scr-str-tip        =    "A " or
+                     w-scr-str-tip        =    "E "
+                     go to cmp-sng-fld-200
+           else if   w-scr-str-tip        =    "N " or
+                     w-scr-str-tip        =    "V " or
+                     w-scr-str-tip        =    "Y "
+                     go to cmp-sng-fld-300
+           else if   w-scr-str-tip        =    "D "
+                     go to cmp-sng-fld-400
+           else if   w-scr-str-tip        =    "fr"
+                     go to cmp-sng-fld-200
+           else      go to cmp-sng-fld-100.
+       cmp-sng-fld-100.
+      *              *-------------------------------------------------*
+      *              * Se separatori                                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Check preliminare di congruenza             *
+      *                  *---------------------------------------------*
+           if        w-scr-str-tip (1:1)  =    "i"    or
+                     w-scr-str-tip (2:1)  =    "f"
+                     go to cmp-sng-fld-150.
+           if        w-scr-str-sav        =    spaces
+                     go to cmp-sng-fld-150.
+           if        w-scr-str-sav (2:1)  =    spaces or
+                     w-scr-str-sav (2:1)  =    "f"    or
+                     w-scr-str-sav (1:1)  =    "i"
+                     go to cmp-sng-fld-150.
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
+           if        w-scr-str-sav        =    "NN" and
+                     w-scr-str-tip        =    "NN"
+                     go to cmp-sng-fld-150
+           else if   w-scr-str-sav        =    "AN" and
+                     w-scr-str-tip        =    "NN"
+                     go to cmp-sng-fld-150
+           else if   w-scr-str-sav        =    "AN" and
+                     w-scr-str-tip        =    "NA"
+                     go to cmp-sng-fld-150
+           else if   w-scr-str-sav        =    "AA" and
+                     w-scr-str-tip        =    "AA"
+                     go to cmp-sng-fld-150
+           else if   w-scr-str-sav        =    "AA" and
+                     w-scr-str-tip        =    "AN"
+                     go to cmp-sng-fld-150.
+      *                  *---------------------------------------------*
+      *                  * Assemblaggio                                *
+      *                  *---------------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      04                   to   w-all-str-num          .
+           move      f-xxx-nam            to   w-all-str-cat (1)      .
+           move      ": con errori -"     to   w-all-str-cat (2)      .
+           move      w-scr-str-sav        to   w-all-str-cat (3)      .
+           move      w-scr-str-tip        to   w-all-str-cat (4)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   w-scr-str-ele          .
+      *                  *---------------------------------------------*
+      *                  * Rullino messaggi                            *
+      *                  *---------------------------------------------*
+           move      "WR"                 to   m-ope                  .
+           move      w-all-str-alf        to   m-msg                  .
+           call      "swd/mod/prg/obj/mmessg"
+                                         using m                      .
+       cmp-sng-fld-150.
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
+           if        w-scr-str-tip        =    "iA"
+                     move  "'"            to   w-scr-str-ele
+                     move  01             to   w-scr-lun-ele
+           else if   w-scr-str-tip        =    "AA"
+                     move  "','"          to   w-scr-str-ele
+                     move  03             to   w-scr-lun-ele
+           else if   w-scr-str-tip        =    "AN"
+                     move  "',"           to   w-scr-str-ele
+                     move  02             to   w-scr-lun-ele
+           else if   w-scr-str-tip        =    "NA"
+                     move  ",'"           to   w-scr-str-ele
+                     move  02             to   w-scr-lun-ele
+           else if   w-scr-str-tip        =    "NN"
+                     move  ","            to   w-scr-str-ele
+                     move  01             to   w-scr-lun-ele
+           else if   w-scr-str-tip        =    "Af"
+                     move  "',"           to   w-scr-str-ele
+                     move  02             to   w-scr-lun-ele
+           else if   w-scr-str-tip        =    "Nf"
+                     move  ","            to   w-scr-str-ele
+                     move  01             to   w-scr-lun-ele
+           else      go to cmp-sng-fld-999.
+      *                  *---------------------------------------------*
+      *                  * Ad assemblaggio                             *
+      *                  *---------------------------------------------*
+           go to     cmp-sng-fld-800.
+       cmp-sng-fld-200.
+      *              *-------------------------------------------------*
+      *              * Alfanumerico o espanso                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il campo contiene un singolo apice e     *
+      *                  * basta, si normalizza il campo               *
+      *                  *---------------------------------------------*
+           if        w-scr-str-ele        =    "'"
+                     move  spaces         to   w-scr-str-ele
+                     go to cmp-sng-fld-280.
+      *                  *---------------------------------------------*
+      *                  * Se il campo contiene una barra retroversa   *
+      *                  * e basta, si normalizza il campo             *
+      *                  *---------------------------------------------*
+           if        w-scr-str-ele        =    "\"
+                     move  spaces         to   w-scr-str-ele
+                     go to cmp-sng-fld-280.
+       cmp-sng-fld-210.
+      *                  *---------------------------------------------*
+      *                  * Eliminazione singoli apici eventuali        *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se presenti (')                    *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-scr-ctr-001          .
+           inspect   w-scr-str-ele    tallying w-scr-ctr-001
+                                     for all   "'"                    .
+      *
+           if        w-scr-ctr-001        =    zero
+                     go to cmp-sng-fld-230
+           else if   w-scr-ctr-001        =    1
+                     go to cmp-sng-fld-220
+           else      go to cmp-sng-fld-224.
+       cmp-sng-fld-220.
+      *                      *-----------------------------------------*
+      *                      * Pulizia di un solo elemento             *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Pulizia                             *
+      *                          *-------------------------------------*
+           add       1                    to   w-scr-lun-ele          .
+           move      w-scr-lun-ele        to   w-all-str-lun          .
+           move      w-scr-str-ele        to   w-all-str-alf          .
+           move      "'"                  to   w-all-str-cat (1)      .
+           move      "\'"                 to   w-all-str-cat (2)      .
+           perform   all-str-sos-000      thru all-str-sos-999        .
+           move      w-all-str-alf        to   w-scr-str-ele          .
+      *                          *-------------------------------------*
+      *                          * Oltre                               *
+      *                          *-------------------------------------*
+           go to     cmp-sng-fld-230.
+       cmp-sng-fld-224.
+      *                      *-----------------------------------------*
+      *                      * Pulizia di + elementi                   *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Scomposizione                       *
+      *                          *-------------------------------------*
+           move      w-scr-str-ele        to   w-all-str-alf          .
+           move      "'"                  to   w-all-str-del          .
+           perform   all-str-ext-000      thru all-str-ext-999        .
+      *                          *-------------------------------------*
+      *                          * Ri-composizione                     *
+      *                          *-------------------------------------*
+           add       1                    to   w-scr-lun-ele          .
+           move      w-scr-lun-ele        to   w-all-str-lun          .
+           move      w-scr-str-ele        to   w-all-str-alf          .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   w-scr-str-ele          .
+      *                          *-------------------------------------*
+      *                          * Oltre                               *
+      *                          *-------------------------------------*
+           go to     cmp-sng-fld-230.
+       cmp-sng-fld-230.
+      *                  *---------------------------------------------*
+      *                  * Eliminazione virgole eventuali              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se presenti ','                    *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-scr-ctr-001          .
+           inspect   w-scr-str-ele    tallying w-scr-ctr-001
+                                     for all   ","                    .
+      *
+           if        w-scr-ctr-001        =    zero
+                     go to cmp-sng-fld-280
+           else if   w-scr-ctr-001        =    1
+                     go to cmp-sng-fld-240
+           else      go to cmp-sng-fld-260.
+       cmp-sng-fld-240.
+      *                      *-----------------------------------------*
+      *                      * Pulizia di una sola virgola             *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Pulizia                             *
+      *                          *-------------------------------------*
+           move      w-scr-lun-ele        to   w-all-str-lun          .
+           move      w-scr-str-ele        to   w-all-str-alf          .
+           move      ","                  to   w-all-str-cat (1)      .
+           move      "\,"                 to   w-all-str-cat (2)      .
+           perform   all-str-sos-000      thru all-str-sos-999        .
+           move      w-all-str-alf        to   w-scr-str-ele          .
+      *                          *-------------------------------------*
+      *                          * Oltre                               *
+      *                          *-------------------------------------*
+           go to     cmp-sng-fld-280.
+       cmp-sng-fld-260.
+      *                      *-----------------------------------------*
+      *                      * Pulizia di + virgole                    *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Scomposizione                       *
+      *                          *-------------------------------------*
+           move      w-scr-str-ele        to   w-all-str-alf          .
+           move      ","                  to   w-all-str-del          .
+           perform   all-str-ext-000      thru all-str-ext-999        .
+      *                          *-------------------------------------*
+      *                          * Ri-composizione                     *
+      *                          *-------------------------------------*
+           move      w-scr-lun-ele        to   w-all-str-lun          .
+           move      w-scr-str-ele        to   w-all-str-alf          .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   w-scr-str-ele          .
+      *                          *-------------------------------------*
+      *                          * Oltre                               *
+      *                          *-------------------------------------*
+           go to     cmp-sng-fld-280.
+       cmp-sng-fld-280.
+      *                  *---------------------------------------------*
+      *                  * A scansione                                 *
+      *                  *---------------------------------------------*
+           go to     cmp-sng-fld-800.
+       cmp-sng-fld-300.
+      *              *-------------------------------------------------*
+      *              * Numerico o valuta                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se tutti zeri                          *
+      *                  *                                             *
+      *                  * ___ MIGLIORARE ___                          *
+      *                  *---------------------------------------------*
+           if        w-scr-str-ele        =   "0,0"   or
+                     w-scr-str-ele        =   "00,0"  or
+                     w-scr-str-ele        =   "  , "  or
+                     w-scr-str-ele        =   ",00"
+                     move  spaces         to   w-scr-str-ele
+                     go to cmp-sng-fld-360.
+      *                  *---------------------------------------------*
+      *                  * Test se tutti zeri                          *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-scr-ctr-001          .
+           inspect   w-scr-str-ele    tallying w-scr-ctr-001
+                                     for all   "0"                    .
+           if        w-scr-ctr-001        =    w-scr-lun-ele
+                     move  spaces         to   w-scr-str-ele          .
+      *                  *---------------------------------------------*
+      *                  * Test se tutti zeri (decimali)               *
+      *                  *                                             *
+      *                  * ___ MIGLIORARE ___                          *
+      *                  *---------------------------------------------*
+           go to     cmp-sng-fld-360.
+      *
+           move      zero                 to   w-scr-ctr-001          .
+           inspect   w-scr-str-ele    tallying w-scr-ctr-001
+                                     for all   ","                    .
+           if        w-scr-ctr-001        not  = 1
+                     go to cmp-sng-fld-360.
+       cmp-sng-fld-350.
+      *                  *---------------------------------------------*
+      *                  * Riempimento della stringa                   *
+      *                  *---------------------------------------------*
+           inspect   w-scr-str-ele
+                                replacing all  " "
+                                          by   "0"                    .
+      *
+           move      zero                 to   w-scr-ctr-001          .
+           move      w-scr-lun-ele        to   w-scr-ctr-005          .
+           subtract  1                    from w-scr-ctr-005          .
+           inspect   w-scr-str-ele    tallying w-scr-ctr-001
+                                     for all   "0"                    .
+           if        w-scr-ctr-001        =    w-scr-ctr-005
+                     move  spaces         to   w-scr-str-ele          .
+       cmp-sng-fld-360.
+      *                  *---------------------------------------------*
+      *                  * Trattamento eventuale segno                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-scr-str-sgn          .
+           move      zero                 to   w-scr-ctr-001          .
+           inspect   w-scr-str-ele    tallying w-scr-ctr-001
+                                     for all   "-"                    .
+           if        w-scr-ctr-001        not  = 1
+                     go to cmp-sng-fld-365.
+           inspect   w-scr-str-ele
+                                replacing all  "-"
+                                          by   "0"                    .
+           move      "-"                  to   w-scr-str-sgn          .
+       cmp-sng-fld-365.
+      *                  *---------------------------------------------*
+      *                  * Rimozione zeri in testa                     *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-scr-str-elx          .
+           move      zero                 to   w-scr-ctr-001          .
+           inspect   w-scr-str-ele    tallying w-scr-ctr-001
+                                     for  leading zero
+           if        w-scr-ctr-001        not  > zero
+                     go to cmp-sng-fld-370.
+      *
+           add       1                    to   w-scr-ctr-001          .
+           unstring  w-scr-str-ele        into w-scr-str-elx
+                                  with pointer w-scr-ctr-001          .
+           move      w-scr-str-elx        to   w-scr-str-ele          .
+       cmp-sng-fld-370.
+      *                  *---------------------------------------------*
+      *                  * Assemblaggio con segno eventuale            *
+      *                  *---------------------------------------------*
+           move      20                   to   w-all-str-lun          .
+           move      02                   to   w-all-str-num          .
+           move      w-scr-str-sgn        to   w-all-str-cat (1)      .
+      *
+           if        w-scr-str-ele        =    spaces
+                     move  "0"            to   w-all-str-cat (2)
+           else      move  w-scr-str-ele  to   w-all-str-cat (2)      .
+      *
+           perform   all-str-cat-000      thru all-str-cat-999        .
+           move      w-all-str-alf        to   w-scr-str-ele          .
+       cmp-sng-fld-380.
+      *                  *---------------------------------------------*
+      *                  * Conversione virgole in punti                *
+      *                  *---------------------------------------------*
+           inspect   w-scr-str-ele
+                                replacing all  ","
+                                          by   "."                    .
+      *                  *---------------------------------------------*
+      *                  * Ultima eventuale pulizia                    *
+      *                  *                                             *
+      *                  * ___ MIGLIORARE ___                          *
+      *                  *---------------------------------------------*
+           if        w-scr-str-ele        =    ".0"
+                     move  "0.0"          to   w-scr-str-ele          .
+           if        w-scr-str-ele        =    ".00"
+                     move  "0.00"         to   w-scr-str-ele          .
+           if        w-scr-str-ele        =    ".000"
+                     move  "0.000"        to   w-scr-str-ele          .
+      *                  *---------------------------------------------*
+      *                  * A scansione                                 *
+      *                  *---------------------------------------------*
+           go to     cmp-sng-fld-800.
+       cmp-sng-fld-400.
+      *              *-------------------------------------------------*
+      *              * Data                                            *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Preliminari                                 *
+      *                  *---------------------------------------------*
+           move      12                   to   w-scr-lun-ele          .
+      *
+           if        w-scr-dat-dat        =    zero
+                     move  "'0000-00-00'" 
+                                          to   w-scr-str-ele
+                     go to cmp-sng-fld-800.
+      *                  *---------------------------------------------*
+      *                  * Preparazione                                *
+      *                  *---------------------------------------------*
+           move      w-scr-dat-dat        to   s-dat                  .
+           move      s-saa                to   w-scr-dat-ann          .
+           if        w-scr-dat-dat        >    zero
+                     add  1900            to   w-scr-dat-ann          .
+           move      s-mes                to   w-scr-dat-mes          .
+           move      s-gio                to   w-scr-dat-gio          .
+      *                  *---------------------------------------------*
+      *                  * Assemblaggio                                *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-scr-str-ele          .
+           string    "'"        delimited by   size
+                     w-scr-dat-ann
+                                delimited by   spaces
+                     "-"        delimited by   size
+                     w-scr-dat-mes
+                                delimited by   spaces
+                     "-"        delimited by   size
+                     w-scr-dat-gio
+                                delimited by   spaces
+                     "'"        delimited by   size
+                                          into w-scr-str-ele          .
+      *                  *---------------------------------------------*
+      *                  * Test per anomalia '2000-00-00'              *
+      *                  *---------------------------------------------*
+           if        w-scr-str-ele        =    "'2000-00-00'"
+                     move  "'0000-00-00'" 
+                                          to   w-scr-str-ele          .
+      *                  *---------------------------------------------*
+      *                  * A scansione                                 *
+      *                  *---------------------------------------------*
+           go to     cmp-sng-fld-800.
+       cmp-sng-fld-800.
+      *              *-------------------------------------------------*
+      *              * Scansione per assemblaggio                      *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-scr-ctr-001          .
+           inspect   w-out-str-out    tallying w-scr-ctr-001
+                                  for trailing spaces                 .
+           move      5120                 to   w-scr-ctr-002          .
+           subtract  w-scr-ctr-001        from w-scr-ctr-002          .
+           add       1                    to   w-scr-ctr-002          .
+           move      w-scr-str-ele        to   w-out-str-out
+                                              (w-scr-ctr-002 :
+                                               w-scr-lun-ele)         .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione                                 *
+      *              *-------------------------------------------------*
+           move      w-scr-str-tip        to   w-scr-str-sav          .
+       cmp-sng-fld-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     cmp-sng-fld-999.
+       cmp-sng-fld-999.
+           exit.
+

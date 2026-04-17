@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice statistico 2    *
+      *    *-----------------------------------------------------------*
+       cmn-zms-002-opn-000.
+           move      "pgm/dpm/prg/obj/acmnzms2"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cmn-zms-002-pth      .
+           move      "OP"                 to   w-cmn-zms-002-ope      .
+           perform   cmn-zms-002-cll-000  thru cmn-zms-002-cll-999    .
+       cmn-zms-002-opn-999.
+           exit.
+       cmn-zms-002-cls-000.
+           move      "CL"                 to   w-cmn-zms-002-ope      .
+           perform   cmn-zms-002-cll-000  thru cmn-zms-002-cll-999    .
+           move      "C?"                 to   w-cmn-zms-002-ope      .
+           perform   cmn-zms-002-cll-000  thru cmn-zms-002-cll-999    .
+           if        w-cmn-zms-002-ope    not  = spaces
+                     go to cmn-zms-002-cls-999.
+           cancel    w-cmn-zms-002-pth                                .
+       cmn-zms-002-cls-999.
+           exit.
+       cmn-zms-002-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cmn-zms-002-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdpm1800"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zms-002-foi-999.
+           move      "pgm/dpm/prg/obj/pdpm1800"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cmn-zms-002-ope      .
+           go to     cmn-zms-002-foi-999.
+       cmn-zms-002-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cmn-zms-002-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdpm1810"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zms-002-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dpm/prg/obj/pdpm1810"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cmn-zms-002-ope      .
+           go to     cmn-zms-002-foi-999.
+       cmn-zms-002-foi-999.
+           exit.
+       cmn-zms-002-cll-000.
+           call      w-cmn-zms-002-pth   using w-cmn-zms-002
+                                               v
+                                               s                      .
+       cmn-zms-002-cll-999.
+           exit.
+

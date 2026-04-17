@@ -1,0 +1,122 @@
+      *    *===========================================================*
+      *    * Record tabella calcolo spese bollo su effetti [zsb]       *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "TIPPAG    " = rf-zsb-tip-pag                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zsb.
+      *        *-------------------------------------------------------*
+      *        * Tipo di pagamento                                     *
+      *        *                                                       *
+      *        * - 09 : Ricevuta bancaria tradizionale                 *
+      *        * - 10 : Tratta                                         *
+      *        * - 11 : Paghero'                                       *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-tip-pag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di automatismo per la determinazione delle spese *
+      *        * bollo per questo tipo pagamento                       *
+      *        *                                                       *
+      *        * - 01 : In percentuale sul totale scadenza             *
+      *        * - 02 : A scaglioni                                    *
+      *        * - 03 : A scaglioni con percentuale sull'eccedenza     *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-tau-spb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuale per la determinazione delle spese bollo   *
+      *        * per questo tipo di pagamento                          *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Solo se tipo automatismo 01                           *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-per-spb             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Tabella scaglioni per la determinazione delle spese   *
+      *        * bollo per questo tipo di pagamento                    *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Solo se tipo automatismo 02 o 03                      *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-tbs-spb.
+      *            *---------------------------------------------------*
+      *            * Elemento della tabella scaglioni                  *
+      *            *---------------------------------------------------*
+               10  rf-zsb-tbe-spb occurs 10.
+      *                *-----------------------------------------------*
+      *                * Scaglione                                     *
+      *                *-----------------------------------------------*
+                   15  rf-zsb-tbe-scg     pic  9(11)                  .
+      *                *-----------------------------------------------*
+      *                * Ammontare sullo scaglione                     *
+      *                *                                               *
+      *                * Solo se tipo di automatismo 02                *
+      *                *-----------------------------------------------*
+                   15  rf-zsb-tbe-asc     pic  9(11)                  .
+      *                *-----------------------------------------------*
+      *                * Percentuale sullo scaglione                   *
+      *                *                                               *
+      *                * Solo se tipo di automatismo 03                *
+      *                *-----------------------------------------------*
+                   15  rf-zsb-tbe-psc     pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Tetto di esenzione per la spesa                       *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-tet-spb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore minimo delle spese bollo per questo tipo di    *
+      *        * pagamento                                             *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-min-spb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore massimo delle spese bollo per questo tipo di   *
+      *        * pagamento                                             *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-max-spb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di arrotondamento sul valore determinato delle   *
+      *        * spese bollo per questo tipo di pagamento              *
+      *        *                                                       *
+      *        * - 00 : Nessun arrotondamento                          *
+      *        * - 01 : Arrotondamento al valore superiore             *
+      *        * - 02 : Arrotondamento al valore inferiore             *
+      *        * - 03 : Arrotondamento di tipo commerciale             *
+      *        * - 04 : Arrotondamento di tipo statale                 *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-tar-spb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore di arrotondamento sul valore determinato delle *
+      *        * spese bollo per questo tipo di pagamento              *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Solo se tipo arrotondamento diverso da 00             *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-var-spb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zsb-alx-exp             pic  x(80)                  .

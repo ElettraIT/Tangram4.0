@@ -1,0 +1,62 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zp2]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zp2-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zp2-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice gruppo a zero                    *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zp2-gru    =    zero
+                     go to let-arc-zp2-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODGRU    "         to   f-key                  .
+           move      w-let-arc-zp2-cla    to   rf-zp2-cod-cla         .
+           move      w-let-arc-zp2-gru    to   rf-zp2-cod-gru         .
+           move      "pgm/dcp/fls/ioc/obj/iofzp2"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zp2                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zp2-400.
+       let-arc-zp2-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zp2-des-gru       to   w-let-arc-zp2-des      .
+           move      rf-zp2-mne-gru       to   w-let-arc-zp2-mne      .
+           move      rf-zp2-ult-sud       to   w-let-arc-zp2-sud      .
+           move      rf-zp2-sqz-num       to   w-let-arc-zp2-sqz      .
+           move      rf-zp2-umi-def       to   w-let-arc-zp2-umi      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zp2-999.
+       let-arc-zp2-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zp2-flg      .
+           move      all   "."            to   w-let-arc-zp2-des      .
+           move      w-let-arc-zp2-gru    to   w-let-arc-zp2-mne      .
+           go to     let-arc-zp2-600.
+       let-arc-zp2-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zp2-des      .
+           move      spaces               to   w-let-arc-zp2-mne      .
+       let-arc-zp2-600.
+           move      spaces               to   w-let-arc-zp2-umi      .
+           move      zero                 to   w-let-arc-zp2-sud      .
+           move      zero                 to   w-let-arc-zp2-sqz      .
+       let-arc-zp2-999.
+           exit.
+

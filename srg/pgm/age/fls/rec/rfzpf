@@ -1,0 +1,68 @@
+      *    *===========================================================*
+      *    * Record tabella provvigioni a scaglioni su fatturato [zpf] *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "AGECLI    " = rf-zpf-cod-arc                    *
+      *    *                         rf-zpf-cod-cli                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zpf.
+      *        *-------------------------------------------------------*
+      *        * Codice agente                                         *
+      *        *-------------------------------------------------------*
+           05  rf-zpf-cod-age             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente o anno di competenza                   *
+      *        *                                                       *
+      *        * N.B. : se zero, vale per tutti i clienti dell'agente  *
+      *        *                                                       *
+      *        * N.B. : puo' contenere, se necessario, l'anno di com-  *
+      *        *        petenza nel formato s.aa                       *
+      *        *       (previa eventuale personalizzazione ___)        *
+      *        *-------------------------------------------------------*
+           05  rf-zpf-cod-cli             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Totali da considerare per la determinazione degli     *
+      *        * scaglioni di fatturato                                *
+      *        *                                                       *
+      *        * - 01 : Totale merce                                   *
+      *        * - 02 : Totale servizi                                 *
+      *        * - 03 : Totale imballi                                 *
+      *        * - 04 : Totale libero 4                                *
+      *        * - 05 : Totale libero 5                                *
+      *        * - 06 : Totale libero 6                                *
+      *        * - 07 : Totale libero 7                                *
+      *        * - 08 : Totale libero 8                                *
+      *        * - 09 : Totale extra                                   *
+      *        *                                                       *
+      *        * N.B. : campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zpf-tot-snx occurs 09   pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di fatturato                                     *
+      *        *                                                       *
+      *        * - 01 : Annuale                                        *
+      *        *                                                       *
+      *        * N.B. : campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zpf-tip-fat             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tabella scaglioni di provvigioni legate ai fatturati  *
+      *        *-------------------------------------------------------*
+           05  rf-zpf-scp-tbf.
+      *            *---------------------------------------------------*
+      *            * Elemento della tabella scaglioni                  *
+      *            *---------------------------------------------------*
+               10  rf-zpf-scp-tbe occurs 6.
+      *                *-----------------------------------------------*
+      *                * Fatturato di applicazione della provvigione   *
+      *                *-----------------------------------------------*
+                   15  rf-zpf-scp-tot     pic  9(11)                  .
+      *                *-----------------------------------------------*
+      *                * Percentuale di provvigione applicata          *
+      *                *-----------------------------------------------*
+                   15  rf-zpf-scp-per     pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zpf-alx-exp             pic  x(80)                  .

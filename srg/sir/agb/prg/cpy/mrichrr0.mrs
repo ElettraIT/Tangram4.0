@@ -1,0 +1,54 @@
+      *    *===========================================================*
+      *    * Subroutines per memorizzazione richieste di selezione     *
+      *    *-----------------------------------------------------------*
+       mem-ric-sel-opn-000.
+      *              *-------------------------------------------------*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "sir/agb/prg/obj/mrichrr0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-mem-ric-sel-pth      .
+           move      "OP"                 to   w-mem-ric-sel-ope      .
+           perform   mem-ric-sel-cll-000  thru mem-ric-sel-cll-999    .
+       mem-ric-sel-opn-999.
+           exit.
+       mem-ric-sel-cls-000.
+      *              *-------------------------------------------------*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   w-mem-ric-sel-ope      .
+           perform   mem-ric-sel-cll-000  thru mem-ric-sel-cll-999    .
+           move      "C?"                 to   w-mem-ric-sel-ope      .
+           perform   mem-ric-sel-cll-000  thru mem-ric-sel-cll-999    .
+           if        w-mem-ric-sel-ope    not  = spaces
+                     go to mem-ric-sel-cls-999.
+           cancel    w-mem-ric-sel-pth                                .
+       mem-ric-sel-cls-999.
+           exit.
+       mem-ric-sel-rea-000.
+      *              *-------------------------------------------------*
+      *              * Lettura                                         *
+      *              *-------------------------------------------------*
+           move      "RD"                 to   w-mem-ric-sel-ope      .
+           perform   mem-ric-sel-cll-000  thru mem-ric-sel-cll-999    .
+       mem-ric-sel-rea-999.
+           exit.
+       mem-ric-sel-wrt-000.
+      *              *-------------------------------------------------*
+      *              * Scrittura                                       *
+      *              *-------------------------------------------------*
+           move      "WR"                 to   w-mem-ric-sel-ope      .
+           perform   mem-ric-sel-cll-000  thru mem-ric-sel-cll-999    .
+       mem-ric-sel-wrt-999.
+           exit.
+       mem-ric-sel-cll-000.
+      *              *=================================================*
+      *              * Chiamata modulo                                 *
+      *              *-------------------------------------------------*
+           call      w-mem-ric-sel-pth   using w-mem-ric-sel
+                                               s                      .
+       mem-ric-sel-cll-999.
+           exit.
+

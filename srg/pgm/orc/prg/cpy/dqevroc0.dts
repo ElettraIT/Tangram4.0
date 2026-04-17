@@ -1,0 +1,53 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione quantita' da evadere riga  *
+      *    * ordine cliente                                            *
+      *    *-----------------------------------------------------------*
+       det-qev-roc-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-qev-roc-tip-ope      .
+           perform   det-qev-roc-cll-000  thru det-qev-roc-cll-999    .
+       det-qev-roc-opn-999.
+           exit.
+
+       det-qev-roc-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-qev-roc-tip-ope      .
+           perform   det-qev-roc-cll-000  thru det-qev-roc-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-qev-roc-tip-ope      .
+           perform   det-qev-roc-cll-000  thru det-qev-roc-cll-999    .
+           if        d-qev-roc-exi-sts    not  = spaces
+                     go to det-qev-roc-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/orc/prg/obj/dqevroc0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-qev-roc-cls-999.
+           exit.
+
+       det-qev-roc-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/orc/prg/obj/dqevroc0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-qev-roc
+                                               rf-ocr                 .
+       det-qev-roc-cll-999.
+           exit.
+

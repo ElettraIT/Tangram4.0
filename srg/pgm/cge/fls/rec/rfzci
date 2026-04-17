@@ -1,0 +1,184 @@
+      *    *===========================================================*
+      *    * Record tabella Codici Iva [zci]                           *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODIVA    " = rf-zci-cod-iva                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zci-des-key                    *
+      *    *                         rf-zci-cod-iva                    *
+      *    *                                                           *
+      *    *          "CODMNE    " = rf-zci-cod-mne                    *
+      *    *                         rf-zci-cod-iva                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zci.
+      *        *-------------------------------------------------------*
+      *        * Codice Iva                                            *
+      *        *                                                       *
+      *        * Legenda Codici Iva                                    *
+      *        * ------------------                                    *
+      *        *                                                       *
+      *        * da   1 a  99 - % imponibili                           *
+      *        * da 201 a 299 - (libero)                               *
+      *        * da 301 a 399 - Non imponibili                         *
+      *        * da 401 a 499 - Esenti                                 *
+      *        * da 501 a 599 - Esclusi                                *
+      *        * da 601 a 698 - Fuori campo iva                        *
+      *        *          699 - Aliquota zero                          *
+      *        * da 801 a 899 - (libero)                               *
+      *        *                                                       *
+      *        * I seguenti codici Iva non esistono in tabella ma      *
+      *        * possono essere utilizzati                             *
+      *        *                                                       *
+      *        * 1xx = scorporo per aliquota xx             (Obsoleti) *
+      *        * 7xx = non detraibile per aliquota xx                  *
+      *        * 9xx = sola IVA senza imponibile per xx                *
+      *        *                                                       *
+      *        * CONVENZIONE IMPORTANTE                                *
+      *        * ======================                                *
+      *        *                                                       *
+      *        * Per introdurre la gestione dei Codici Iva con i deci- *
+      *        * mali, si e' scelto che gli eventuali decimali (massi- *
+      *        * mo 2) vengano posizionati nei primi due caratteri del *
+      *        * codice.                                               *
+      *        *                                                       *
+      *        * Alcuni esempi:                                        *
+      *        *                                                       *
+      *        * Aliquota 11,5%  - codice 50011 - 1 decimale           *
+      *        * Aliquota 23,4%  - codice 40023 - 1 decimale           *
+      *        * Aliquota 23,45% - codice 45023 - 2 decimali           *
+      *        *                                                       *
+      *        * Aliquota 23,4% - non detraibile - 40723               *
+      *        * Aliquota 23,4% - omaggio        - 40923               *
+      *        *                                                       *
+      *        * Questo si e' reso necessario per evitare di confonde- *
+      *        * re le aliquote con decimali con i codici di esenzione *
+      *        * Iva (>100 900<)                                       *
+      *        *-------------------------------------------------------*
+           05  rf-zci-cod-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice mnemonico                                      *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente utilizzato come codice edita- *
+      *        *       to ma non gestibile dall'utente                 *
+      *        *                                                       *
+      *        *       Nel caso di codici di esenzione, viene posto    *
+      *        *       uguale alla natura operazione                   *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-zci-cod-mne             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione in uppercase per ordinamento              *
+      *        *-------------------------------------------------------*
+           05  rf-zci-des-key             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione corta per documenti                       *
+      *        *-------------------------------------------------------*
+           05  rf-zci-des-doc             pic  x(15)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per eventuale legenda in documenti        *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-zci-des-leg             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione ad uso interno                            *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-zci-des-int             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Commento ad uso interno                               *
+      *        *                                                       *
+      *        * N.B.: Campo utilizzato per la fatturazione elettr.    *
+      *        *       come "RiferimentoNormativo"                     *
+      *        *-------------------------------------------------------*
+           05  rf-zci-com-int             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Decimali aliquota                                     *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-zci-dec-ali             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Aliquota Iva                                          *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-zci-ali-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di posizionamento in elenchi clienti / fornitori *
+      *        *                                                       *
+      *        * N.B.: Campo riutilizzato come imposta di bollo        *
+      *        *       virtuale                                        *
+      *        *-------------------------------------------------------*
+           05  rf-zci-flg-ecf             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no in liquidazione periodica                       *
+      *        *-------------------------------------------------------*
+           05  rf-zci-snx-lqp             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice Natura dell'operazione in fatture elettroniche *
+      *        *                                                       *
+      *        * (Fattura PA - SDI - Agg. 04/05/2020)                  *
+      *        *                                                       *
+      *        * ----------------------------------------------------- *
+      *        *                                                       *
+      *        * 'N1	 ' = escluse ex art. 15	                      *
+      *        *                                                       *
+      *        * 'N2	 ' = non soggette	                             *
+      *        * 'N2.1' = non soggette ad IVA ai sensi degli artt.     *
+      *        *          da 7 a 7-septies del DPR 633/72              *
+      *        * 'N2.2' = non soggette - altri casi                    *
+      *        *                                                       *
+      *        * 'N3	 ' = non imponibili	                             *
+      *        * 'N3.1' = non imponibili - esportazioni                *
+      *        * 'N3.2' = non imponibili - cessioni intracomunitarie   *
+      *        * 'N3.3' = non imponibili - cessioni verso San Marino   *
+      *        * 'N3.4' = non imponibili - operazioni assimilate       *
+      *        *          alle cessioni all'esportazione               *
+      *        * 'N3.5' = non imponibili - a seguito di dichiarazioni  *
+      *        *          d'intento                                    *
+      *        * 'N3.6' = non imponibili - altre operazioni che non    *
+      *        *          concorrono alla formazione del plafond       *
+      *        *                                                       *
+      *        * 'N4	 ' = esenti                                       *
+      *        *                                                       *
+      *        * 'N5	 ' = regime del margine / IVA non esposta in fattura											
+      *        *                                                       *
+      *        * 'N6	 ' = inversione contabile (per le operazioni in   *
+      *        *          reverse charge ovvero nei casi di autofat-   *
+      *        *          turazione per acquisti extra UE di servizi   *
+      *        *          ovvero per importazioni di beni nei soli     *
+      *        *          casi previsti)				        *
+      *        * 'N6.1' = inversione contabile - cessione di rottami   *
+      *        *           e altri materiali di recupero               *
+      *        * 'N6.2' = inversione contabile - cessione di oro e     *
+      *        *          argento puro	 		               *
+      *        * 'N6.3' = inversione contabile - subappalto nel  	 *
+      *        *          settore edile	 		               *
+      *        * 'N6.4' = inversione contabile - cessione fabbricati   *
+      *        * 'N6.5' = inversione contabile - cessione di telefoni  *
+      *        *          cellulari	 		               *
+      *        * 'N6.6' = inversione contabile - cessione di prodotti  *
+      *        *          elettronici	 		               *
+      *        * 'N6.7' = inversione contabile - prestazioni comparto  *
+      *        *          edile e settori connessi	 	        *
+      *        * 'N6.8' = inversione contabile - operazioni settore  	 *
+      *        *          energetico	 		               *
+      *        * 'N6.9' = inversione contabile - altri casi            *
+      *        *                                                       *
+      *        * 'N7	 ' = IVA assolta in altro stato UE (vendite a     *
+      *        *          distanza ex art. 40 c. 3 e 4 e art. 41 c. 1  *
+      *        *          lett. b,  DL 331/93; prestazione di servizi  *
+      *        *          di telecomunicazioni, tele-radiodiffusione   *
+      *        *          ed elettronici ex art. 7-sexies lett. f, g,  *
+      *        *          art. 74-sexies DPR 633/72)	 		 *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-zci-cod-nop             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zci-alx-exp.
+               10  filler     occurs 73   pic  x(01)                  .

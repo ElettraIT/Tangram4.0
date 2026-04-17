@@ -1,0 +1,927 @@
+      *    *===========================================================*
+      *    * Record file [bfr] Bolle fornitori righe                   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-bfr-num-prt                    *
+      *    *                         rf-bfr-num-prg                    *
+      *    *                                                           *
+      *    *          "MAGDAT    " = rf-bfr-cod-dpz                    *
+      *    *                         rf-bfr-tip-mag                    *
+      *    *                         rf-bfr-num-mag                    *
+      *    *                         rf-bfr-dat-reg                    *
+      *    *                         rf-bfr-num-prt                    *
+      *    *                         rf-bfr-num-prg                    *
+      *    *                                                           *
+      *    *          "RIFORF    " = rf-bfr-cod-dpz                    *
+      *    *                         rf-bfr-orf-prt                    *
+      *    *                         rf-bfr-orf-prg                    *
+      *    *                         rf-bfr-num-prt                    *
+      *    *                         rf-bfr-num-prg                    *
+      *    *                                                           *
+      *    *          "RCHMAG    " = rf-bfr-cod-dpz                    *
+      *    *                         rf-bfr-flg-rch                    *
+      *    *                         rf-bfr-tip-mag                    *
+      *    *                         rf-bfr-num-mag                    *
+      *    *                         rf-bfr-num-prt                    *
+      *    *                         rf-bfr-num-prg                    *
+      *    *                                                           *
+      *    *          "RCHARC    " = rf-bfr-cod-dpz                    *
+      *    *                         rf-bfr-flg-rch                    *
+      *    *                         rf-bfr-tip-arc                    *
+      *    *                         rf-bfr-cod-arc                    *
+      *    *                         rf-bfr-num-prt                    *
+      *    *                         rf-bfr-num-prg                    *
+      *    *                                                           *
+      *    *          "RCHARCDOC " = rf-bfr-cod-dpz                    *
+      *    *                         rf-bfr-flg-rch                    *
+      *    *                         rf-bfr-tip-arc                    *
+      *    *                         rf-bfr-cod-arc                    *
+      *    *                         rf-bfr-num-doc                    *
+      *    *                         rf-bfr-num-prt                    *
+      *    *                         rf-bfr-num-prg                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-bfr.
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.dd.nnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo nel protocollo                     *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-num-prg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento per la bolla fornitore                 *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cod-tmb             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha ricevuto il documento        *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione                                    *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dat-reg             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio per il movimento                        *
+      *        *                                                       *
+      *        * - N : No tipo archivio                                *
+      *        * - C : Cliente                                         *
+      *        * - F : Fornitore                                       *
+      *        * - D : Deposito                                        *
+      *        *                                                       *
+      *        * N.B. : Se il documento interessa la fatturazione, il  *
+      *        *        tipo archivio deve essere pari a 'F'           *
+      *        *                                                       *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio                       *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento del fornitore                          *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento del fornitore                        *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-num-doc             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bfr-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bfr-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-bfr-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-bfr-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Flag blocco di documento                              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-bld-flb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo blocco di documento                              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-bld-tpb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga nel blocco di documento                     *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-bld-rgb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga                                             *
+      *        *                                                       *
+      *        * P   : Prodotti di vendita                             *
+      *        * M   : Materie prime                                   *
+      *        * V   : Materiali vari                                  *
+      *        * PN  : Prodotti di vendita non codificati              *
+      *        *                                                       *
+      *        * A   : Addebito o Accredito a forfait                  *
+      *        *                                                       *
+      *        * C   : Commento                                        *
+      *        *                                                       *
+      *        *                                                       *
+      *        * N.B.: In fase di bollettazione l'operatore puo' impo- *
+      *        *       stare anche altri tipi riga, ovvero             *
+      *        *       - L1 : Inizio blocco di tipo 1                  *
+      *        *       - L2 : Inizio blocco di tipo 2                  *
+      *        *       - L3 : Inizio blocco di tipo 3                  *
+      *        *       - L4 : Inizio blocco di tipo 4                  *
+      *        *       - L5 : Inizio blocco di tipo 5                  *
+      *        *       - L6 : Inizio blocco di tipo 6                  *
+      *        *       - L7 : Inizio blocco di tipo 7                  *
+      *        *       - FL : Fine blocco                              *
+      *        *      Tuttavia questi tipi riga non sono dei veri tipi *
+      *        *      riga, bensi' modalita' di funzionamento che si   *
+      *        *      ripercuotono sulla riga iniziale, quelle inter-  *
+      *        *      medie, e quella finale del blocco.               *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-tip-rig             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino                              *
+      *        *                                                       *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Prodotti di vendita (se tipo riga P o PN)      *
+      *        * - 02 : Semilavorati        (se tipo riga S)           *
+      *        * - 03 : Materie prime       (se tipo riga M)           *
+      *        * - 04 : Materiale vario     (se tipo riga V)           *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico di magazzino                          *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Codice numerico su [dcp]                  *
+      *        *        - M  Codice numerico su [dpm]                  *
+      *        *        - V  Codice numerico su [mtv]                  *
+      *        *        - PN Codice numerico su [dcp] del similare     *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-num-mag             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice alfanumerico di magazzino                      *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Codice alfanumerico su [dcp]              *
+      *        *        - M  Codice alfanumerico su [dpm]              *
+      *        *        - V  Codice alfanumerico su [mtv]              *
+      *        *        - PN Codice alfanumerico su [dcp] del similare *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-alf-mag             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della variante per il codice magazzino          *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Solo se codice [dcp] gestito a variante   *
+      *        *        - M  Solo se codice [dpm] gestito a variante   *
+      *        *        - V  Solo se codice [mtv] gestito a variante   *
+      *        *        - PN Solo se codice [dcp] del similare gestito *
+      *        *             a variante                                *
+      *        *                                                       *
+      *        *        Questo valore non e' gestito direttamente dal  *
+      *        *        programma di bollettazione; il campo puo' as-  *
+      *        *        sumere un valore solo nel caso in cui il tipo  *
+      *        *        origine del documento non sia manuale.         *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-sgl-vrn             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Formato di acquisizione presso il fornitore           *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-fda-pif             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto per il fornitore                      *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cop-sfn             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No trasformazione unita' di misura tra codifica    *
+      *        * del fornitore e codifica nostra                       *
+      *        *                                                       *
+      *        *   - N : Nessuna trasformazione                        *
+      *        *                                                       *
+      *        *   - S : Si trasformazione, il fornitore utilizza per  *
+      *        *         la vendita una diversa unita' di misura ri-   *
+      *        *         spetto a quella utilizzata nella gestione del *
+      *        *         magazzino, pertanto quantita' e prezzo validi *
+      *        *         per l'ordine si riferiscono all'unita' di mi- *
+      *        *         sura adottata dal fornitore                   *
+      *        *                                                       *
+      *        *   - P : Si trasformazione, il fornitore utilizza per  *
+      *        *         la vendita una diversa unita' di misura ri-   *
+      *        *         spetto a quella utilizzata nella gestione del *
+      *        *         magazzino, pero' accetta ordini nella unita'  *
+      *        *         di misura utilizzata nella gestione del ma-   *
+      *        *         gazzino, fermo restando pero' che fatturera'  *
+      *        *         in termini della sua unita' di misura         *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-snx-tum             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Unita' di misura utilizzata dal fornitore             *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'N' questa voce vie- *
+      *        *     ne posta a Spaces, perche' sempre uguale alla u-  *
+      *        *     nita' di misura valida per la gestione magazzino  *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'S' questa voce vie- *
+      *        *     ne posta al valore dell'unita' di misura valida   *
+      *        *     per l'emissione ordine al fornitore, sia in ter-  *
+      *        *     mini di quantita' che di prezzo                   *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'P' questa voce vie- *
+      *        *     ne posta al valore dell'unita' di misura valida   *
+      *        *     per l'emissione ordine al fornitore esclusiva-    *
+      *        *     mente in termini di prezzo                        *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-umf-tum             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali utilizzato dal fornitore per esprime- *
+      *        * re la quantita' nella sua unita' di misura            *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'N' questa voce vie- *
+      *        *     ne posta a Zero, perche' sempre uguale al numero  *
+      *        *     decimali valido per la gestione magazzino         *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'S' questa voce vie- *
+      *        *     ne posta al valore del numero decimali valido     *
+      *        *     per l'emissione ordine al fornitore, sia in ter-  *
+      *        *     mini di quantita' che di prezzo                   *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'P' questa voce vie- *
+      *        *     ne posta al valore del numero decimali valido     *
+      *        *     per l'emissione ordine al fornitore esclusiva-    *
+      *        *     mente in termini di prezzo                        *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-nde-tum             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Coefficiente moltiplicatore, per cui va' moltiplicata *
+      *        * la quantita' espressa nell'unita' di misura del for-  *
+      *        * nitore, per ridurla alla unita' di misura utilizzata  *
+      *        * da noi                                                *
+      *        *                                                       *
+      *        * Solo se snx-tum pari a 'S' o 'P', altrimenti zero     *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cmo-tum             pic  9(06)v9(03)            .
+      *        *-------------------------------------------------------*
+      *        * Coefficiente divisore, per cui va' divisa la quanti-  *
+      *        * ta' espressa nell'unita' di misura del fornitore, per *
+      *        * ridurla alla unita' di misura utilizzata da noi       *
+      *        *                                                       *
+      *        * Solo se snx-tum pari a 'S' o 'P', altrimenti zero     *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cdi-tum             pic  9(06)v9(03)            .
+      *        *-------------------------------------------------------*
+      *        * Presenza della descrizione estesa di max 400 caratte- *
+      *        * ri in file di estensione                              *
+      *        *                                                       *
+      *        * ****************** NOTA IMPORTANTE ****************** *
+      *        * A partire dal 29/01/2010, il file di estensione viene *
+      *        * comunque riempito, in presenza di una descrizione, di *
+      *        * qualunque provenienza, che superi i 40 caratteri.     *
+      *        * Cio' significa che questo campo e' destinato a diven- *
+      *        * tare inutile                                          *
+      *        * ***************************************************** *
+      *        *                                                       *
+      *        * - 0 : No                                              *
+      *        *                                                       *
+      *        *       Cio' avviene nei seguenti casi                  *
+      *        *       - Il tipo riga e' P,M,V e la descrizione, pari  *
+      *        *         alla descrizione originale nell' anagrafica   *
+      *        *         [aaf] o [dcp] o [dpm] o [mtv], oppure variata *
+      *        *         rispetto ad essa, non supera i 40 caratteri   *
+      *        *       - Il tipo riga e' PN,A,C, e la descrizione di-  *
+      *        *         gitata non supera i 40 caratteri              *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 1 : Si, in file di estensione descrizione per bol-  *
+      *        *           le fornitori [bfx]                          *
+      *        *                                                       *
+      *        *       Cio' avviene nei seguenti casi                  *
+      *        *       - Il tipo riga e' P,M,V e la descrizione, di-   *
+      *        *         versa dalla descrizione originale in anagra-  *
+      *        *         fica [aaf] o [dcp] o [dpm] o [mtv], supera i  *
+      *        *         40 caratteri                                  *
+      *        *       - Il tipo riga e' PN,A,C, e la descrizione di-  *
+      *        *         gitata supera i 40 caratteri                  *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 2 : Si, in file di estensione descrizione per pro-  *
+      *        *           dotti [pdx], tipo record 01                 *
+      *        *       - Il tipo riga e' P, e la descrizione, uguale   *
+      *        *         alla descrizione originale in anagrafica      *
+      *        *         [dcp], supera i 40 caratteri                  *
+      *        *                                                       *
+      *        * - 3 : Si, in file di estensione descrizione per pro-  *
+      *        *           dotti [pdx], tipo record 13                 *
+      *        *       - Il tipo riga e' P, e la descrizione, uguale   *
+      *        *         alla descrizione originale in anagrafica      *
+      *        *         [aaf], supera i 40 caratteri                  *
+      *        *                                                       *
+      *        * N.B. : Se il valore e' pari a 1, la descrizione este- *
+      *        *        sa sostituisce completamente la descrizione di *
+      *        *        40 caratteri contenuta in questo record.       *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-des-ext             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per la riga bolla fornitore               *
+      *        *                                                       *
+      *        * - Se tipo riga P,M,V                                  *
+      *        *                                                       *
+      *        *   - Se des-ext 0 : Descrizione originale o modifica-  *
+      *        *                    ta,  che comunque non supera glo-  *
+      *        *                    balmente i 40 caratteri            *
+      *        *                                                       *
+      *        *   - Se des-ext 1 : Descrizione originale dell'anagra- *
+      *        *                    fica [dcp] o [dpm] o [mtv] di 40   *
+      *        *                    caratteri                          *
+      *        *                                                       *
+      *        *   - Se des-ext 2 : Descrizione originale dell'anagra- *
+      *        *                    fica [dcp] di 40 caratteri         *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - Se tipo riga PN,A,C                                 *
+      *        *                                                       *
+      *        *   - Se des-ext 0 : Descrizione impostata, la quale    *
+      *        *                    non supera globalmente i 40 ca-    *
+      *        *                    ratteri                            *
+      *        *                                                       *
+      *        *   - Se des-ext 1 : Primi 40 caratteri della descri-   *
+      *        *                    zione impostata, la quale supera   *
+      *        *                    globalmente i 40 caratteri         *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-des-rig             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo prodotto                                         *
+      *        *                                                       *
+      *        * - Se tipo riga P o PN                                 *
+      *        *                                                       *
+      *        *   - 01 : Merce                                        *
+      *        *   - 02 : Servizio                                     *
+      *        *   - 03 : Imballo                                      *
+      *        *   - 09 : Extra attivita' aziendale                    *
+      *        *                                                       *
+      *        * - Se tipo riga M                                      *
+      *        *                                                       *
+      *        *   - 01 : Merce                                        *
+      *        *                                                       *
+      *        * - Se tipo riga V                                      *
+      *        *                                                       *
+      *        *   - 01 : Merce                                        *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-tip-pro             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'acquisto                             *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cod-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'acquisto                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-ctp-acq             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Unita' di misura per l'acquisto                       *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Da anagrafica [dcp]                       *
+      *        *        - M  Da anagrafica [dpm]                       *
+      *        *        - V  Da anagrafica [mtv]                       *
+      *        *        - PN Da anagrafica [dcp] del similare          *
+      *        *                                                       *
+      *        * Sempre rispetto alla gestione del magazzino           *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-umi-acq             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali quantita' per l'acquisto : 0..3       *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Da anagrafica [dcp]                       *
+      *        *        - M  Da anagrafica [dpm]                       *
+      *        *        - V  Da anagrafica [mtv]                       *
+      *        *        - PN Da anagrafica [dcp] del similare          *
+      *        *                                                       *
+      *        * Sempre rispetto alla gestione del magazzino           *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dec-qta             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' acquistata secondo il formato di acquisi-   *
+      *        * zione del fornitore                                   *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'N' questa voce cor- *
+      *        *     risponde alla quantita' acquistata, valida sia    *
+      *        *     per la gestione magazzino, sia per il controllo   *
+      *        *     dell'evasione dell'ordine, sia per l'applicazione *
+      *        *     del prezzo unitario di acquisto                   *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'S' questa voce cor- *
+      *        *     risponde alla quantita' acquistata, valida sia    *
+      *        *     per il controllo dell'evasione dell'ordine, sia   *
+      *        *     per l'applicazione del prezzo unitario di acqui-  *
+      *        *     sto, ma non per la gestione del magazzino         *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'P' questa voce cor- *
+      *        *     risponde alla quantita' acquistata, valida solo   *
+      *        *     perl'applicazione del prezzo unitario di acquisto,*
+      *        *     ma non per il controllo dell'evasione dell'ordi-  *
+      *        *     ne, ne' per la gestione del magazzino             *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga P,M,V,PN                  *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-qta-fda             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' acquistata                                  *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'N' questa voce vie- *
+      *        *     ne posta pari alla quantita' acquistata secondo   *
+      *        *     il formato di acquisizione, valida sia per la ge- *
+      *        *     stione magazzino, sia per il controllo dell'eva-  *
+      *        *     sione dell'ordine, sia per l'applicazione del     *
+      *        *     prezzo unitario di acquisto                       *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'S' questa voce vie- *
+      *        *     ne posta pari alla quantita' acquistata valida    *
+      *        *     per la gestione del magazzino, ma non per l'eva-  *
+      *        *     sione dell'ordine, ne' per l'applicazione del     *
+      *        *     prezzo unitario d'acquisto                        *
+      *        *                                                       *
+      *        *   - Se la voce snx-tum e' pari a 'P' questa voce vie- *
+      *        *     ne posta pari alla quantita' acquistata valida    *
+      *        *     per il controllo dell'evasione dell'ordine e per  *
+      *        *     la gestione del magazzino, ma non per l'applica-  *
+      *        *     zione del prezzo unitario di acquisto             *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga P,M,V,PN                  *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-qta-acq             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione effettivo, da tipo movimento      *
+      *        *                                                       *
+      *        * N.B. : Questo campo attualmente non e' gestito        *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cod-dsl             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione della seconda quantita' nella     *
+      *        * fatturazione                                          *
+      *        *                                                       *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-snx-2qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la seconda quantita'              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dec-2qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Seconda quantita'                                     *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-qta-a02             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione della terza quantita' nella       *
+      *        * fatturazione                                          *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-snx-3qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la terza quantita'                *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dec-3qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Terza quantita'                                       *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-qta-a03             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per il prezzo d'acquisto              *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dec-prz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del prezzo di acquisto       *
+      *        *                                                       *
+      *        * N.B.: Sempre pari alla valuta di fatturazione         *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-vpp.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bfr-sgl-vpp         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bfr-dec-vpp         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bfr-tdc-vpp         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di fatturazione, non effettivo, ben-    *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bfr-cdc-vpp         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo unitario di acquisto, in valuta                *
+      *        *                                                       *
+      *        * Attenzione : Il prezzo e' sempre espresso come numero *
+      *        *              intero, ma deve essere considerato con   *
+      *        *              tanti decimali quanti specificati alla   *
+      *        *              voce precedente, inoltre bisogna tenere  *
+      *        *              conto degli ulteriori decimali espressi  *
+      *        *              dai decimali valuta.                     *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-prz-acq             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione del secondo prezzo nella fattura- *
+      *        * zione                                                 *
+      *        *                                                       *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-snx-2pz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali del secondo prezzo                    *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-dec-2pz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Secondo prezzo, in valuta                             *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-prz-a02             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del legame valutario         *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-vpl.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bfr-sgl-vpl         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bfr-dec-vpl         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bfr-tdc-vpl         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Prezzo di riferimento per legame valutario, in    *
+      *            * valuta                                            *
+      *            *---------------------------------------------------*
+               10  rf-bfr-prz-vpl         pic  9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di espressione del prezzo di acquisto,  *
+      *            * effettivo se applicazione al momento della bolla, *
+      *            * altrimenti relativo alla data documento bolla     *
+      *            *---------------------------------------------------*
+               10  rf-bfr-cdc-vpl         pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio di riferimento per la tra- *
+      *            * sformazione nella valuta di espressione del prez- *
+      *            * zo di acquisto                                    *
+      *            *---------------------------------------------------*
+               10  rf-bfr-ccr-vpl         pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Percentuale di limitazione della trasformazione   *
+      *            * nella valuta di espressione di prezzo d'acquisto  *
+      *            *---------------------------------------------------*
+               10  rf-bfr-plm-vpl         pic  9(01)v9(02)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di limitazione della trasformazione nella    *
+      *            * valuta di espressione del prezzo di acquisto      *
+      *            * - T : Tolleranza                                  *
+      *            * - F : Franchigia                                  *
+      *            * - M : Massimo tetto                               *
+      *            *---------------------------------------------------*
+               10  rf-bfr-tlm-vpl         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Momento di applicazione della trasformazione re-  *
+      *            * lativa al legame valutario                        *
+      *            * - F : Al momento della fattura                    *
+      *            *---------------------------------------------------*
+               10  rf-bfr-map-vpl         pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di esposizione della riga di fattura             *
+      *        *                                                       *
+      *        * - Se tipo riga P o Pn                                 *
+      *        *                                                       *
+      *        *    - 1 : Quantita', prezzo, sconti, importo           *
+      *        *    - 2 : Solo quantita' e importo                     *
+      *        *    - 3 : Solo importo                                 *
+      *        *    - 4 : Solo importo se quantita pari a 1,000, al-   *
+      *        *               trimenti tutto come il tipo 1           *
+      *        *    - 5 : Solo importo se quantita pari a 1,000, al-   *
+      *        *               trimenti tutto come il tipo 2           *
+      *        *                                                       *
+      *        * - Se tipo riga S o M                                  *
+      *        *                                                       *
+      *        *    - 1 : Quantita', prezzo, sconti, importo           *
+      *        *                                                       *
+      *        * - Se tipo riga V                                      *
+      *        *                                                       *
+      *        *    - 1 : Quantita', prezzo, sconti, importo           *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-epz-rgf             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di sconto in riga associata al prodotto     *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-csr-aap             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Precentuali di sconto in riga associate al prodotto   *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-psr-aap occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di sconto in riga 1..5                    *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-per-scr occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo netto effettivo, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-prz-net             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo definitivo per la riga, in valuta             *
+      *        *                                                       *
+      *        * - Per le righe esterne ad ogni blocco, questo e' sem- *
+      *        *   pre pari all'impostazione effettuata dall'operatore *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 1,2,3   *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per la riga apparente sara' sempre pari alla som- *
+      *        *     ma degli importi impostati dall'operatore per le  *
+      *        *     righe reali del blocco                            *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 4,5,6,7 *
+      *        *   - Per le righe reali sara' sempre in funzione alla  *
+      *        *     redistribuzione eseguita in funzione della somma  *
+      *        *     dei valori impostati dall'operatore per le righe  *
+      *        *     apparenti del blocco, tenendo presente che per i  *
+      *        *     blocchi di tipo 4,5,6, puo' esistere al massimo   *
+      *        *     una riga apparente                                *
+      *        *   - Per le righe apparenti sara' sempre pari a quanto *
+      *        *     impostato dall'operatore                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-imp-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo ausiliario per gestione blocchi, in valuta    *
+      *        *                                                       *
+      *        * - Per le righe esterne ad ogni blocco, questo e' sem- *
+      *        *   pre pari all'impostazione effettuata dall'operatore *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 1,2,3   *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per la riga apparente sara' sempre pari alla som- *
+      *        *     ma degli importi impostati dall'operatore per le  *
+      *        *     righe reali del blocco                            *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 4,5,6,7 *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per le righe apparenti sara' sempre pari a quanto *
+      *        *     impostato dall'operatore                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-iau-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigione associata al prodotto        *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cpv-aap             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione associate al prodotto                *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-ppv-aap occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Flag di significativita' dati provvigionali in riga   *
+      *        *                                                       *
+      *        * - 00 : Non significativi                              *
+      *        * - 01 : Significativi                                  *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-fsp-rig             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigione in riga effettiva            *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-cpv-rig             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione in riga effettive                    *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-ppv-rig occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Importo provvigione a forfait in riga, in valuta base *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-pvf-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento ns. richiesta d'offerta al fornitore   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-rdo-tip             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento ns. richiesta d'offerta al forni- *
+      *        * tore                                                  *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-rdo-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento ns. richiesta d'offerta al for- *
+      *        * nitore                                                *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-rdo-num             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento ordine al fornitore                    *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-orf-tip             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento ordine al fornitore               *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-orf-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento ordine al fornitore             *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-orf-num             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo ordine al fornitore                 *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-orf-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo nel protocollo ordine al fornitore *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-orf-prg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di forzatura a saldo della quantita' di eva-  *
+      *        * sione riga ordine fornitore                           *
+      *        * - spaces : No forzatura                               *
+      *        * - S      : Forzatura a saldo                          *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-orf-fzs             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo ordine di ricevimento merce         *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente proveniente dalla testata dal *
+      *        *       campo 'rf-bft-pr2-mag'                          *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-orm-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di riga completamente chiusa                     *
+      *        * - Spaces : Non ancora completamente chiusa            *
+      *        * - #      : Completamente chiusa                       *
+      *        *                                                       *
+      *        * Nota : Questo flag viene manipolato da un apposito    *
+      *        *        programma batch di determinazione bolle for-   *
+      *        *        nitori chiuse                                  *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-flg-rch             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-bfr-flg-blo.
+                   15  rf-bfr-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            * 01 : Flag di documento in attesa di verifica      *
+      *            *       - Spaces : verificato                       *
+      *            *       - '#'    : in attesa di verifica            *
+      *            *                                                   *
+      *            *         N.B.: Il flag deriva direttamente dalla   *
+      *            *               testata documento ed e' soggetto a  *
+      *            *               personalizzazione                   *
+      *            *                                                   *
+      *            * 02 : Flag di documento in attesa di spunta        *
+      *            *       - Spaces : da spuntare                      *
+      *            *       - '#'    : spuntato completamente           *
+      *            *                                                   *
+      *            *      N.B.: Gestione tablet                        *
+      *            *                                                   *
+      *            * 03 : (libero)                                     *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-bfr-flg-nbl.
+                   15  rf-bfr-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data lotto di acquisto                                *
+      *        *                                                       *
+      *        * N.B.: Da relativa personalizzazione                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-lot-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla lotto di acquisto                               *
+      *        *                                                       *
+      *        * N.B.: Da relativa personalizzazione                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-lot-sgl             pic  x(20)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-bfr-alx-exp.
+               10  filler  occurs 80      pic  x(01)                  .

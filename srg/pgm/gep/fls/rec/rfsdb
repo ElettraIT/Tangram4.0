@@ -1,0 +1,624 @@
+      *    *===========================================================*
+      *    * Record file [sdb] Scadenze debitori                       *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMSDB    " = rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-sdb-ide-dat                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "DTSNRS    " = rf-sdb-dts-sdb                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "DBTDTS    " = rf-sdb-tip-dbt                    *
+      *    *                         rf-sdb-cod-dbt                    *
+      *    *                         rf-sdb-dts-sdb                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "DDPNRS    " = rf-sdb-num-ddp                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "RISSDB    " = rf-sdb-num-ris                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "DBTRIS    " = rf-sdb-tip-dbt                    *
+      *    *                         rf-sdb-cod-dbt                    *
+      *    *                         rf-sdb-num-ris                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "PFCNRS    " = rf-sdb-prt-fcl                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *          "DATCHS    " = rf-sdb-dat-chs                    *
+      *    *                         rf-sdb-num-sdb                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-sdb.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di emissione o cessione  *
+      *        * da debitore                                           *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-emi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di emissione o cessione da debitore     *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-drc-emi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di emissione o cessione da debitore     *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-npc-emi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di fatture clienti        *
+      *        *                                                       *
+      *        * N.B.: Solo se scadenza automaticamente generata dal-  *
+      *        *       la procedura di fatturazione                    *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-prt-fcl             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero scadenza di origine, solo se la scadenza ha a- *
+      *        * vuto origine da un'altra scadenza                     *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-nsc-org             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice agente cui la scadenza si riferisce            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-cod-age             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero scadenza : s.aa.nnnnnnnn                       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-num-sdb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo scadenza                                         *
+      *        *                                                       *
+      *        * - 01 : Rimessa diretta                                *
+      *        * - 02 : Incasso elettronico                            *
+      *        * - 03 : Ri.Ba.                                         *
+      *        * - 04 : C.d.O.                                         *
+      *        * - 05 : M.Av.                                          *
+      *        * - 06 : R.I.D.                                         *
+      *        * - 07 : Bonifico bancario                              *
+      *        * - 08 : C/C postale                                    *
+      *        * - 09 : Ricevuta bancaria                              *
+      *        * - 10 : Tratta                                         *
+      *        * - 11 : Paghero' cambiario                             *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tip-sdb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No dilazione concordata                            *
+      *        *                                                       *
+      *        * N.B.: Campo gestito solo se tipo scadenza 01          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-snx-dlc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo acquisizione scadenza                            *
+      *        *                                                       *
+      *        * - 01 : Emissione interna                              *
+      *        * - 02 : Cessione da debitore                           *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tac-sdb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo valuta per la scadenza                           *
+      *        *                                                       *
+      *        * - 01 : Scadenza in valuta base                        *
+      *        * - 02 : Scadenza in valuta diversa da quella base      *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito, e forzato al    *
+      *        *        valore 01                                      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tvl-sdb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di scadenza                                      *
+      *        *                                                       *
+      *        * N.B. : per le scadenze 'a vista' la data e' a zero    *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dts-sdb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo debitore                                         *
+      *        * - 01 : Cliente                                        *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tip-dbt             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice debitore                                       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-cod-dbt             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza del debitore                        *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dpz-dbt             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro scadenza al debitore                          *
+      *        *                                                       *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla dipendenza                                *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-inl-sdb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla valuta per la scadenza                          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la valuta per la scadenza         *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dec-vlt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di cambio : '/' o '*'                            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tdc-vlt             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Coefficiente di cambio per la valuta alla data della  *
+      *        * registrazione della scadenza                          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-cdc-sdb             pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Importo scadenza in valuta                            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-iiv-sdb             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo scadenza in valuta base                       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-imp-sdb             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data documento di riferimento                         *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dat-ddr             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento di riferimento                       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-num-ddr             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento di riferimento                         *
+      *        *                                                       *
+      *        * - 01 : Fattura                                        *
+      *        * - 02 : Nota di addebito                               *
+      *        * - 11 : Nota di accredito                              *
+      *        * - 21 : Anticipo                                       *
+      *        * - 99 : Non classificato                               *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tip-ddr             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo documento di riferimento, in valuta base o in *
+      *        * valuta diversa, a seconda del tipo valuta per la sca- *
+      *        * denza                                                 *
+      *        *                                                       *
+      *        * N.B.: attualmente in valuta base                      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-imp-ddr             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Numero rata documento di riferimento                  *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-nra-ddr             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI per l'appoggio in presentazione            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-abi-app             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice CAB per l'appoggio in presentazione            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-cab-app             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente per l'appoggio in presentazione *
+      *        * per scadenze di tipo R.I.D.                           *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ccc-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca per il pagamento tramite bonifico *
+      *        * o codice nostro conto corrente postale per il paga-   *
+      *        * mento per conto corrente postale                      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-cod-cbp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di storno scadenza       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-sto             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di storno                               *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-drc-sto             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di storno                               *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-npc-sto             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di si/no emissione nuova scadenza a fronte    *
+      *        * dello storno                                          *
+      *        *                                                       *
+      *        * - 01 : Si                                             *
+      *        * - 02 : No                                             *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ens-sto             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero nuova scadenza a fronte del movimento di stor- *
+      *        * no                                                    *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-nns-sto             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo nuova scadenza a fronte del movimento di storno  *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tns-sto             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data operazione di riscossione                        *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-ris             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di riscossione                              *
+      *        *                                                       *
+      *        * - 01 : Riscossione per Contanti                       *
+      *        * - 02 : Riscossione con Assegno                        *
+      *        * - 03 : Riscossione per Bonifico bancario              *
+      *        * - 04 : Riscossione per C/C postale                    *
+      *        * - 21 : Pagamento per Contanti                         *
+      *        * - 22 : Pagamento con Assegno                          *
+      *        * - 23 : Pagamento per Bonifico bancario                *
+      *        * - 24 : Pagamento per C/C postale                      *
+      *        * - 50 : Compensazione scadenze                         *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-mod-ris             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero operazione di riscossione, se scadenza riscos- *
+      *        * sa, nel formato : s.aa.nnnnnnnn                       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-num-ris             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo riscosso, in valuta base o in valuta diversa, *
+      *        * a seconda del tipo valuta per la scadenza             *
+      *        *                                                       *
+      *        * Nota : In caso che la riscossione sia di tipo 'com-   *
+      *        *        pensazione', l'importo riscosso rappresenta    *
+      *        *        l'ammontare compensato della scadenza          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-imp-ris             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Segnale acconto/saldo per la riscossione              *
+      *        *                                                       *
+      *        * - 00 : non significativo, ovvero a saldo              *
+      *        * - 01 : a  saldo                                       *
+      *        * - 02 : in conto                                       *
+      *        *                                                       *
+      *        * Nota : In caso che la riscossione sia in conto, viene *
+      *        *        comunque generata una nuova scadenza a fronte  *
+      *        *        della differenza. Questa scadenza sara' un     *
+      *        *        clone di questa scadenza in caso di riscossio- *
+      *        *        ne parziale, ed in questo caso l'unico campo   *
+      *        *        diverso sara' l'importo scadenza. In caso in-  *
+      *        *        vece di riscossione maggiore dell'importo do-  *
+      *        *        vuto, sara' generata una rimessa diretta a ti- *
+      *        *        tolo di anticipo.                              *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-aos-ris             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero nuova scadenza per la differenza tra l'importo *
+      *        * della scadenza e l'importo riscosso : s.aa.nnnnnnnn   *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-nns-ris             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero distinta di presentazione, se scadenza inclusa *
+      *        * in una distinta : s.aa.nnnnnnnn                       *
+      *        *                                                       *
+      *        * Displacement    : 296                                 *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-num-ddp             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo avviso ottenuto                                  *
+      *        * - 00 : Non significativo o ancora indeterminato       *
+      *        * - 03 : Ri.Ba.                                         *
+      *        * - 04 : C.d.O.                                         *
+      *        * - 05 : M.Av.                                          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tav-ott             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di richiamo di scadenza  *
+      *        * presentata con distinta                               *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-rsp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di richiamo di scadenza presentata      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-drc-rsp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di richiamo di scadenza presentata      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-npc-rsp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data contabile bancaria per il movimento di richiamo  *
+      *        * di scadenza presentata                                *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dcb-rsp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero contabile bancaria per il movimento di richia- *
+      *        * mo di scadenza presentata                             *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ncb-rsp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca al momento del   *
+      *        * richiamo di scadenza presentata                       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-spe-rsp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di si/no emissione nuova scadenza a fronte    *
+      *        * del richiamo                                          *
+      *        * - 01 : Si                                             *
+      *        * - 02 : No                                             *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ens-rsp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero nuova scadenza a fronte del movimento di ri-   *
+      *        * chiamo                                                *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-nns-rsp             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo nuova scadenza a fronte del movimento di richia- *
+      *        * mo                                                    *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tns-rsp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di accredito scadenza    *
+      *        * presentata al dopo incasso                            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-acs             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di accredito scadenza presentata al do- *
+      *        * po incasso                                            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-drc-acs             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di accredito scadenza presentata al do- *
+      *        * po incasso                                            *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-npc-acs             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data contabile bancaria per il movimento di accredito *
+      *        * scadenza presentata al dopo incasso                   *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dcb-acs             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero contabile bancaria per il movimento di accre-  *
+      *        * dito scadenza presentata al dopo incasso              *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ncb-acs             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca al momento del-  *
+      *        * l'accredito scadenza presentata al dopo incasso       *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-spe-acs             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di notizia di buon esito *
+      *        * relativa a scadenza presentata con distinta non al    *
+      *        * dopo incasso                                          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-nbe             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di notizia di buon esito relativa a     *
+      *        * scadenza presentata non al dopo incasso               *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-drc-nbe             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di notizia di buon esito relativa a     *
+      *        * scadenza presentata non al dopo incasso               *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-npc-nbe             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data contabile bancaria per il movimento di notizia   *
+      *        * di buon esito relativa a scadenza presentata non al   *
+      *        * dopo incasso                                          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dcb-nbe             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero contabile bancaria per il movimento di notizia *
+      *        * di buon esito relativa a scadenza presentata non al   *
+      *        * dopo incasso                                          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ncb-nbe             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di presunto buon esito   *
+      *        * relativo a scadenza presentata con distinta non al    *
+      *        * dopo incasso                                          *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-pbe             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di presunto buon esito relativa a sca-  *
+      *        * denza presentata non al dopo incasso                  *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-drc-pbe             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di presunto buon esito relativa a sca-  *
+      *        * denza presentata non al dopo incasso                  *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-npc-pbe             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di insoluto su scadenza  *
+      *        * presentata con distinta                               *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dtr-isp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di insoluto su scadenza presentata      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-drc-isp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di insoluto su scadenza presentata      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-npc-isp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data contabile bancaria per il movimento di insoluto  *
+      *        * su scadenza presentata                                *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dcb-isp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero contabile bancaria per il movimento di insolu- *
+      *        * to su scadenza presentata                             *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ncb-isp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca al momento del-  *
+      *        * l'insoluto su scadenza presentata                     *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-spe-isp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di si/no emissione nuova scadenza a fronte    *
+      *        * dell'insoluto                                         *
+      *        *                                                       *
+      *        * - 01 : Si                                             *
+      *        * - 02 : No                                             *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-ens-isp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero nuova scadenza a fronte del movimento di in-   *
+      *        * soluto                                                *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-nns-isp             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo nuova scadenza a fronte del movimento di inso-   *
+      *        * luto                                                  *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-tns-isp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero ultimo livello di sollecito in cui la scadenza *
+      *        * e' entrata a far parte                                *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-liv-slc             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Prima data sollecito                                  *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dso-l01             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Seconda data sollecito                                *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dso-l02             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Terza data sollecito                                  *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dso-l03             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data chiusura scadenza                                *
+      *        * - 9999999 : Scadenza aperta                           *
+      *        * - nnnnnnn : Scadenza chiusa                           *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-dat-chs             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa effetto eseguita             *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-flc-stp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-sdb-flg-blo.
+                   15  rf-sdb-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            *      -------------------------------------------- *
+      *            * 01 : Preavviso di pagamento ricevuto (01/10/10)   *
+      *            *                                                   *
+      *            *       - Spaces o 'N' : nessun preavviso           *
+      *            *       - 'S'          : preavviso ricevuto         *
+      *            *                                                   *
+      *            *      -------------------------------------------- *
+      *            * 02 : (libero)                                     *
+      *            *      -------------------------------------------- *
+      *            * 03 : (libero)                                     *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-sdb-flg-nbl.
+                   15  rf-sdb-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no scadenza di tipo contrassegno                   *
+      *        *                                                       *
+      *        * - ' ' o 'N' : No                                      *
+      *        * - 'S'       : Si                                      *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-snx-cts             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice vettore delegato all'incasso                   *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-vet-cts             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di pagamento - tabella Agenzia d. Entrate   *
+      *        *                                                       *
+      *        * 'MP01' : Contanti                                     *
+      *        * 'MP02' : Assegno                                      *
+      *        * 'MP03' : Assegno Circolare                            *
+      *        * 'MP04' : Contanti presso Tesoreria                    *
+      *        * 'MP05' : Bonifico                                     *
+      *        * 'MP06' : Vaglia cambiario                             *
+      *        * 'MP07' : Bollettino bancario                          *
+      *        * 'MP08' : carta di pagamento                           *
+      *        * 'MP09' : RID		                             *				
+      *        * 'MP10' : RID utenze	                             *
+      *        * 'MP11' : RID veloce			               *
+      *        * 'MP12' : RIBA				               *
+      *        * 'MP13' : MAV				               *
+      *        * 'MP14' : quietanza erario			        *
+      *        * 'MP15' : giroconto su conti di contabilita' sp.       *
+      *        * 'MP16' : domiciliazione bancaria		        *
+      *        * 'MP17' : domiciliazione postale			        *
+      *        * 'MP18' : bollettino di c/c postale		        *
+      *        * 'MP19' : SEPA Direct Debit			        *
+      *        * 'MP20' : SEPA Direct Debit CORE			        *
+      *        * 'MP21' : SEPA Direct Debit B2B			        *
+      *        * 'MP22' : Trattenuta su somme gia' riscosse	        *
+      *        *                                                       *
+      *        * DA IMPLEMENTARE: Attenzione a alx-exp                 *
+      *        *-------------------------------------------------------*
+______*    05  rf-sdb-mod-pae             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-sdb-alx-exp.
+               10  filler    occurs 12    pic  x(01)                  .

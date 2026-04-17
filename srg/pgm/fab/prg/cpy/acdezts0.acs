@@ -1,0 +1,95 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice tipo stagiona-  *
+      *    * lita' parametri sottoscorta                               *
+      *    *-----------------------------------------------------------*
+       cod-des-zts-opn-000.
+           move      "pgm/fab/prg/obj/acdezts0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-des-zts-pth      .
+           move      "OP"                 to   w-cod-des-zts-ope      .
+           perform   cod-des-zts-cll-000  thru cod-des-zts-cll-999    .
+       cod-des-zts-opn-999.
+           exit.
+       cod-des-zts-cls-000.
+           move      "CL"                 to   w-cod-des-zts-ope      .
+           perform   cod-des-zts-cll-000  thru cod-des-zts-cll-999    .
+           move      "C?"                 to   w-cod-des-zts-ope      .
+           perform   cod-des-zts-cll-000  thru cod-des-zts-cll-999    .
+           if        w-cod-des-zts-ope    not  = spaces
+                     go to cod-des-zts-cls-999.
+           cancel    w-cod-des-zts-pth                                .
+       cod-des-zts-cls-999.
+           exit.
+       cod-des-zts-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-des-zts-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pfab0100"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-zts-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "cod-dpz"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      02                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-des-zts-dpz    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/fab/prg/obj/pfab0100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-des-zts-ope      .
+           go to     cod-des-zts-foi-999.
+       cod-des-zts-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-des-zts-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pfab0110"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-zts-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "PV"                 to   s-ope                  .
+           move      "cod-dpz"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      02                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-des-zts-dpz    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/fab/prg/obj/pfab0110"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-des-zts-ope      .
+           go to     cod-des-zts-foi-999.
+       cod-des-zts-foi-999.
+           exit.
+       cod-des-zts-cll-000.
+           call      w-cod-des-zts-pth   using w-cod-des-zts
+                                               v
+                                               s                      .
+       cod-des-zts-cll-999.
+           exit.
+

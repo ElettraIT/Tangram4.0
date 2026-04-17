@@ -1,0 +1,105 @@
+      *    *===========================================================*
+      *    * Subroutines per accettazione codice prodotto 'dps'        *
+      *    *-----------------------------------------------------------*
+       cod-cod-dps-opn-000.
+           move      "pgm/dps/prg/obj/acoddps0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-cod-dps-pth      .
+           move      "OP"                 to   w-cod-cod-dps-ope      .
+           perform   cod-cod-dps-cll-000  thru cod-cod-dps-cll-999    .
+       cod-cod-dps-opn-999.
+           exit.
+       cod-cod-dps-cls-000.
+           move      "CL"                 to   w-cod-cod-dps-ope      .
+           perform   cod-cod-dps-cll-000  thru cod-cod-dps-cll-999    .
+           move      "C?"                 to   w-cod-cod-dps-ope      .
+           perform   cod-cod-dps-cll-000  thru cod-cod-dps-cll-999    .
+           if        w-cod-cod-dps-ope    not  = spaces
+                     go to cod-cod-dps-cls-999.
+           cancel    w-cod-cod-dps-pth                                .
+       cod-cod-dps-cls-999.
+           exit.
+       cod-cod-dps-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-cod-dps-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdps4000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-dps-foi-999.
+           move      "pgm/dps/prg/obj/pdps4000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-cod-dps-ope      .
+           go to     cod-cod-dps-foi-999.
+       cod-cod-dps-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-cod-dps-foi-750.
+           move      "P?"                 to   s-ope                  .
+           move      "pdps4010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-dps-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dps/prg/obj/pdps4010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-cod-dps-ope      .
+           go to     cod-cod-dps-foi-999.
+       cod-cod-dps-foi-750.
+           if        v-key                =    "[2] "
+                     move  "#"            to   w-cod-cod-dps-pf2
+                     go to cod-cod-dps-foi-999.
+           if        w-cod-cod-dps-ope    not  = "F+" or
+                     w-cod-cod-dps-pf2    =    spaces
+                     go to cod-cod-dps-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "acodps0.[2]"        to   s-var                  .
+           move      "G"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      01                   to   s-car                  .
+           move      "#"                  to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dps/prg/obj/acoddps1"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using w-cod-cod-dps
+                                               v
+                                               s                      .
+           cancel    s-pat                                            .
+           move      "CV"                 to   s-ope                  .
+           move      "acodps0.[2]"        to   s-var                  .
+           move      "G"                  to   s-dop                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "I+"                 to   w-cod-cod-dps-ope      .
+           move      spaces               to   w-cod-cod-dps-pf2      .
+           go to     cod-cod-dps-foi-999.
+       cod-cod-dps-foi-999.
+           exit.
+       cod-cod-dps-cll-000.
+           call      w-cod-cod-dps-pth   using w-cod-cod-dps
+                                               v
+                                               s                      .
+       cod-cod-dps-cll-999.
+           exit.
+

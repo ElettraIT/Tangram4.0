@@ -1,0 +1,421 @@
+      *    *===========================================================*
+      *    * Esportazione [ssp]                                        *
+      *    *-----------------------------------------------------------*
+       exe-exp-ssp-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione file area generica                 *
+      *              *-------------------------------------------------*
+           move      "sst "               to   f-xxx-are              .
+           move      "ssp "               to   f-xxx-nam              .
+           move      "std_sst_ssp"        to   f-xxx-npe              .
+      *              *-------------------------------------------------*
+      *              * Richiesta di conferma, se manuale               *
+      *              *-------------------------------------------------*
+           perform   ric-cnf-man-000      thru ric-cnf-man-999        .
+      *              *-------------------------------------------------*
+      *              * Se non confermato : ad uscita                   *
+      *              *-------------------------------------------------*
+           if        f-xxx-sts            not  = "S"
+                     go to exe-exp-ssp-999.
+      *              *-------------------------------------------------*
+      *              * Eventuali forzature se esecuzione batch         *
+      *              *-------------------------------------------------*
+           if        w-exe-flg-btc        =    "S"
+                     go to exe-exp-ssp-010.
+      *              *-------------------------------------------------*
+      *              * Messaggio di programma in esecuzione            *
+      *              *-------------------------------------------------*
+           move      "PE"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       exe-exp-ssp-010.
+      *              *-------------------------------------------------*
+      *              * Numero records letti e scritti a zero           *
+      *              *-------------------------------------------------*
+           move      zero                 to   f-xxx-nrl              .
+           move      zero                 to   f-xxx-nrs              .
+       exe-exp-ssp-020.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * [ssp]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/sst/fls/ioc/obj/iofssp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ssp                 .
+      *                  *---------------------------------------------*
+      *                  * Open generica file sequenziale di output    *
+      *                  *---------------------------------------------*
+           perform   opn-seq-out-000      thru opn-seq-out-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se errori                              *
+      *                  *---------------------------------------------*
+           if        g-sts                =    e-not-err
+                     go to exe-exp-ssp-100.
+      *                  *---------------------------------------------*
+      *                  * Se errori                                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore sull'input          *
+      *                      *-----------------------------------------*
+           perform   msg-inp-err-000      thru msg-inp-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-exp-ssp-999.
+       exe-exp-ssp-100.
+      *              *-------------------------------------------------*
+      *              * Start su file [ssp]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "DPZPRO    "         to   f-key                  .
+           move      zero                 to   rf-ssp-ann-ese         .
+           move      zero                 to   rf-ssp-cod-dpz         .
+           move      zero                 to   rf-ssp-num-pro         .
+           move      spaces               to   rf-ssp-var-mag         .
+           move      "pgm/sst/fls/ioc/obj/iofssp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ssp                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ssp-800.
+       exe-exp-ssp-200.
+      *              *-------------------------------------------------*
+      *              * Next su [ssp]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/sst/fls/ioc/obj/iofssp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ssp                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ssp-800.
+       exe-exp-ssp-300.
+      *              *-------------------------------------------------*
+      *              * Max su [ssp]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-ssp-400.
+      *              *-------------------------------------------------*
+      *              * Sel su [ssp]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-ssp-500.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records letti                 *
+      *              *-------------------------------------------------*
+           perform   inc-rec-let-000      thru inc-rec-let-999        .
+           if        w-exe-flg-brk        not  = spaces
+                     go to exe-exp-ssp-800.
+       exe-exp-ssp-550.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare record sequenziale          *
+      *              *-------------------------------------------------*
+           move      spaces               to   g-rec                  .
+       exe-exp-ssp-600.
+      *              *-------------------------------------------------*
+      *              * Composizione record in output                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione dodici mesi              *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-exe-ctr-001          .
+       exe-exp-ssp-620.
+           add       1                    to   w-exe-ctr-001          .
+           if        w-exe-ctr-001        >    12
+                     go to exe-exp-ssp-750.
+      *                  *---------------------------------------------*
+      *                  * Test preliminare                            *
+      *                  *---------------------------------------------*
+           if        rf-ssp-qta-acq
+                    (w-exe-ctr-001)       =    zero and
+                     rf-ssp-val-acq
+                    (w-exe-ctr-001)       =    zero and
+                     rf-ssp-qta-ven
+                    (w-exe-ctr-001)       =    zero and
+                     rf-ssp-val-ven
+                    (w-exe-ctr-001)       =    zero
+                     go to exe-exp-ssp-620.
+      *                  *---------------------------------------------*
+      *                  * Inizio                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-str-out          .
+      *                  *---------------------------------------------*
+      *                  * Anno di esercizio                           *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      04                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-ssp-ann-ese       to   v-num                  .
+           add       1900                 to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "Y "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      04                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Dipendenza                                  *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-ssp-cod-dpz       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice numerico                             *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-ssp-num-pro       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      07                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Variante                                    *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-ssp-var-mag       to   w-scr-str-ele          .
+           move      14                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Indice mensile                              *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      w-exe-ctr-001        to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Quantita' acquisto                          *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      08                   to   v-car                  .
+           move      03                   to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-ssp-qta-acq
+                    (w-exe-ctr-001)       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valore acquisto                             *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-ssp-val-acq
+                    (w-exe-ctr-001)       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      15                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Quantita' vendita                           *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      08                   to   v-car                  .
+           move      03                   to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-ssp-qta-ven
+                    (w-exe-ctr-001)       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valore vendita                              *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-ssp-val-ven
+                    (w-exe-ctr-001)       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      15                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "Nf"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-ssp-690.
+      *              *-------------------------------------------------*
+      *              * Composizione carattere di fine record           *
+      *              *-------------------------------------------------*
+           move      "fr"                 to   w-scr-str-tip          .
+           move      w-scr-fso-cfr        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-ssp-700.
+      *              *-------------------------------------------------*
+      *              * Scrittura record in output                      *
+      *              *-------------------------------------------------*
+           move      w-out-str-out        to   g-rec                  .
+           perform   put-nxt-out-000      thru put-nxt-out-999        .
+       exe-exp-ssp-720.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records scritti               *
+      *              *-------------------------------------------------*
+           perform   inc-rec-scr-000      thru inc-rec-scr-999        .
+       exe-exp-ssp-730.
+      *              *-------------------------------------------------*
+      *              * Riciclo su indice mensile                       *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ssp-620.
+       exe-exp-ssp-750.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [ssp]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ssp-200.
+       exe-exp-ssp-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [ssp]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/sst/fls/ioc/obj/iofssp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ssp                 .
+       exe-exp-ssp-850.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione nr records letti e scritti      *
+      *              *-------------------------------------------------*
+           perform   vis-rec-let-000      thru vis-rec-let-999        .
+           perform   vis-rec-scr-000      thru vis-rec-scr-999        .
+      *              *-------------------------------------------------*
+      *              * Accettazione presa visione                      *
+      *              *-------------------------------------------------*
+           perform   acc-pre-vis-000      thru acc-pre-vis-999        .
+       exe-exp-ssp-900.
+      *              *-------------------------------------------------*
+      *              * Scrittura rullino messaggi                      *
+      *              *-------------------------------------------------*
+           perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
+       exe-exp-ssp-999.
+           exit.
+
+

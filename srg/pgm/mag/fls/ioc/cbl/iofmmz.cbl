@@ -1,0 +1,768 @@
+       Identification Division.
+       Program-Id.                                 iofmmz             .
+      *================================================================*
+      *                                                                *
+      *                  Input-Output File mmz                         *
+      *                                                                *
+      *================================================================*
+
+      ******************************************************************
+       Environment Division.
+      ******************************************************************
+
+      *================================================================*
+       Configuration Section.
+      *================================================================*
+
+       Source-Computer.     d-K-b-Snc-PD .
+       Object-Computer.     d-K-b-Snc-PD .
+
+       Special-Names.       Decimal-Point is comma .
+
+      *================================================================*
+       Input-Output Section.
+      *================================================================*
+
+       File-Control.
+
+      *    *===========================================================*
+      *    * File Control [fil]                                        *
+      *    *-----------------------------------------------------------*
+           select  optional  fil   assign to disk           f-fil-pat
+                             organization is indexed
+                             access mode  is dynamic
+                             record key   is fil-k01
+                   alternate record key   is fil-k02
+                   alternate record key   is fil-k03
+                             file status  is                f-fil-sts .
+
+      *    *===========================================================*
+      *    * File Control [pul]                                        *
+      *    *-----------------------------------------------------------*
+           select  optional  pul   assign to disk           f-pul-pat
+                             organization is indexed
+                             access mode  is dynamic
+                             record key   is pul-k01
+                   alternate record key   is pul-k02
+                   alternate record key   is pul-k03
+                             file status  is                f-pul-sts .
+
+      ******************************************************************
+       Data Division.
+      ******************************************************************
+
+      *================================================================*
+       File Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * File Description [fil]                                    *
+      *    *-----------------------------------------------------------*
+       fd  fil       label record standard                            .
+
+      *    *===========================================================*
+      *    * Record fisico                                             *
+      *    *-----------------------------------------------------------*
+       01  fil-rec.
+      *        *-------------------------------------------------------*
+      *        * Chiavi                                                *
+      *        *-------------------------------------------------------*
+           05  fil-key.
+      *            *---------------------------------------------------*
+      *            * Chiave numero 01 : MAGARC                         *
+      *            *---------------------------------------------------*
+               10  fil-k01.
+                   15  fil-ann-ese        pic  9(03)       comp-3     .
+                   15  fil-cod-dpz        pic  9(02)                  .
+                   15  fil-tip-mag        pic  9(02)                  .
+                   15  fil-num-mag        pic  9(07)       comp-3     .
+                   15  fil-var-mag        pic  x(14)                  .
+                   15  fil-tip-ctm        pic  x(01)                  .
+                   15  fil-cod-ctm        pic  x(03)                  .
+                   15  fil-tip-arc        pic  x(01)                  .
+                   15  fil-cod-arc        pic  9(07)       comp-3     .
+                   15  fil-dpz-arc        pic  x(04)                  .
+      *            *---------------------------------------------------*
+      *            * Chiave numero 02 : ARCMAG                         *
+      *            *---------------------------------------------------*
+               10  fil-k02.
+                   15  fil-ann-ese-2      pic  9(03)       comp-3     .
+                   15  fil-cod-dpz-2      pic  9(02)                  .
+                   15  fil-tip-arc-2      pic  x(01)                  .
+                   15  fil-cod-arc-2      pic  9(07)       comp-3     .
+                   15  fil-dpz-arc-2      pic  x(04)                  .
+                   15  fil-tip-mag-2      pic  9(02)                  .
+                   15  fil-num-mag-2      pic  9(07)       comp-3     .
+                   15  fil-var-mag-2      pic  x(14)                  .
+                   15  fil-tip-ctm-2      pic  x(01)                  .
+                   15  fil-cod-ctm-2      pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Chiave numero 03 : MGCMAR                         *
+      *            *---------------------------------------------------*
+               10  fil-k03.
+                   15  fil-ann-ese-3      pic  9(03)       comp-3     .
+                   15  fil-tip-mag-3      pic  9(03)                  .
+                   15  fil-num-mag-3      pic  9(07)       comp-3     .
+                   15  fil-var-mag-3      pic  x(14)                  .
+                   15  fil-tip-ctm-3      pic  x(01)                  .
+                   15  fil-cod-ctm-3      pic  x(03)                  .
+                   15  fil-tip-arc-3      pic  x(01)                  .
+                   15  fil-cod-arc-3      pic  9(07)       comp-3     .
+                   15  fil-dpz-arc-3      pic  x(04)                  .
+                   15  fil-cod-dpz-3      pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati                                                  *
+      *        *-------------------------------------------------------*
+           05  fil-dat.
+               10  fil-qta-ini            pic s9(08)v9(03) comp-3     .
+               10  fil-prg-mes occurs 12.
+                   15  fil-prg-cre        pic s9(08)v9(03) comp-3     .
+                   15  fil-prg-deb        pic s9(08)v9(03) comp-3     .
+               10  fil-dip-ife            pic s9(08)v9(03) comp-3     .
+               10  fil-din-ife            pic s9(08)v9(03) comp-3     .
+               10  fil-alx-exp.
+                   15  filler  occurs 20  pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * File Description [pul]                                    *
+      *    *-----------------------------------------------------------*
+       fd  pul       label record standard                            .
+
+      *    *===========================================================*
+      *    * Record fisico                                             *
+      *    *-----------------------------------------------------------*
+       01  pul-rec.
+      *        *-------------------------------------------------------*
+      *        * Chiavi                                                *
+      *        *-------------------------------------------------------*
+           05  pul-key.
+      *            *---------------------------------------------------*
+      *            * Chiave numero 01 : MAGARC                         *
+      *            *---------------------------------------------------*
+               10  pul-k01.
+                   15  pul-ann-ese        pic  9(03)       comp-3     .
+                   15  pul-cod-dpz        pic  9(02)                  .
+                   15  pul-tip-mag        pic  9(02)                  .
+                   15  pul-num-mag        pic  9(07)       comp-3     .
+                   15  pul-var-mag        pic  x(14)                  .
+                   15  pul-tip-ctm        pic  x(01)                  .
+                   15  pul-cod-ctm        pic  x(03)                  .
+                   15  pul-tip-arc        pic  x(01)                  .
+                   15  pul-cod-arc        pic  9(07)       comp-3     .
+                   15  pul-dpz-arc        pic  x(04)                  .
+      *            *---------------------------------------------------*
+      *            * Chiave numero 02 : ARCMAG                         *
+      *            *---------------------------------------------------*
+               10  pul-k02.
+                   15  pul-ann-ese-2      pic  9(03)       comp-3     .
+                   15  pul-cod-dpz-2      pic  9(02)                  .
+                   15  pul-tip-arc-2      pic  x(01)                  .
+                   15  pul-cod-arc-2      pic  9(07)       comp-3     .
+                   15  pul-dpz-arc-2      pic  x(04)                  .
+                   15  pul-tip-mag-2      pic  9(02)                  .
+                   15  pul-num-mag-2      pic  9(07)       comp-3     .
+                   15  pul-var-mag-2      pic  x(14)                  .
+                   15  pul-tip-ctm-2      pic  x(01)                  .
+                   15  pul-cod-ctm-2      pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Chiave numero 03 : MGCMAR                         *
+      *            *---------------------------------------------------*
+               10  pul-k03.
+                   15  pul-ann-ese-3      pic  9(03)       comp-3     .
+                   15  pul-tip-mag-3      pic  9(03)                  .
+                   15  pul-num-mag-3      pic  9(07)       comp-3     .
+                   15  pul-var-mag-3      pic  x(14)                  .
+                   15  pul-tip-ctm-3      pic  x(01)                  .
+                   15  pul-cod-ctm-3      pic  x(03)                  .
+                   15  pul-tip-arc-3      pic  x(01)                  .
+                   15  pul-cod-arc-3      pic  9(07)       comp-3     .
+                   15  pul-dpz-arc-3      pic  x(04)                  .
+                   15  pul-cod-dpz-3      pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati                                                  *
+      *        *-------------------------------------------------------*
+           05  pul-dat.
+               10  pul-qta-ini            pic s9(08)v9(03) comp-3     .
+               10  pul-prg-mes occurs 12.
+                   15  pul-prg-cre        pic s9(08)v9(03) comp-3     .
+                   15  pul-prg-deb        pic s9(08)v9(03) comp-3     .
+               10  pul-dip-ife            pic s9(08)v9(03) comp-3     .
+               10  pul-din-ife            pic s9(08)v9(03) comp-3     .
+               10  pul-alx-exp.
+                   15  filler  occurs 20  pic  x(01)                  .
+
+      *================================================================*
+       Working-Storage Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di identificazione                                   *
+      *    *-----------------------------------------------------------*
+       01  i-ide.
+      *        *-------------------------------------------------------*
+      *        * Sigla del File                                        *
+      *        *-------------------------------------------------------*
+           02  i-ide-sdf                  pic  x(04) value
+                     "mmz "                                           .
+      *        *-------------------------------------------------------*
+      *        * Pathname completo del modulo oggetto                  *
+      *        *-------------------------------------------------------*
+           02  i-ide-pmo                  pic  x(40) value
+                     "pgm/mag/fls/ioc/obj/iofmmz              "       .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                "msegrt"  *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/s"                                  .
+
+      *    *===========================================================*
+      *    * Area per definizione codici di errore di i-o              *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/e"                                  .
+
+      *    *===========================================================*
+      *    * Work-area fissa per tutti i moduli di gestione i-o        *
+      *    *-----------------------------------------------------------*
+           copy      "swd/ske/iof/iofcp30"                            .
+
+      *    *===========================================================*
+      *    * Area Lunghezza record in bytes ed Elenco chiavi previste  *
+      *    *-----------------------------------------------------------*
+       01  k.
+      *        *-------------------------------------------------------*
+      *        * Numero chiavi di accesso                              *
+      *        *-------------------------------------------------------*
+           05  k-ctr                      pic  9(02) value 3          .
+      *        *-------------------------------------------------------*
+      *        * Nomi chiavi di accesso                                *
+      *        *-------------------------------------------------------*
+           05  k-elx.
+      *            *---------------------------------------------------*
+      *            * Nome chiave numero 1                              *
+      *            *---------------------------------------------------*
+               10  filler                 pic  x(10) value
+                            "MAGARC    "                              .
+      *            *---------------------------------------------------*
+      *            * Nome chiave numero 2                              *
+      *            *---------------------------------------------------*
+               10  filler                 pic  x(10) value
+                            "ARCMAG    "                              .
+      *            *---------------------------------------------------*
+      *            * Nome chiave numero 3                              *
+      *            *---------------------------------------------------*
+               10  filler                 pic  x(10) value
+                            "MGCMAR    "                              .
+      *        *-------------------------------------------------------*
+      *        * Ridefinizione nomi chiavi di accesso                  *
+      *        *-------------------------------------------------------*
+           05  k-ely redefines
+               k-elx.
+               10  k-ele occurs    3      pic  x(10)                  .
+
+      *    *===========================================================*
+      *    * Work-area per contatori e indici                          *
+      *    *-----------------------------------------------------------*
+      *        *-------------------------------------------------------*
+      *        * Contatore 'I' di comodo                               *
+      *        *-------------------------------------------------------*
+           05  w-cix-ctr-001              pic  9(03)                  .
+
+      *================================================================*
+       Linkage Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di comunicazione per moduli di input-output          *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/f"                                  .
+
+      *    *===========================================================*
+      *    * Record logico file [mmz]                                  *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/mag/fls/rec/rfmmz"                          .
+
+      ******************************************************************
+       Procedure Division                using f rf-mmz               .
+      ******************************************************************
+
+      *    *===========================================================*
+      *    * Procedure division fissa per tutti i moduli di i-o        *
+      *    *-----------------------------------------------------------*
+           copy      "swd/ske/iof/iofcp50"                            .
+
+      *    *===========================================================*
+      *    * Start su chiave                                           *
+      *    *-----------------------------------------------------------*
+       str-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      "00"                 to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Selezione indice sequenza di accesso            *
+      *              *-------------------------------------------------*
+           if        f-cfr                =    "NG"
+                     move   3             to   z-tco
+           else if   f-cfr                =    "GT"
+                     move   2             to   z-tco
+           else      move   1             to   z-tco                  .
+      *              *-------------------------------------------------*
+      *              * Composizione chiave fisica                      *
+      *              *-------------------------------------------------*
+           perform   cmp-key-fis-000      thru cmp-key-fis-999        .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione dell'indice z-key        *
+      *              *-------------------------------------------------*
+           go to     str-100
+                     str-200
+                     str-300
+                     depending            on   z-key                  .
+       str-100.
+      *              *-------------------------------------------------*
+      *              * Start per chiave indice 1                       *
+      *              *-------------------------------------------------*
+           go to     str-110
+                     str-120
+                     str-130
+                     depending            on   z-tco                  .
+       str-110.
+      *                     *------------------------------------------*
+      *                     * Start not less chiave indice 1           *
+      *                     *------------------------------------------*
+           start     fil    key not less
+                            fil-k01
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-120.
+      *                     *------------------------------------------*
+      *                     * Start greater  chiave indice 1           *
+      *                     *------------------------------------------*
+           start     fil    key greater
+                            fil-k01
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-130.
+      *                     *------------------------------------------*
+      *                     * Start not >    chiave indice 1           *
+      *                     *------------------------------------------*
+           start     fil    key not greater
+                            fil-k01
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-200.
+      *              *-------------------------------------------------*
+      *              * Start per chiave indice 2                       *
+      *              *-------------------------------------------------*
+           go to     str-210
+                     str-220
+                     str-230
+                     depending            on   z-tco                  .
+       str-210.
+      *                     *------------------------------------------*
+      *                     * Start not less chiave indice 2           *
+      *                     *------------------------------------------*
+           start     fil    key not less
+                            fil-k02
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-220.
+      *                     *------------------------------------------*
+      *                     * Start greater  chiave indice 2           *
+      *                     *------------------------------------------*
+           start     fil    key greater
+                            fil-k02
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-230.
+      *                     *------------------------------------------*
+      *                     * Start not >    chiave indice 2           *
+      *                     *------------------------------------------*
+           start     fil    key not greater
+                            fil-k02
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-300.
+      *              *-------------------------------------------------*
+      *              * Start per chiave indice 3                       *
+      *              *-------------------------------------------------*
+           go to     str-310
+                     str-320
+                     str-330
+                     depending            on   z-tco                  .
+       str-310.
+      *                     *------------------------------------------*
+      *                     * Start not less chiave indice 3           *
+      *                     *------------------------------------------*
+           start     fil    key not less
+                            fil-k03
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-320.
+      *                     *------------------------------------------*
+      *                     * Start greater  chiave indice 3           *
+      *                     *------------------------------------------*
+           start     fil    key greater
+                            fil-k03
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-330.
+      *                     *------------------------------------------*
+      *                     * Start not >    chiave indice 3           *
+      *                     *------------------------------------------*
+           start     fil    key not greater
+                            fil-k03
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-980.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-sts                to   f-sts                  .
+      *                  *---------------------------------------------*
+      *                  * Ogni i-o error e' considerato fatal error   *
+      *                  *---------------------------------------------*
+           if        e-sts                =    "00"
+                     go to str-999
+           else      perform fte-000      thru fte-999                .
+       str-990.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-end-fil            to   f-sts                  .
+       str-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Read record generica su chiave                            *
+      *    *-----------------------------------------------------------*
+       rea-000.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave fisica                      *
+      *              *-------------------------------------------------*
+           perform   cmp-key-fis-000      thru cmp-key-fis-999        .
+       rea-010.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione dell'indice z-key        *
+      *              *-------------------------------------------------*
+           go to     rea-100
+                     rea-200
+                     rea-300
+                     depending            on   z-key                  .
+       rea-100.
+      *              *-------------------------------------------------*
+      *              * Read per chiave indice 1                        *
+      *              *-------------------------------------------------*
+           if        z-lok                =    1
+                     go to rea-110.
+      *                     *------------------------------------------*
+      *                     * Read no lock                             *
+      *                     *------------------------------------------*
+           read      fil    with no lock
+                            key  is fil-k01
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-110.
+      *                     *------------------------------------------*
+      *                     * Read with lock                           *
+      *                     *------------------------------------------*
+           read      fil    key  is fil-k01
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-200.
+      *              *-------------------------------------------------*
+      *              * Read per chiave indice 2                        *
+      *              *-------------------------------------------------*
+           if        z-lok                =    1
+                     go to rea-210.
+      *                     *------------------------------------------*
+      *                     * Read no lock                             *
+      *                     *------------------------------------------*
+           read      fil    with no lock
+                            key  is fil-k02
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-210.
+      *                     *------------------------------------------*
+      *                     * Read with lock                           *
+      *                     *------------------------------------------*
+           read      fil    key  is fil-k02
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-300.
+      *              *-------------------------------------------------*
+      *              * Read per chiave indice 3                        *
+      *              *-------------------------------------------------*
+           if        z-lok                =    1
+                     go to rea-310.
+      *                     *------------------------------------------*
+      *                     * Read no lock                             *
+      *                     *------------------------------------------*
+           read      fil    with no lock
+                            key  is fil-k03
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-310.
+      *                     *------------------------------------------*
+      *                     * Read with lock                           *
+      *                     *------------------------------------------*
+           read      fil    key  is fil-k03
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-980.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-sts                to   f-sts                  .
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritorna a rileggere        *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   rea-010.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = "00"
+                     perform fte-000      thru fte-999                .
+      *                  *---------------------------------------------*
+      *                  * Se richiesta la decomposizione da record    *
+      *                  * fisico a record logico la si esegue         *
+      *                  *---------------------------------------------*
+           if        z-dec                =    1
+                     perform dec-fis-log-000
+                        thru dec-fis-log-999.
+           go to     rea-999.
+       rea-990.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-not-fnd            to   f-sts                 .
+       rea-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Normalizzazione record logico                             *
+      *    *-----------------------------------------------------------*
+       nor-rec-log-000.
+           move      spaces               to   rf-mmz                 .
+           move      zero                 to   rf-mmz-ann-ese         .
+           move      zero                 to   rf-mmz-cod-dpz         .
+           move      zero                 to   rf-mmz-tip-mag         .
+           move      zero                 to   rf-mmz-num-mag         .
+           move      spaces               to   rf-mmz-var-mag         .
+           move      spaces               to   rf-mmz-tip-ctm         .
+           move      spaces               to   rf-mmz-cod-ctm         .
+           move      spaces               to   rf-mmz-tip-arc         .
+           move      zero                 to   rf-mmz-cod-arc         .
+           move      spaces               to   rf-mmz-dpz-arc         .
+           move      zero                 to   rf-mmz-qta-ini         .
+           move      zero                 to   w-cix-ctr-001          .
+       nor-rec-log-200.
+           add       1                    to   w-cix-ctr-001          .
+           if        w-cix-ctr-001        >    12
+                     go to nor-rec-log-400.
+           move      zero                 to   rf-mmz-prg-cre
+                                              (w-cix-ctr-001)         .
+           move      zero                 to   rf-mmz-prg-deb
+                                              (w-cix-ctr-001)         .
+           go to     nor-rec-log-200.
+       nor-rec-log-400.
+           move      zero                 to   rf-mmz-dip-ife         .
+           move      zero                 to   rf-mmz-din-ife         .
+           move      spaces               to   rf-mmz-alx-exp         .
+       nor-rec-log-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Composizione record da logico a fisico                    *
+      *    *-----------------------------------------------------------*
+       cmp-log-fis-000.
+      *              *-------------------------------------------------*
+      *              * Spaces in tutto il record fisico                *
+      *              *-------------------------------------------------*
+           move      spaces               to   fil-rec                .
+      *              *-------------------------------------------------*
+      *              * Composizione area chiavi                        *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-key                  .
+       cmp-log-fis-100.
+           if        z-key                <    k-ctr
+                     add     1            to   z-key
+                     perform cmp-key-fis-000
+                        thru cmp-key-fis-999
+                     go to   cmp-log-fis-100.
+      *              *-------------------------------------------------*
+      *              * Composizione area dati                          *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-key                  .
+           move      rf-mmz-qta-ini       to   fil-qta-ini            .
+           move      zero                 to   w-cix-ctr-001          .
+       cmp-log-fis-200.
+           add       1                    to   w-cix-ctr-001          .
+           if        w-cix-ctr-001        >    12
+                     go to cmp-log-fis-400.
+           move      rf-mmz-prg-cre
+                    (w-cix-ctr-001)       to   fil-prg-cre
+                                              (w-cix-ctr-001)         .
+           move      rf-mmz-prg-deb
+                    (w-cix-ctr-001)       to   fil-prg-deb
+                                              (w-cix-ctr-001)         .
+           go to     cmp-log-fis-200.
+       cmp-log-fis-400.
+           move      rf-mmz-dip-ife       to   fil-dip-ife            .
+           move      rf-mmz-din-ife       to   fil-din-ife            .
+           move      rf-mmz-alx-exp       to   fil-alx-exp            .
+       cmp-log-fis-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Composizione chiave da logica a fisica secondo z-key      *
+      *    *-----------------------------------------------------------*
+       cmp-key-fis-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione dell'indice z-key        *
+      *              *-------------------------------------------------*
+           go to     cmp-key-fis-100
+                     cmp-key-fis-200
+                     cmp-key-fis-300
+                     depending            on   z-key                  .
+       cmp-key-fis-100.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave indice 1                    *
+      *              *-------------------------------------------------*
+           move      spaces               to   fil-k01                .
+           move      rf-mmz-ann-ese       to   fil-ann-ese            .
+           move      rf-mmz-cod-dpz       to   fil-cod-dpz            .
+           move      rf-mmz-tip-mag       to   fil-tip-mag            .
+           move      rf-mmz-num-mag       to   fil-num-mag            .
+           move      rf-mmz-var-mag       to   fil-var-mag            .
+           move      rf-mmz-tip-ctm       to   fil-tip-ctm            .
+           move      rf-mmz-cod-ctm       to   fil-cod-ctm            .
+           move      rf-mmz-tip-arc       to   fil-tip-arc            .
+           move      rf-mmz-cod-arc       to   fil-cod-arc            .
+           move      rf-mmz-dpz-arc       to   fil-dpz-arc            .
+           go to     cmp-key-fis-999.
+       cmp-key-fis-200.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave indice 2                    *
+      *              *-------------------------------------------------*
+           move      spaces               to   fil-k02                .
+           move      rf-mmz-ann-ese       to   fil-ann-ese-2          .
+           move      rf-mmz-cod-dpz       to   fil-cod-dpz-2          .
+           move      rf-mmz-tip-arc       to   fil-tip-arc-2          .
+           move      rf-mmz-cod-arc       to   fil-cod-arc-2          .
+           move      rf-mmz-dpz-arc       to   fil-dpz-arc-2          .
+           move      rf-mmz-tip-mag       to   fil-tip-mag-2          .
+           move      rf-mmz-num-mag       to   fil-num-mag-2          .
+           move      rf-mmz-var-mag       to   fil-var-mag-2          .
+           move      rf-mmz-tip-ctm       to   fil-tip-ctm-2          .
+           move      rf-mmz-cod-ctm       to   fil-cod-ctm-2          .
+           go to     cmp-key-fis-999.
+       cmp-key-fis-300.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave indice 3                    *
+      *              *-------------------------------------------------*
+           move      spaces               to   fil-k03                .
+           move      rf-mmz-ann-ese       to   fil-ann-ese-3          .
+           move      rf-mmz-tip-mag       to   fil-tip-mag-3          .
+           move      rf-mmz-num-mag       to   fil-num-mag-3          .
+           move      rf-mmz-var-mag       to   fil-var-mag-3          .
+           move      rf-mmz-tip-ctm       to   fil-tip-ctm-3          .
+           move      rf-mmz-cod-ctm       to   fil-cod-ctm-3          .
+           move      rf-mmz-tip-arc       to   fil-tip-arc-3          .
+           move      rf-mmz-cod-arc       to   fil-cod-arc-3          .
+           move      rf-mmz-dpz-arc       to   fil-dpz-arc-3          .
+           move      rf-mmz-cod-dpz       to   fil-cod-dpz-3          .
+           go to     cmp-key-fis-999.
+       cmp-key-fis-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Decomposizione record da fisico a logico                  *
+      *    *-----------------------------------------------------------*
+       dec-fis-log-000.
+           move      spaces               to   rf-mmz                 .
+           move      fil-ann-ese          to   rf-mmz-ann-ese         .
+           move      fil-cod-dpz          to   rf-mmz-cod-dpz         .
+           move      fil-tip-mag          to   rf-mmz-tip-mag         .
+           move      fil-num-mag          to   rf-mmz-num-mag         .
+           move      fil-var-mag          to   rf-mmz-var-mag         .
+           move      fil-tip-ctm          to   rf-mmz-tip-ctm         .
+           move      fil-cod-ctm          to   rf-mmz-cod-ctm         .
+           move      fil-tip-arc          to   rf-mmz-tip-arc         .
+           move      fil-cod-arc          to   rf-mmz-cod-arc         .
+           move      fil-dpz-arc          to   rf-mmz-dpz-arc         .
+           move      fil-qta-ini          to   rf-mmz-qta-ini         .
+           move      zero                 to   w-cix-ctr-001          .
+       dec-fis-log-200.
+           add       1                    to   w-cix-ctr-001          .
+           if        w-cix-ctr-001        >    12
+                     go to dec-fis-log-400.
+           move      fil-prg-cre
+                    (w-cix-ctr-001)       to   rf-mmz-prg-cre
+                                              (w-cix-ctr-001)         .
+           move      fil-prg-deb
+                    (w-cix-ctr-001)       to   rf-mmz-prg-deb
+                                              (w-cix-ctr-001)         .
+           go to     dec-fis-log-200.
+       dec-fis-log-400.
+           move      fil-dip-ife          to   rf-mmz-dip-ife         .
+           move      fil-din-ife          to   rf-mmz-din-ife         .
+           move      fil-alx-exp          to   rf-mmz-alx-exp         .
+       dec-fis-log-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Unstring record logico in porzioni da 80 caratteri in     *
+      *    * s-alf, per la funzione di sequenzializzazione             *
+      *    *-----------------------------------------------------------*
+       uns-rec-log-000.
+           unstring  rf-mmz               into s-alf
+                                  with pointer z-inx                  .
+       uns-rec-log-999.
+           exit.
+
+      *    *===========================================================*
+      *    * String record logico in porzioni da 80 caratteri da s-alf *
+      *    * per la funzione di indicizzazione                         *
+      *    *-----------------------------------------------------------*
+       stg-rec-log-000.
+           string    s-alf      delimited by   size
+                                          into rf-mmz
+                                  with pointer z-inx                  .
+       stg-rec-log-999.
+           exit.
+

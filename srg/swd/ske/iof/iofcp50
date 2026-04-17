@@ -1,0 +1,1672 @@
+      *    *===========================================================*
+      *    * Declaratives                                              *
+      *    *-----------------------------------------------------------*
+       Declaratives.
+      *         *------------------------------------------------------*
+      *         * [fil]                                                *
+      *         *------------------------------------------------------*
+       Decl-fil Section.
+           Use after standard error procedure on fil.
+       decl-000.
+      *              *-------------------------------------------------*
+      *              * Traslazione del codice di i-o status contenuto  *
+      *              * in f-fil-sts nel codice di i-o status conven-   *
+      *              * zionale                                         *
+      *              *-------------------------------------------------*
+           call      "swd/mod/prg/obj/miosts"
+                                         using f-fil                  .
+      *              *-------------------------------------------------*
+      *              * Spostamento cobol-file-status in area per defi- *
+      *              * nizione codici di errore di i-o                 *
+      *              *-------------------------------------------------*
+           move      f-fil-sts            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Test su tipo di errore intervenuto. Se l'errore *
+      *              * non rientra tra i seguenti si termina l'esecu-  *
+      *              * zione del programma con segnalazione di errore  *
+      *              * fatale.                                         *
+      *              *-------------------------------------------------*
+           if        e-sts                not  = e-not-lst and
+                     e-sts                not  = e-end-fil and
+                     e-sts                not  = e-dup-key and
+                     e-sts                not  = e-not-fnd and
+                     e-sts                not  = e-opn-err and
+                     e-sts                not  = e-use-err and
+                     e-sts                not  = e-fil-inc
+                     move  "FE"           to   s-ope
+                     move  f-fil-nam      to   s-nam
+                     move  f-fil-pat      to   s-pat
+                     move  f-fil-sts      to   s-sts
+                     call  "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *         *------------------------------------------------------*
+      *         * [pul]                                                *
+      *         *------------------------------------------------------*
+       Decl-pul Section.
+           Use after standard error procedure on pul.
+       decl-000.
+      *              *-------------------------------------------------*
+      *              * Traslazione del codice di i-o status contenuto  *
+      *              * in f-pul-sts nel codice di i-o status conven-   *
+      *              * zionale                                         *
+      *              *-------------------------------------------------*
+           call      "swd/mod/prg/obj/miosts"
+                                         using f-pul                  .
+      *              *-------------------------------------------------*
+      *              * Spostamento cobol-file-status in area per defi- *
+      *              * nizione codici di errore di i-o                 *
+      *              *-------------------------------------------------*
+           move      f-pul-sts            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Test su tipo di errore intervenuto. Se l'errore *
+      *              * non rientra tra i seguenti si termina l'esecu-  *
+      *              * zione del programma con segnalazione di errore  *
+      *              * fatale.                                         *
+      *              *-------------------------------------------------*
+           if        e-sts                not  = e-not-lst and
+                     e-sts                not  = e-end-fil and
+                     e-sts                not  = e-dup-key and
+                     e-sts                not  = e-not-fnd and
+                     e-sts                not  = e-opn-err and
+                     e-sts                not  = e-use-err and
+                     e-sts                not  = e-fil-inc
+                     move  "FE"           to   s-ope
+                     move  f-pul-nam      to   s-nam
+                     move  f-pul-pat      to   s-pat
+                     move  f-pul-sts      to   s-sts
+                     call  "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+       End Declaratives.
+
+      *    *===========================================================*
+      *    * Main program                                              *
+      *    *-----------------------------------------------------------*
+       Main Section.
+       main-000.
+      *              *-------------------------------------------------*
+      *              * Comunicazione del nome del modulo oggetto e ot- *
+      *              * tenimento del pathname completo del file        *
+      *              *-------------------------------------------------*
+           perform   nmp-000              thru nmp-999                .
+      *              *-------------------------------------------------*
+      *              * Test su tipo operazione                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Start per chiave primaria                   *
+      *                  *---------------------------------------------*
+           if        f-ope                =    "ST"
+                     move    1            to   z-key
+                     perform str-000      thru str-999
+      *                  *---------------------------------------------*
+      *                  * Start per chiave descritta in f-key         *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "SK"
+                     perform sik-000      thru sik-999
+                     perform str-000      thru str-999
+      *                  *---------------------------------------------*
+      *                  * Read record per chiave primaria             *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RD"
+                     move    1            to   z-key
+                     move    zero         to   z-lok
+                     move    1            to   z-dec
+                     perform rea-000      thru rea-999
+      *                  *---------------------------------------------*
+      *                  * Read record per chiave generica             *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RK"
+                     perform sik-000      thru sik-999
+                     move    zero         to   z-lok
+                     move    1            to   z-dec
+                     perform rea-000      thru rea-999
+      *                  *---------------------------------------------*
+      *                  * Read next                                   *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RN"
+                     move    zero         to   z-lok
+                     perform nxt-000      thru nxt-999
+      *                  *---------------------------------------------*
+      *                  * Get Record per chiave primaria              *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "GT"
+                     move    1            to   z-key
+                                               z-lok
+                                               z-dec
+                     perform rea-000      thru rea-999
+      *                  *---------------------------------------------*
+      *                  * Get Record per chiave generica              *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "GK"
+                     perform sik-000      thru sik-999
+                     move    1            to   z-lok
+                                               z-dec
+                     perform rea-000      thru rea-999
+      *                  *---------------------------------------------*
+      *                  * Get next                                    *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "GN"
+                     move    1            to   z-lok
+                     perform nxt-000      thru nxt-999
+      *                  *---------------------------------------------*
+      *                  * Release record                              *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RL"
+                     perform rel-000      thru rel-999
+      *                  *---------------------------------------------*
+      *                  * Delete record                               *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "DE"
+                     perform del-000      thru del-999
+      *                  *---------------------------------------------*
+      *                  * Update record                               *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "UP"
+                     perform upd-000      thru upd-999
+      *                  *---------------------------------------------*
+      *                  * Put record                                  *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "PT"
+                     perform put-000      thru put-999
+      *                  *---------------------------------------------*
+      *                  * Force put record                            *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "FP"
+                     perform fpt-000      thru fpt-999
+      *                  *---------------------------------------------*
+      *                  * Read previous                               *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RP"
+                     move    zero         to   z-lok
+                     perform prv-000      thru prv-999
+      *                  *---------------------------------------------*
+      *                  * Get previous                                *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "GP"
+                     move    1            to   z-lok
+                     perform prv-000      thru prv-000
+      *                  *---------------------------------------------*
+      *                  * Open                                        *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "OP"
+                     perform opn-000      thru opn-999
+      *                  *---------------------------------------------*
+      *                  * Close                                       *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "CL"
+                     perform cls-000      thru cls-999
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione record logico               *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "NO"
+                     perform nor-rec-log-000
+                        thru nor-rec-log-999
+      *                  *---------------------------------------------*
+      *                  * Test Esistenza File                         *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "TE"
+                     perform tes-000      thru tes-999
+      *                  *---------------------------------------------*
+      *                  * Create file                                 *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "CF"
+                     perform crf-000      thru crf-999
+      *                  *---------------------------------------------*
+      *                  * Delete file                                 *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "DF"
+                     perform dlf-000      thru dlf-999
+      *                  *---------------------------------------------*
+      *                  * Open file di appoggio per pulizia/riorga-   *
+      *                  * nizzazione                                  *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "Op"
+                     perform opp-000      thru opp-999
+      *                  *---------------------------------------------*
+      *                  * Close file di appoggio per pulizia/riorga-  *
+      *                  * nizzazione                                  *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "Cp"
+                     perform clp-000      thru clp-999
+      *                  *---------------------------------------------*
+      *                  * Put record su file di appoggio per pulizia/ *
+      *                  * riorganizzazione                            *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "Pp"
+                     perform ptp-000      thru ptp-999
+      *                  *---------------------------------------------*
+      *                  * Rename sostitutivo file di appoggio per pu- *
+      *                  * lizia/riorganizzazione su file originale    *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "Xp"
+                     perform rsp-000      thru rsp-999                .
+       main-999.
+           exit program.
+
+      *    *===========================================================*
+      *    * Comunicazione del nome del modulo oggetto e ottenimento   *
+      *    * del pathname completo del file                            *
+      *    *-----------------------------------------------------------*
+       nmp-000.
+      *              *-------------------------------------------------*
+      *              * Se non e' il primo richiamo significa che la    *
+      *              * comunicazione del nome del modulo oggetto al    *
+      *              * modulo di segreteria e' gia' stata eseguita     *
+      *              *-------------------------------------------------*
+           if        z-uno                not  = zero
+                     go to nmp-999.
+      *              *-------------------------------------------------*
+      *              * Segnale di comunicazione gia' eseguita          *
+      *              *-------------------------------------------------*
+           move      1                    to   z-uno                  .
+      *              *-------------------------------------------------*
+      *              * Preparazione della sigla del file               *
+      *              *-------------------------------------------------*
+           move      i-ide-sdf            to   f-fil-nam              .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per la comu-  *
+      *              * nicazione del nome del modulo oggetto           *
+      *              *-------------------------------------------------*
+           move      "FO"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           move      i-ide-pmo            to   s-pmo                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per ottenere  *
+      *              * il pathname completo del file                   *
+      *              *-------------------------------------------------*
+           move      "PG"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Spostamento pathname in area chiamante          *
+      *              *-------------------------------------------------*
+           move      s-pat                to   f-fil-pat              .
+      *              *-------------------------------------------------*
+      *              * Memorizzazione dello status di ritorno, che puo'*
+      *              * indicare la richiesta di :                      *
+      *              * - KS     , sequenzializzazione                  *
+      *              * - SK     , indicizzazione senza sostituzione    *
+      *              * - SJ     , indicizzazione con sostituzione      *
+      *              * - KK     , operazione su' se' stesso            *
+      *              * - Spaces , nessuna operazione                   *
+      *              * alla prossima apertura del file                 *
+      *              *-------------------------------------------------*
+           move      s-sts                to   z-sqz                  .
+      *              *-------------------------------------------------*
+      *              * Se tipo di richiesta a Spaces : uscita          *
+      *              *-------------------------------------------------*
+           if        z-sqz                =    spaces
+                     go to nmp-999.
+      *              *-------------------------------------------------*
+      *              * Richiesta ulteriori attributi alla segreteria   *
+      *              * per l'operazione da eseguire                    *
+      *              *-------------------------------------------------*
+           move      "PF"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Memorizzazione del tipo di filtro da applicare  *
+      *              *-------------------------------------------------*
+           move      s-num                to   z-tpf                  .
+      *              *-------------------------------------------------*
+      *              * Memorizzazione del nome del filtro da applicare *
+      *              *-------------------------------------------------*
+           move      s-pat                to   z-nmf                  .
+       nmp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Test di esistenza                                         *
+      *    *-----------------------------------------------------------*
+       tes-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per control-  *
+      *              * lare il file-open-counter del file              *
+      *              *-------------------------------------------------*
+           move      "F?"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Se il file-open-counter e' maggiore di zero il  *
+      *              * file e' sicuramente esistente                   *
+      *              *-------------------------------------------------*
+           if        s-foc                >    zero
+                     go to tes-800.
+      *              *-------------------------------------------------*
+      *              * Tentativo di open in input del file             *
+      *              *-------------------------------------------------*
+           open      input  fil                                       .
+      *              *-------------------------------------------------*
+      *              * Test su esito open                              *
+      *              *-------------------------------------------------*
+           if        e-sts                =    e-not-err
+                     go to tes-200.
+      *                  *---------------------------------------------*
+      *                  * Open non riuscita                           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se file locked o file esistente ma di   *
+      *                      * formato inaspettato o non trovato, si   *
+      *                      * ritorna lo status di errore             *
+      *                      *-----------------------------------------*
+           if        e-sts                =    e-use-err or
+                     e-sts                =    e-fil-inc or
+                     e-sts                =    e-opn-err
+                     go to tes-800.
+      *                      *-----------------------------------------*
+      *                      * Ogni altro errore viene considerato un  *
+      *                      * fatal error                             *
+      *                      *-----------------------------------------*
+           perform   fte-000              thru fte-999                .
+       tes-200.
+      *                  *---------------------------------------------*
+      *                  * Open riuscita                               *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Close                                   *
+      *                      *-----------------------------------------*
+           close     fil                                              .
+      *                      *-----------------------------------------*
+      *                      * Qualsiasi errore durante la close viene *
+      *                      * considerato un fatal error              *
+      *                      *-----------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+       tes-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       tes-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Create file                                               *
+      *    *-----------------------------------------------------------*
+       crf-000.
+      *              *-------------------------------------------------*
+      *              * Test se file gia' esistente                     *
+      *              *-------------------------------------------------*
+           perform   tes-000              thru tes-999                .
+      *              *-------------------------------------------------*
+      *              * Se il file esiste gia' si ritorna il codice di  *
+      *              * errore : e-use-err                              *
+      *              *-------------------------------------------------*
+           if        f-sts                =    e-not-err
+                     move  e-use-err      to   e-sts
+                     go to crf-800.
+      *              *-------------------------------------------------*
+      *              * Se File non esistente                           *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione status                      *
+      *                  *---------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *                  *---------------------------------------------*
+      *                  * Tentativo di open output del file           *
+      *                  *---------------------------------------------*
+           open      output fil                                       .
+      *                  *---------------------------------------------*
+      *                  * Test su esito della open output             *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-not-err
+                     go to crf-200.
+      *                      *-----------------------------------------*
+      *                      * Open output non riuscita                *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Se file locked o file esistente ma  *
+      *                          * di formato inaspettato o non trova- *
+      *                          * to, si ritorna lo status di errore  *
+      *                          *-------------------------------------*
+           if        e-sts                =    e-use-err or
+                     e-sts                =    e-fil-inc or
+                     e-sts                =    e-opn-err
+                     go to crf-800.
+      *                          *-------------------------------------*
+      *                          * Ogni altro errore viene considerato *
+      *                          * un fatal error                      *
+      *                          *-------------------------------------*
+           perform   fte-000              thru fte-999                .
+       crf-200.
+      *                      *-----------------------------------------*
+      *                      * Open output riuscita                    *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Close                               *
+      *                          *-------------------------------------*
+           close     fil                                              .
+      *                          *-------------------------------------*
+      *                          * Qualsiasi errore durante la close   *
+      *                          * viene considerato un fatal error    *
+      *                          *-------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+       crf-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       crf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Delete file                                               *
+      *    *-----------------------------------------------------------*
+       dlf-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per control-  *
+      *              * lare il file-open-counter del file              *
+      *              *-------------------------------------------------*
+           move      "F?"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Se il file-open-counter e' maggiore di zero *
+      *                  * il file e' gia' aperto, e in questo caso si *
+      *                  * ritorna il codice di errore : e-use-err     *
+      *                  *---------------------------------------------*
+           if        s-foc                >    zero
+                     move   e-use-err     to   e-sts
+                     go to dlf-800.
+      *                  *---------------------------------------------*
+      *                  * Se invece il file-open-counter e' uguale a  *
+      *                  * zero si tenta il delete del file            *
+      *                  *---------------------------------------------*
+           delete    file   fil                                       .
+      *                  *---------------------------------------------*
+      *                  * Test su esito della delete file             *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-not-err
+                     go to dlf-800.
+      *                      *-----------------------------------------*
+      *                      * Delete file non riuscita                *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Se file non trovato si ritorna con  *
+      *                          * operazione eseguita con successo    *
+      *                          *-------------------------------------*
+           if        e-sts                =    e-opn-err
+                     move  e-not-err      to   e-sts
+                     go to dlf-800.
+      *                          *-------------------------------------*
+      *                          * Se file locked o file esistente ma  *
+      *                          * di formato inaspettato, si ritorna  *
+      *                          * lo status di errore                 *
+      *                          *-------------------------------------*
+           if        e-sts                =    e-use-err or
+                     e-sts                =    e-fil-inc
+                     go to dlf-800.
+      *                          *-------------------------------------*
+      *                          * Ogni altro errore viene considerato *
+      *                          * un fatal error                      *
+      *                          *-------------------------------------*
+           perform   fte-000              thru fte-999                .
+       dlf-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       dlf-999.
+           exit.
+           
+      *    *===========================================================*
+      *    * Open                                                      *
+      *    *-----------------------------------------------------------*
+       opn-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per control-  *
+      *              * lare il file-open-counter del file              *
+      *              *-------------------------------------------------*
+           move      "F?"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Test sul valore del file-open-counter del file  *
+      *              *-------------------------------------------------*
+           if        s-foc                =    zero
+                     go to opn-200.
+      *                  *---------------------------------------------*
+      *                  * File-open-counter del file maggiore di zero *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Richiamo del modulo di segreteria per   *
+      *                      * l'incremento del file-open-counter      *
+      *                      *-----------------------------------------*
+           move      "F+"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           go to     opn-800.
+       opn-200.
+      *                  *---------------------------------------------*
+      *                  * File-open-counter del file uguale a zero    *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Tentativo di open i-o del file          *
+      *                      *-----------------------------------------*
+           open      i-o    fil                                       .
+      *                      *-----------------------------------------*
+      *                      * Test su esito della open i-o del file   *
+      *                      *-----------------------------------------*
+           if        e-sts                =    e-not-err
+                     go to opn-400.
+      *                          *-------------------------------------*
+      *                          * Open i-o non riuscita               *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Fatal error                     *
+      *                              *---------------------------------*
+           perform   fte-000              thru fte-999                .
+       opn-400.
+      *                          *-------------------------------------*
+      *                          * Open i-o riuscita                   *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Richiamo del modulo di segrete- *
+      *                              * ria per l'incremento del file-  *
+      *                              * open-counter                    *
+      *                              *---------------------------------*
+           move      "F+"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                              *---------------------------------*
+      *                              * Se e' stata richiesta una ope-  *
+      *                              * razione alla prossima apertura  *
+      *                              * del file la si esegue           *
+      *                              *---------------------------------*
+           if        z-sqz                =    spaces
+                     go to opn-800.
+           if        z-sqz                =    "KS"
+                     perform   sqz-000    thru sqz-999
+           else if   z-sqz                =    "SK" or
+                     z-sqz                =    "SJ"
+                     perform   idx-000    thru idx-999
+           else if   z-sqz                =    "KK"
+                     perform   ktk-000    thru ktk-999
+           else      go to opn-800.
+           move      spaces               to   z-sqz                  .
+      *                              *---------------------------------*
+      *                              * Se fatal error in sequenzializ- *
+      *                              * zazione o indicizzazione: usci- *
+      *                              * ta                              *
+      *                              *---------------------------------*
+           if        f-sts                =    e-fat-err
+                     go to opn-999.
+      *                              *---------------------------------*
+      *                              * Altrimenti : status di uscita   *
+      *                              * ad Ok, e uscita                 *
+      *                              *---------------------------------*
+           move      e-not-err            to   e-sts                  .
+       opn-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       opn-999.
+           exit.
+           
+      *    *===========================================================*
+      *    * Close                                                     *
+      *    *-----------------------------------------------------------*
+       cls-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per control-  *
+      *              * lare il file-open-counter del file              *
+      *              *-------------------------------------------------*
+           move      "F?"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Test sul valore del file-open-counter del file  *
+      *              *-------------------------------------------------*
+           if        s-foc                >    zero
+                     go to cls-200.
+      *                  *---------------------------------------------*
+      *                  * File-open-counter del file uguale a zero    *
+      *                  *---------------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Si ritorna con status indicante     *
+      *                          * operazione eseguita con successo    *
+      *                          *-------------------------------------*
+           go to     cls-800.
+       cls-200.
+      *                  *---------------------------------------------*
+      *                  * File-open-counter del file maggiore di zero *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test sul numero di open in atto         *
+      *                      *-----------------------------------------*
+           if        s-foc                >    1
+                     go to cls-400.
+      *                          *-------------------------------------*
+      *                          * Una sola open in atto               *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Tentativo di close del file     *
+      *                              *---------------------------------*
+           close     fil                                              .
+      *                              *---------------------------------*
+      *                              * Se la close non riesce si va'   *
+      *                              * in fatal error per qualsiasi    *
+      *                              * codice di errore                *
+      *                              *---------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+       cls-400.
+      *                          *-------------------------------------*
+      *                          * Piu' di una open in atto            *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Richiamo del modulo di segrete- *
+      *                              * ria per il decremento del file- *
+      *                              * open-counter                    *
+      *                              *---------------------------------*
+           move      "F-"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+       cls-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       cls-999.
+           exit.
+           
+      *    *===========================================================*
+      *    * Wait di un secondo                                        *
+      *    *-----------------------------------------------------------*
+       wai-000.
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per l'esecu-  *
+      *              * zione della funzione                            *
+      *              *-------------------------------------------------*
+           move      "W1"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+       wai-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Read next                                                 *
+      *    *-----------------------------------------------------------*
+       nxt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Test se con lock oppure no                      *
+      *              *-------------------------------------------------*
+           if        z-lok                =    1
+                     go to nxt-100.
+      *              *-------------------------------------------------*
+      *              * Read next with no lock                          *
+      *              *-------------------------------------------------*
+           read      fil    next
+                            with no lock
+                            at end
+                            go to   nxt-600.
+           go to     nxt-500.
+       nxt-100.
+      *              *-------------------------------------------------*
+      *              * Read next with lock                             *
+      *              *-------------------------------------------------*
+           read      fil    next
+                            at end
+                            go to   nxt-600.
+       nxt-500.
+      *              *-------------------------------------------------*
+      *              * Non at end                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritorna a rileggere        *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   nxt-000.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+      *                  *---------------------------------------------*
+      *                  * Se il record letto e' completamente al va-  *
+      *                  * lore zero-binario, lo si ignora e si torna  *
+      *                  * a leggere il record successivo              *
+      *                  *---------------------------------------------*
+           if        fil-rec              not  = low-values
+                     go to nxt-550.
+           if        z-lok                not  = 1
+                     go to nxt-000.
+           unlock    fil    records                                   .
+           go to     nxt-000.
+       nxt-550.
+      *                  *---------------------------------------------*
+      *                  * Decomposizione da record fisico a logico    *
+      *                  *---------------------------------------------*
+           perform   dec-fis-log-000      thru dec-fis-log-999        .
+           go to     nxt-800.
+       nxt-600.
+      *              *-------------------------------------------------*
+      *              * At end                                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Si esce con status di errore : e-end-fil    *
+      *                  *---------------------------------------------*
+           move      e-end-fil            to   e-sts                  .
+       nxt-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       nxt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Read previous                                             *
+      *    *-----------------------------------------------------------*
+       prv-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Test se con lock oppure no                      *
+      *              *-------------------------------------------------*
+           if        z-lok                =    1
+                     go to prv-100.
+      *              *-------------------------------------------------*
+      *              * Read previous with no lock                      *
+      *              *-------------------------------------------------*
+           read      fil    previous
+                            with no lock
+                            at end
+                            go to   prv-600.
+           go to     prv-500.
+       prv-100.
+      *              *-------------------------------------------------*
+      *              * Read previous with lock                         *
+      *              *-------------------------------------------------*
+           read      fil    previous
+                            at end
+                            go to   prv-600.
+       prv-500.
+      *              *-------------------------------------------------*
+      *              * Non at end                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritorna a rileggere        *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   prv-000.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+      *                  *---------------------------------------------*
+      *                  * Se il record letto e' completamente al va-  *
+      *                  * lore zero-binario, lo si ignora e si torna  *
+      *                  * a leggere il record successivo              *
+      *                  *---------------------------------------------*
+           if        fil-rec              not  = low-values
+                     go to prv-550.
+           if        z-lok                not  = 1
+                     go to prv-000.
+           unlock    fil    records                                   .
+           go to     prv-000.
+       prv-550.
+      *                  *---------------------------------------------*
+      *                  * Decomposizione da record fisico a logico    *
+      *                  *---------------------------------------------*
+           perform   dec-fis-log-000      thru dec-fis-log-999        .
+           go to     prv-800.
+       prv-600.
+      *              *-------------------------------------------------*
+      *              * At end                                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Si esce con status di errore : e-end-fil    *
+      *                  *---------------------------------------------*
+           move      e-end-fil            to   e-sts                  .
+       prv-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       prv-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Unlock records                                            *
+      *    *-----------------------------------------------------------*
+       rel-000.
+      *              *-------------------------------------------------*
+      *              * Esecuzione unlock                               *
+      *              *-------------------------------------------------*
+           unlock    fil    records                                   .
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       rel-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Delete record                                             *
+      *    *-----------------------------------------------------------*
+       del-000.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave fisica numero 1             *
+      *              *-------------------------------------------------*
+           move      1                    to   z-key                  .
+           perform   cmp-key-fis-000      thru cmp-key-fis-999        .
+       del-100.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Esecuzione delete record                        *
+      *              *-------------------------------------------------*
+           delete    fil    record
+                            invalid key
+                            go to  del-500.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritenta l'operazione       *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   del-100.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+           go to     del-800.
+       del-500.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Si esce con status di errore indicante ope- *
+      *                  * razione eseguita con successo               *
+      *                  *---------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+       del-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       del-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Update record                                             *
+      *    *-----------------------------------------------------------*
+       upd-000.
+      *              *-------------------------------------------------*
+      *              * Composizione record da logico a fisico          *
+      *              *-------------------------------------------------*
+           perform   cmp-log-fis-000      thru cmp-log-fis-999        .
+       upd-100.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Esecuzione update record                        *
+      *              *-------------------------------------------------*
+           rewrite   fil-rec invalid key
+                             go to  upd-600.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritenta l'operazione       *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   upd-100.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+      *                  *---------------------------------------------*
+      *                  * Unlock                                      *
+      *                  *---------------------------------------------*
+           perform   rel-000              thru rel-999                .
+           go to     upd-800.
+       upd-600.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Si esce con status di errore : e-not-fnd    *
+      *                  *---------------------------------------------*
+           move      e-not-fnd            to   e-sts                  .
+       upd-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       upd-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Put record                                                *
+      *    *-----------------------------------------------------------*
+       put-000.
+      *              *-------------------------------------------------*
+      *              * Composizione record da logico a fisico          *
+      *              *-------------------------------------------------*
+           perform   cmp-log-fis-000      thru cmp-log-fis-999        .
+       put-100.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Esecuzione put record                           *
+      *              *-------------------------------------------------*
+           write     fil-rec invalid key
+                             go to  put-600.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritenta l'operazione       *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   put-100.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+           go to     put-800.
+       put-600.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Si esce con status di errore : e-dup-key    *
+      *                  *---------------------------------------------*
+           move      e-dup-key            to   e-sts                  .
+       put-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       put-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Forced put record                                         *
+      *    *-----------------------------------------------------------*
+       fpt-000.
+      *              *-------------------------------------------------*
+      *              * Tentativo di put record con composizione record *
+      *              * da logico a fisico                              *
+      *              *-------------------------------------------------*
+           perform   put-000              thru put-999                .
+      *                  *---------------------------------------------*
+      *                  * Se l'operazione e' riuscita si esce         *
+      *                  *---------------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to fpt-999.
+      *                  *---------------------------------------------*
+      *                  * Se l'operazione non e' riuscita significa   *
+      *                  * che esiste gia' un record con la stesso     *
+      *                  * valore per la chiave numero 1               *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Read record per chiave numero 1 con     *
+      *                      * lock e senza decomposizione da record   *
+      *                      * fisico a record logico                  *
+      *                      *-----------------------------------------*
+           move      1                    to   z-key
+                                               z-lok                  .
+           move      zero                 to   z-dec                  .
+           perform   rea-000              thru rea-999                .
+      *                      *-----------------------------------------*
+      *                      * Se record non trovato si torna a tenta- *
+      *                      * re l'esecuzione della put record        *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to fpt-000.
+      *                      *-----------------------------------------*
+      *                      * Altrimenti si tenta update record       *
+      *                      *-----------------------------------------*
+           perform   upd-000              thru upd-999                .
+      *                          *-------------------------------------*
+      *                          * Se l'operazione e' riuscita si esce *
+      *                          *-------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to fpt-999.
+      *                          *-------------------------------------*
+      *                          * Altrimenti si esegue l'unlock del   *
+      *                          * file e si ritorna a tentare la put  *
+      *                          * record                              *
+      *                          *-------------------------------------*
+           perform   rel-000              thru rel-999                .
+           go to     fpt-000.
+       fpt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Open file di appoggio per pulizia/riorganizzazione        *
+      *    *-----------------------------------------------------------*
+       opp-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Preparazione file area [pul] da file area [fil] *
+      *              *-------------------------------------------------*
+           move      f-fil-nam            to   f-pul-nam              .
+           move      spaces               to   f-pul-pat              .
+           string    f-fil-pat  delimited by   spaces
+                     ".pul"     delimited by   size
+                                          into f-pul-pat              .
+      *              *-------------------------------------------------*
+      *              * Open i-o del file                               *
+      *              *-------------------------------------------------*
+           open      i-o    pul                                       .
+      *              *-------------------------------------------------*
+      *              * Test su esito della open i-o del file           *
+      *              *-------------------------------------------------*
+           if        e-sts                =    e-not-err
+                     go to opp-500.
+      *              *-------------------------------------------------*
+      *              * Se open i-o non riuscita                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Uscita per fatal-error                      *
+      *                  *---------------------------------------------*
+           perform   fte-000              thru fte-999                .
+       opp-500.
+      *              *-------------------------------------------------*
+      *              * Se open i-o riuscita                            *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Uscita per Ok                               *
+      *                  *---------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       opp-999.
+           exit.
+           
+      *    *===========================================================*
+      *    * Close file di appoggio per pulizia/riorganizzazione       *
+      *    *-----------------------------------------------------------*
+       clp-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Close del file                                  *
+      *              *-------------------------------------------------*
+           close     pul                                              .
+      *              *-------------------------------------------------*
+      *              * Test su esito della close del file              *
+      *              *-------------------------------------------------*
+           if        e-sts                =    e-not-err
+                     go to clp-500.
+      *              *-------------------------------------------------*
+      *              * Se close non riuscita                           *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Uscita per fatal-error                      *
+      *                  *---------------------------------------------*
+           perform   fte-000              thru fte-999                .
+       clp-500.
+      *              *-------------------------------------------------*
+      *              * Se close riuscita                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Uscita per Ok                               *
+      *                  *---------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       clp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Put record su file di appoggio pulizia/riorganizzazione   *
+      *    *-----------------------------------------------------------*
+       ptp-000.
+      *              *-------------------------------------------------*
+      *              * Composizione record da logico a fisico su file  *
+      *              * originale                                       *
+      *              *-------------------------------------------------*
+           perform   cmp-log-fis-000      thru cmp-log-fis-999        .
+      *              *-------------------------------------------------*
+      *              * Spostamento record fisico da file originale, do-*
+      *              * ve e' stato composto, a record fisico file di   *
+      *              * appoggio                                        *
+      *              *-------------------------------------------------*
+           move      fil-rec              to   pul-rec                .
+       ptp-100.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Esecuzione put record                           *
+      *              *-------------------------------------------------*
+           write     pul-rec invalid key
+                             go to  ptp-600.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritenta l'operazione       *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   ptp-100.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = e-not-err
+                     perform fte-000      thru fte-999                .
+           go to     ptp-800.
+       ptp-600.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Si esce con status di errore : e-dup-key    *
+      *                  *---------------------------------------------*
+           move      e-dup-key            to   e-sts                  .
+       ptp-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita                                *
+      *              *-------------------------------------------------*
+           move      e-sts                to   f-sts                  .
+       ptp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Rename sostitutivo per fare assumere al file di appoggio  *
+      *    * [pul] l'identita' del file originale [fil], con conse-    *
+      *    * guente eliminazione dell'originale [fil], sostituito dal  *
+      *    * file di appoggio [pul]                                    *
+      *    *-----------------------------------------------------------*
+       rsp-000.
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di segreteria per la specifica  *
+      *              * funzione di Rename In Senso Inverso             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Preparazione parametri                      *
+      *                  *---------------------------------------------*
+           move      "RF"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           move      spaces               to   s-alf                  .
+           string    f-fil-nam  delimited by   spaces
+                     ".pul"     delimited by   size
+                                          into s-alf                  .
+           move      "K"                  to   s-sts                  .
+      *                  *---------------------------------------------*
+      *                  * Richiamo del modulo di segreteria           *
+      *                  *---------------------------------------------*
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+       rsp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Selezione dell'indice corrispondente alla chiave il cui   *
+      *    * nome simbolico e' contenuto in f-key                      *
+      *    *-----------------------------------------------------------*
+       sik-000.
+      *              *-------------------------------------------------*
+      *              * Se il nome simbolico e' spaces si presume che   *
+      *              * sia la chiave numero 1                          *
+      *              *-------------------------------------------------*
+           if        f-key                =    spaces
+                     go to sik-900.
+      *              *-------------------------------------------------*
+      *              * Ricerca del nome simbolico tra quelli previsti  *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-key                  .
+       sik-100.
+           if        z-key                <    k-ctr
+                     add    1             to   z-key
+                     if     k-ele(z-key)  =    f-key
+                            go to sik-999
+                     else   go to sik-100.
+       sik-900.
+      *              *-------------------------------------------------*
+      *              * Se il nome simbolico non figura tra quelli pre- *
+      *              * visti si forza la chiave numero 1               *
+      *              *-------------------------------------------------*
+           move      1                    to   z-key                  .
+       sik-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Subroutine di sequenzializzazione del file su '.sqz' in   *
+      *    * formato ASCII                                             *
+      *    *-----------------------------------------------------------*
+       sqz-000.
+      *              *-------------------------------------------------*
+      *              * Open file sequenziale                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           move      f-fil-pat            to   s-pat                  .
+           call      "swd/mod/prg/obj/msqzou"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to sqz-999.
+      *              *-------------------------------------------------*
+      *              * Comunicazione attributi sul filtro              *
+      *              *-------------------------------------------------*
+           move      "FT"                 to   s-ope                  .
+           move      z-tpf                to   s-num                  .
+           move      z-nmf                to   s-pat                  .
+           call      "swd/mod/prg/obj/msqzou"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Start su file dall'inizio                       *
+      *              *-------------------------------------------------*
+           move      "NL"                 to   f-cfr                  .
+           move      low-values           to   fil-rec                .
+           move      1                    to   z-key                  .
+           perform   str-000              thru str-999                .
+           if        f-sts                not  = e-not-err
+                     go to sqz-800.
+       sqz-200.
+      *              *-------------------------------------------------*
+      *              * Indicatore di programma in esecuzione           *
+      *              *-------------------------------------------------*
+           move      "IE"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Read Next su file                               *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-lok                  .
+           perform   nxt-000              thru nxt-999                .
+           if        f-sts                not  = e-not-err
+                     go to sqz-800.
+       sqz-400.
+      *              *-------------------------------------------------*
+      *              * Put su sequenziale                              *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio blocchi da 80 caratteri              *
+      *                  *---------------------------------------------*
+           move      "P0"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzou"
+                                         using s                      .
+       sqz-425.
+      *                  *---------------------------------------------*
+      *                  * Scrittura n records da 80 caratteri         *
+      *                  *---------------------------------------------*
+           move      1                    to   z-inx                  .
+       sqz-450.
+           move      spaces               to   s-alf                  .
+           move      z-inx                to   z-svx                  .
+           perform   uns-rec-log-000      thru uns-rec-log-999        .
+           if        z-inx                =    z-svx
+                     go to sqz-475.
+           move      "P5"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzou"
+                                         using s                      .
+           move      z-svx                to   z-inx                  .
+           add       80                   to   z-inx                  .
+           go to     sqz-450.
+       sqz-475.
+      *                  *---------------------------------------------*
+      *                  * Fine blocchi da 80 caratteri                *
+      *                  *---------------------------------------------*
+           move      "P9"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzou"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to sqz-999.
+       sqz-600.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Read Next su file                     *
+      *              *-------------------------------------------------*
+           go to     sqz-200.
+       sqz-800.
+      *              *-------------------------------------------------*
+      *              * Indicatore di programma in esecuzione - canc.   *
+      *              *-------------------------------------------------*
+           move      "IC"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Close file sequenziale                          *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzou"
+                                         using s                      .
+           cancel    "swd/mod/prg/obj/msqzou"                         .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to sqz-999.
+       sqz-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Subroutine di indicizzazione del file da '.sqz'           *
+      *    *-----------------------------------------------------------*
+       idx-000.
+      *              *-------------------------------------------------*
+      *              * Open file sequenziale                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           move      f-fil-pat            to   s-pat                  .
+           call      "swd/mod/prg/obj/msqzin"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to idx-999.
+      *              *-------------------------------------------------*
+      *              * Comunicazione attributi sul filtro              *
+      *              *-------------------------------------------------*
+           move      "FT"                 to   s-ope                  .
+           move      z-tpf                to   s-num                  .
+           move      z-nmf                to   s-pat                  .
+           call      "swd/mod/prg/obj/msqzou"
+                                         using s                      .
+       idx-200.
+      *              *-------------------------------------------------*
+      *              * Indicatore di programma in esecuzione           *
+      *              *-------------------------------------------------*
+           move      "IE"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Read Next da file sequenziale                   *
+      *              *-------------------------------------------------*
+           move      "G0"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzin"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     go to idx-800.
+      *              *-------------------------------------------------*
+      *              * Preparazione lettura a blocchi da 80 caratteri  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione record logico               *
+      *                  *---------------------------------------------*
+           perform   nor-rec-log-000      thru nor-rec-log-999        .
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione indice per composizione a  *
+      *                  * blocchi da 80 caratteri                     *
+      *                  *---------------------------------------------*
+           move      1                    to   z-sqc                  .
+       idx-250.
+      *              *-------------------------------------------------*
+      *              * Lettura blocco da 80 caratteri                  *
+      *              *-------------------------------------------------*
+           move      "G5"                 to   s-ope                  .
+           move      z-sqc                to   s-num                  .
+           call      "swd/mod/prg/obj/msqzin"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     go to idx-400.
+      *              *-------------------------------------------------*
+      *              * Composizione blocco da 80 caratteri in area del *
+      *              * record logico                                   *
+      *              *-------------------------------------------------*
+           move      z-sqc                to   z-inx                  .
+           perform   stg-rec-log-000      thru stg-rec-log-999        .
+      *              *-------------------------------------------------*
+      *              * Incremento indice per composizione              *
+      *              *-------------------------------------------------*
+           add       80                   to   z-sqc                  .
+      *              *-------------------------------------------------*
+      *              * A prossimo blocco da 80 caratteri               *
+      *              *-------------------------------------------------*
+           go to     idx-250.
+       idx-400.
+      *              *-------------------------------------------------*
+      *              * Put su file, oppure Force Put su file           *
+      *              *-------------------------------------------------*
+           if        z-sqz                =    "SJ"
+                     perform fpt-000      thru fpt-999
+           else      perform put-000      thru put-999                .
+      *              *-------------------------------------------------*
+      *              * Se chiave gia' esistente : si ignora            *
+      *              *-------------------------------------------------*
+           if        f-sts                =    e-dup-key
+                     go to idx-200.
+      *              *-------------------------------------------------*
+      *              * Se altro errore : uscita con fatal error        *
+      *              *-------------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     move  e-fat-err      to   f-sts
+                     go to idx-999.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Read Next da sequenziale              *
+      *              *-------------------------------------------------*
+           go to     idx-200.
+       idx-800.
+      *              *-------------------------------------------------*
+      *              * Indicatore di programma in esecuzione - canc.   *
+      *              *-------------------------------------------------*
+           move      "IC"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Close file sequenziale                          *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzin"
+                                         using s                      .
+           cancel    "swd/mod/prg/obj/msqzin"                         .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to idx-999.
+       idx-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Subroutine di trattamento del file su se' stesso          *
+      *    *-----------------------------------------------------------*
+       ktk-000.
+      *              *-------------------------------------------------*
+      *              * Open modulo per richiamo filtri, con comunica-  *
+      *              * zione attributi sul filtro                      *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   s-ope                  .
+           move      z-tpf                to   s-num                  .
+           move      z-nmf                to   s-pat                  .
+           call      "swd/mod/prg/obj/msqzkk"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to ktk-999.
+      *              *-------------------------------------------------*
+      *              * Start su file dall'inizio                       *
+      *              *-------------------------------------------------*
+           move      "NL"                 to   f-cfr                  .
+           move      low-values           to   fil-rec                .
+           move      1                    to   z-key                  .
+           perform   str-000              thru str-999                .
+           if        f-sts                not  = e-not-err
+                     go to ktk-800.
+       ktk-100.
+      *              *-------------------------------------------------*
+      *              * Get Next su file                                *
+      *              *-------------------------------------------------*
+           move      1                    to   z-lok                  .
+           perform   nxt-000              thru nxt-999                .
+           if        f-sts                not  = e-not-err
+                     go to ktk-800.
+       ktk-200.
+      *              *-------------------------------------------------*
+      *              * Put su modulo per richiamo filtri               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio blocchi da 80 caratteri              *
+      *                  *---------------------------------------------*
+           move      "P0"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzkk"
+                                         using s                      .
+       ktk-225.
+      *                  *---------------------------------------------*
+      *                  * Scrittura n records da 80 caratteri         *
+      *                  *---------------------------------------------*
+           move      1                    to   z-inx                  .
+       ktk-250.
+           move      spaces               to   s-alf                  .
+           move      z-inx                to   z-svx                  .
+           perform   uns-rec-log-000      thru uns-rec-log-999        .
+           if        z-inx                =    z-svx
+                     go to ktk-275.
+           move      "P5"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzkk"
+                                         using s                      .
+           move      z-svx                to   z-inx                  .
+           add       80                   to   z-inx                  .
+           go to     ktk-250.
+       ktk-275.
+      *                  *---------------------------------------------*
+      *                  * Fine blocchi da 80 caratteri ed esecuzione  *
+      *                  * funzione di filtro                          *
+      *                  *---------------------------------------------*
+           move      "P9"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzkk"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to ktk-999.
+       ktk-300.
+      *              *-------------------------------------------------*
+      *              * Get da modulo per richiamo filtri               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione record logico               *
+      *                  *---------------------------------------------*
+           perform   nor-rec-log-000      thru nor-rec-log-999        .
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione indice per composizione a  *
+      *                  * blocchi da 80 caratteri                     *
+      *                  *---------------------------------------------*
+           move      1                    to   z-sqc                  .
+       ktk-325.
+      *                  *---------------------------------------------*
+      *                  * Lettura blocco da 80 caratteri              *
+      *                  *---------------------------------------------*
+           move      "G5"                 to   s-ope                  .
+           move      z-sqc                to   s-num                  .
+           call      "swd/mod/prg/obj/msqzkk"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     go to ktk-400.
+      *                  *---------------------------------------------*
+      *                  * Composizione blocco da 80 caratteri in area *
+      *                  * del record logico                           *
+      *                  *---------------------------------------------*
+           move      z-sqc                to   z-inx                  .
+           perform   stg-rec-log-000      thru stg-rec-log-999        .
+      *                  *---------------------------------------------*
+      *                  * Incremento indice per composizione          *
+      *                  *---------------------------------------------*
+           add       80                   to   z-sqc                  .
+      *                  *---------------------------------------------*
+      *                  * A prossimo blocco da 80 caratteri           *
+      *                  *---------------------------------------------*
+           go to     ktk-325.
+       ktk-400.
+      *              *-------------------------------------------------*
+      *              * Update record                                   *
+      *              *-------------------------------------------------*
+           perform   upd-000              thru upd-999                .
+      *              *-------------------------------------------------*
+      *              * Release record                                  *
+      *              *-------------------------------------------------*
+           perform   rel-000              thru rel-999                .
+      *              *-------------------------------------------------*
+      *              * Riciclo a Get Next                              *
+      *              *-------------------------------------------------*
+           go to     ktk-100.
+       ktk-800.
+      *              *-------------------------------------------------*
+      *              * Close modulo per richiamo filtri, con comunica- *
+      *              * zione attributi sul filtro                      *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msqzkk"
+                                         using s                      .
+           cancel    "swd/mod/prg/obj/msqzkk"                         .
+           if        s-sts                not  = spaces
+                     move  e-fat-err      to   f-sts
+                     go to ktk-999.
+       ktk-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Richiamo del modulo di segreteria per l'emissione  del    *
+      *    * messaggio di fatal i-o error e per la terminazione.       *
+      *    *-----------------------------------------------------------*
+       fte-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione parametri                          *
+      *              *-------------------------------------------------*
+           move      "FE"                 to   s-ope                  .
+           move      f-fil-nam            to   s-nam                  .
+           move      f-fil-pat            to   s-pat                  .
+           move      e-sts                to   s-sts                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria               *
+      *              *-------------------------------------------------*
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+       fte-999.
+           exit.

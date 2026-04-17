@@ -1,0 +1,80 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice filtro ordina-  *
+      *    * mento e selezione per file [dpm]                          *
+      *    *-----------------------------------------------------------*
+       cod-zos-dpm-opn-000.
+           move      "pgm/dpm/prg/obj/azosdpm0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-zos-dpm-pth      .
+           move      "OP"                 to   w-cod-zos-dpm-ope      .
+           perform   cod-zos-dpm-cll-000  thru cod-zos-dpm-cll-999    .
+       cod-zos-dpm-opn-999.
+           exit.
+       cod-zos-dpm-cls-000.
+           move      "CL"                 to   w-cod-zos-dpm-ope      .
+           perform   cod-zos-dpm-cll-000  thru cod-zos-dpm-cll-999    .
+           move      "C?"                 to   w-cod-zos-dpm-ope      .
+           perform   cod-zos-dpm-cll-000  thru cod-zos-dpm-cll-999    .
+           if        w-cod-zos-dpm-ope    not  = spaces
+                     go to cod-zos-dpm-cls-999.
+           cancel    w-cod-zos-dpm-pth                                .
+       cod-zos-dpm-cls-999.
+           exit.
+       cod-zos-dpm-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-zos-dpm-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdpm0010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-zos-dpm-foi-999.
+           move      "pgm/dpm/prg/obj/pdpm0010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-zos-dpm-ope      .
+           go to     cod-zos-dpm-foi-999.
+       cod-zos-dpm-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-zos-dpm-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdpm0011"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-zos-dpm-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dpm/prg/obj/pdpm0011"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-zos-dpm-ope      .
+           go to     cod-zos-dpm-foi-999.
+       cod-zos-dpm-foi-999.
+           exit.
+       cod-zos-dpm-ltf-000.
+           move      "LF"                 to   w-cod-zos-dpm-ope      .
+           perform   cod-zos-dpm-cll-000  thru cod-zos-dpm-cll-999    .
+       cod-zos-dpm-ltf-999.
+           exit.
+       cod-zos-dpm-cll-000.
+           call      w-cod-zos-dpm-pth   using w-cod-zos-dpm
+                                               v
+                                               s                      .
+       cod-zos-dpm-cll-999.
+           exit.
+

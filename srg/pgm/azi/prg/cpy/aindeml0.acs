@@ -1,0 +1,59 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione indirizzo e-mail           *
+      *    *-----------------------------------------------------------*
+       cod-ind-eml-opn-000.
+      *              *-------------------------------------------------*
+      *              * Open                                            *
+      *              *-------------------------------------------------*
+           move      "pgm/azi/prg/obj/aindeml0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-ind-eml-pth      .
+           move      "OP"                 to   w-cod-ind-eml-ope      .
+           perform   cod-ind-eml-cll-000  thru cod-ind-eml-cll-999    .
+       cod-ind-eml-opn-999.
+           exit.
+       cod-ind-eml-cls-000.
+      *              *-------------------------------------------------*
+      *              * Close                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   w-cod-ind-eml-ope      .
+           perform   cod-ind-eml-cll-000  thru cod-ind-eml-cll-999    .
+           move      "C?"                 to   w-cod-ind-eml-ope      .
+           perform   cod-ind-eml-cll-000  thru cod-ind-eml-cll-999    .
+           if        w-cod-ind-eml-ope    not  = spaces
+                     go to cod-ind-eml-cls-999.
+           cancel    w-cod-ind-eml-pth                                .
+       cod-ind-eml-cls-999.
+           exit.
+       cod-ind-eml-foi-000.
+      *              *-------------------------------------------------*
+      *              * Find o Insr                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Insr                                        *
+      *                  *---------------------------------------------*
+           if        v-key                not  = "INSR"
+                     go to cod-ind-eml-foi-500.
+           go to     cod-ind-eml-foi-999.
+       cod-ind-eml-foi-500.
+      *                  *---------------------------------------------*
+      *                  * Find                                        *
+      *                  *---------------------------------------------*
+           if        v-key                not  = "FIND"
+                     go to cod-ind-eml-foi-999.
+           move      "F+"                 to   w-cod-ind-eml-ope      .
+           go to     cod-ind-eml-foi-999.
+       cod-ind-eml-foi-999.
+           exit.
+       cod-ind-eml-cll-000.
+      *              *-------------------------------------------------*
+      *              * Chiamata al modulo                              *
+      *              *-------------------------------------------------*
+           call      w-cod-ind-eml-pth   using w-cod-ind-eml
+                                               v
+                                               s                      .
+       cod-ind-eml-cll-999.
+           exit.
+

@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice statistico      *
+      *    *-----------------------------------------------------------*
+       cmn-zst-003-opn-000.
+           move      "pgm/dcc/prg/obj/acmnzst3"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cmn-zst-003-pth      .
+           move      "OP"                 to   w-cmn-zst-003-ope      .
+           perform   cmn-zst-003-cll-000  thru cmn-zst-003-cll-999    .
+       cmn-zst-003-opn-999.
+           exit.
+       cmn-zst-003-cls-000.
+           move      "CL"                 to   w-cmn-zst-003-ope      .
+           perform   cmn-zst-003-cll-000  thru cmn-zst-003-cll-999    .
+           move      "C?"                 to   w-cmn-zst-003-ope      .
+           perform   cmn-zst-003-cll-000  thru cmn-zst-003-cll-999    .
+           if        w-cmn-zst-003-ope    not  = spaces
+                     go to cmn-zst-003-cls-999.
+           cancel    w-cmn-zst-003-pth                                .
+       cmn-zst-003-cls-999.
+           exit.
+       cmn-zst-003-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cmn-zst-003-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc1400"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zst-003-foi-999.
+           move      "pgm/dcc/prg/obj/pdcc1400"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cmn-zst-003-ope      .
+           go to     cmn-zst-003-foi-999.
+       cmn-zst-003-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cmn-zst-003-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc1410"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zst-003-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcc/prg/obj/pdcc1410"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cmn-zst-003-ope      .
+           go to     cmn-zst-003-foi-999.
+       cmn-zst-003-foi-999.
+           exit.
+       cmn-zst-003-cll-000.
+           call      w-cmn-zst-003-pth   using w-cmn-zst-003
+                                               v
+                                               s                      .
+       cmn-zst-003-cll-999.
+           exit.
+

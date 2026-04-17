@@ -1,0 +1,100 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice gruppo          *
+      *    *-----------------------------------------------------------*
+       cod-mne-zp2-opn-000.
+           move      "pgm/dcp/prg/obj/acmnzp20"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zp2-pth      .
+           move      "OP"                 to   w-cod-mne-zp2-ope      .
+           perform   cod-mne-zp2-cll-000  thru cod-mne-zp2-cll-999    .
+       cod-mne-zp2-opn-999.
+           exit.
+       cod-mne-zp2-cls-000.
+           move      "CL"                 to   w-cod-mne-zp2-ope      .
+           perform   cod-mne-zp2-cll-000  thru cod-mne-zp2-cll-999    .
+           move      "C?"                 to   w-cod-mne-zp2-ope      .
+           perform   cod-mne-zp2-cll-000  thru cod-mne-zp2-cll-999    .
+           if        w-cod-mne-zp2-ope    not  = spaces
+                     go to cod-mne-zp2-cls-999.
+           cancel    w-cod-mne-zp2-pth                                .
+       cod-mne-zp2-cls-999.
+           exit.
+       cod-mne-zp2-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zp2-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcp1200"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zp2-foi-999.
+           move      "pgm/dcp/prg/obj/pdcp1200"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zp2-ope      .
+           go to     cod-mne-zp2-foi-999.
+       cod-mne-zp2-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zp2-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcp1212"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zp2-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "PV"                 to   s-ope                  .
+           move      "tip-int"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      01                   to   s-car                  .
+           move      "X"                  to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "PV"                 to   s-ope                  .
+           move      "cod-cla"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-zp2-cla    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "PV"                 to   s-ope                  .
+           move      "des-cla"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      40                   to   s-car                  .
+           move      w-cod-mne-zp2-dcl    to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcp/prg/obj/pdcp1212"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zp2-ope      .
+           go to     cod-mne-zp2-foi-999.
+       cod-mne-zp2-foi-999.
+           exit.
+       cod-mne-zp2-cll-000.
+           call      w-cod-mne-zp2-pth   using w-cod-mne-zp2
+                                               v
+                                               s                      .
+       cod-mne-zp2-cll-999.
+           exit.
+

@@ -1,0 +1,61 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zc1]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zc1-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zc1-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zc1-cod    =    zero
+                     go to let-arc-zc1-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCLA    "         to   f-key                  .
+           move      w-let-arc-zc1-cod    to   rf-zc1-cod-cla         .
+           move      "pgm/cge/fls/ioc/obj/iofzc1"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zc1                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zc1-400.
+       let-arc-zc1-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zc1-des-cla       to   w-let-arc-zc1-des      .
+           move      rf-zc1-cod-mne       to   w-let-arc-zc1-mne      .
+           move      rf-zc1-pdc-cla       to   w-let-arc-zc1-pdc      .
+           move      rf-zc1-per-amr       to   w-let-arc-zc1-per      .
+      *
+           if        rf-zc1-per-amr       not  numeric
+                     move  zero           to   w-let-arc-zc1-per      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zc1-999.
+       let-arc-zc1-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zc1-flg      .
+           move      all   "."            to   w-let-arc-zc1-des      .
+           go to     let-arc-zc1-600.
+       let-arc-zc1-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zc1-des      .
+       let-arc-zc1-600.
+           move      spaces               to   w-let-arc-zc1-mne      .
+           move      zero                 to   w-let-arc-zc1-pdc      .
+           move      zero                 to   w-let-arc-zc1-per      .
+       let-arc-zc1-999.
+           exit.
+

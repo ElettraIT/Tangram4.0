@@ -1,0 +1,151 @@
+      *    *===========================================================*
+      *    * Work-area per routines attinenti la stampa dei giorni di  *
+      *    * chiusura e dell'orario di apertura                        *
+      *    *-----------------------------------------------------------*
+       01  w-gch-oap.
+      *        *-------------------------------------------------------*
+      *        * Valori in input                                       *
+      *        *-------------------------------------------------------*
+           05  w-gch-oap-inp.
+      *            *---------------------------------------------------*
+      *            * Si/no stampa del giorno di chiusura del cliente   *
+      *            *                                                   *
+      *            *  - S : Si                                         *
+      *            *  - N : No                                         *
+      *            *  - # : Si, ma solo se diverso da Sabato/Domenica  *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-inp-sng      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/no stampa degli orari di apertura del cliente  *
+      *            *                                                   *
+      *            *  - S : Si                                         *
+      *            *  - N : No                                         *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-inp-sno      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Giorni di chiusura comunque da non stampare       *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-inp-gn1      pic  9(01)                  .
+               10  w-gch-oap-inp-gn2      pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Settimana lavorativa, ovvero giorni di apertura   *
+      *            *                                                   *
+      *            * Ogni singolo carattere di questo campo indica un  *
+      *            * giorno della settimana, il primo carattere sta'   *
+      *            * per il Lunedi', ed il settimo per la Domenica     *
+      *            *                                                   *
+      *            * Ogni carattere puo' assumere il seguente valore:  *
+      *            *                                                   *
+      *            *  - A : Aperto tutto il giorno                     *
+      *            *  - C : Chiuso tutto il giorno                     *
+      *            *  - M : Aperto solamente al mattino                *
+      *            *  - P : Aperto solamente al pomeriggio             *
+      *            *                                                   *
+      *            * Se questo campo e' tutto a spaces, esso sara' in- *
+      *            * terpretato come se fosse a 'AAAAACC', ovvero come *
+      *            * chiusura Sabato e Domenica                        *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-gdl-nls      pic  x(07)                  .
+      *            *---------------------------------------------------*
+      *            * Orario di apertura mattino, inizio                *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-oam-oin      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Orario di apertura mattino, fine                  *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-oam-ofi      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Orario di apertura pomeriggio, inizio             *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-oap-oin      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Orario di apertura pomeriggio, fine               *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-oap-ofi      pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Valori in output                                      *
+      *        *-------------------------------------------------------*
+           05  w-gch-oap-out.
+      *            *---------------------------------------------------*
+      *            * Giorni di chiusura editati su max 3 righe         *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-gch-edt.
+                   15  w-gch-oap-gch-edx
+                               occurs 03  pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Orario di apertura editato                        *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-oap-edt      pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Valori di work locali                                 *
+      *        *-------------------------------------------------------*
+           05  w-gch-oap-war.
+      *            *---------------------------------------------------*
+      *            * Numero giorni da evidenziare 0..7                 *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-nge      pic  9(02)                  . 
+      *            *---------------------------------------------------*
+      *            * Indice su elementi della tabella                  *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-ige      pic  9(02)                  . 
+      *            *---------------------------------------------------*
+      *            * Area di comodo per giorno in esame                *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-ges      pic  x(01)                  . 
+      *            *---------------------------------------------------*
+      *            * Area di comodo per literal relativo algiorno in   *
+      *            * esame                                             *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-les      pic  x(22)                  . 
+      *            *---------------------------------------------------*
+      *            * Tabella giorni da evidenziare                     *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-tge.
+      *                *-----------------------------------------------*
+      *                * Elemento della tabella                        *
+      *                *-----------------------------------------------*
+                    15  w-gch-oap-war-ege occurs 07.
+      *                    *-------------------------------------------*
+      *                    * Indice giorno 1..7                        *
+      *                    *-------------------------------------------*
+                        20  w-gch-oap-war-gge
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Tipo di chiusura C..M..P                  *
+      *                    *-------------------------------------------*
+                        20  w-gch-oap-war-cge
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Lunghezza elemento                        *
+      *                    *-------------------------------------------*
+                        20  w-gch-oap-war-lge
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Valore elemento                           *
+      *                    *-------------------------------------------*
+                        20  w-gch-oap-war-vge
+                                          pic  x(22)                  .
+      *            *---------------------------------------------------*
+      *            * Comodo per ridefinizione orari di apertura        *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-oda      pic  9(04)                  . 
+               10  w-gch-oap-war-oar redefines
+                   w-gch-oap-war-oda      pic  x(04)                  . 
+      *            *---------------------------------------------------*
+      *            * Orari di apertura editati                         *
+      *            *  - Mattino inizio                                 *
+      *            *  - Mattino fine                                   *
+      *            *  - Pomeriggio inizio                              *
+      *            *  - Pomeriggio fine                                *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-eo1      pic  x(05)                  .
+               10  w-gch-oap-war-eo2      pic  x(05)                  .
+               10  w-gch-oap-war-eo3      pic  x(05)                  .
+               10  w-gch-oap-war-eo4      pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Contatori ed indici                               *
+      *            *---------------------------------------------------*
+               10  w-gch-oap-war-x01      pic  9(02)                  .
+               10  w-gch-oap-war-x02      pic  9(02)                  .
+

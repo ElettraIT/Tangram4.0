@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice cliente per il  *
+      *    * marketing                                                 *
+      *    *-----------------------------------------------------------*
+       cod-mne-dcm-opn-000.
+           move      "pgm/dcc/prg/obj/acmndcm0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-dcm-pth      .
+           move      "OP"                 to   w-cod-mne-dcm-ope      .
+           perform   cod-mne-dcm-cll-000  thru cod-mne-dcm-cll-999    .
+       cod-mne-dcm-opn-999.
+           exit.
+       cod-mne-dcm-cls-000.
+           move      "CL"                 to   w-cod-mne-dcm-ope      .
+           perform   cod-mne-dcm-cll-000  thru cod-mne-dcm-cll-999    .
+           move      "C?"                 to   w-cod-mne-dcm-ope      .
+           perform   cod-mne-dcm-cll-000  thru cod-mne-dcm-cll-999    .
+           if        w-cod-mne-dcm-ope    not  = spaces
+                     go to cod-mne-dcm-cls-999.
+           cancel    w-cod-mne-dcm-pth                                .
+       cod-mne-dcm-cls-999.
+           exit.
+       cod-mne-dcm-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-dcm-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc6000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-dcm-foi-999.
+           move      "pgm/dcc/prg/obj/pdcc6000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-dcm-ope      .
+           go to     cod-mne-dcm-foi-999.
+       cod-mne-dcm-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-dcm-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc6010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-dcm-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcc/prg/obj/pdcc6010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-dcm-ope      .
+           go to     cod-mne-dcm-foi-999.
+       cod-mne-dcm-foi-999.
+           exit.
+       cod-mne-dcm-cll-000.
+           call      w-cod-mne-dcm-pth   using w-cod-mne-dcm
+                                               v
+                                               s                      .
+       cod-mne-dcm-cll-999.
+           exit.
+

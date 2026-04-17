@@ -1,0 +1,2570 @@
+      *    *===========================================================*
+      *    * Subroutines comuni per la fatturazione    (Agg. 19/04/22) *
+      *    *                                                           *
+      *    * Condivise da 'bol300' e 'fat300'                          *
+      *    *-----------------------------------------------------------*
+      *    *  - Determinazione percentuale sconto in chiusura          *
+      *    *  - Determinazione totale sconto in chiusura               *
+      *    *  - Determinazione totale al netto di sconto in chiusura   *
+      *    *  - Determinazione importo spese in fattura                *
+      *    *                                                           *
+      *    *  - Determinazione totale al netto delle spese in fattura  *
+      *    *  - Determinazione totale sconto pagamento                 *
+      *    *  - Determinazione totale netto                            *
+      *    *                                                           *
+      *    *  - Determinazione totale spese incasso calcolate          *
+      *    *  - Determinazione totale spese incasso aggiuntive         *
+      *    *  - Determinazione totale spese bollo                      *
+      *    *  - Determinazione totale spese                            *
+      *    *                                                           *
+      *    *  - Determinazione totale imponibile                       *
+      *    *  - Determinazione totale imposta                          *
+      *    *  - Determinazione totale documento                        *
+      *    *  - Determinazione importi in valuta base                  *
+      *    *                                                           *
+      *    *  - Determinazione primo protocollo di Primanota           *
+      *    *                                                           *
+      *    *  - Determinazione primo protocollo scadenza               *
+      *    *  - Determinazione scadenze per il documento               *
+      *    *  - Determinazione status scadenza                         *
+      *    *  - Determinazione data chiusura scadenza                  *
+      *    *                                                           *
+      *    *  - Aggiornamento castelletto Iva                          *
+      *    *  - Aggiornamento castelletto contropartite                *
+      *    *  - Compattamento castelletto Iva                          *
+      *    *  - Compattamento castelletto contropartite                *
+      *    * --------------------------------------------------------- *
+      *    * N.B.: le stesse subroutines compaiono in 'fat400'         *
+      *    * --------------------------------------------------------- *
+      *    * DA PERFEZIONARE                                           *
+      *    *                                                           *
+      *    *  - Acconto                                                *
+      *    *  - ENASARCO - SIRI                                        *
+      *    *-----------------------------------------------------------*
+
+      *    *===========================================================*
+      *    * Determinazione percentuale sconto in chiusura             *
+      *    *                                                           *
+      *    * N.B.: La determinazione dello sconto in chiusura segue la *
+      *    *       seguente scaletta di prevalenza:                    *
+      *    *                                                           *
+      *    *       - Quello contenuto direttamente in [dcc]            *
+      *    *       - Quelli contenuto nella categoria di sconto        *
+      *    *-----------------------------------------------------------*
+       det-per-scc-000.
+      *              *-------------------------------------------------*
+      *              * Se percentuale di sconto in chiusura associata  *
+      *              * al cliente non e' a zero, questa prevale su     *
+      *              * altre forme di determinazione solo se si e' in  *
+      *              * inserimento e non sono ancora stati accettati i *
+      *              * dati del piede                                  *
+      *              *-------------------------------------------------*
+           if        w-tes-psc-aac (1)    =    zero 
+                     go to det-per-scc-100.
+           if        w-cnt-mfu-tip-fun    not  = "I" or
+                     w-cnt-sts-imp-pie    not  = spaces
+                     go to det-per-scc-100.
+           move      w-tes-psc-aac (1)    to   w-pie-per-scc (1)      .
+           go to     det-per-scc-999.
+       det-per-scc-100.
+      *              *-------------------------------------------------*
+      *              * Se categoria sconto in chiusura cliente a zero, *
+      *              * non si prendono in considerazione l'eventuale   *
+      *              * percentuale che ad essa potrebbe essere associa-*
+      *              * ta                                              *
+      *              *-------------------------------------------------*
+           if        w-tes-csc-aac (1)    =    zero
+                     go to det-per-scc-200.
+      *              *-------------------------------------------------*
+      *              * Se percentuale di sconto in chiusura associata  *
+      *              * alla categoria cliente e' a zero, questa prevale*
+      *              * su altre forme di determinazione                *
+      *              *-------------------------------------------------*
+           if        w-tes-psc-acc (1)    =    zero 
+                     go to det-per-scc-200.
+           move      w-tes-psc-acc (1)    to   w-pie-per-scc (1)      .
+           go to     det-per-scc-999.
+       det-per-scc-200.
+      *              *-------------------------------------------------*
+      *              * A questo punto nessuno dei possibili tipi di de-*
+      *              * terminazione si ' verificato, per cui non resta *
+      *              * che uscire                                      *
+      *              *-------------------------------------------------*
+           go to     det-per-scc-999.
+       det-per-scc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale sconto in chiusura                  *
+      *    *-----------------------------------------------------------*
+       det-tot-scc-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-det-tot-scc-flg      .
+      *              *-------------------------------------------------*
+      *              * Comodo per la determinazione                    *
+      *              *-------------------------------------------------*
+           move      w-pie-tot-lor (1)    to   w-det-tot-scc-lor      .
+      *              *-------------------------------------------------*
+      *              * Test su personalizzazione che prevede il cal-   *
+      *              * colo della percentuale di sconto a scaglioni    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
+           if        w-prs-snx-scc        not  = "S"
+                     go to det-tot-scc-050.
+      *                  *---------------------------------------------*
+      *                  * Determinazione totale merce di comodo       *
+      *                  *---------------------------------------------*
+           move      w-det-tot-scc-tmr    to   w-det-tot-scc-lor      .
+           subtract  w-det-tot-scc-tdt    from w-det-tot-scc-lor      .
+       det-tot-scc-050.
+      *              *-------------------------------------------------*
+      *              * Se sia la % che l'importo sono a zero : uscita  *
+      *              *-------------------------------------------------*
+           if        w-pie-tot-scc (1)    =    zero and
+                     w-pie-per-scc (1)    =    zero
+                     go to det-tot-scc-999.
+      *              *-------------------------------------------------*
+      *              * Se % a zero vuol dire che l'importo dello scon- *
+      *              * to in chiusura e' stato impostato manualmente   *
+      *              * nel piede                                       *
+      *              *-------------------------------------------------*
+           if        w-pie-per-scc (1)    =    zero
+                     go to det-tot-scc-100.
+      *              *-------------------------------------------------*
+      *              * Calcolo                                         *
+      *              *-------------------------------------------------*
+           multiply  w-pie-per-scc (1)    by   w-det-tot-scc-lor
+                                        giving w-pie-tot-scc (1)      .
+           divide    100                  into w-pie-tot-scc (1)
+                                       rounded                        .
+       det-tot-scc-100.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto iva                   *
+      *              *-------------------------------------------------*
+           move      "-"                  to   w-agg-cst-iva-tip      .
+           move      w-pie-civ-scc (1)    to   w-agg-cst-iva-coi      .
+           move      w-pie-tot-scc (1)    to   w-agg-cst-iva-imp      .
+           perform   agg-cst-iva-000      thru agg-cst-iva-999        .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto contropartite         *
+      *              *-------------------------------------------------*
+           move      "-"                  to   w-agg-cst-ctp-tip      .
+           move      w-pie-ccp-scc (1)    to   w-agg-cst-ctp-cod      .
+           move      w-pie-tot-scc (1)    to   w-agg-cst-ctp-imp      .
+           perform   agg-cst-ctp-000      thru agg-cst-ctp-999        .
+       det-tot-scc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale al netto dello sconto in chiusura   *
+      *    *-----------------------------------------------------------*
+       det-tot-nsc-000.
+           subtract  w-pie-tot-scc (1)    from w-pie-tot-lor (1)
+                                        giving w-pie-tot-nsc (1)      .
+       det-tot-nsc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione importo spese in fattura                   *
+      *    *-----------------------------------------------------------*
+       det-imp-spe-000.
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione su tabella spese             *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-imp-spe-c01      .
+       det-imp-spe-050.
+           add       1                    to   w-det-imp-spe-c01      .
+           if        w-det-imp-spe-c01    >    w-prs-spe-fat-nst
+                     go to det-imp-spe-999.
+      *              *-------------------------------------------------*
+      *              * Determinazione indice per la spesa              *
+      *              *-------------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-det-imp-spe-c01)   to   w-det-imp-spe-inx      .
+      *              *-------------------------------------------------*
+      *              * Se spesa da addebitare : oltre                  *
+      *              *-------------------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-det-imp-spe-inx)
+                                          =    1
+                     go to det-imp-spe-075.
+      *              *-------------------------------------------------*
+      *              * Test su personalizzazione per tipo accettazione *
+      *              *-------------------------------------------------*
+           if        w-prs-spe-fat-tac    =    00
+                     go to det-imp-spe-050.
+       det-imp-spe-075.
+      *              *-------------------------------------------------*
+      *              * Se percentuale a zero : ad aggiornamenti        *
+      *              *-------------------------------------------------*
+           if        w-pie-spe-per
+                    (1, w-det-imp-spe-inx)
+                                          =    zero
+                     go to det-imp-spe-500.
+       det-imp-spe-100.
+      *              *-------------------------------------------------*
+      *              * Se modalita' di addebito a percentuale          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione imponibile per la spesa     *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-det-imp-spe-ibl      .
+      *                  *---------------------------------------------*
+      *                  * Determinazione imponibile per la spesa      *
+      *                  *---------------------------------------------*
+           if        w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    01
+                     move w-pie-tot-lor (1)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    02
+                     move w-pie-tot-nsc (1)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    03
+                     go to det-imp-spe-220
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    11
+                     move w-pie-tot-rig (1, 1)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    12
+                     move w-pie-tot-rig (1, 2)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    13
+                     move w-pie-tot-rig (1, 3)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    14
+                     move w-pie-tot-rig (1, 4)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    15
+                     move w-pie-tot-rig (1, 5)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    16
+                     move w-pie-tot-rig (1, 6)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    17
+                     move w-pie-tot-rig (1, 7)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    18
+                     move w-pie-tot-rig (1, 8)
+                                          to   w-det-imp-spe-ibl
+           else if   w-pie-spe-ibl
+                    (1, w-det-imp-spe-inx)
+                                          =    19
+                     move w-pie-tot-rig (1, 9)
+                                          to   w-det-imp-spe-ibl      .
+           go to     det-imp-spe-250.
+       det-imp-spe-220.
+      *                      *-----------------------------------------*
+      *                      * Se risulta da una combinazione di tota- *
+      *                      * li                                      *
+      *                      *-----------------------------------------*
+           move      w-pie-spe-ibt
+                    (1, w-det-imp-spe-inx)
+                                          to   w-det-imp-spe-ibt      .
+           move      zero                 to   w-det-imp-spe-c02      .
+       det-imp-spe-225.
+           add       1                    to   w-det-imp-spe-c02      .
+           if        w-det-imp-spe-c02    >    9
+                     go to det-imp-spe-250.
+           if        w-det-imp-spe-ibx
+                    (w-det-imp-spe-c02)   not  = "S"
+                     go to det-imp-spe-225.
+           add       w-pie-tot-rig
+                    (1, w-det-imp-spe-c02)
+                                          to   w-det-imp-spe-ibl      .
+           go to     det-imp-spe-225.
+       det-imp-spe-250.
+      *                  *---------------------------------------------*
+      *                  * Calcolo                                     *
+      *                  *---------------------------------------------*
+           multiply  w-pie-spe-per
+                    (1, w-det-imp-spe-inx)
+                                          by   w-det-imp-spe-ibl
+                                        giving w-pie-spe-imp
+                                              (1, w-det-imp-spe-inx)  .
+           divide    100                  into w-pie-spe-imp
+                                              (1, w-det-imp-spe-inx)
+                                                            rounded   .
+       det-imp-spe-500.
+      *              *-------------------------------------------------*
+      *              * Se spesa da non addebitare : riciclo            *
+      *              *-------------------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-det-imp-spe-inx)
+                                          =    0
+                     go to det-imp-spe-050.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto iva                   *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-iva-tip      .
+           move      w-pie-spe-civ
+                    (1, w-det-imp-spe-inx)
+                                          to   w-agg-cst-iva-coi      .
+           move      w-pie-spe-imp
+                    (1, w-det-imp-spe-inx)
+                                          to   w-agg-cst-iva-imp      .
+           perform   agg-cst-iva-000      thru agg-cst-iva-999        .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto contropartite         *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-ctp-tip      .
+           move      w-pie-spe-ccp
+                    (1, w-det-imp-spe-inx)
+                                          to   w-agg-cst-ctp-cod      .
+           move      w-pie-spe-imp
+                    (1, w-det-imp-spe-inx)
+                                          to   w-agg-cst-ctp-imp      .
+           perform   agg-cst-ctp-000      thru agg-cst-ctp-999        .
+      *              *-------------------------------------------------*
+      *              * Riciclo su scansione tabella                    *
+      *              *-------------------------------------------------*
+           go to     det-imp-spe-050.
+       det-imp-spe-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale al netto delle spese in fattura     *
+      *    *-----------------------------------------------------------*
+       det-tot-nsf-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento work per accumulo spese             *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-nsf-was      .
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione tabella spese                *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-nsf-ctr      .
+       det-tot-nsf-100.
+           add       1                    to   w-det-tot-nsf-ctr      .
+           if        w-det-tot-nsf-ctr    >    w-prs-spe-fat-nst
+                     go to det-tot-nsf-200.
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-det-tot-nsf-ctr)   to   w-det-tot-nsf-inx      .
+      *                  *---------------------------------------------*
+      *                  * Se spesa da non addebitare : riciclo        *
+      *                  *---------------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-det-tot-nsf-inx)
+                                          =    0
+                     go to det-tot-nsf-100.
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento totalizzatore                 *
+      *                  *---------------------------------------------*
+           add       w-pie-spe-imp
+                    (1, w-det-tot-nsf-inx)
+                                          to   w-det-tot-nsf-was      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     det-tot-nsf-100.
+       det-tot-nsf-200.
+      *              *-------------------------------------------------*
+      *              * Determinazione valore                           *
+      *              *-------------------------------------------------*
+           move      w-pie-tot-nsc (1)    to    w-pie-tot-nsf (1)     .
+           add       w-det-tot-nsf-was    to    w-pie-tot-nsf (1)     .
+       det-tot-nsf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale sconto pagamento                    *
+      *    *-----------------------------------------------------------*
+       det-tot-scp-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-det-tot-scp-flg      .
+      *              *-------------------------------------------------*
+      *              * Se sia la % che l'importo sono a zero : uscita  *
+      *              *-------------------------------------------------*
+           if        w-pie-tot-scp (1)    =    zero and
+                     w-pie-per-scp (1)    =    zero
+                     go to det-tot-scp-999.
+      *              *-------------------------------------------------*
+      *              * Se % a zero vuol dire che l'importo dello scon- *
+      *              * to pagamento e' stato impostato manualmente nel *
+      *              * piede                                           *
+      *              *-------------------------------------------------*
+           if        w-pie-per-scp (1)    =    zero
+                     go to det-tot-scp-100.
+      *              *-------------------------------------------------*
+      *              * Calcolo, a seconda della personalizzazione sul  *
+      *              * tipo di imponibile, che indica se prendere o    *
+      *              * no in considerazione le spese                   *
+      *              *-------------------------------------------------*
+           if        w-prs-tim-scp-tip    =    "N"
+                     multiply  w-pie-per-scp (1)
+                                          by   w-pie-tot-nsc (1)
+                                        giving w-pie-tot-scp (1)
+           else      multiply  w-pie-per-scp (1)
+                                          by   w-pie-tot-nsf (1)
+                                        giving w-pie-tot-scp (1)      .
+           divide    100                  into w-pie-tot-scp (1)
+                                       rounded                        .
+       det-tot-scp-100.
+      *              *-------------------------------------------------*
+      *              * Test sulla personalizzazione                    *
+      *              *-------------------------------------------------*
+           if        w-prs-tim-scp-tip    =    "A"
+                     go to det-tot-scp-999.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto iva                   *
+      *              *-------------------------------------------------*
+           move      "-"                  to   w-agg-cst-iva-tip      .
+           move      w-pie-civ-scp (1)    to   w-agg-cst-iva-coi      .
+           move      w-pie-tot-scp (1)    to   w-agg-cst-iva-imp      .
+           perform   agg-cst-iva-000      thru agg-cst-iva-999        .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto contropartite         *
+      *              *-------------------------------------------------*
+           move      "-"                  to   w-agg-cst-ctp-tip      .
+           move      w-pie-ccp-scp (1)    to   w-agg-cst-ctp-cod      .
+           move      w-pie-tot-scp (1)    to   w-agg-cst-ctp-imp      .
+           perform   agg-cst-ctp-000      thru agg-cst-ctp-999        .
+       det-tot-scp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale netto                               *
+      *    *-----------------------------------------------------------*
+       det-tot-net-000.
+      *              *-------------------------------------------------*
+      *              * Detrazione sconto in chiusura                   *
+      *              *-------------------------------------------------*
+           subtract  w-pie-tot-scc (1)    from w-pie-tot-lor (1)
+                                        giving w-pie-tot-net (1)      .
+      *              *-------------------------------------------------*
+      *              * Test sulla personalizzazione                    *
+      *              *-------------------------------------------------*
+           if        w-prs-tim-scp-tip    =    "A"
+                     go to det-tot-net-999.
+      *              *-------------------------------------------------*
+      *              * Detrazione sconto pagamento                     *
+      *              *-------------------------------------------------*
+           subtract  w-pie-tot-scp (1)    from w-pie-tot-net (1)      .
+       det-tot-net-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione spese incasso calcolate                    *
+      *    *-----------------------------------------------------------*
+       det-tot-sic-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento accumulatore spese incasso          *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-sic-wpa      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-det-tot-sic-flg      .
+      *              *-------------------------------------------------*
+      *              * Se codice spesa incasso non esistente : uscita  *
+      *              *-------------------------------------------------*
+           if        w-tes-add-spi (1)    =    spaces
+                     go to det-tot-sic-999.
+      *              *-------------------------------------------------*
+      *              * Se valuta del documento non e' quella di base : *
+      *              * uscita                                          *
+      *              *-------------------------------------------------*
+           if        w-tes-sgl-vpf (1)    not  = c-sgl
+                     go to det-tot-sic-999.
+      *              *-------------------------------------------------*
+      *              * Ciclo su tabella scadenze                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-sic-c01      .
+       det-tot-sic-100.
+           add       1                    to   w-det-tot-sic-c01      .
+           if        w-det-tot-sic-c01    >    w-pie-scd-ele (1)
+                     go to det-tot-sic-500.
+      *                  *---------------------------------------------*
+      *                  * Test se esistono spese incasso per il tipo  *
+      *                  * scadenza in esame                           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Scansione tabella spese incasso         *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-det-tot-sic-c02      .
+       det-tot-sic-200.
+           add       1                    to   w-det-tot-sic-c02      .
+           if        w-det-tot-sic-c02    >    w-tes-eit-spi (1)
+                     go to det-tot-sic-100.
+      *                      *-----------------------------------------*
+      *                      * Se tipo pagamento non corrisponde a     *
+      *                      * quello della scadenza in esame : rici-  *
+      *                      * clo su prossima scadenza                *
+      *                      *-----------------------------------------*
+           if        w-tes-tpg-spi
+                    (1, w-det-tot-sic-c02)
+                                          not  = w-pie-scd-tip
+                                                (1, w-det-tot-sic-c01)
+                     go to det-tot-sic-200.
+      *                      *-----------------------------------------*
+      *                      * Deviazione in funzione del tipo funzio- *
+      *                      * namento spesa incasso                   *
+      *                      *-----------------------------------------*
+           if        w-tes-tfu-spi
+                    (1, w-det-tot-sic-c02)
+                                          =    01
+                     go to det-tot-sic-220
+           else if   w-tes-tfu-spi
+                    (1, w-det-tot-sic-c02)
+                                          =    02
+                     go to det-tot-sic-240.
+       det-tot-sic-220.
+      *                      *-----------------------------------------*
+      *                      * Tipo funzionamento : automatico         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Aggiornamento accumulatore importo  *
+      *                          * spese incasso                       *
+      *                          *-------------------------------------*
+           add       w-tes-amm-spi
+                    (1, w-det-tot-sic-c02)
+                                          to   w-det-tot-sic-wpa      .
+      *                          *-------------------------------------*
+      *                          * A riciclo su tabella scdenze        *
+      *                          *-------------------------------------*
+           go to     det-tot-sic-100.
+       det-tot-sic-240.
+      *                      *-----------------------------------------*
+      *                      * Tipo funzionamento : manuale            *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * A riciclo su tabella scdenze        *
+      *                          *-------------------------------------*
+           go to     det-tot-sic-100.
+       det-tot-sic-500.
+      *              *-------------------------------------------------*
+      *              * Memorizzazione totale spese incasso calcolate   *
+      *              *-------------------------------------------------*
+           move      w-det-tot-sic-wpa    to   w-pie-tot-sic (1)      .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto iva                   *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-iva-tip      .
+           move      w-tes-civ-spi (1)    to   w-agg-cst-iva-coi      .
+           move      w-pie-tot-sic (1)    to   w-agg-cst-iva-imp      .
+           perform   agg-cst-iva-000      thru agg-cst-iva-999        .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto contropartite         *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-ctp-tip      .
+           move      w-tes-ccp-spi (1)    to   w-agg-cst-ctp-cod      .
+           move      w-pie-tot-sic (1)    to   w-agg-cst-ctp-imp      .
+           perform   agg-cst-ctp-000      thru agg-cst-ctp-999        .
+       det-tot-sic-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione spese incasso aggiuntive                   *
+      *    *-----------------------------------------------------------*
+       det-tot-sia-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-det-tot-sia-flg      .
+      *              *-------------------------------------------------*
+      *              * Se spese incasso aggiuntive zero : uscita       *
+      *              *-------------------------------------------------*
+           if        w-pie-tot-sia (1)    =    zero
+                     go to det-tot-sia-999.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto iva                   *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-iva-tip      .
+           move      w-tes-civ-spi (1)    to   w-agg-cst-iva-coi      .
+           move      w-pie-tot-sia (1)    to   w-agg-cst-iva-imp      .
+           perform   agg-cst-iva-000      thru agg-cst-iva-999        .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto contropartite         *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-ctp-tip      .
+           move      w-tes-ccp-spi (1)    to   w-agg-cst-ctp-cod      .
+           move      w-pie-tot-sia (1)    to   w-agg-cst-ctp-imp      .
+           perform   agg-cst-ctp-000      thru agg-cst-ctp-999        .
+       det-tot-sia-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale spese bollo                         *
+      *    *-----------------------------------------------------------*
+       det-tot-spb-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento accumulatore spese bollo            *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-spb-wpa      .
+      *              *-------------------------------------------------*
+      *              * Se codice spesa bollo non esistente : uscita    *
+      *              *-------------------------------------------------*
+           if        w-tes-add-spb (1)    =    spaces
+                     go to det-tot-spb-999.
+      *              *-------------------------------------------------*
+      *              * Se valuta del documento non e' quella di base : *
+      *              * uscita                                          *
+      *              *-------------------------------------------------*
+           if        w-tes-sgl-vpf (1)    not  = c-sgl
+                     go to det-tot-spb-999.
+      *              *-------------------------------------------------*
+      *              * Ciclo su tabella scadenze                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-spb-c01      .
+       det-tot-spb-100.
+           add       1                    to   w-det-tot-spb-c01      .
+           if        w-det-tot-spb-c01    >    w-pie-scd-ele (1)
+                     go to det-tot-spb-500.
+      *                  *---------------------------------------------*
+      *                  * Test se esistono spese bollo per il tipo    *
+      *                  * scadenza in esame                           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Scansione tabella spese bollo           *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-det-tot-spb-c02      .
+       det-tot-spb-200.
+           add       1                    to   w-det-tot-spb-c02      .
+           if        w-det-tot-spb-c02    >    w-tes-eit-spb (1)
+                     go to det-tot-spb-100.
+      *                      *-----------------------------------------*
+      *                      * Se tipo pagamento non corrisponde a     *
+      *                      * quello della scadenza in esame : riciclo*
+      *                      *-----------------------------------------*
+           if        w-tes-tpg-spb
+                    (1, w-det-tot-spb-c02)
+                                          not  = w-pie-scd-tip
+                                                (1, w-det-tot-spb-c01)
+                     go to det-tot-spb-200.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione work per importo spesa      *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-det-tot-spb-wis      .
+      *                  *---------------------------------------------*
+      *                  * Se importo scadenza non e' maggiore del     *
+      *                  * tetto di esenzione : riciclo su prossima    *
+      *                  * scadenza                                    *
+      *                  *---------------------------------------------*
+           if        w-pie-scd-imp
+                    (1, w-det-tot-spb-c01)
+                                          not  > w-tes-tet-spb
+                                                (1, w-det-tot-spb-c02)
+                     go to det-tot-spb-100.
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del tipo automatismo *
+      *                  * spesa bollo                                 *
+      *                  *---------------------------------------------*
+           if        w-tes-tau-spb
+                    (1, w-det-tot-spb-c02)
+                                          =    01
+                     go to det-tot-spb-220
+           else if   w-tes-tau-spb
+                    (1, w-det-tot-spb-c02)
+                                          =    02
+                     go to det-tot-spb-240
+           else if   w-tes-tau-spb
+                    (1, w-det-tot-spb-c02)
+                                          =    03
+                     go to det-tot-spb-260.
+       det-tot-spb-220.
+      *                  *---------------------------------------------*
+      *                  * Tipo automatismo : in percentuale sul tota- *
+      *                  * le scadenza                                 *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Determinazione importo spesa            *
+      *                      *-----------------------------------------*
+           multiply  w-tes-per-spb
+                    (1, w-det-tot-spb-c02)
+                                          by   w-pie-scd-imp
+                                              (1, w-det-tot-spb-c01)
+                                        giving w-det-tot-spb-s13      .
+           divide    100                  into w-det-tot-spb-s13
+                                        giving w-det-tot-spb-wis
+                                                         rounded      .
+      *                      *-----------------------------------------*
+      *                      * A trattamento arrotondamento            *
+      *                      *-----------------------------------------*
+           go to     det-tot-spb-300.
+       det-tot-spb-240.
+      *                  *---------------------------------------------*
+      *                  * Tipo automatismo : a scaglioni              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Ciclo per 10 scaglioni                  *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-det-tot-spb-c03      .
+       det-tot-spb-242.
+           add       1                    to   w-det-tot-spb-c03      .
+           if        w-det-tot-spb-c03    >    10
+                     go to det-tot-spb-244.
+           if        w-tes-tbe-scg
+                    (                1,
+                     w-det-tot-spb-c02,
+                     w-det-tot-spb-c03)   =    zero
+                     go to det-tot-spb-242.
+           if        w-pie-scd-imp
+                    (1, w-det-tot-spb-c01)
+                                          >    w-tes-tbe-scg
+                                              (                1,
+                                               w-det-tot-spb-c02,
+                                               w-det-tot-spb-c03)
+                     go to det-tot-spb-242.
+           move      w-tes-tbe-asc
+                    (                1,
+                     w-det-tot-spb-c02,
+                     w-det-tot-spb-c03)   to   w-det-tot-spb-wis      .
+       det-tot-spb-244.
+      *                      *-----------------------------------------*
+      *                      * A trattamento arrotondamento            *
+      *                      *-----------------------------------------*
+           go to     det-tot-spb-300.
+       det-tot-spb-260.
+      *                  *---------------------------------------------*
+      *                  * Tipo automatismo : a scaglioni in percentua-*
+      *                  *                    le                       *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Inizializzazione work per progressivo   *
+      *                      * imponibile                              *
+      *                      *-----------------------------------------*
+           move      w-pie-scd-imp
+                    (1, w-det-tot-spb-c01)
+                                          to   w-det-tot-spb-wpi      .
+      *                      *-----------------------------------------*
+      *                      * Ciclo per 10 scaglioni                  *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-det-tot-spb-c03      .
+       det-tot-spb-262.
+           add       1                    to   w-det-tot-spb-c03      .
+           if        w-det-tot-spb-c03    >    10
+                     go to det-tot-spb-270.
+           if        w-tes-tbe-scg
+                    (                1,
+                     w-det-tot-spb-c02,
+                     w-det-tot-spb-c03)   =    zero
+                     go to det-tot-spb-262.
+      *                      *-----------------------------------------*
+      *                      * Deviazione a seconda che l'importo sca- *
+      *                      * glione sia maggiore o meno dell'importo *
+      *                      * scadenza                                *
+      *                      *-----------------------------------------*
+           if        w-tes-tbe-scg
+                    (                1,
+                     w-det-tot-spb-c02,
+                     w-det-tot-spb-c03)   >    w-pie-scd-imp
+                                              (1, w-det-tot-spb-c01)
+                     go to det-tot-spb-270
+           else      go to det-tot-spb-264.
+       det-tot-spb-264.
+      *                      *-----------------------------------------*
+      *                      * Se l'importo scaglione e' minore o u-   *
+      *                      * guale dell'importo scadenza             *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Calcolo quota spesa bollo relativa  *
+      *                          * allo scaglione                      *
+      *                          *-------------------------------------*
+           multiply  w-tes-tbe-psc
+                    (                1,
+                     w-det-tot-spb-c02,
+                     w-det-tot-spb-c03)
+                                          by   w-tes-tbe-scg
+                                              (                1,
+                                               w-det-tot-spb-c02,
+                                               w-det-tot-spb-c03)
+                                        giving w-det-tot-spb-s13      .
+           divide    100                  into w-det-tot-spb-s13
+                                        giving w-det-tot-spb-wss
+                                                         rounded      .
+      *                          *-------------------------------------*
+      *                          * Aggiornamento importo spesa         *
+      *                          *-------------------------------------*
+           add       w-det-tot-spb-wss    to   w-det-tot-spb-wis      .
+      *                          *-------------------------------------*
+      *                          * Aggiornamento progressivo imponibile*
+      *                          *-------------------------------------*
+           subtract  w-tes-tbe-scg
+                    (                1,
+                     w-det-tot-spb-c02,
+                     w-det-tot-spb-c03)   from w-det-tot-spb-wpi      .
+      *                          *-------------------------------------*
+      *                          * Riciclo su prossimo scaglione       *
+      *                          *-------------------------------------*
+           go to     det-tot-spb-262.
+       det-tot-spb-270.
+      *                      *-----------------------------------------*
+      *                      * Se l'importo scaglione e' superiore al- *
+      *                      * l'importo scadenza                      *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Calcolo quota spesa bollo relativa  *
+      *                          * al residuo, cioe' il progressivo im-*
+      *                          * ponibile sin qui determinato        *
+      *                          *-------------------------------------*
+           multiply  w-tes-tbe-psc
+                    (                1,
+                     w-det-tot-spb-c02,
+                     w-det-tot-spb-c03)
+                                          by   w-det-tot-spb-wpi
+                                        giving w-det-tot-spb-s13      .
+           divide    100                  into w-det-tot-spb-s13
+                                        giving w-det-tot-spb-wss
+                                                         rounded      .
+      *                          *-------------------------------------*
+      *                          * Aggiornamento importo spesa         *
+      *                          *-------------------------------------*
+           add       w-det-tot-spb-wss    to   w-det-tot-spb-wis      .
+      *                          *-------------------------------------*
+      *                          * A trattamento arrotondamento        *
+      *                          *-------------------------------------*
+           go to     det-tot-spb-300.
+       det-tot-spb-300.
+      *                  *---------------------------------------------*
+      *                  * Trattamento arrotondamento                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se esiste un valore minimo per la spesa *
+      *                      *-----------------------------------------*
+           if        w-tes-min-spb
+                    (1, w-det-tot-spb-c02)
+                                          =    zero
+                     go to det-tot-spb-302.
+      *                      *-----------------------------------------*
+      *                      * Se l'importo spesa sin qui determinato  *
+      *                      * e' inferiore al minimo valore, si forza *
+      *                      * il valore minimo                        *
+      *                      *-----------------------------------------*
+           if        w-det-tot-spb-wis    <    w-tes-min-spb
+                                              (1, w-det-tot-spb-c02)
+                     move  w-tes-min-spb
+                          (1, w-det-tot-spb-c02)
+                                          to   w-det-tot-spb-wis      .
+       det-tot-spb-302.
+      *                      *-----------------------------------------*
+      *                      * Se esiste un valore massimo per la spesa*
+      *                      *-----------------------------------------*
+           if        w-tes-max-spb
+                    (1, w-det-tot-spb-c02)
+                                          =    zero
+                     go to det-tot-spb-304.
+      *                      *-----------------------------------------*
+      *                      * Se l'importo spesa sin qui determinato  *
+      *                      * e' superiore al massimo valore, si forza*
+      *                      * il valore massimo                       *
+      *                      *-----------------------------------------*
+           if        w-det-tot-spb-wis    >    w-tes-max-spb
+                                              (1, w-det-tot-spb-c02)
+                     move  w-tes-max-spb
+                          (1, w-det-tot-spb-c02)
+                                          to   w-det-tot-spb-wis      .
+       det-tot-spb-304.
+      *                      *-----------------------------------------*
+      *                      * Deviazione in funzione del tipo arroton-*
+      *                      * damento                                 *
+      *                      *-----------------------------------------*
+           go to     det-tot-spb-310
+                     det-tot-spb-320
+                     det-tot-spb-330
+                     det-tot-spb-340
+                                depending on   w-tes-tar-spb
+                                              (1, w-det-tot-spb-c02)  .
+      *                      *-----------------------------------------*
+      *                      * Tipo arrotondamento : nessuno           *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * A riciclo su tabella scadenze       *
+      *                          *-------------------------------------*
+           go to     det-tot-spb-400.
+       det-tot-spb-310.
+      *                      *-----------------------------------------*
+      *                      * Tipo arrotondamento : al valore superio-*
+      *                      *                       re                *
+      *                      *-----------------------------------------*
+           if        w-det-tot-spb-wis    >    zero
+                     add      w-tes-var-spb
+                             (1, w-det-tot-spb-c02)
+                                          to   w-det-tot-spb-wis
+                     subtract 1           from w-det-tot-spb-wis
+           else      subtract w-tes-var-spb
+                             (1, w-det-tot-spb-c02)
+                                          from w-det-tot-spb-wis
+                     add      1           to   w-det-tot-spb-wis      .
+           divide    w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          into w-det-tot-spb-wis      .
+           multiply  w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          by   w-det-tot-spb-wis      .
+      *                          *-------------------------------------*
+      *                          * A riciclo su tabella scdenze        *
+      *                          *-------------------------------------*
+           go to     det-tot-spb-400.
+       det-tot-spb-320.
+      *                      *-----------------------------------------*
+      *                      * Tipo arrotondamento : al valore inferio-*
+      *                      *                       re                *
+      *                      *-----------------------------------------*
+           divide    w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          into w-det-tot-spb-wis      .
+           multiply  w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          by   w-det-tot-spb-wis      .
+      *                          *-------------------------------------*
+      *                          * A riciclo su tabella scdenze        *
+      *                          *-------------------------------------*
+           go to     det-tot-spb-400.
+       det-tot-spb-330.
+      *                      *-----------------------------------------*
+      *                      * Tipo arrotondamento : commerciale       *
+      *                      *-----------------------------------------*
+           divide    w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          into w-det-tot-spb-wis
+                                                         rounded      .
+           multiply  w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          by   w-det-tot-spb-wis      .
+      *                          *-------------------------------------*
+      *                          * A riciclo su tabella scdenze        *
+      *                          *-------------------------------------*
+           go to     det-tot-spb-400.
+       det-tot-spb-340.
+      *                      *-----------------------------------------*
+      *                      * Tipo arrotondamento : statale           *
+      *                      *-----------------------------------------*
+           divide    2                    into w-tes-var-spb
+                                              (1, w-det-tot-spb-c02)
+                                        giving w-det-tot-spb-wpc
+                                                          rounded     .
+           if        w-det-tot-spb-wis    >    zero
+                     add      w-det-tot-spb-wpc
+                                          to   w-det-tot-spb-wis
+                     subtract 1           from w-det-tot-spb-wis
+           else      subtract w-det-tot-spb-wpc
+                                          from w-det-tot-spb-wis
+                     add      1           to   w-det-tot-spb-wis      .
+           divide    w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          into w-det-tot-spb-wis      .
+           multiply  w-tes-var-spb
+                    (1, w-det-tot-spb-c02)
+                                          by   w-det-tot-spb-wis      .
+      *                          *-------------------------------------*
+      *                          * A riciclo su tabella scdenze        *
+      *                          *-------------------------------------*
+           go to     det-tot-spb-400.
+       det-tot-spb-400.
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento accumulatore spese bollo      *
+      *                  *---------------------------------------------*
+           add       w-det-tot-spb-wis    to   w-det-tot-spb-wpa      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo su prossima scadenza                *
+      *                  *---------------------------------------------*
+           go to     det-tot-spb-100.
+       det-tot-spb-500.
+      *              *-------------------------------------------------*
+      *              * Memorizzazione totale spese bollo calcolate     *
+      *              *-------------------------------------------------*
+           move      w-det-tot-spb-wpa    to   w-pie-tot-spb (1)      .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto iva                   *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-iva-tip      .
+           move      w-tes-civ-spb (1)    to   w-agg-cst-iva-coi      .
+           move      w-pie-tot-spb (1)    to   w-agg-cst-iva-imp      .
+           perform   agg-cst-iva-000      thru agg-cst-iva-999        .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento castelletto contropartite         *
+      *              *-------------------------------------------------*
+           move      "+"                  to   w-agg-cst-ctp-tip      .
+           move      w-tes-ccp-spb (1)    to   w-agg-cst-ctp-cod      .
+           move      w-pie-tot-spb (1)    to   w-agg-cst-ctp-imp      .
+           perform   agg-cst-ctp-000      thru agg-cst-ctp-999        .
+       det-tot-spb-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale spese                               *
+      *    *-----------------------------------------------------------*
+       det-tot-spe-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento totalizzatore                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-pie-tot-spe (1)      .
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione tabella spese                *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-spe-ctr      .
+       det-tot-spe-100.
+           add       1                    to   w-det-tot-spe-ctr      .
+           if        w-det-tot-spe-ctr    >    w-prs-spe-fat-nst
+                     go to det-tot-spe-200.
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-det-tot-spe-ctr)   to   w-det-tot-spe-inx      .
+      *                  *---------------------------------------------*
+      *                  * Se spesa da non addebitare : riciclo        *
+      *                  *---------------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-det-tot-spe-inx)
+                                          =    0
+                     go to det-tot-spe-100.
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento totalizzatore                 *
+      *                  *---------------------------------------------*
+           add       w-pie-spe-imp
+                    (1, w-det-tot-spe-inx)
+                                          to   w-pie-tot-spe (1)      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     det-tot-spe-100.
+       det-tot-spe-200.
+      *              *-------------------------------------------------*
+      *              * Spese incasso calcolate                         *
+      *              *-------------------------------------------------*
+           add       w-pie-tot-sic (1)    to   w-pie-tot-spe (1)      .
+      *              *-------------------------------------------------*
+      *              * Spese incasso aggiuntive                        *
+      *              *-------------------------------------------------*
+           add       w-pie-tot-sia (1)    to   w-pie-tot-spe (1)      .
+      *              *-------------------------------------------------*
+      *              * Spese bollo                                     *
+      *              *-------------------------------------------------*
+           add       w-pie-tot-spb (1)    to   w-pie-tot-spe (1)      .
+       det-tot-spe-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale imponibile                          *
+      *    *-----------------------------------------------------------*
+       det-tot-ibl-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento totalizzatore                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-pie-tot-ibl (1)      .
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione castelletto iva              *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-ibl-ctr      .
+       det-tot-ibl-100.
+           add       1                    to   w-det-tot-ibl-ctr      .
+           if        w-det-tot-ibl-ctr    >    6
+                     go to det-tot-ibl-999.
+       det-tot-ibl-200.
+      *              *-------------------------------------------------*
+      *              * Test se omaggio                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ridefinizione codice Iva                    *
+      *                  *---------------------------------------------*
+           move      w-pie-iva-cod
+                    (1, w-det-tot-ibl-ctr)
+                                          to   w-edt-iva-cod          .
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
+           if        w-edt-iva-cod-003    =    9
+                     go to det-tot-ibl-100.
+       det-tot-ibl-400.
+      *              *-------------------------------------------------*
+      *              * Incremento imponibile                           *
+      *              *-------------------------------------------------*
+           add       w-pie-iva-ibl
+                    (1, w-det-tot-ibl-ctr)
+                                          to   w-pie-tot-ibl (1)      .
+           go to     det-tot-ibl-100.
+       det-tot-ibl-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale imposta                             *
+      *    *-----------------------------------------------------------*
+       det-tot-imp-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento totalizzatore                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-pie-tot-imp (1)      .
+           move      zero                 to   w-det-tot-imp-wpa      .
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione castelletto iva              *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-tot-imp-ctr      .
+       det-tot-imp-100.
+           add       1                    to   w-det-tot-imp-ctr      .
+           if        w-det-tot-imp-ctr    >    6
+                     go to det-tot-imp-999.
+      *                  *---------------------------------------------*
+      *                  * Determinazione                              *
+      *                  *---------------------------------------------*
+           move      "DI"                 to   d-imp-iva-tip-ope      .
+           move      w-pie-iva-ibl
+                    (1, w-det-tot-imp-ctr)
+                                          to   d-imp-iva-ibl-iva      .
+           move      w-pie-iva-cod
+                    (1, w-det-tot-imp-ctr)
+                                          to   d-imp-iva-cod-iva      .
+           perform   det-imp-iva-cll-000  thru det-imp-iva-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento imposta relativa all'aliquota *
+      *                  *---------------------------------------------*
+           move      d-imp-iva-ims-iva    to   w-pie-iva-imp
+                                              (1, w-det-tot-imp-ctr)  .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento accumulatore                  *
+      *                  *---------------------------------------------*
+           add       d-imp-iva-ims-iva    to   w-pie-tot-imp (1)      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     det-tot-imp-100.
+       det-tot-imp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione totale documento                           *
+      *    *-----------------------------------------------------------*
+       det-tot-doc-000.
+           add       w-pie-tot-ibl (1)    to
+                     w-pie-tot-imp (1)  giving w-pie-tot-doc (1)      .
+       det-tot-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione scadenze per il documento                  *
+      *    *-----------------------------------------------------------*
+       det-sca-doc-000.
+      *              *-------------------------------------------------*
+      *              * Test se forma di pagamento che prevede la modi- *
+      *              * ca manuale delle scadenze                       *
+      *              *-------------------------------------------------*
+           if        w-tes-snx-ims (1)    not  = "S"
+                     go to det-sca-doc-050.
+           if        w-pie-scd-ele (1)    not  = zero
+                     go to det-sca-doc-900.
+       det-sca-doc-050.
+      *              *-------------------------------------------------*
+      *              * Preparazione parametri in input                 *
+      *              *-------------------------------------------------*
+           move      w-tes-cod-fop (1)    to   w-clc-tbl-scd-fdp      .
+           move      w-tes-dat-doc        to   w-clc-tbl-scd-ddo      .
+           move      w-pie-tot-ibl (1)    to   w-clc-tbl-scd-ibl      .
+           move      w-pie-tot-imp (1)    to   w-clc-tbl-scd-iva      .
+       det-sca-doc-055.
+      *              *-------------------------------------------------*
+      *              * Eventuale presenza ritenuta d'acconto           *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se da applicare                        *
+      *                  *---------------------------------------------*
+           if        w-tes-flg-rda (1)    not  = "S"
+                     go to det-sca-doc-060.
+           if        w-tes-per-rda (1)    =    zero
+                     go to det-sca-doc-060.
+           if        w-tes-pib-rda (1)    =    zero
+                     move  100            to   w-det-rda-pib
+           else      move  w-tes-pib-rda (1)
+                                          to   w-det-rda-pib          .
+      *                  *---------------------------------------------*
+      *                  * Calcolo di abbattimento dell'imponibile     *
+      *                  *---------------------------------------------*
+           move      w-pie-tot-ibl (1)    to   w-det-rda-ibl          .
+           multiply  w-det-rda-pib        by   w-det-rda-ibl
+                                        giving w-det-rda-tot          .
+           divide    100                  into w-det-rda-tot
+                                               rounded                .
+           subtract  w-det-rda-tot        from w-det-rda-ibl          .
+      *                  *---------------------------------------------*
+      *                  * Calcolo ritenuta d'acconto                  *
+      *                  *---------------------------------------------*
+           multiply  w-tes-per-rda (1)    by   w-det-rda-ibl
+                                        giving w-det-rda-imp          .
+           divide    100                  into w-det-rda-imp
+                                               rounded                .
+           subtract  w-det-rda-imp        from w-pie-tot-ibl (1)
+                                        giving w-clc-tbl-scd-ibl      .
+      *                  *---------------------------------------------*
+      *                  * Calcolo ENASARCO                            *
+      *                  *                                             *
+      *                  * SIRI ___ PERFEZIONARE ___                   *
+      *                  *---------------------------------------------*
+           move      w-pie-tot-ibl (1)    to   w-det-ena-ibl          .
+           multiply  1                    by   w-det-ena-ibl
+                                        giving w-det-ena-imp          .
+           divide    100                  into w-det-ena-imp
+                                               rounded                .
+           subtract  w-det-ena-imp        from w-clc-tbl-scd-ibl      .
+       det-sca-doc-060.
+      *              *-------------------------------------------------*
+      *              * Se regime di Scissione dei Pagamenti            *
+      *              *-------------------------------------------------*
+           if        w-tes-ass-iva-spl (1)
+                                          =    "S"
+                     move  zero           to   w-clc-tbl-scd-iva      .
+       det-sca-doc-080.
+           move      w-tes-pag-qaf (1)    to   w-clc-tbl-scd-qaf      .
+      *              *-------------------------------------------------*
+      *              * Eventuale Acconto                               *
+      *              *                                                 *
+      *              * ___ RIVEDERE ___                                *
+      *              *-------------------------------------------------*
+______*    move      w-tes-pag-act (1)    to   w-clc-tbl-scd-acc      .
+           move      zero                 to   w-clc-tbl-scd-acc      .
+      *
+           move      w-tes-pag-dsm (1)    to   w-clc-tbl-scd-ddp      .
+           move      zero                 to   w-det-sca-doc-ctr      .
+       det-sca-doc-100.
+           add       1                    to   w-det-sca-doc-ctr      .
+           if        w-det-sca-doc-ctr    >    3
+                     go to det-sca-doc-120.
+           move      w-tes-cod-pag
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-cdp
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-tip-amm
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-tam
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-per-toi
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-pti
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-dim-act
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-dda
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-tip-pag
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-tpg
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-num-sca
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-nsp
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-dec-prs
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-dps
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-dap-mes
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-dpm
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-dap-gio
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-dpg
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-ggg-int
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-gdi
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-tip-scm
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-tsm
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-gio-scm
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-gfs
+                                              (w-det-sca-doc-ctr)     .
+           move      w-tes-cau-cge
+                    (1, w-det-sca-doc-ctr)
+                                          to   w-clc-tbl-scd-ccp
+                                              (w-det-sca-doc-ctr)     .
+           go to     det-sca-doc-100.
+       det-sca-doc-120.
+           move      w-tes-tip-esm (1)    to   w-clc-tbl-scd-esm      .
+           move      w-tes-ggg-alt (1)    to   w-clc-tbl-scd-alt      .
+           move      w-tes-mmm-e01 (1)    to   w-clc-tbl-scd-e01      .
+           move      w-tes-mmm-e02 (1)    to   w-clc-tbl-scd-e02      .
+       det-sca-doc-200.
+      *              *-------------------------------------------------*
+      *              * Richiamo routine di calcolo                     *
+      *              *-------------------------------------------------*
+           perform   clc-tbl-scd-000      thru clc-tbl-scd-999        .
+       det-sca-doc-300.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare work                        *
+      *              *-------------------------------------------------*
+           perform   nor-scd-cst-000      thru nor-scd-cst-999        .
+       det-sca-doc-350.
+      *              *-------------------------------------------------*
+      *              * Movimento da work locale a work piede           *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-sca-doc-ctr      .
+       det-sca-doc-400.
+           add       1                    to   w-det-sca-doc-ctr      .
+           if        w-det-sca-doc-ctr    >    w-clc-tbl-scd-nts
+                     go to det-sca-doc-600.
+           move      w-clc-tbl-scd-tds
+                    (w-det-sca-doc-ctr)   to   w-pie-scd-tip
+                                              (1, w-det-sca-doc-ctr)  .
+           move      w-clc-tbl-scd-dds
+                    (w-det-sca-doc-ctr)   to   w-pie-scd-dat
+                                              (1, w-det-sca-doc-ctr)  .
+           move      w-clc-tbl-scd-ccs
+                    (w-det-sca-doc-ctr)   to   w-pie-scd-cau
+                                              (1, w-det-sca-doc-ctr)  .
+           move      w-clc-tbl-scd-ids
+                    (w-det-sca-doc-ctr)   to   w-pie-scd-imp
+                                              (1, w-det-sca-doc-ctr)  .
+           go to     det-sca-doc-400.
+       det-sca-doc-600.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione numero totale scadenze          *
+      *              *-------------------------------------------------*
+           move      w-clc-tbl-scd-nts    to   w-pie-scd-ele (1)      .
+       det-sca-doc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     det-sca-doc-999.
+       det-sca-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione importi in valuta base                     *
+      *    *-----------------------------------------------------------*
+       det-imp-vlb-000.
+      *              *-------------------------------------------------*
+      *              * Trattamento castelletto iva                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Azzeramento totalizzatori                   *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ivb-tot-ibl          .
+           move      zero                 to   w-ivb-tot-imp          .
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione su castelletto originale *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-det-imp-vlb-ctr      .
+       det-imp-vlb-100.
+           add       1                    to   w-det-imp-vlb-ctr      .
+           if        w-det-imp-vlb-ctr    >    w-pie-iva-ele (1)
+                     go to det-imp-vlb-200.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione imponibile originale        *
+      *                  *---------------------------------------------*
+           move      w-pie-iva-ibl
+                    (1, w-det-imp-vlb-ctr)
+                                          to   w-ivb-iva-ibl
+                                              (w-det-imp-vlb-ctr)     .
+      *                  *---------------------------------------------*
+      *                  * Conversione imponibile in valuta base       *
+      *                  *---------------------------------------------*
+           move      w-tes-sgl-vpf (1)    to   w-cvs-vlt-sgl          .
+           move      w-tes-dec-vpf (1)    to   w-cvs-vlt-dec          .
+           move      w-tes-tdc-vpf (1)    to   w-cvs-vlt-tdc          .
+           move      w-tes-cdc-vpf (1)    to   w-cvs-vlt-cdc          .
+           move      w-ivb-iva-ibl
+                    (w-det-imp-vlb-ctr)   to   w-cvs-vlt-aav          .
+           perform   cvs-alt-vlb-000      thru cvs-alt-vlb-999        .
+           move      w-cvs-vlt-avb        to   w-ivb-iva-ibl
+                                              (w-det-imp-vlb-ctr)     .
+      *                  *---------------------------------------------*
+      *                  * Calcolo imposta                             *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se da effettuare                   *
+      *                      *-----------------------------------------*
+           move      w-pie-iva-cod
+                    (1, w-det-imp-vlb-ctr)
+                                          to   w-edt-iva-cod          .
+      *
+           if        w-edt-iva-cod-003    =    0 or
+                     w-edt-iva-cod-003    =    9
+                     go to det-imp-vlb-150
+           else      move  zero           to   w-ivb-iva-imp
+                                              (w-det-imp-vlb-ctr)  
+                     go to det-imp-vlb-180.
+       det-imp-vlb-150.
+      *                  *---------------------------------------------*
+      *                  * Determinazione                              *
+      *                  *---------------------------------------------*
+           move      "DI"                 to   d-imp-iva-tip-ope      .
+           move      w-ivb-iva-ibl
+                    (w-det-imp-vlb-ctr)   to   d-imp-iva-ibl-iva      .
+           move      w-pie-iva-cod
+                    (1, w-det-imp-vlb-ctr)
+                                          to   d-imp-iva-cod-iva      .
+           perform   det-imp-iva-cll-000  thru det-imp-iva-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento imposta relativa all'aliquota *
+      *                  *---------------------------------------------*
+           move      d-imp-iva-ims-iva    to   w-ivb-iva-imp
+                                              (w-det-imp-vlb-ctr)     .
+       det-imp-vlb-180.
+      *                  *---------------------------------------------*
+      *                  * Aggiustamento imponibile in caso di aliquo- *
+      *                  * ta di sola iva (Omaggi)                     *
+      *                  *---------------------------------------------*
+           if        w-edt-iva-cod-003    =    9
+                     move  zero           to   w-ivb-iva-ibl
+                                              (w-det-imp-vlb-ctr)     .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento totale imponibile             *
+      *                  *---------------------------------------------*
+           add       w-ivb-iva-ibl
+                    (w-det-imp-vlb-ctr)   to   w-ivb-tot-ibl          .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento totale imposta                *
+      *                  *---------------------------------------------*
+           add       w-ivb-iva-imp
+                    (w-det-imp-vlb-ctr)   to   w-ivb-tot-imp          .
+      *                  *---------------------------------------------*
+      *                  * Riciclo su scansione castelletto originale  *
+      *                  *---------------------------------------------*
+           go to     det-imp-vlb-100.
+       det-imp-vlb-200.
+      *                  *---------------------------------------------*
+      *                  * Determinazione totale documento             *
+      *                  *---------------------------------------------*
+           add       w-ivb-tot-ibl
+                     w-ivb-tot-imp      giving w-ivb-tot-doc          .
+       det-imp-vlb-300.
+      *              *-------------------------------------------------*
+      *              * Trattamento castelletto contropartite           *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Azzeramento totalizzatori                   *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ivb-tot-ctp          .
+      *                  *---------------------------------------------*
+      *                  * Test se almeno un elemento presente         *
+      *                  *---------------------------------------------*
+           if        w-pie-ctp-ele (1)    =    zero
+                     go to det-imp-vlb-400.
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione su castelletto originale *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-det-imp-vlb-ctr      .
+       det-imp-vlb-320.
+           add       1                    to   w-det-imp-vlb-ctr      .
+      *                  *---------------------------------------------*
+      *                  * Test su numero elementi castelletto         *
+      *                  *---------------------------------------------*
+           if        w-det-imp-vlb-ctr    >    w-pie-ctp-ele (1)
+                     go to det-imp-vlb-340.
+      *                  *---------------------------------------------*
+      *                  * Test su numero massimo elementi castelletto *
+      *                  *---------------------------------------------*
+           if        w-det-imp-vlb-ctr    >    20
+                     go to det-imp-vlb-340.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione importo originale           *
+      *                  *---------------------------------------------*
+           move      w-pie-ctp-imp
+                    (1, w-det-imp-vlb-ctr)
+                                          to   w-ivb-ctp-imp
+                                              (w-det-imp-vlb-ctr)     .
+      *                  *---------------------------------------------*
+      *                  * Conversione importo in valuta base          *
+      *                  *---------------------------------------------*
+           move      w-tes-sgl-vpf (1)    to   w-cvs-vlt-sgl          .
+           move      w-tes-dec-vpf (1)    to   w-cvs-vlt-dec          .
+           move      w-tes-tdc-vpf (1)    to   w-cvs-vlt-tdc          .
+           move      w-tes-cdc-vpf (1)    to   w-cvs-vlt-cdc          .
+           move      w-ivb-ctp-imp
+                    (w-det-imp-vlb-ctr)   to   w-cvs-vlt-aav          .
+           perform   cvs-alt-vlb-000      thru cvs-alt-vlb-999        .
+           move      w-cvs-vlt-avb        to   w-ivb-ctp-imp
+                                              (w-det-imp-vlb-ctr)     .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento totale contropartite          *
+      *                  *---------------------------------------------*
+           add       w-ivb-ctp-imp
+                    (w-det-imp-vlb-ctr)   to   w-ivb-tot-ctp          .
+      *                  *---------------------------------------------*
+      *                  * Riciclo su scansione castelletto originale  *
+      *                  *---------------------------------------------*
+           go to     det-imp-vlb-320.
+       det-imp-vlb-340.
+      *                  *---------------------------------------------*
+      *                  * Aggiustamento dell'eventuale differenza tra *
+      *                  * il castelletto iva e il castelletto contro- *
+      *                  * partite                                     *
+      *                  *---------------------------------------------*
+           subtract  w-ivb-tot-ctp        from w-ivb-tot-ibl
+                                        giving w-det-imp-vlb-s11      .
+           add       w-det-imp-vlb-s11    to   w-ivb-ctp-imp (1)      .
+           add       w-det-imp-vlb-s11    to   w-ivb-tot-ctp          .
+       det-imp-vlb-400.
+      *              *-------------------------------------------------*
+      *              * Trattamento castelletto scadenze                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Azzeramento totalizzatori                   *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ivb-tot-scb          .
+           move      zero                 to   w-ivb-tot-scv          .
+      *                  *---------------------------------------------*
+      *                  * Test se almeno un elemento presente         *
+      *                  *---------------------------------------------*
+           if        w-pie-scd-ele (1)    =    zero
+                     go to det-imp-vlb-500.
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione su castelletto originale *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-det-imp-vlb-ctr      .
+       det-imp-vlb-420.
+           add       1                    to   w-det-imp-vlb-ctr      .
+           if        w-det-imp-vlb-ctr    >    w-pie-scd-ele (1)
+                     go to det-imp-vlb-440.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione importo scadenza originale  *
+      *                  *---------------------------------------------*
+           move      w-pie-scd-imp
+                    (1, w-det-imp-vlb-ctr)
+                                          to   w-ivb-scd-imp
+                                              (w-det-imp-vlb-ctr)     .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento totale scadenze in valuta do- *
+      *                  * cumento                                     *
+      *                  *---------------------------------------------*
+           add       w-pie-scd-imp
+                    (1, w-det-imp-vlb-ctr)
+                                          to   w-ivb-tot-scv          .
+      *                  *---------------------------------------------*
+      *                  * Conversione importo scadenza in valuta base *
+      *                  *---------------------------------------------*
+           move      w-tes-sgl-vpf (1)    to   w-cvs-vlt-sgl          .
+           move      w-tes-dec-vpf (1)    to   w-cvs-vlt-dec          .
+           move      w-tes-tdc-vpf (1)    to   w-cvs-vlt-tdc          .
+           move      w-tes-cdc-vpf (1)    to   w-cvs-vlt-cdc          .
+           move      w-ivb-scd-imp
+                    (w-det-imp-vlb-ctr)   to   w-cvs-vlt-aav          .
+           perform   cvs-alt-vlb-000      thru cvs-alt-vlb-999        .
+           move      w-cvs-vlt-avb        to   w-ivb-scd-imp
+                                              (w-det-imp-vlb-ctr)     .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento totale scadenze in valuta ba- *
+      *                  * se                                          *
+      *                  *---------------------------------------------*
+           add       w-ivb-scd-imp
+                    (w-det-imp-vlb-ctr)   to   w-ivb-tot-scb          .
+      *                  *---------------------------------------------*
+      *                  * Riciclo su scansione castelletto originale  *
+      *                  *---------------------------------------------*
+           go to     det-imp-vlb-420.
+       det-imp-vlb-440.
+      *                  *---------------------------------------------*
+      *                  * Aggiustamento dell'eventuale differenza tra *
+      *                  * il totale scadenze in valuta base e in va-  *
+      *                  * luta documento                              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Conversione totale scadenze in valuta   *
+      *                      * documento nella valuta base             *
+      *                      *-----------------------------------------*
+           move      w-tes-sgl-vpf (1)    to   w-cvs-vlt-sgl          .
+           move      w-tes-dec-vpf (1)    to   w-cvs-vlt-dec          .
+           move      w-tes-tdc-vpf (1)    to   w-cvs-vlt-tdc          .
+           move      w-tes-cdc-vpf (1)    to   w-cvs-vlt-cdc          .
+           move      w-ivb-tot-scv        to   w-cvs-vlt-aav          .
+           perform   cvs-alt-vlb-000      thru cvs-alt-vlb-999        .
+           move      w-cvs-vlt-avb        to   w-ivb-tot-scv          .
+      *                      *-----------------------------------------*
+      *                      * Addebito della differenza sulla prima   *
+      *                      * scadenza                                *
+      *                      *-----------------------------------------*
+           subtract  w-ivb-tot-scb        from w-ivb-tot-scv
+                                        giving w-det-imp-vlb-s11      .
+           add       w-det-imp-vlb-s11    to   w-ivb-scd-imp (1)      .
+           add       w-det-imp-vlb-s11    to   w-ivb-tot-scb          .
+       det-imp-vlb-500.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     det-imp-vlb-999.
+       det-imp-vlb-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione primo protocollo di CGE e quanti di essi   *
+      *    * sono necessari                                            *
+      *    *-----------------------------------------------------------*
+       det-prt-cge-000.
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero protocollo necessari    *
+      *              *-------------------------------------------------*
+           move      1                    to   w-det-prt-cge-npn      .
+      *              *-------------------------------------------------*
+      *              * Determinazione numeri protocollo necessari      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ciclo di scansione su tabella scadenze      *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-det-prt-cge-ctr      .
+       det-prt-cge-100.
+           add       1                    to   w-det-prt-cge-ctr      .
+           if        w-det-prt-cge-ctr    >    w-pie-scd-ele (1)
+                     go to det-prt-cge-200.
+           if        w-pie-scd-cau
+                    (1, w-det-prt-cge-ctr)
+                                          not  = zero
+                     add  1               to   w-det-prt-cge-npn      .
+           go to     det-prt-cge-100.
+       det-prt-cge-200.
+      *              *-------------------------------------------------*
+      *              * Prelievo numeri protocollo                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione record                      *
+      *                  *---------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/cge/num/ioc/obj/inprtcge"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-prt-cge             .
+      *                  *---------------------------------------------*
+      *                  * Lettura tabella numerazioni [prtcge]        *
+      *                  *---------------------------------------------*
+           move      "GT"                 to   f-ope                  .
+           move      w-tes-dat-doc        to   s-dat                  .
+           move      s-saa                to   rn-prt-cge-saa-dtr     .
+           move      "pgm/cge/num/ioc/obj/inprtcge"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-prt-cge             .
+      *                  *---------------------------------------------*
+      *                  * Test su esito operazione                    *
+      *                  *---------------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to det-prt-cge-300.
+      *                  *---------------------------------------------*
+      *                  * Record non trovato                          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione dati                    *
+      *                      *-----------------------------------------*
+           move      zero                 to   rn-prt-cge-num-prt     .
+      *                      *-----------------------------------------*
+      *                      * Scrittura record normalizzato           *
+      *                      *-----------------------------------------*
+           move      "PT"                 to   f-ope                  .
+           move      "pgm/cge/num/ioc/obj/inprtcge"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-prt-cge             .
+      *                      *-----------------------------------------*
+      *                      * Unlock                                  *
+      *                      *-----------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/cge/num/ioc/obj/inprtcge"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-prt-cge             .
+      *                      *-----------------------------------------*
+      *                      * Ripetizione dell'intera operazione      *
+      *                      *-----------------------------------------*
+           go to     det-prt-cge-200.
+       det-prt-cge-300.
+      *                  *---------------------------------------------*
+      *                  * Record trovato                              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Movimento da record a work              *
+      *                      *-----------------------------------------*
+           move      rn-prt-cge-num-prt   to   w-det-prt-cge-wnp      .
+       det-prt-cge-310.
+      *                      *-----------------------------------------*
+      *                      * Salvataggio numero protocollo           *
+      *                      *-----------------------------------------*
+           move      w-det-prt-cge-wnp    to   w-det-prt-cge-snp      .
+      *                      *-----------------------------------------*
+      *                      * Aggiornamento numero protocollo         *
+      *                      *-----------------------------------------*
+           add       w-det-prt-cge-npn    to   w-det-prt-cge-wnp      .
+           if        w-det-prt-cge-wnp    >    9999999
+                     move  zero           to   w-det-prt-cge-wnp
+                     go to det-prt-cge-310.
+      *                      *-----------------------------------------*
+      *                      * Movimento da work a record              *
+      *                      *-----------------------------------------*
+           move      w-det-prt-cge-wnp    to   rn-prt-cge-num-prt     .
+      *                      *-----------------------------------------*
+      *                      * Update record                           *
+      *                      *-----------------------------------------*
+           move      "UP"                 to   f-ope                  .
+           move      "pgm/cge/num/ioc/obj/inprtcge"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-prt-cge             .
+      *                      *-----------------------------------------*
+      *                      * Se errori ripete l'intera operazione    *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to det-prt-cge-200.
+      *                      *-----------------------------------------*
+      *                      * Unlock                                  *
+      *                      *-----------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/cge/num/ioc/obj/inprtcge"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-prt-cge             .
+      *              *-------------------------------------------------*
+      *              * Determinazione primo protocollo da utilizzare   *
+      *              *-------------------------------------------------*
+           move      w-det-prt-cge-snp    to   w-tes-prt-mgd (1)      .
+           add       1                    to   w-tes-prt-mgd (1)      .
+      *              *-------------------------------------------------*
+      *              * Determinazione numeri di protocollo da utiliz-  *
+      *              * zare                                            *
+      *              *-------------------------------------------------*
+           move      w-det-prt-cge-npn    to   w-tes-nrg-mgd (1)      .
+       det-prt-cge-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione primo protocollo di GEP e quanti di essi   *
+      *    * sono necessari                                            *
+      *    *-----------------------------------------------------------*
+       det-num-sdb-000.
+      *              *-------------------------------------------------*
+      *              * Determinazione numero protocollo necessari      *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-num-sdb-npn      .
+           move      zero                 to   w-det-num-sdb-ctr      .
+       det-num-sdb-050.
+           add       1                    to   w-det-num-sdb-ctr      .
+           if        w-det-num-sdb-ctr    >    w-pie-scd-ele (1)
+                     go to det-num-sdb-100.
+      *
+           if        w-pie-scd-tip
+                    (1, w-det-num-sdb-ctr)
+                                          =    zero
+                     go to det-num-sdb-050.
+      *
+           move      w-pie-scd-tip
+                    (1, w-det-num-sdb-ctr)
+                                          to   w-det-num-sdb-wtp      .
+           if        w-prs-gep-snx-prs
+                    (w-det-num-sdb-wtp)   =    "S"
+                     add  1               to   w-det-num-sdb-npn      .
+           go to     det-num-sdb-050.
+       det-num-sdb-100.
+      *              *-------------------------------------------------*
+      *              * Prelievo numeri protocollo                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione record                      *
+      *                  *---------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/gep/num/ioc/obj/innumsdb"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-num-sdb             .
+      *                  *---------------------------------------------*
+      *                  * Lettura tabella numerazioni [numsdb]        *
+      *                  *---------------------------------------------*
+           move      "GT"                 to   f-ope                  .
+           move      w-tes-dat-doc        to   s-dat                  .
+           move      s-saa                to   rn-num-sdb-scl-ann     .
+           move      "pgm/gep/num/ioc/obj/innumsdb"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-num-sdb             .
+      *                  *---------------------------------------------*
+      *                  * Test su esito operazione                    *
+      *                  *---------------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to det-num-sdb-200.
+      *                  *---------------------------------------------*
+      *                  * Record non trovato                          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione dati                    *
+      *                      *-----------------------------------------*
+           move      zero                 to   rn-num-sdb-num-sdb     .
+      *                      *-----------------------------------------*
+      *                      * Scrittura record normalizzato           *
+      *                      *-----------------------------------------*
+           move      "PT"                 to   f-ope                  .
+           move      "pgm/gep/num/ioc/obj/innumsdb"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-num-sdb             .
+      *                      *-----------------------------------------*
+      *                      * Unlock                                  *
+      *                      *-----------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/gep/num/ioc/obj/innumsdb"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-num-sdb             .
+      *                      *-----------------------------------------*
+      *                      * Ripetizione dell'intera operazione      *
+      *                      *-----------------------------------------*
+           go to     det-num-sdb-100.
+       det-num-sdb-200.
+      *                  *---------------------------------------------*
+      *                  * Record trovato                              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Movimento da record a work              *
+      *                      *-----------------------------------------*
+           move      rn-num-sdb-num-sdb   to   w-det-num-sdb-wns      .
+           move      w-det-num-sdb-wnp    to   w-det-num-sdb-wap      .
+       det-num-sdb-210.
+      *                      *-----------------------------------------*
+      *                      * Salvataggio numero scadenza             *
+      *                      *-----------------------------------------*
+           move      w-det-num-sdb-wns    to   w-det-num-sdb-sns      .
+      *                      *-----------------------------------------*
+      *                      * Aggiornamento numero progressivo        *
+      *                      *-----------------------------------------*
+           add       w-det-num-sdb-npn    to   w-det-num-sdb-wap      .
+           if        w-det-num-sdb-wap    >    99999999
+                     move  zero           to   w-det-num-sdb-wap
+                     go to det-num-sdb-210.
+      *                      *-----------------------------------------*
+      *                      * Movimento da work a record              *
+      *                      *-----------------------------------------*
+           move      w-det-num-sdb-wap    to   w-det-num-sdb-wnp      .
+           move      w-tes-dat-doc        to   s-dat                  .
+           move      s-saa                to   w-det-num-sdb-wsa      .
+           move      w-det-num-sdb-wns    to   rn-num-sdb-num-sdb     .
+      *                      *-----------------------------------------*
+      *                      * Update record                           *
+      *                      *-----------------------------------------*
+           move      "UP"                 to   f-ope                  .
+           move      "pgm/gep/num/ioc/obj/innumsdb"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-num-sdb             .
+      *                      *-----------------------------------------*
+      *                      * Se errori ripete l'intera operazione    *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to det-num-sdb-100.
+      *                      *-----------------------------------------*
+      *                      * Unlock                                  *
+      *                      *-----------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/gep/num/ioc/obj/innumsdb"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rn-num-sdb             .
+      *              *-------------------------------------------------*
+      *              * Determinazione primo numero scadenza da utiliz- *
+      *              * zare                                            *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Numero scadenza salvato in work di comodo   *
+      *                  *---------------------------------------------*
+           move      w-det-num-sdb-sns    to   w-det-num-sdb-wns      .
+      *                  *---------------------------------------------*
+      *                  * Forzatura di secolo/anno                    *
+      *                  *---------------------------------------------*
+           move      w-tes-dat-doc        to   s-dat                  .
+           move      s-saa                to   w-det-num-sdb-wsa      .
+      *                  *---------------------------------------------*
+      *                  * Da work di comodo a work di testata         *
+      *                  *---------------------------------------------*
+           move      w-det-num-sdb-wns    to   w-tes-nps-sdb (1)      .
+           add       1                    to   w-tes-nps-sdb (1)      .
+      *              *-------------------------------------------------*
+      *              * Determinazione numeri scadenza da utilizzare    *
+      *              *-------------------------------------------------*
+           move      w-det-num-sdb-npn    to   w-tes-ctr-sdb (1)      .
+       det-num-sdb-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione status scadenza                            *
+      *    *-----------------------------------------------------------*
+       det-sts-sdb-000.
+      *              *-------------------------------------------------*
+      *              * Determinazione sigla ultima operazione eseguita *
+      *              * sulla scadenza                                  *
+      *              *-------------------------------------------------*
+       det-sts-sdb-025.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione iniziale sigla              *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-det-sts-sdb-suo      .
+       det-sts-sdb-050.
+      *                  *---------------------------------------------*
+      *                  * Emissione                                   *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-emi       not  = zero
+                     move  "EMI"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-075.
+      *                  *---------------------------------------------*
+      *                  * Storno                                      *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-sto       not  = zero
+                     move  "SSC"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-100.
+      *                  *---------------------------------------------*
+      *                  * Riscossione                                 *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-ris       =    zero
+                     go to det-sts-sdb-125.
+      *                      *-----------------------------------------*
+      *                      * Determinazione in funizione delle moda- *
+      *                      * lita' di riscossione                    *
+      *                      *-----------------------------------------*
+           if        rf-sdb-mod-ris       =    01 or
+                     rf-sdb-mod-ris       =    02 or
+                     rf-sdb-mod-ris       =    03 or
+                     rf-sdb-mod-ris       =    04
+                     move  "RIS"          to   w-det-sts-sdb-suo
+           else if   rf-sdb-mod-ris       =    21 or
+                     rf-sdb-mod-ris       =    22 or
+                     rf-sdb-mod-ris       =    23 or
+                     rf-sdb-mod-ris       =    24
+                     move  "PAG"          to   w-det-sts-sdb-suo
+           else if   rf-sdb-mod-ris       =    50
+                     move  "CMP"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-125.
+      *                  *---------------------------------------------*
+      *                  * Inclusione in distinta                      *
+      *                  *---------------------------------------------*
+           if        rf-sdb-num-ddp       not  = zero
+                     move  "IID"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-175.
+      *                  *---------------------------------------------*
+      *                  * Richiamo della scadenza presentata          *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-rsp       not  = zero
+                     move  "RSP"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-200.
+      *                  *---------------------------------------------*
+      *                  * Accredito scadenza al dopo incasso          *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-acs       not  = zero
+                     move  "ACS"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-225.
+      *                  *---------------------------------------------*
+      *                  * Notizia di buon esito sulla scadenza        *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-nbe       not  = zero
+                     move  "NBE"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-250.
+      *                  *---------------------------------------------*
+      *                  * Presunto buon esito sulla scadenza          *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-pbe       not  = zero
+                     move  "PBE"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-275.
+      *                  *---------------------------------------------*
+      *                  * Insoluto sulla scadenza presentata          *
+      *                  *---------------------------------------------*
+           if        rf-sdb-dtr-isp       not  = zero
+                     move  "ISP"          to   w-det-sts-sdb-suo      .
+       det-sts-sdb-500.
+      *              *-------------------------------------------------*
+      *              * Determinazione dello status della scadenza in   *
+      *              * funzione della sigla dell'ultima operazione e-  *
+      *              * seguita sulla scadenza                          *
+      *              *-------------------------------------------------*
+           if        w-det-sts-sdb-suo    =    "EMI" or
+                     w-det-sts-sdb-suo    =    "IID"
+                     move  "A"            to   w-det-sts-sdb-sts
+           else if   w-det-sts-sdb-suo    =    "SSC" or
+                     w-det-sts-sdb-suo    =    "RIS" or
+                     w-det-sts-sdb-suo    =    "PAG" or
+                     w-det-sts-sdb-suo    =    "CMP" or
+                     w-det-sts-sdb-suo    =    "RSP" or
+                     w-det-sts-sdb-suo    =    "ACS" or
+                     w-det-sts-sdb-suo    =    "NBE" or
+                     w-det-sts-sdb-suo    =    "PBE" or
+                     w-det-sts-sdb-suo    =    "ISP"
+                     move  "C"            to   w-det-sts-sdb-sts
+           else      move  spaces         to   w-det-sts-sdb-sts      .
+      *                  *---------------------------------------------*
+      *                  * Eventuale aggiustamento in caso di insoluto *
+      *                  *---------------------------------------------*
+           if        w-det-sts-sdb-suo    not  = "ISP"
+                     go to det-sts-sdb-999.
+      *                      *-----------------------------------------*
+      *                      * Se la scadenza e' comunque stata ri-    *
+      *                      * scossa : tutto inalterato               *
+      *                      *-----------------------------------------*
+           if        rf-sdb-dtr-ris       not  = zero
+                     go to det-sts-sdb-999.
+      *                      *-----------------------------------------*
+      *                      * Se a fronte dell'insoluto non e' stata  *
+      *                      * emessa una nuova scadenza, essa e' da   *
+      *                      * intendersi ancora aperta                *
+      *                      *-----------------------------------------*
+           if        rf-sdb-ens-isp       =    02   and
+                     rf-sdb-nns-isp       =    zero
+                     move  "A"            to   w-det-sts-sdb-sts      .
+       det-sts-sdb-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione data chiusura scadenza                     *
+      *    *-----------------------------------------------------------*
+       det-dat-chs-000.
+      *              *-------------------------------------------------*
+      *              * Inizializzazione data scadenza chiusa a : Aper- *
+      *              * ta                                              *
+      *              *-------------------------------------------------*
+           move      9999999              to   rf-sdb-dat-chs         .
+       det-dat-chs-020.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Insoluto                         *
+      *              *-------------------------------------------------*
+           if        rf-sdb-dtr-isp       =    zero
+                     go to det-dat-chs-040.
+      *                  *---------------------------------------------*
+      *                  * Se la scadenza e' stata riscossa : oltre    *
+      *                  *---------------------------------------------*
+           if        rf-sdb-num-ris       not  = zero
+                     go to det-dat-chs-040.
+      *                  *---------------------------------------------*
+      *                  * Se a fronte dell'insoluto non e' stata e-   *
+      *                  * messa una nuova scadenza, essa e' da inten- *
+      *                  * dersi ancora aperta                         *
+      *                  *---------------------------------------------*
+           if        rf-sdb-ens-isp       =    02   and
+                     rf-sdb-nns-isp       =    zero
+                     go to det-dat-chs-999.
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione data chiusura scadenza       *
+      *                  *---------------------------------------------*
+           move      rf-sdb-dtr-isp       to   rf-sdb-dat-chs         .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-040.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Presunto buon esito              *
+      *              *-------------------------------------------------*
+           if        rf-sdb-dtr-pbe       =     zero
+                     go to det-dat-chs-060.
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione data chiusura scadenza       *
+      *                  *---------------------------------------------*
+           move      rf-sdb-dtr-pbe       to   rf-sdb-dat-chs         .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-060.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Presunto buon esito              *
+      *              *-------------------------------------------------*
+           if        rf-sdb-dtr-nbe       =     zero
+                     go to det-dat-chs-080.
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione data chiusura scadenza       *
+      *                  *---------------------------------------------*
+           move      rf-sdb-dtr-nbe       to   rf-sdb-dat-chs         .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-080.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Accredito scadenza al dopo in-   *
+      *              *                casso                            *
+      *              *-------------------------------------------------*
+           if        rf-sdb-dtr-acs       =     zero
+                     go to det-dat-chs-100.
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione data chiusura scadenza       *
+      *                  *---------------------------------------------*
+           move      rf-sdb-dtr-acs       to   rf-sdb-dat-chs         .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-100.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Richiamo della scadenza presen-  *
+      *              *                tata                             *
+      *              *-------------------------------------------------*
+           if        rf-sdb-dtr-rsp       =     zero
+                     go to det-dat-chs-120.
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione data chiusura scadenza       *
+      *                  *---------------------------------------------*
+           move      rf-sdb-dtr-rsp       to   rf-sdb-dat-chs         .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-120.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Inclusione in distinta           *
+      *              *-------------------------------------------------*
+           if        rf-sdb-num-ddp       =     zero
+                     go to det-dat-chs-140.
+      *                  *---------------------------------------------*
+      *                  * Nessuna azione                              *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-140.
+       det-dat-chs-140.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Riscossione                      *
+      *              *-------------------------------------------------*
+           if        rf-sdb-dtr-ris       =     zero
+                     go to det-dat-chs-160.
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione data chiusura scadenza       *
+      *                  *---------------------------------------------*
+           move      rf-sdb-dtr-ris       to   rf-sdb-dat-chs         .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-160.
+      *              *-------------------------------------------------*
+      *              * Controllo su : Storno                           *
+      *              *-------------------------------------------------*
+           if        rf-sdb-dtr-sto       =     zero
+                     go to det-dat-chs-180.
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione data chiusura scadenza       *
+      *                  *---------------------------------------------*
+           move      rf-sdb-dtr-sto       to   rf-sdb-dat-chs         .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-180.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     det-dat-chs-999.
+       det-dat-chs-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Aggiornamento castelletto iva                             *
+      *    *-----------------------------------------------------------*
+       agg-cst-iva-000.
+      *              *-------------------------------------------------*
+      *              * Se importo a zero : uscita                      *
+      *              *-------------------------------------------------*
+           if        w-agg-cst-iva-imp    =    zero
+                     go to agg-cst-iva-999.
+      *              *-------------------------------------------------*
+      *              * Inversione del segno in caso di aggiornamento   *
+      *              * negativo                                        *
+      *              *-------------------------------------------------*
+           if        w-agg-cst-iva-tip    =    "-"
+                     multiply -1          by   w-agg-cst-iva-imp      .
+      *              *-------------------------------------------------*
+      *              * Deviazione a seconda che il campo abbia un'ali- *
+      *              * quota propria oppure debba essere sventagliato  *
+      *              * su tutto il castelletto iva                     *
+      *              *-------------------------------------------------*
+           if        w-agg-cst-iva-coi    not  = zero
+                     go to agg-cst-iva-200
+           else      go to agg-cst-iva-300.
+       agg-cst-iva-200.
+      *                  *---------------------------------------------*
+      *                  * Caso in cui abbia un'aliquota propria       *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Aggiornamento riga castelletto iva      *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-agg-cst-iva-ctr      .
+       agg-cst-iva-220.
+           add       1                    to   w-agg-cst-iva-ctr      .
+           if        w-agg-cst-iva-ctr    >    12
+                     move  12             to   w-agg-cst-iva-ctr
+                     go to agg-cst-iva-260.
+           if        w-pie-iva-cod        
+                    (1, w-agg-cst-iva-ctr)
+                                          =    zero
+                     go to agg-cst-iva-240.
+           if        w-agg-cst-iva-coi    =    w-pie-iva-cod
+                                              (1, w-agg-cst-iva-ctr)
+                     go to agg-cst-iva-260.
+           go to     agg-cst-iva-220.
+       agg-cst-iva-240.
+           add       1                    to   w-pie-iva-ele (1)      .
+           move      w-agg-cst-iva-coi    to   w-pie-iva-cod
+                                              (1, w-agg-cst-iva-ctr)  .
+       agg-cst-iva-260.
+           add       w-agg-cst-iva-imp    to   w-pie-iva-ibl
+                                              (1, w-agg-cst-iva-ctr)  .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     agg-cst-iva-999.
+       agg-cst-iva-300.
+      *                  *---------------------------------------------*
+      *                  * Caso in cui debba essere sventagliato sul   *
+      *                  * castelletto iva gia' esistente              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Determinazione del numero di elementi   *
+      *                      * presenti in castelletto iva e del tota- *
+      *                      * le imponibile                           *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-agg-cst-iva-tot      .
+           move      zero                 to   w-agg-cst-iva-ctr      .
+       agg-cst-iva-320.
+           add       1                    to   w-agg-cst-iva-ctr      .
+      *                      *-----------------------------------------*
+      *                      * Se codice iva a zero : fine scansione   *
+      *                      *-----------------------------------------*
+           if        w-pie-iva-cod
+                    (1, w-agg-cst-iva-ctr)
+                                          =    zero
+                     go to agg-cst-iva-330.
+      *                      *-----------------------------------------*
+      *                      * Se codice sola iva (omaggio) : riciclo  *
+      *                      *-----------------------------------------*
+           move      w-pie-iva-cod
+                    (1, w-agg-cst-iva-ctr)
+                                          to   w-edt-iva-cod          .
+           if        w-edt-iva-cod-003    =    9
+                     go to agg-cst-iva-320.
+           add       w-pie-iva-ibl
+                    (1, w-agg-cst-iva-ctr)
+                                          to   w-agg-cst-iva-tot      .
+           go to     agg-cst-iva-320.
+       agg-cst-iva-330.
+      *                      *-----------------------------------------*
+      *                      * Memorizzazione numero elementi in ca-   *
+      *                      * stelletto iva                           *
+      *                      *-----------------------------------------*
+           move      w-agg-cst-iva-ctr    to   w-agg-cst-iva-max      .
+      *                      *-----------------------------------------*
+      *                      * Ciclo di aggiornamento castelletto iva  *
+      *                      * fino all'elemento  w-agg-cst-iva-max    *
+      *                      * escluso                                 *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-agg-cst-iva-wpa      .
+           move      zero                 to   w-agg-cst-iva-ctr      .
+       agg-cst-iva-340.
+           add       1                    to   w-agg-cst-iva-ctr      .
+           if        w-agg-cst-iva-ctr    =    w-agg-cst-iva-max
+                     go to agg-cst-iva-360.
+      *                          *-------------------------------------*
+      *                          * Se codice sola iva (omaggio) : ri-  *
+      *                          * ciclo                               *
+      *                          *-------------------------------------*
+           move      w-pie-iva-cod
+                    (1, w-agg-cst-iva-ctr)
+                                          to   w-edt-iva-cod          .
+           if        w-edt-iva-cod-003    =    9
+                     go to agg-cst-iva-340.
+      *                          *-------------------------------------*
+      *                          * Determinazione porzione dell'impor- *
+      *                          * to relativa alla riga di castelletto*
+      *                          * iva                                 *
+      *                          *-------------------------------------*
+           multiply  w-agg-cst-iva-imp    by   w-pie-iva-ibl
+                                              (1, w-agg-cst-iva-ctr)
+                                        giving w-agg-cst-iva-s18      .
+           divide    w-agg-cst-iva-tot    into w-agg-cst-iva-s18
+                                       rounded                        .
+           add       w-agg-cst-iva-s18    to   w-pie-iva-ibl
+                                              (1, w-agg-cst-iva-ctr)  .
+           add       w-agg-cst-iva-s18    to   w-agg-cst-iva-wpa      .
+           go to     agg-cst-iva-340.
+       agg-cst-iva-360.
+      *                      *-----------------------------------------*
+      *                      * Trattamento ultimo elemento castelletto *
+      *                      *-----------------------------------------*
+           subtract  w-agg-cst-iva-wpa    from w-agg-cst-iva-imp
+                                        giving w-agg-cst-iva-s11      .
+           add       w-agg-cst-iva-s11    to   w-pie-iva-ibl
+                                              (1, w-agg-cst-iva-max)  .
+       agg-cst-iva-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Aggiornamento castelletto contropartite                   *
+      *    *-----------------------------------------------------------*
+       agg-cst-ctp-000.
+      *              *-------------------------------------------------*
+      *              * Se importo a zero : uscita                      *
+      *              *-------------------------------------------------*
+           if        w-agg-cst-ctp-imp    =    zero
+                     go to agg-cst-ctp-999.
+      *              *-------------------------------------------------*
+      *              * Inversione del segno in caso di aggiornamento   *
+      *              * negativo                                        *
+      *              *-------------------------------------------------*
+           if        w-agg-cst-ctp-tip    =    "-"
+                     multiply -1          by   w-agg-cst-ctp-imp      .
+       agg-cst-ctp-100.
+      *              *-------------------------------------------------*
+      *              * Deviazione a seconda che il campo abbia una con-*
+      *              * tropartita propria oppure debba essere sventa-  *
+      *              * gliato su tutto il castelletto contropartite    *
+      *              *-------------------------------------------------*
+           if        w-agg-cst-ctp-cod    not  = zero
+                     go to agg-cst-ctp-200
+           else      go to agg-cst-ctp-300.
+       agg-cst-ctp-200.
+      *                  *---------------------------------------------*
+      *                  * Caso in cui abbia una contropartita propria *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Ricerca elemento nel castelletto        *
+      *                      *-----------------------------------------*
+           set       w-pie-ctp-inx        to   1                      .
+           search    w-pie-ctp-rig
+                     when    w-pie-ctp-cod
+                            (1, w-pie-ctp-inx)
+                                          =    w-agg-cst-ctp-cod
+                     go to   agg-cst-ctp-240.
+       agg-cst-ctp-220.
+      *                      *-----------------------------------------*
+      *                      * Se elemento non trovato                 *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Inserimento nuovo elemento          *
+      *                          *-------------------------------------*
+           add       1                    to   w-pie-ctp-ele (1)      .
+           move      w-pie-ctp-ele (1)    to   w-agg-cst-ctp-ctr      .
+           move      w-agg-cst-ctp-cod    to   w-pie-ctp-cod
+                                              (1, w-agg-cst-ctp-ctr)  .
+           move      w-agg-cst-ctp-imp    to   w-pie-ctp-imp
+                                              (1, w-agg-cst-ctp-ctr)  .
+      *                          *-------------------------------------*
+      *                          * Ad uscita                           *
+      *                          *-------------------------------------*
+           go to     agg-cst-ctp-999.
+       agg-cst-ctp-240.
+      *                      *-----------------------------------------*
+      *                      * Se elemento trovato                     *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Incremento elemento                 *
+      *                          *-------------------------------------*
+           add       w-agg-cst-ctp-imp    to   w-pie-ctp-imp
+                                              (1, w-pie-ctp-inx)      .
+      *                          *-------------------------------------*
+      *                          * Ad uscita                           *
+      *                          *-------------------------------------*
+           go to     agg-cst-ctp-999.
+       agg-cst-ctp-300.
+      *                  *---------------------------------------------*
+      *                  * Caso in cui debba essere sventagliato sul   *
+      *                  * castelletto contropartite gia' esistente    *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Determinazione del numero di elementi   *
+      *                      * presenti in castelletto contropartite e *
+      *                      * del totale                              *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-agg-cst-ctp-tot      .
+           move      zero                 to   w-agg-cst-ctp-ctr      .
+       agg-cst-ctp-320.
+           add       1                    to   w-agg-cst-ctp-ctr      .
+      *                          *-------------------------------------*
+      *                          * Se elemento vuoto : fine scansione  *
+      *                          *-------------------------------------*
+           if        w-pie-ctp-cod        
+                    (1, w-agg-cst-ctp-ctr)
+                                          =    zero
+                     go to agg-cst-ctp-330.
+      *                          *-------------------------------------*
+      *                          * Se contropartita 'anticipi da cli-  *
+      *                          * enti' : non contribuisce all'accu-  *
+      *                          * mulo                                *
+      *                          *-------------------------------------*
+           if        w-ref-stc-acl-cod    =    zero
+                     go to agg-cst-ctp-325.
+           if        w-pie-ctp-cod        
+                    (1, w-agg-cst-ctp-ctr)
+                                          =    w-ref-stc-acl-cod
+                     go to agg-cst-ctp-320.
+       agg-cst-ctp-325.
+      *                          *-------------------------------------*
+      *                          * Accumulo totale                     *
+      *                          *-------------------------------------*
+           add       w-pie-ctp-imp
+                    (1, w-agg-cst-ctp-ctr)
+                                          to   w-agg-cst-ctp-tot      .
+      *                          *-------------------------------------*
+      *                          * Riciclo                             *
+      *                          *-------------------------------------*
+           go to     agg-cst-ctp-320.
+       agg-cst-ctp-330.
+      *                      *-----------------------------------------*
+      *                      * Memorizzazione numero elementi in ca-   *
+      *                      * stelletto contropartite                 *
+      *                      *-----------------------------------------*
+           move      w-agg-cst-ctp-ctr    to   w-agg-cst-ctp-max      .
+      *                      *-----------------------------------------*
+      *                      * Ciclo di aggiornamento castelletto con- *
+      *                      * tropartite fino all'elemento            *
+      *                      * w-agg-cst-ctp-max escluso               *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-agg-cst-ctp-wpa      .
+           move      zero                 to   w-agg-cst-ctp-ctr      .
+       agg-cst-ctp-340.
+           add       1                    to   w-agg-cst-ctp-ctr      .
+      *                          *-------------------------------------*
+      *                          * Se ultimo elemento : fine scansione *
+      *                          *-------------------------------------*
+           if        w-agg-cst-ctp-ctr    =    w-agg-cst-ctp-max
+                     go to agg-cst-ctp-360.
+      *                          *-------------------------------------*
+      *                          * Se contropartita 'anticipi da cli-  *
+      *                          * enti' : non contribuisce all'accu-  *
+      *                          * mulo                                *
+      *                          *-------------------------------------*
+           if        w-ref-stc-acl-cod    =    zero
+                     go to agg-cst-ctp-345.
+           if        w-pie-ctp-cod        
+                    (1, w-agg-cst-ctp-ctr)
+                                          =    w-ref-stc-acl-cod
+                     go to agg-cst-ctp-340.
+       agg-cst-ctp-345.
+      *                          *-------------------------------------*
+      *                          * Determinazione porzione sconto in   *
+      *                          * chiusura relativa alla riga di ca-  *
+      *                          * stelletto contropartite             *
+      *                          *-------------------------------------*
+           multiply  w-agg-cst-ctp-imp    by   w-pie-ctp-imp
+                                              (1, w-agg-cst-ctp-ctr)
+                                        giving w-agg-cst-ctp-s18      .
+           divide    w-agg-cst-ctp-tot    into w-agg-cst-ctp-s18
+                                       rounded                        .
+           add       w-agg-cst-ctp-s18    to   w-pie-ctp-imp
+                                              (1, w-agg-cst-ctp-ctr)  .
+           add       w-agg-cst-ctp-s18    to   w-agg-cst-ctp-wpa      .
+           go to     agg-cst-ctp-340.
+       agg-cst-ctp-360.
+      *                      *-----------------------------------------*
+      *                      * Trattamento ultimo elemento castelletto *
+      *                      *-----------------------------------------*
+           subtract  w-agg-cst-ctp-wpa    from w-agg-cst-ctp-imp
+                                        giving w-agg-cst-ctp-s11      .
+           add       w-agg-cst-ctp-s11    to   w-pie-ctp-imp
+                                              (1, w-agg-cst-ctp-max)  .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     agg-cst-ctp-999.
+       agg-cst-ctp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di compattamento castelletto iva                  *
+      *    *-----------------------------------------------------------*
+       cmp-cst-iva-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento contatori                           *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-cmp-cst-iva-ctr      .
+           move      zero                 to   w-cmp-cst-iva-num      .
+       cmp-cst-iva-100.
+           add       1                    to   w-cmp-cst-iva-ctr      .
+           if        w-cmp-cst-iva-ctr    >    w-pie-iva-ele (1)
+                     go to cmp-cst-iva-900.
+           if        w-cmp-cst-iva-ctr    >    12
+                     go to cmp-cst-iva-900.
+           if        w-pie-iva-ibl
+                    (1, w-cmp-cst-iva-ctr)
+                                          =    zero
+                     go to cmp-cst-iva-100.
+           add       1                    to   w-cmp-cst-iva-num      .
+           move      w-pie-iva-cod
+                    (1, w-cmp-cst-iva-ctr)
+                                          to   w-pie-iva-cod
+                                              (1, w-cmp-cst-iva-num)  .
+           move      w-pie-iva-ibl
+                    (1, w-cmp-cst-iva-ctr)
+                                          to   w-pie-iva-ibl
+                                              (1, w-cmp-cst-iva-num)  .
+           move      w-pie-iva-imp
+                    (1, w-cmp-cst-iva-ctr)
+                                          to   w-pie-iva-imp
+                                              (1, w-cmp-cst-iva-num)  .
+           go to     cmp-cst-iva-100.
+       cmp-cst-iva-900.
+           move      w-cmp-cst-iva-num    to   w-pie-iva-ele (1)      .
+       cmp-cst-iva-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di compattamento castelletto contropartite        *
+      *    *-----------------------------------------------------------*
+       cmp-cst-ctp-000.
+      *              *-------------------------------------------------*
+      *              * Azzeramento contatori                           *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-cmp-cst-ctp-ctr      .
+           move      zero                 to   w-cmp-cst-ctp-num      .
+       cmp-cst-ctp-100.
+           add       1                    to   w-cmp-cst-ctp-ctr      .
+           if        w-cmp-cst-ctp-ctr    >    w-pie-ctp-ele (1)
+                     go to cmp-cst-ctp-900.
+           if        w-pie-ctp-imp
+                    (1, w-cmp-cst-ctp-ctr)
+                                          =    zero
+                     go to cmp-cst-ctp-100.
+           add       1                    to   w-cmp-cst-ctp-num      .
+           move      w-pie-ctp-cod
+                    (1, w-cmp-cst-ctp-ctr)
+                                          to   w-pie-ctp-cod
+                                              (1, w-cmp-cst-ctp-num)  .
+           move      w-pie-ctp-imp
+                    (1, w-cmp-cst-ctp-ctr)
+                                          to   w-pie-ctp-imp
+                                              (1, w-cmp-cst-ctp-num)  .
+
+           go to     cmp-cst-ctp-100.
+       cmp-cst-ctp-900.
+           move      w-cmp-cst-ctp-num    to   w-pie-ctp-ele (1)      .
+       cmp-cst-ctp-999.
+           exit.
+
+

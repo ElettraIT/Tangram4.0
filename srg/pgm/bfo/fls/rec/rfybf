@@ -1,0 +1,231 @@
+      *    *===========================================================*
+      *    * Record tabella tipi movimento bolle fornitori [ybf]       *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODTMB    " = rf-ybf-cod-tmb                    *
+      *    *                         rf-ybf-cod-dpz                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-ybf-des-key                    *
+      *    *                         rf-ybf-cod-tmb                    *
+      *    *                         rf-ybf-cod-dpz                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-ybf.
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento per bolle fornitori             *
+      *        *-------------------------------------------------------*
+           05  rf-ybf-cod-tmb             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza                                     *
+      *        *                                                       *
+      *        * N.B.: per valore zero vengono gestite le informazioni *
+      *        *       generali per il tipo movimento                  *
+      *        *-------------------------------------------------------*
+           05  rf-ybf-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati generali                                         *
+      *        *-------------------------------------------------------*
+           05  rf-ybf-dti-gen.
+      *            *---------------------------------------------------*
+      *            * Descrizione tipo movimento per uso interno in up- *
+      *            * percase                                           *
+      *            *---------------------------------------------------*
+               10  rf-ybf-des-key         pic  x(30)                  .
+      *            *---------------------------------------------------*
+      *            * Descrizione tipo movimento per uso interno        *
+      *            *---------------------------------------------------*
+               10  rf-ybf-des-tmb         pic  x(30)                  .
+      *            *---------------------------------------------------*
+      *            * Password per il tipo movimento                    *
+      *            *---------------------------------------------------*
+               10  rf-ybf-pwd-tmb         pic  x(08)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No movimento che interessa la fatturazione     *
+      *            * - 01 : No                                         *
+      *            * - 02 : Si, il documento sara' successivamente     *
+      *            *            sottoposto a fatturazione da parte del *
+      *            *            fornitore                              *
+      *            * - 03 : Si, il documento stesso e' anche una fat-  *
+      *            *            tura                                   *
+      *            *                                                   *
+      *            * N.B. : Il valore 03 non e' attualmente ammesso,   *
+      *            *        in quanto non sono gestite le fatture ac-  *
+      *            *        compagnatorie per i fornitori              *
+      *            *---------------------------------------------------*
+               10  rf-ybf-int-ftr         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento di fatturazione                    *
+      *            *                                                   *
+      *            * - Se movimento che interessa la fatturazione 01   *
+      *            *      - Valore fisso Spaces, non significativo     *
+      *            *                                                   *
+      *            * - Se documento che movimento la fatturazione 02   *
+      *            *      - Valore fisso Spaces, non significativo     *
+      *            *                                                   *
+      *            * - Se movimento che interessa la fatturazione 03   *
+      *            *      - Codice tipo movimento di fatturazione cor- *
+      *            *        rispondente alla componente 'fattura' del  *
+      *            *        presente tipo movimento di bollettazione   *
+      *            *                                                   *
+      *            * N.B. : Attualmente il valore di questo campo sa-  *
+      *            *        ra' sempre a spaces, in quanto non sono    *
+      *            *        gestite le fatture accompagnatorie per i   *
+      *            *        fornitori                                  *
+      *            *---------------------------------------------------*
+               10  rf-ybf-tmo-ftr         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice causale per movimento di magazzino         *
+      *            *                                                   *
+      *            * N.B. : Se a zero non si esegue movimentazione di  *
+      *            *        magazzino a fronte di questo documento     *
+      *            *---------------------------------------------------*
+               10  rf-ybf-cau-mag         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice c/merce di gestione magazzino              *
+      *            *                                                   *
+      *            * N.B. : Solo se codice causale per movimento di    *
+      *            *        magazzino diverso da zero                  *
+      *            *                                                   *
+      *            *        Solo causale di magazzino che riguarda     *
+      *            *        movimentazione di conto merce              *
+      *            *---------------------------------------------------*
+               10  rf-ybf-cod-mic         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice causale di magazzino aggiuntiva            *
+      *            *---------------------------------------------------*
+               10  rf-ybf-cam-agg         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo archivio automaticamente proposto come de-   *
+      *            * fault per il tipo movimento                       *
+      *            * - Spaces : Nessun tipo archivio proposto          *
+      *            * - N      : No tipo archivio                       *
+      *            * - C      : Cliente                                *
+      *            * - F      : Fornitore                              *
+      *            * - D      : Dipendenza                             *
+      *            *                                                   *
+      *            * N.B. : Se il documento interessa la fatturazione, *
+      *            *        il tipo archivio deve essere pari a 'C'    *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-ybf-def-tar         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No possibilita' di variare il tipo archivio    *
+      *            * proposto come default per il tipo movimento       *
+      *            * - S : Si, e'possibile variare il tipo archivio    *
+      *            *           proposto automaticamente come default;  *
+      *            *           in questo caso il default puo' anche    *
+      *            *           essere a Spaces, pero' e' necessario    *
+      *            *           che esista un elemento nella lista dei  *
+      *            *           tipi archivio ammessi per il tipo mo-   *
+      *            *           vimento corrispondente al tipo archivio *
+      *            *           impostato                               *
+      *            * - N : No, non e'possibile variare il tipo archi-  *
+      *            *           vio proposto automaticamente come de-   *
+      *            *           fault; in questo caso il default deve   *
+      *            *           essere diverso da Spaces, e non e' ne-  *
+      *            *           cessario che esso sia presente nella    *
+      *            *           lista dei tipi archivio ammessi per il  *
+      *            *           tipo movimento                          *
+      *            *                                                   *
+      *            * N.B. : Se il documento interessa la fatturazione, *
+      *            *        il valore deve essere pari a 'N'           *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-ybf-snv-tar         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Lista dei tipi archivio ammessi per la causale;   *
+      *            * se vuota sono ammessi tutti i tipi archivio       *
+      *            *---------------------------------------------------*
+               10  rf-ybf-lst-tar         pic  x(04)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo origine del documento associato al tipo mo-  *
+      *            * vimento                                           *
+      *            * - 01 : Manuale                                    *
+      *            * - 11 : Automatica                                 *
+      *            *---------------------------------------------------*
+               10  rf-ybf-org-doc         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo provenienza del documento se origine automa- *
+      *            * tica                                              *
+      *            * - Se tipo origine del documento 11                *
+      *            *   - 01 : Da evasione ordini                       *
+      *            *---------------------------------------------------*
+               10  rf-ybf-prv-doc         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Movimento a fronte di :                           *
+      *            * - 01 : Niente                                     *
+      *            * - 02 : Ordine fornitore                           *
+      *            * - 03 : Ordine di ricevimento merce                *
+      *            * - 04 : Bolla di consegna                          *
+      *            *---------------------------------------------------*
+               10  rf-ybf-mov-afd         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento di default se movimento a fronte   *
+      *            *                                                   *
+      *            * N.B.: Significativo solo se campo precedente di   *
+      *            *       verso da zero                               *
+      *            *---------------------------------------------------*
+               10  rf-ybf-def-tmf         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Validita' per le dipendenze                       *
+      *            *                                                   *
+      *            *  - spaces : Valido per tutte le dipendenze        *
+      *            *  - 'S'    : Valido solo per la Sede               *
+      *            *  - 'D'    : Valido solo per le dipendenze         *
+      *            *  - 'X'    : Valido solo per le dipendenze indica- *
+      *            *             te                                    *
+      *            *---------------------------------------------------*
+               10  rf-ybf-vld-dpz         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Default per accettazione tipo riga corpo          *
+      *            *---------------------------------------------------*
+               10  rf-ybf-def-tpr         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Status per il tipo movimento                      *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-ybf-sta-tus         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Data di determinazione dello status               *
+      *            *                                                   *
+      *            * Solo se status diverso da 01                      *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-ybf-sta-tud         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice tipo movimento di riferimento              *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-ybf-sta-tuc         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di trattamento nelle statistiche per i  *
+      *            * documenti precedenti il cambiamento di status     *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-ybf-sta-tux         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  rf-ybf-alx-gen.
+                   15  filler   occurs 40 pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati relativi alla dipendenza                         *
+      *        *-------------------------------------------------------*
+           05  rf-ybf-dti-dpz.
+      *            *---------------------------------------------------*
+      *            * Codice dislocazione di origine per il documento   *
+      *            *                                                   *
+      *            * N.B. : Se esiste un valore nel record 'zero' vale *
+      *            *        come default per le dipendenze per le      *
+      *            *        quali e' stata indicata la validita'       *
+      *            *---------------------------------------------------*
+               10  rf-ybf-cod-dsl         pic  x(07)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  rf-ybf-alx-dpz.
+                   15  filler   occurs 40 pic  x(01)                  .

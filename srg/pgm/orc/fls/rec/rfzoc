@@ -1,0 +1,167 @@
+      *    *===========================================================*
+      *    * Record tabella tipi movimento ordini clienti [zoc]        *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODTOC    " = rf-zoc-cod-toc                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zoc-des-key                    *
+      *    *                         rf-zoc-cod-toc                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zoc.
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento per ordini clienti              *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-cod-toc             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione tipo movimento per uso interno in upper-  *
+      *        * case                                                  *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-des-key             pic  x(30)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione tipo movimento per uso interno            *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-des-toc             pic  x(30)                  .
+      *        *-------------------------------------------------------*
+      *        * Password per il tipo movimento                        *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-pwd-toc             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Validita' rispetto alle dipendenze                    *
+      *        *                                                       *
+      *        * - 01 : Documento valido per tutte le dipendenze       *
+      *        * - 02 : Documento valido per una sola dipendenza       *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-vld-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza per cui il documento e' valido      *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo origine del documento associato al tipo movimen- *
+      *        * to ordini clienti                                     *
+      *        *                                                       *
+      *        *   - 01 : Manuale                                      *
+      *        *   - 11 : Automatica                                   *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-org-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo provenienza del documento se origine automatica  *
+      *        *                                                       *
+      *        * - Se tipo origine del documento 11                    *
+      *        *   - 01 : Emissione automatica da commissioni clienti  *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-prv-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla numerazione per il documento associato al tipo  *
+      *        * movimento                                             *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-sgl-num             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione tipo documento associato al tipo movimen- *
+      *        * to per la stampa                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-des-stp             pic  x(25)                  .
+      *        *-------------------------------------------------------*
+      *        * Parametri per la stampa                               *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-prm-stp.
+      *            *---------------------------------------------------*
+      *            * Si/No stampa prezzo nel documento                 *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zoc-snx-prz         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa sconti nel documento                 *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zoc-snx-sco         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa data consegna in riga                *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zoc-snx-dtc         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa totale ordine                        *
+      *            *                                                   *
+      *            *  - 'N' : No                                       *
+      *            *  - 'S' : Si, totale merce                         *
+      *            *  - 'I' : Si, totale imponibile                    *
+      *            *  - 'X' : Si, totale merce, sconto e netto         *
+      *            *  - 'T' : Si, totale ordine ___ DA IMPLEMENTARE    *
+      *            *---------------------------------------------------*
+               10  rf-zoc-snx-sto         pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Default per accettazione tipo riga corpo              *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-def-tpr             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No stampa riferimento all'Agente                   *
+      *        *                                                       *
+      *        *  - 'S' : Codice e Nominativo dell'Agente              *
+      *        *  - 'N' : Nessun riferimento all'Agente                *
+      *        *  - 'C' : Solo il codice dell'Agente                   *
+      *        *  - 'T' : Solo il nominativo dell'Agente               *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-snx-age             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di ordine                                        *
+      *        *                                                       *
+      *        * - Spaces : normale                                    *
+      *        * - P      : pro-forma (non impegna il magazzino)       *
+      *        * - F      : forecast (previsionale)                    *
+      *        * - C      : contratto (non impegna il magazzino)       *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-tip-ord             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Default accettazione formato stampa data consegna     *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-def-fds             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio automaticamente proposto come per il    *
+      *        * tipo movimento                                        *
+      *        *                                                       *
+      *        * - C      : Cliente                                    *
+      *        * - D      : Dipendenza                                 *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-def-tar             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Status per il tipo movimento                          *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-sta-tus             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di determinazione dello status                   *
+      *        *                                                       *
+      *        * Solo se status diverso da 01                          *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-sta-tud             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento di riferimento                  *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-sta-tuc             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di trattamento nelle statistiche per i      *
+      *        * documenti precedenti il cambiamento di status         *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-sta-tux             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zoc-alx-exp.
+               10  filler   occurs 80     pic  x(01)                  .

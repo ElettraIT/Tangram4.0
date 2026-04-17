@@ -1,0 +1,34 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione righe ordine                 *
+      *    *-----------------------------------------------------------*
+       esp-rig-osr-opn-000.
+           move      "pgm/ods/prg/obj/pods301x"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-rig-osr-pth      .
+           move      "OP"                 to   w-esp-rig-osr-ope      .
+           perform   esp-rig-osr-cll-000  thru esp-rig-osr-cll-999    .
+       esp-rig-osr-opn-999.
+           exit.
+       esp-rig-osr-cls-000.
+           move      "CL"                 to   w-esp-rig-osr-ope      .
+           perform   esp-rig-osr-cll-000  thru esp-rig-osr-cll-999    .
+           move      "C?"                 to   w-esp-rig-osr-ope      .
+           perform   esp-rig-osr-cll-000  thru esp-rig-osr-cll-999    .
+           if        w-esp-rig-osr-ope    not  = spaces
+                     go to esp-rig-osr-cls-999.
+           cancel    w-esp-rig-osr-pth                                .
+       esp-rig-osr-cls-999.
+           exit.
+       esp-rig-osr-esp-000.
+           move      "ES"                 to   w-esp-rig-osr-ope      .
+           perform   esp-rig-osr-cll-000  thru esp-rig-osr-cll-999    .
+           go to     esp-rig-osr-esp-999.
+       esp-rig-osr-esp-999.
+           exit.
+       esp-rig-osr-cll-000.
+           call      w-esp-rig-osr-pth   using w-esp-rig-osr          .
+       esp-rig-osr-cll-999.
+           exit.
+

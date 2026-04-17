@@ -1,0 +1,415 @@
+      *    *===========================================================*
+      *    * Work per calcolo tabella scadenze                         *
+      *    *-----------------------------------------------------------*
+       01  w-clc-tbl-scd.
+      *        *-------------------------------------------------------*
+      *        * Parametri in input                                    *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-inp.
+      *            *---------------------------------------------------*
+      *            * Codice della forma di pagamento                   *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-fdp      pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Data documento                                    *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-ddo      pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Totale imponibile per il documento                *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-ibl      pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Totale iva per il documento                       *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-iva      pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Ammontare della quota a forfait                   *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-qaf      pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Ammontare dell'acconto da considerare             *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-acc      pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Eventuale data decorrenza prima scadenza manuale  *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-ddp      pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codici di pagamento associati alla forma di paga- *
+      *            * mento                                             *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-tcp.
+      *                *-----------------------------------------------*
+      *                * Elemento della tabella codici di pagamento    *
+      *                * associati alla forma di pagamento             *
+      *                *-----------------------------------------------*
+                   15  w-clc-tbl-scd-etc occurs 03.
+      *                    *-------------------------------------------*
+      *                    * Codice di pagamento vero e proprio; se a  *
+      *                    * zero l'elemento non e' significativo      *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-cdp
+                                          pic  9(07)                  .
+      *                    *-------------------------------------------*
+      *                    * Tipo di ammontare su cui agisce il codice *
+      *                    * di pagamento vero e proprio :             *
+      *                    * - 01 : Il totale documento                *
+      *                    * - 02 : Il totale imponibile               *
+      *                    * - 03 : Una % del totale documento         *
+      *                    * - 04 : Una % del totale imponibile        *
+      *                    * - 05 : Il totale iva                      *
+      *                    * - 06 : Solo la quota a forfait            *
+      *                    * - 07 : Il totale iva piu' la quota a for- *
+      *                    *        fait                               *
+      *                    * - 08 : Il totale documento meno la quota  *
+      *                    *        a forfait                          *
+      *                    * - 09 : Il totale imponibile meno la quota *
+      *                    *        a forfait                          *
+      *                    * - 10 : Il residuo per il totale documento *
+      *                    * - 11 : Il residuo per il totale imponibi- *
+      *                    *        le                                 *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-tam
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Percentuale del totale documento o del    *
+      *                    * totale imponibile se il tipo ammontare    *
+      *                    * su cui agisce il codice di pagamento e'   *
+      *                    * di tipo 03 oppure 04                      *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-pti
+                                          pic  9(02)v9(01)            .
+      *                    *-------------------------------------------*
+      *                    * Segnale di diminuzione dell'ammontare per *
+      *                    * l'importo dell'acconto da considerare     *
+      *                    * - 01 : No, nessuna diminuzione, default   *
+      *                    * - 02 : Si, l'ammontare viene diminuito    *
+      *                    *            per l'acconto da considerare   *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-dda
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Tipo di pagamento                         *
+      *                    * - 01 : Rimessa diretta                    *
+      *                    * - 02 : Incasso elettronico                *
+      *                    * - 03 : Accredito preautorizzato in conto  *
+      *                    * - 04 : Bonifico bancario                  *
+      *                    * - 05 : Conto corrente postale             *
+      *                    * - 06 : Ricevuta bancaria tradizionale     *
+      *                    * - 07 : Tratta                             *
+      *                    * - 08 : Paghero'                           *
+      *                    * - 99 : Dilazione di pagamento             *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-tpg
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Numero di scadenze : 01..96               *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-nsp
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Decorrenza della prima scadenza           *
+      *                    * - 01 : Manuale                            *
+      *                    * - 02 : Ad una data prefissata (gg/mm)     *
+      *                    * - 03 : A vista                            *
+      *                    * - 04 : A  15 giorni                       *
+      *                    * - 05 : A  30 giorni                       *
+      *                    * - 06 : A  45 giorni                       *
+      *                    * - 07 : A  60 giorni                       *
+      *                    * - 08 : A  90 giorni                       *
+      *                    * - 09 : A 120 giorni                       *
+      *                    * - 10 : A 150 giorni                       *
+      *                    * - 11 : A 180 giorni                       *
+      *                    * - 12 : A 'n' giorni                       *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-dps
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Data prefissata, mese, solo se decorrenza *
+      *                    * prima scadenza di tipo 02                 *
+      *                    *                                           *
+      *                    * N.B. : Se decorrenza prima scadenza a 'n' *
+      *                    *        giorni, il mese ed il giorno pre-  *
+      *                    *        fissato contengono il nr. giorni   *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-dpm
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Data prefissata, giorno, solo se decor-   *
+      *                    * renza prima scadenza di tipo 02           *
+      *                    *                                           *
+      *                    * N.B. : Se decorrenza prima scadenza a 'n' *
+      *                    *        giorni, il mese ed il giorno pre-  *
+      *                    *        fissato contengono il nr. giorni   *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-dpg
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Giorni di intervallo tra due scadenze     *
+      *                    * - 00 : Non significativo                  *
+      *                    * - 01 : Di 30 giorni in 30 giorni          *
+      *                    * - 02 : Di 15 giorni in 15 giorni          *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-gdi
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Tipo di scadenza nel mese                 *
+      *                    * - 00 : Non significativo                  *
+      *                    * - 01 : Giorno di decorrenza               *
+      *                    * - 02 : Fine mese                          *
+      *                    * - 03 : Giorno fisso nel mese              *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-tsm
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Giorno fisso di scadenza nel mese, solo   *
+      *                    * se tipo di scadenza nel mese a 03         *
+      *                    * - 00     : Se non significativo           *
+      *                    * - 01..28 : Se significativo               *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-gfs
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Codice causale contabile per l'aggiorna-  *
+      *                    * mento associata al codice di pagamento    *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-ccp
+                                          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo esclusione mesi per scadenze                 *
+      *            *                                                   *
+      *            * - 01 : Nessun mese escluso                        *
+      *            * - 02 : Si sposta la scadenza di un mese           *
+      *            * - 03 : Si sposta la scadenza ad un giorno fisso   *
+      *            *        del mese successivo                        *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-esm      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Giorno di scadenza fisso nel mese successivo, se  *
+      *            * tipo esclusione mese pari a 03                    *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-alt      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Primo mese di esclusione                          *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-e01      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Secondo mese di esclusione                        *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-e02      pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Parametri in output                                   *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-out.
+      *            *---------------------------------------------------*
+      *            * Numero totale di scadenze calcolate : 00..96      *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-nts      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Indice di comodo su scadenze calcolate            *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-ntw      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tabella scadenze calcolate                        *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-tsc.
+      *                *-----------------------------------------------*
+      *                * Elemento della tabella scadenze calcolate     *
+      *                *                                               *
+      *                * N.B.: Se questa tabella viene ampliata deve   *
+      *                *       essere ampliato della stessa misura il  *
+      *                *       campo 'w-clc-tbl-scd-wet', utilizzato   *
+      *                *       come work per contenere un intero ele-  *
+      *                *       mento della tabella in fase di ordina-  *
+      *                *       mento                                   *
+      *                *                                               *
+      *                *       E' stata aumentata a 99 elementi in     *
+      *                *       quanto con 96 sbagliava la routine di   *
+      *                *       compattamento                           *
+      *                *-----------------------------------------------*
+                   15  w-clc-tbl-scd-ets occurs 99.
+      *                    *-------------------------------------------*
+      *                    * Tipo di scadenza                          *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-tds
+                                          pic  9(02)                  .
+      *                    *-------------------------------------------*
+      *                    * Data di scadenza                          *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-dds
+                                          pic  9(07)                  .
+      *                    *-------------------------------------------*
+      *                    * Codice della causale contabile per l'ag-  *
+      *                    * giornamento                               *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-ccs
+                                          pic  9(03)                  .
+      *                    *-------------------------------------------*
+      *                    * Importo della scadenza                    *
+      *                    *-------------------------------------------*
+                       20  w-clc-tbl-scd-ids
+                                          pic s9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Work-area locale per calcolo tabella scadenze         *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-wrk.
+      *            *---------------------------------------------------*
+      *            * Indice 1..3 su codici di pagamento associati alla *
+      *            * forma di pagamento                                *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wip      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Progressivo ammontari utilizzati                  *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wau      pic s9(13)                  .
+      *            *---------------------------------------------------*
+      *            * Progressivo imponibile utilizzato                 *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wiu      pic s9(13)                  .
+      *            *---------------------------------------------------*
+      *            * Comodo per campo precedente                       *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wix      pic s9(13)                  .
+      *            *---------------------------------------------------*
+      *            * Importo dell'ammontare su cui agisce il singolo   *
+      *            * codice di pagamento                               *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wap      pic s9(13)                  .
+      *            *---------------------------------------------------*
+      *            * Numero scadenze che devono essere calcolate per   *
+      *            * il singolo codice di pagamento                    *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wnd      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Numero scadenze gia' calcolate per il singolo co- *
+      *            * dice di pagamento                                 *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wnc      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Parte dell'ammontare gia' distribuito tra le sca- *
+      *            * denze per il singolo codice di pagamento          *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wad      pic s9(13)                  .
+      *            *---------------------------------------------------*
+      *            * Importo per ciascuna scadenza tranne l'ultima     *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wis      pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Decorrenza per la scadenza in corso di trattamen- *
+      *            * to per il singolo codice di pagamento, espressa   *
+      *            * in giorni totali                                  *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wpd      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Numero di mesi interi corrispondenti alla decor-  *
+      *            * renza per la scadenza in corso di trattamento     *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wpm      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Numero di giorni residui rispetto al numero di    *
+      *            * mesi interi corrispondenti alla decorrenza per    *
+      *            * la scadenza in corso di trattamento               *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wpg      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Comodo per una data con ridefinizioni necessarie  *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wdt      pic  9(07)                  .
+               10  w-clc-tbl-scd-wdr redefines
+                   w-clc-tbl-scd-wdt.
+                   15  w-clc-tbl-scd-wds  pic  9(03)                  .
+                   15  w-clc-tbl-scd-wdm  pic  9(02)                  .
+                   15  w-clc-tbl-scd-wdg  pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tabella giorni nei mesi e relativi comodi per il  *
+      *            * calcolo del numero giorni di febbraio             *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wt0.
+                   15  filler             pic  9(02)       value 31   .
+                   15  filler             pic  9(02)       value 28   .
+                   15  filler             pic  9(02)       value 31   .
+                   15  filler             pic  9(02)       value 30   .
+                   15  filler             pic  9(02)       value 31   .
+                   15  filler             pic  9(02)       value 30   .
+                   15  filler             pic  9(02)       value 31   .
+                   15  filler             pic  9(02)       value 31   .
+                   15  filler             pic  9(02)       value 30   .
+                   15  filler             pic  9(02)       value 31   .
+                   15  filler             pic  9(02)       value 30   .
+                   15  filler             pic  9(02)       value 31   .
+               10  w-clc-tbl-scd-wt1 redefines
+                   w-clc-tbl-scd-wt0.
+                   15  w-clc-tbl-scd-wt2
+                               occurs 12  pic  9(02)                  .
+               10  w-clc-tbl-scd-wt5      pic  9(04)                  .
+               10  w-clc-tbl-scd-wt6      pic  9(04)                  .
+               10  w-clc-tbl-scd-wt7      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Comodi per piccoli calcoli locali                 *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wc4      pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Contatori per ordinamento                         *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wo1      pic  9(03)                  .
+               10  w-clc-tbl-scd-wo2      pic  9(03)                  .
+               10  w-clc-tbl-scd-wo3      pic  9(03)                  .
+               10  w-clc-tbl-scd-wo4      pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Comodo per elemento in tabella scadenze           *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wet.
+                   15  w-clc-tbl-scd-wct  pic  9(02)                  .
+                   15  w-clc-tbl-scd-wcd  pic  9(07)                  .
+                   15  w-clc-tbl-scd-wcc  pic  9(03)                  .
+                   15  w-clc-tbl-scd-wci  pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Contatori per compattamento                       *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-wc1      pic  9(03)                  .
+               10  w-clc-tbl-scd-wc2      pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Comodo per ridefinizione di mese e giorno pre-    *
+      *            * fissato                                           *
+      *            *---------------------------------------------------*
+               10  w-clc-tbl-scd-nnn      pic  9(04)                  .
+               10  w-clc-tbl-scd-nnn-r redefines
+                   w-clc-tbl-scd-nnn.
+                   15  w-clc-tbl-scd-nnm  pic  9(02)                  .
+                   15  w-clc-tbl-scd-nng  pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Work-area locale per calcolo data + giorni            *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-dtb          pic  9(07)                  .
+           05  w-clc-tbl-scd-dtb-r redefines
+               w-clc-tbl-scd-dtb.
+               10  w-clc-tbl-scd-dba      pic  9(03)                  .
+               10  w-clc-tbl-scd-dbm      pic  9(02)                  .
+               10  w-clc-tbl-scd-dbg      pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero giorni di incremento                   [Input] *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-ngi          pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di primo passaggio                        [Work] *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-fpp          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Progressivo giorni utilizzati                  [Work] *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-pgu          pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Comodo per determinazione numero giorni utilizzati    *
+      *        *                                                [Work] *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-ngu          pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Data incrementata                            [Output] *
+      *        *-------------------------------------------------------*
+           05  w-clc-tbl-scd-dti          pic  9(07)                  .
+           05  w-clc-tbl-scd-dti-r redefines
+               w-clc-tbl-scd-dti.
+               10  w-clc-tbl-scd-dia      pic  9(03)                  .
+               10  w-clc-tbl-scd-dim      pic  9(02)                  .
+               10  w-clc-tbl-scd-dig      pic  9(02)                  .
+

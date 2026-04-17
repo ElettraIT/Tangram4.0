@@ -1,0 +1,34 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione righe fattura                *
+      *    *-----------------------------------------------------------*
+       esp-rig-fir-opn-000.
+           move      "pgm/fat/prg/obj/pfat301x"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-rig-fir-pth      .
+           move      "OP"                 to   w-esp-rig-fir-ope      .
+           perform   esp-rig-fir-cll-000  thru esp-rig-fir-cll-999    .
+       esp-rig-fir-opn-999.
+           exit.
+       esp-rig-fir-cls-000.
+           move      "CL"                 to   w-esp-rig-fir-ope      .
+           perform   esp-rig-fir-cll-000  thru esp-rig-fir-cll-999    .
+           move      "C?"                 to   w-esp-rig-fir-ope      .
+           perform   esp-rig-fir-cll-000  thru esp-rig-fir-cll-999    .
+           if        w-esp-rig-fir-ope    not  = spaces
+                     go to esp-rig-fir-cls-999.
+           cancel    w-esp-rig-fir-pth                                .
+       esp-rig-fir-cls-999.
+           exit.
+       esp-rig-fir-esp-000.
+           move      "ES"                 to   w-esp-rig-fir-ope      .
+           perform   esp-rig-fir-cll-000  thru esp-rig-fir-cll-999    .
+           go to     esp-rig-fir-esp-999.
+       esp-rig-fir-esp-999.
+           exit.
+       esp-rig-fir-cll-000.
+           call      w-esp-rig-fir-pth   using w-esp-rig-fir          .
+       esp-rig-fir-cll-999.
+           exit.
+

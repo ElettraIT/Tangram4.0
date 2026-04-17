@@ -1,0 +1,127 @@
+Data la particolarit\340 del calcolo IBAN (fa una funzione MODULO 97 con dei valori che eccedono i limiti di double)
+ho dovuto farmi in casa una funzione di divisione  e l'ho realizzata "come si faceva a scuola".
+Naturalmente sono disponibile a recepire metodi pi\371 "furbi"
+(ricordo per\362 che si tratta di lavorare con dividendi composti da pi\371 di 30 caratteri,
+questo perch\350 l'IBAN "italiano" \350 standardizzato a 27 caratteri).
+
+Attendo il riscontro di quanti vorranno testarne il funzionamento,
+sia se positivo che negativo, ovviamente non chiedo il vostro numero di conto e/o qualsiasi altro dato "personale"
+ma semplicemente una comunicazione che il calcolo funziona oppure (speriamo di no) restituisce valori errati.
+
+Il Codice IBAN per l'Italia \350 composto da:
+
+   1. 2 caratteri per il codice dello stato
+   2. 2 caratteri per il check digit
+   3. 1 carattere CIN
+   4. 5 caratteri ABI
+   5. 5 caratteri CAB
+   6. 12 caratteri Conto Corrente
+
+Per l'IBAN esistono due algoritmi diversi rispettivamente per il calcolo check digit e verifica del check digit
+
+   1. Calcolo
+
+    Si prende il codice BBAN, a questo si antepone il codice dello stato seguito da due zeri.
+    Si spostano i primi 4 caratteri in fondo alla stringa ottenuta           
+    Si applica la tabella di conversione sostituendo i caratteri alfabetici: ABCDEFGHIJKLMNOPQRSTUVWXYZ
+       con il loro valore posizionale nella stringa incrementato di 10 (A = 0).
+    Alla stringa (stringona) ottenuta convertita in numero si applica il modulo (resto della divisione intera) 97.
+    Si toglie il resto da 98, il risultato \350 un numero da 1 a 98 che rappresenta il check digit (va sempre convertito su due cifre aggiungendo eventualmente uno zero se il check digit \350 di una sola cifra).
+
+   2. Verifica
+
+    Si prende il codice IBAN
+    Si spostano i primi 4 caratteri in fondo al codice IBAN
+    Si applica la tabella di conversione descritta nel calcolo
+    Si applica il modulo 97
+    Se il check digit \350 corretto il resto dell'operazione \350 1         
+
+Tabelle
+
+01234567890123456789012345
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+A=10[0+10]
+B=11[1+10]
+...
+
+CALCOLO
+=======
+
+I062251212707404386174W
+IT00I062251212707404386174W
+I062251212707404386174WIT00      (I=18[8+10];W=32[22+10];T=29[19+10])
+1806225121270740438617432182900
+
+   --------------------------
+1806225121270740438617432182900 : 97 = 18620877538873612769251878174,
+ 836
+  602
+   202
+     851
+      752
+       731
+        522
+         377
+          860
+           847
+            714
+             350
+              594
+               123
+                268
+                 746
+                  671
+                   897
+                    244
+                     503
+                      182
+                       851
+                        758
+                         792
+                          169
+                           720
+                            410
+                             22
+
+98 - 22 = 76 corretto
+
+
+VERIFICA
+========
+
+IT76 I062251212707404386174W
+I062251212707404386174W IT76
+1806225121270740438617432182976
+
+   ----------------------------
+1806225121270740438617432182976 : 97 = 18620877538873612769251878175
+ 836
+  602
+   202
+     851
+      752
+       731
+        522
+         377
+          860
+           847
+            714
+             350
+              594
+               123
+                268
+                 746
+                  671
+                   897
+                    244
+                     503
+                      182
+                       851
+                        758
+                         792
+                          169
+                           727
+                            486
+                              1 resto dell'operazione corretto
+

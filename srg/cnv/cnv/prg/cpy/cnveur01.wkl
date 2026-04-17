@@ -1,0 +1,161 @@
+      *    *===========================================================*
+      *    * Work per subroutines di Cal                               *
+      *    *-----------------------------------------------------------*
+       01  w-cal-imp.
+      *        *-------------------------------------------------------*
+      *        * Work per Cal importo in EURO                          *
+      *        *-------------------------------------------------------*
+           05  w-cal-imp-eur.
+      *            *---------------------------------------------------*
+      *            * Flag di uscita                                    *
+      *            *---------------------------------------------------*
+               10  w-cal-imp-eur-flg      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Importo originale in Lire                         *
+      *            *---------------------------------------------------*
+               10  w-cal-imp-eur-imi      pic s9(13)v9(02)            .
+      *            *---------------------------------------------------*
+      *            * Decimali virtuali                                 *
+      *            *---------------------------------------------------*
+               10  w-cal-imp-eur-dec      pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Importo convertito in Euro                        *
+      *            *---------------------------------------------------*
+               10  w-cal-imp-eur-ime      pic s9(13)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Decimali usati in conversione                     *
+      *            *---------------------------------------------------*
+               10  w-cal-imp-eur-dcv      pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Segno                                             *
+      *            *---------------------------------------------------*
+               10  w-cal-imp-eur-sgn      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Comodi per la conversione                         *
+      *            *---------------------------------------------------*
+               10  w-cal-imp-eur-wcl      pic  9(13)v9(02)            .
+               10  w-cal-imp-eur-w5d      pic  9(11)v9(05)            .
+               10  w-cal-imp-eur-w4d      pic  9(11)v9(04)            .
+               10  w-cal-imp-eur-w3d      pic  9(13)v9(03)            .
+               10  w-cal-imp-eur-w2d      pic  9(13)v9(02)            .
+
+      *    *===========================================================*
+      *    * Work per subroutines di converione valuta                 *
+      *    *-----------------------------------------------------------*
+       01  w-exe-cnv.
+      *        *-------------------------------------------------------*
+      *        * Conversione valuta                                    *
+      *        *-------------------------------------------------------*
+           05  w-exe-cnv-val.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-val-sgl      pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-val-dec      pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-val-tdc      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta              *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-val-cdc      pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Data di riferimento                               *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-val-dat      pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Conversione legame valutario                          *
+      *        *-------------------------------------------------------*
+           05  w-exe-cnv-lgv.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-sgl      pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-dec      pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-tdc      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Prezzo di riferimento per legame valutario        *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-prz      pic  9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di espressione del prezzo di vendita,   *
+      *            * effettivo se applicazione al momento della bolla, *
+      *            * altrimenti relativo alla data documento bolla     *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-cdc      pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio di riferimento per la tra- *
+      *            * sformazione nella valuta di espressione del prez- *
+      *            * zo di vendita                                     *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-ccr      pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Percentuale di limitazione della trasformazione   *
+      *            * nella valuta di espressione del prezzo di vendita *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-plm      pic  9(01)v9(02)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di limitazione della trasformazione nella    *
+      *            * valuta di espressione del prezzo di vendita       *
+      *            * - T : Tolleranza                                  *
+      *            * - F : Franchigia                                  *
+      *            * - M : Massimo tetto                               *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-tlm      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Momento di applicazione della trasformazione re-  *
+      *            * lativa al legame valutario                        *
+      *            * - F : Al momento della fattura                    *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-map      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Data di riferimento                               *
+      *            *---------------------------------------------------*
+               10  w-exe-cnv-lgv-dat      pic  9(07)                  .
+
+      *    *===========================================================*
+      *    * Work area per tabella valute appartenenti all'Euro        *
+      *    *-----------------------------------------------------------*
+       01  w-tab.
+           05  w-tab-pae.
+               10  w-tab-pae-tbl.
+                   15  filler             pic  x(12) value
+                    "BEF040339900"                                    .
+                   15  filler             pic  x(12) value
+                    "DEM001955830"                                    .
+                   15  filler             pic  x(12) value
+                    "PES166386000"                                    .
+                   15  filler             pic  x(12) value
+                    "FRF006559570"                                    .
+                   15  filler             pic  x(12) value
+                    "IEP000787564"                                    .
+                   15  filler             pic  x(12) value
+                    "FRL040339900"                                    .
+                   15  filler             pic  x(12) value
+                    "NLG002203710"                                    .
+                   15  filler             pic  x(12) value
+                    "ATS013760300"                                    .
+                   15  filler             pic  x(12) value
+                    "PTE200482000"                                    .
+                   15  filler             pic  x(12) value
+                    "FIM005945730"                                    .
+               10  w-tab-pae-tbr redefines
+                   w-tab-pae-tbl.
+                   15  w-tab-pae-ele occurs 10
+                                 indexed  by   w-tab-pae-inx          .
+                       20  w-tab-pae-cod  pic  x(03)                  .
+                       20  w-tab-pae-cdc  pic  9(03)v9(06)            .
+

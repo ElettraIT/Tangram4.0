@@ -1,0 +1,36 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice CIN             *
+      *    *-----------------------------------------------------------*
+       cod-cod-cin-opn-000.
+           move      "pgm/abi/prg/obj/acodcin0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-cod-cin-pth      .
+           move      "OP"                 to   w-cod-cod-cin-ope      .
+           perform   cod-cod-cin-cll-000  thru cod-cod-cin-cll-999    .
+       cod-cod-cin-opn-999.
+           exit.
+       cod-cod-cin-cls-000.
+           move      "CL"                 to   w-cod-cod-cin-ope      .
+           perform   cod-cod-cin-cll-000  thru cod-cod-cin-cll-999    .
+           move      "C?"                 to   w-cod-cod-cin-ope      .
+           perform   cod-cod-cin-cll-000  thru cod-cod-cin-cll-999    .
+           if        w-cod-cod-cin-ope    not  = spaces
+                     go to cod-cod-cin-cls-999.
+           cancel    w-cod-cod-cin-pth                                .
+       cod-cod-cin-cls-999.
+           exit.
+       cod-cod-cin-foi-000.
+           if        v-key                not  = "FIND"
+                     go to cod-cod-cin-foi-999.
+           move      "F+"                 to   w-cod-cod-cin-ope      .
+           go to     cod-cod-cin-foi-999.
+       cod-cod-cin-foi-999.
+           exit.
+       cod-cod-cin-cll-000.
+           call      w-cod-cod-cin-pth   using w-cod-cod-cin
+                                               v
+                                               s                      .
+       cod-cod-cin-cll-999.
+           exit.

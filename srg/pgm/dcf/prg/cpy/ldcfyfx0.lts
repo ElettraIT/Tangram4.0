@@ -1,0 +1,191 @@
+      *    *===========================================================*
+      *    * Routine di lettura archivio [yfp]                         *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Parametri in input :                                      *
+      *    * --------------------                                      *
+      *    *                                                           *
+      *    *  - w-let-yfp-yfx-cod = codice forma di pagamento          *
+      *    *                                                           *
+      *    *  - w-let-yfp-yfx-lng = codice lingua                      *
+      *    *                                                           *
+      *    * Parametri in output :                                     *
+      *    * ---------------------                                     *
+      *    *                                                           *
+      *    *  - w-let-yfp-yfx-des = descrizione forma di pagamento     *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       let-yfp-yfx-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-yfp-yfx-flg      .
+       let-yfp-yfx-010.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare record [yfp]        *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofyfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yfp                 .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-yfp-yfx-cod    =    zero  
+                     go to let-yfp-yfx-900.
+       let-yfp-yfx-050.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione record [yfp]                    *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofyfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yfp                 .
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFOP"             to   f-key                  .
+           move      w-let-yfp-yfx-cod    to   rf-yfp-cod-fop         .
+           move      "pgm/dcf/fls/ioc/obj/iofyfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yfp                 .
+           if        f-sts                not  = e-not-err
+                     go to let-yfp-yfx-800.
+       let-yfp-yfx-100.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori da anagrafica [yfp]      *
+      *              *-------------------------------------------------*
+           move      rf-yfp-des-fop       to   w-let-yfp-yfx-des      .
+       let-yfp-yfx-200.
+      *              *-------------------------------------------------*
+      *              * Trattamento della descrizione                   *
+      *              *-------------------------------------------------*
+       let-yfp-yfx-600.
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del codice lingua    *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice lingua 'I  '                  *
+      *                      *-----------------------------------------*
+           if        w-let-yfp-yfx-lng    not  = "I  "
+                     go to let-yfp-yfx-650.
+       let-yfp-yfx-610.
+      *                          *-------------------------------------*
+      *                          * Descrizione contenuta nel record    *
+      *                          *-------------------------------------*
+           move      rf-yfp-des-fop       to   w-let-yfp-yfx-des
+      *                          *-------------------------------------*
+      *                          * Oltre                               *
+      *                          *-------------------------------------*
+           go to     let-yfp-yfx-700.
+       let-yfp-yfx-650.
+      *                      *-----------------------------------------*
+      *                      * Se codice lingua diverso da 'I  '       *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Tentativo di lettura file [yfx] per *
+      *                          * descrizione in lingua estera        *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Azzeramento records letti       *
+      *                              *---------------------------------*
+           move      zero                 to   w-let-yfp-yfx-ctr      .
+      *                              *---------------------------------*
+      *                              * Start su file [yfx]             *
+      *                              *---------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "TRCLNG"             to   f-key                  .
+           move      02                   to   rf-yfx-tip-rec         .
+           move      w-let-yfp-yfx-cod    to   rf-yfx-cod-fop         .
+           move      w-let-yfp-yfx-lng    to   rf-yfx-cod-lng         .
+           move      zero                 to   rf-yfx-num-prg         .
+           move      "pgm/dcf/fls/ioc/obj/iofyfx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yfx                 .
+      *                              *---------------------------------*
+      *                              * Test su esito operazione        *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-yfp-yfx-670.
+       let-yfp-yfx-660.
+      *                              *---------------------------------*
+      *                              * Read Next file [yfx]            *
+      *                              *---------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofyfx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yfx                 .
+      *                              *---------------------------------*
+      *                              * Test se 'At end'                *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-yfp-yfx-670.
+      *                              *---------------------------------*
+      *                              * Test sul massimo                *
+      *                              *---------------------------------*
+           if        rf-yfx-tip-rec       not  = 02                or
+                     rf-yfx-cod-fop       not  = w-let-yfp-yfx-cod or
+                     rf-yfx-cod-lng       not  = w-let-yfp-yfx-lng
+                     go to let-yfp-yfx-670.
+      *                              *---------------------------------*
+      *                              * Aggiornamento numero records    *
+      *                              * letti                           *
+      *                              *---------------------------------*
+           if        w-let-yfp-yfx-ctr    <    10
+                     add   1              to   w-let-yfp-yfx-ctr
+           else      go to let-yfp-yfx-670.
+      *                              *---------------------------------*
+      *                              * Bufferizzazione descrizione     *
+      *                              *---------------------------------*
+           move      rf-yfx-des-alt       to   w-let-yfp-yfx-drg
+                                              (rf-yfx-num-prg)        .
+      *                              *---------------------------------*
+      *                              * Riciclo su Read Next [yfx]      *
+      *                              *---------------------------------*
+           go to     let-yfp-yfx-660.
+       let-yfp-yfx-670.
+      *                          *-------------------------------------*
+      *                          * Test su numero record letti: se ze- *
+      *                          * ro a lettura descrizione con codice *
+      *                          * lingua 'I  '                        *
+      *                          *-------------------------------------*
+           if        w-let-yfp-yfx-ctr    =    zero
+                     go to let-yfp-yfx-610.
+       let-yfp-yfx-700.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-yfp-yfx-999.
+       let-yfp-yfx-800.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-yfp-yfx-flg      .
+           move      spaces               to   w-let-yfp-yfx-des      .
+           move      all   "."            to   w-let-yfp-yfx-drg (1)  .
+           go to     let-yfp-yfx-920.
+       let-yfp-yfx-900.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-yfp-yfx-des      .
+       let-yfp-yfx-920.
+       let-yfp-yfx-999.
+           exit.

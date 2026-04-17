@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice veicolo         *
+      *    *-----------------------------------------------------------*
+       cod-mne-gva-opn-000.
+           move      "pgm/azi/prg/obj/acmngva0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-gva-pth      .
+           move      "OP"                 to   w-cod-mne-gva-ope      .
+           perform   cod-mne-gva-cll-000  thru cod-mne-gva-cll-999    .
+       cod-mne-gva-opn-999.
+           exit.
+       cod-mne-gva-cls-000.
+           move      "CL"                 to   w-cod-mne-gva-ope      .
+           perform   cod-mne-gva-cll-000  thru cod-mne-gva-cll-999    .
+           move      "C?"                 to   w-cod-mne-gva-ope      .
+           perform   cod-mne-gva-cll-000  thru cod-mne-gva-cll-999    .
+           if        w-cod-mne-gva-ope    not  = spaces
+                     go to cod-mne-gva-cls-999.
+           cancel    w-cod-mne-gva-pth                                .
+       cod-mne-gva-cls-999.
+           exit.
+       cod-mne-gva-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-gva-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pazi2000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-gva-foi-999.
+           move      "pgm/azi/prg/obj/pazi2000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-gva-ope      .
+           go to     cod-mne-gva-foi-999.
+       cod-mne-gva-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-gva-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pazi2010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-gva-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/azi/prg/obj/pazi2010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-gva-ope      .
+           go to     cod-mne-gva-foi-999.
+       cod-mne-gva-foi-999.
+           exit.
+       cod-mne-gva-cll-000.
+           call      w-cod-mne-gva-pth   using w-cod-mne-gva
+                                               v
+                                               s                      .
+       cod-mne-gva-cll-999.
+           exit.
+

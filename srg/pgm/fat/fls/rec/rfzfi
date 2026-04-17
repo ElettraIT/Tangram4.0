@@ -1,0 +1,236 @@
+      *    *===========================================================*
+      *    * Record tabella tipi movimento fatturazione Italia [zfi]   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODTMO    " = rf-zfi-cod-tmo                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zfi-des-key                    *
+      *    *                         rf-zfi-cod-tmo                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zfi.
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento per fatturazione                *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-cod-tmo             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione tipo movimento per uso interno in upper-  *
+      *        * case                                                  *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-des-key             pic  x(30)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione tipo movimento per uso interno            *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-des-tmo             pic  x(30)                  .
+      *        *-------------------------------------------------------*
+      *        * Password per il tipo movimento                        *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-pwd-tmo             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Validita' rispetto alle dipendenze                    *
+      *        *                                                       *
+      *        * - 01 : Documento valido per tutte le dipendenze       *
+      *        * - 02 : Documento valido per una sola dipendenza       *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-vld-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza per cui il documento e' valido      *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento associato al tipo movimento            *
+      *        *                                                       *
+      *        * - 01 : Fattura                                        *
+      *        * - 02 : Nota di addebito                               *
+      *        * - 03 : Nota di accredito                              *
+      *        * - 04 : Fattura Pro-Forma                              *
+      *        * - 05 : Auto-fattura                                   *
+      *        * - 06 : Acconto                                        *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-tip-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo origine del documento associato al tipo movimen- *
+      *        * to                                                    *
+      *        *                                                       *
+      *        * - Se tipo documento associato 01                      *
+      *        *                                                       *
+      *        *   - 01 : Manuale, fattura o nota credito o debito     *
+      *        *   - 02 : Manuale, fattura + bolla di consegna         *
+      *        *   - 03 : Manuale, fattura + ricevuta fiscale          *
+      *        *   - 11 : Automatica, a fronte bolla di uscita         *
+      *        *                                                       *
+      *        * - Se tipo documento associato 03                      *
+      *        *                                                       *
+      *        *   - 31 : Automatica, a fronte bolla di entrata        *
+      *        *                                                       *
+      *        * - Se tipo documento associato 04                      *
+      *        *                                                       *
+      *        *   - 41 : Automatica, a fronte ordine                  *
+      *        *   - 51 : Automatica, a fronte ordine di spedizione    *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-org-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo provenienza del documento se origine automatica  *
+      *        *                                                       *
+      *        * - Se tipo documento associato 01 o 03                 *
+      *        *   - Se tipo origine del documento 11                  *
+      *        *     - 01 : Fatturazione automatica da bolle di conse- *
+      *        *            gna                                        *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-prv-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla numerazione per il documento associato al tipo  *
+      *        * movimento                                             *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-sgl-num             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di giornale iva per il documento associato al  *
+      *        * tipo movimento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-num-giv             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione tipo documento associato al tipo movimen- *
+      *        * to per la stampa                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-des-stp             pic  x(25)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice causale contabile per il documento             *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-cau-cge             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice sottoconto iva vendite per il movimento di     *
+      *        * contabilita' generale relativo al documento           *
+      *        *                                                       *
+      *        * N.B. : Se questo valore e' diverso da zero, esso pre- *
+      *        *        vale sulla personalizzazione del sottoconto    *
+      *        *        iva vendite di contabilita'                    *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-ctp-ivv             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita vendite per il movimento di con- *
+      *        * tabilita' generale relativo al documento              *
+      *        *                                                       *
+      *        * N.B. : Se questo valore e' diverso da zero, esso pre- *
+      *        *        vale sugli altri nell'algoritmo di determina-  *
+      *        *        zione della contropartita per la riga di ven-  *
+      *        *        dita.                                          *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-ctp-ven             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Default per accettazione tipo riga corpo              *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-def-tpr             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No stampa riferimento all'Agente                   *
+      *        *                                                       *
+      *        *  - 'S' : Codice e Nominativo dell'Agente              *
+      *        *  - 'N' : Nessun riferimento all'Agente                *
+      *        *  - 'C' : Solo il codice dell'Agente                   *
+      *        *  - 'T' : Solo il nominativo dell'Agente               *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-snx-age             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No stampa riferimento alla conferma ordine         *
+      *        *                                                       *
+      *        *  - ' ' o 'S' : Si riferimento alla conferma ordine,   *
+      *        *                se documento in relazione              *
+      *        *  - 'N'       : Nessun riferimento alla conferma       *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-snx-rco             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No stampa riferimento al documento di trasporto    *
+      *        *                                                       *
+      *        *  - ' ' o 'S' : Si riferimento al documento di tras-   *
+      *        *                porto, se documento in relazione       *
+      *        *  - 'N'       : Nessun riferimento alla conferma       *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-snx-rdt             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dicitura da stampare a fine righe              *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-cod-dct             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Status per il tipo movimento                          *
+      *        *                                                       *
+      *        *  - 01 : Normale                                       *
+      *        *  - 11 : tipo movimento obsoleto                       *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-sta-tus             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di determinazione dello status                   *
+      *        *                                                       *
+      *        * Solo se status diverso da 01                          *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-sta-tud             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento di riferimento                  *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-sta-tuc             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di trattamento nelle statistiche per i      *
+      *        * documenti precedenti il cambiamento di status         *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-sta-tux             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente per Autofattura                        *
+      *        *                                                       *
+      *        * Solo se tipo documento 05                             *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-cli-aft             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo documento per fatturazione elettronica    *
+      *        *                                                       *
+      *        * - 'TD01' : fattura				        *
+      *        * - 'TD02' : acconto/anticipo su fattura		        *							
+      *        * - 'TD03' : acconto/anticipo su parcella	        *
+      *        * - 'TD04' : nota di credito	                      *
+      *        * - 'TD05' : nota di debito		               *
+      *        * - 'TD06' : parcella                                   *
+      *        *                                                       *
+      *        * - 'TD07' :  Fattura semplificata                      *
+      *        * - 'TD08' :  Nota di Credito semplificata              *
+      *        * - 'TD10' :  Fattura per acquisto intracomunitario beni*
+      *        * - 'TD11' :  Fattura per acquisto intracomunitario ser.*
+      *        * - 'TD12' :  Documento riepilogativo (art.6, c. 1 ...) *
+      *        *                                                       *
+      *        * - 'TD16' : integrazione fattura reverse charge int.   *
+      *        * - 'TD17' : integrazione/autofattura per acquisto      *
+      *        *            servizi dall'estero                        *
+      *        * - 'TD18' : integrazione acquisto beni intracomunitari *		
+      *        * - 'TD19' : integrazione/autofattura per acquisto di   *
+      *        *            beni ex art.17 c.2 DPR 633/72              *
+      *        * - 'TD20' : autofattura per regolarizzazione e inte-	 *
+      *        *            grazione delle fatture (ex art.6 c.8       *
+      *        *            d.lgs. 471/97  o  art.46 c.5 D.L. 331/93)  *
+      *        * - 'TD21' : autofattura per splafonamento              *
+      *        * - 'TD22' : estrazione beni da Deposito IVA            *
+      *        * - 'TD23' : estrazione beni da Deposito IVA con        *
+      *        *            versamento dell'IVA                        *
+      *        * - 'TD24' : fattura differita di cui all'art. 21,      *
+      *        *            comma 4, lett. a)                          *
+      *        * - 'TD25' : fattura differita di cui all'art. 21,      *
+      *        *            comma 4, terzo periodo lett. b)            *
+      *        * - 'TD26' : cessione di beni ammortizzabili e per      *
+      *        *            passaggi interni (ex art.36 DPR 633/72)    *
+      *        * - 'TD27' : fattura per autoconsumo o per cessioni     *
+      *        *            gratuite senza rivalsa                     *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-tdo-fel             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice modulo di default per la stampa                *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-cod-mod             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zfi-alx-exp.
+               10  filler     occurs 60   pic  x(01)                  .

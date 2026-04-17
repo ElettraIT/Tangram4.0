@@ -1,0 +1,34 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione documenti correlati fattura  *
+      *    *-----------------------------------------------------------*
+       esp-idv-fit-opn-000.
+           move      "pgm/fat/prg/obj/pfat301y"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-idv-fit-pth      .
+           move      "OP"                 to   w-esp-idv-fit-ope      .
+           perform   esp-idv-fit-cll-000  thru esp-idv-fit-cll-999    .
+       esp-idv-fit-opn-999.
+           exit.
+       esp-idv-fit-cls-000.
+           move      "CL"                 to   w-esp-idv-fit-ope      .
+           perform   esp-idv-fit-cll-000  thru esp-idv-fit-cll-999    .
+           move      "C?"                 to   w-esp-idv-fit-ope      .
+           perform   esp-idv-fit-cll-000  thru esp-idv-fit-cll-999    .
+           if        w-esp-idv-fit-ope    not  = spaces
+                     go to esp-idv-fit-cls-999.
+           cancel    w-esp-idv-fit-pth                                .
+       esp-idv-fit-cls-999.
+           exit.
+       esp-idv-fit-esp-000.
+           move      "ES"                 to   w-esp-idv-fit-ope      .
+           perform   esp-idv-fit-cll-000  thru esp-idv-fit-cll-999    .
+           go to     esp-idv-fit-esp-999.
+       esp-idv-fit-esp-999.
+           exit.
+       esp-idv-fit-cll-000.
+           call      w-esp-idv-fit-pth   using w-esp-idv-fit          .
+       esp-idv-fit-cll-999.
+           exit.
+

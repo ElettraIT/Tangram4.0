@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione codice operazione per sca- *
+      *    * denze fornitori                                           *
+      *    *-----------------------------------------------------------*
+       cod-mne-yop-opn-000.
+           move      "pgm/scf/prg/obj/acmnyop0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-yop-pth      .
+           move      "OP"                 to   w-cod-mne-yop-ope      .
+           perform   cod-mne-yop-cll-000  thru cod-mne-yop-cll-999    .
+       cod-mne-yop-opn-999.
+           exit.
+       cod-mne-yop-cls-000.
+           move      "CL"                 to   w-cod-mne-yop-ope      .
+           perform   cod-mne-yop-cll-000  thru cod-mne-yop-cll-999    .
+           move      "C?"                 to   w-cod-mne-yop-ope      .
+           perform   cod-mne-yop-cll-000  thru cod-mne-yop-cll-999    .
+           if        w-cod-mne-yop-ope    not  = spaces
+                     go to cod-mne-yop-cls-999.
+           cancel    w-cod-mne-yop-pth                                .
+       cod-mne-yop-cls-999.
+           exit.
+       cod-mne-yop-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-yop-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pscf0300"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-yop-foi-999.
+           move      "pgm/scf/prg/obj/pscf0300"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-yop-ope      .
+           go to     cod-mne-yop-foi-999.
+       cod-mne-yop-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-yop-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pscf0310"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-yop-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/scf/prg/obj/pscf0310"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-yop-ope      .
+           go to     cod-mne-yop-foi-999.
+       cod-mne-yop-foi-999.
+           exit.
+       cod-mne-yop-cll-000.
+           call      w-cod-mne-yop-pth   using w-cod-mne-yop
+                                               v
+                                               s                      .
+       cod-mne-yop-cll-999.
+           exit.
+

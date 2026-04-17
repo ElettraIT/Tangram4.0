@@ -1,0 +1,69 @@
+      *    *===========================================================*
+      *    * Record file [mmc] Saldi per gestione costo medio continuo *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODDAT    " = rf-mmc-tip-mag                    *
+      *    *                         rf-mmc-num-mag                    *
+      *    *                         rf-mmc-dat-con                    *
+      *    *                                                           *
+      *    *          "CODDRE    " = rf-mmc-tip-mag                    *
+      *    *                         rf-mmc-num-mag                    *
+      *    *                         rf-mmc-dat-rev                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-mmc.
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino                              *
+      *        *                                                       *
+      *        * - 01 : Prodotti di vendita                            *
+      *        * - 02 : Semilavorati                                   *
+      *        * - 03 : Materie prime                                  *
+      *        * - 04 : Materiali vari                                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico magazzino                             *
+      *        *                                                       *
+      *        * - Se prodotto di vendita   : codice su [dcp]          *
+      *        * - Se semilavorato          : codice su [dps]          *
+      *        * - Se materia prima         : codice su [dpm]          *
+      *        * - Se materiale vario       : codice su [mtv]          *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-num-mag             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data consolidamento                                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-dat-con             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data consolidamento in formato 'reverse'              *
+      *        *                                                       *
+      *        * Si ottiene con il seguente calcolo:                   *
+      *        * rf-mmc-dat-rev = (99999999-(19000000+rf-mmc-dat-con)) *
+      *        *                                                       *
+      *        * Se rf-mmc-dat-con vale zero, questo campo viene for-  *
+      *        * zato al valore 99999999                               *
+      *        *                                                       *
+      *        * E' da osservare pertanto che record senza data di ri- *
+      *        * levazione cambio avranno qui il valore 99999999       *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-dat-rev             pic  9(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Data ultima rilevazione costo medio continuo          *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-dat-ulr             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' in giacenza alla data di consolidamento     *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-gia-ddc             pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Costo medio continuo alla data di consolidamento      *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-cmc-ddc             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmc-alx-exp.
+               10  filler     occurs 20   pic  x(01)                  .

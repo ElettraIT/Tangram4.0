@@ -1,0 +1,146 @@
+      *    *===========================================================*
+      *    * Record file [lsd] Listini prezzi prodotti storicizzati    *
+      *    *                   per data                                *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "LSTPRODVF " = rf-lsd-tip-rec                    *
+      *    *                         rf-lsd-cod-lst                    *
+      *    *                         rf-lsd-cod-cli                    *
+      *    *                         rf-lsd-sgl-vlt                    *
+      *    *                         rf-lsd-num-pro                    *
+      *    *                         rf-lsd-dva-fin                    *
+      *    *                                                           *
+      *    * Indici : "LSTPRODFR " = rf-lsd-tip-rec                    *
+      *    *                         rf-lsd-cod-lst                    *
+      *    *                         rf-lsd-cod-cli                    *
+      *    *                         rf-lsd-sgl-vlt                    *
+      *    *                         rf-lsd-num-pro                    *
+      *    *                         rf-lsd-dvf-rev                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-lsd.
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        *                                                       *
+      *        * - 01 : Listini alternativi per prodotti               *
+      *        * - 02 : Prezzi netti concordati per cliente            *
+      *        * - 03 : Prezzi per campagne promozionali               *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-tip-rec             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice listino alternativo                            *
+      *        *                                                       *
+      *        * Solo se tipo record 01                                *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-cod-lst             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente                                        *
+      *        *                                                       *
+      *        * Solo se tipo record 02                                *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-cod-cli             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della valuta                                    *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali della valuta                          *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-dec-vlt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto numerico                              *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-num-pro             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Prezzo                                                *
+      *        *                                                       *
+      *        * Se tipo record 01 : Prezzo di listino alternativo     *
+      *        * Se tipo record 02 : Prezzo netto concordato per il    *
+      *        *                     cliente                           *
+      *        * Se tipo record 03 : Prezzo per campagna promozionale  *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-prz-lst             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice categoria provvigioni associata al listino     *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-cat-pvg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione associate direttamente al listino    *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-per-pvg occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice categoria sconto associata al listino          *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-cat-sco             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di sconto associate direttamente al listino         *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-per-sco occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Si/no utilizzo del prezzo                             *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-snx-prz             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no utilizzo delle % di provvigione nella determi-  *
+      *        * nazione delle provvigioni per agente                  *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-snx-pvg             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no utilizzo delle % di sconto nella determinazione *
+      *        * degli sconti                                          *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-snx-sco             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' iniziale                            *
+      *        *                                                       *
+      *        * Se tipo record 01 : Forzata a zero                    *
+      *        * Se tipo record 02 : Forzata a zero                    *
+      *        * Se tipo record 03 : Data di inizio della campagna     *
+      *        *                     promozionale                      *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-dva-ini             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' finale                              *
+      *        *                                                       *
+      *        * Se tipo record 01 : Data di storicizzazione del li-   *
+      *        *                     stino, ovvero data fino alla      *
+      *        *                     quale il prezzo e' valido         *
+      *        * Se tipo record 02 : Data di storicizzazione del prez- *
+      *        *                     zo netto concordato, ovvero data  *
+      *        *                     fino alla quale il prezzo netto   *
+      *        *                     concordato e' valido              *
+      *        * Se tipo record 03 : Data di fine della campagna pro-  *
+      *        *                     mozionale                         *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-dva-fin             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' finale in formato 'reverse'         *
+      *        *                                                       *
+      *        * Si ottiene con il seguente calcolo:                   *
+      *        * rf-lsd-dvf-rev = (99999999-(19000000+rf-lsd-dva-fin)) *
+      *        *                                                       *
+      *        * Se rf-lsd-dva-fin vale zero, questo campo viene for-  *
+      *        * zato al valore 99999999                               *
+      *        *                                                       *
+      *        * E' da osservare pertanto che record senza data di va- *
+      *        * lidita' finale avrebbero qui il valore 99999999       *
+      *        *                                                       *
+      *        * In ogni caso un prezzo storicizzato non puo' mancare  *
+      *        * mai della data di validita' finale                    *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-dvf-rev             pic  9(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' di riferimento                              *
+      *        *                                                       *
+      *        * Per implementare gli scaglioni a quantita' (utiliz-   *
+      *        * zare eventualmente il codice cliente come progressivo *
+      *        * scaglione)                                            *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-qta-rif             pic  9(08)v9(03)            .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-lsd-alx-exp.
+               10  filler occurs 20       pic  x(01)                  .

@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione stato ordine di spedizione *
+      *    *-----------------------------------------------------------*
+       det-sts-ods-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-sts-ods-tip-ope      .
+           perform   det-sts-ods-cll-000  thru det-sts-ods-cll-999    .
+       det-sts-ods-opn-999.
+           exit.
+
+       det-sts-ods-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-sts-ods-tip-ope      .
+           perform   det-sts-ods-cll-000  thru det-sts-ods-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-sts-ods-tip-ope      .
+           perform   det-sts-ods-cll-000  thru det-sts-ods-cll-999    .
+           if        d-sts-ods-exi-sts    not  = spaces
+                     go to det-sts-ods-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/ods/prg/obj/dstsods0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-sts-ods-cls-999.
+           exit.
+
+       det-sts-ods-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/ods/prg/obj/dstsods0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-sts-ods
+                                               rf-ost                 .
+       det-sts-ods-cll-999.
+           exit.
+

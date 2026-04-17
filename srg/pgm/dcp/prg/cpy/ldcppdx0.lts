@@ -1,0 +1,509 @@
+      *    *===========================================================*
+      *    * Routine di lettura archivio [dcp]                         *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Parametri in input :                                      *
+      *    * --------------------                                      *
+      *    *                                                           *
+      *    *  - w-let-dcp-pdx-cod = codice numerico prodotto           *
+      *    *                                                           *
+      *    *  - w-let-dcp-pdx-tar = tipo archivio                      *
+      *    *                        'C'      - Cliente                 *
+      *    *                        'F'      - Fornitore               *
+      *    *                        'spaces' - non significativo       *
+      *    *                                                           *
+      *    *  - w-let-dcp-pdx-arc = codice archivio                    *
+      *    *                        se tipo archivio a spaces, non     *
+      *    *                        significativo                      *
+      *    *                                                           *
+      *    *  - w-let-dcp-pdx-lng = codice lingua                      *
+      *    *                                                           *
+      *    * Parametri in output :                                     *
+      *    * ---------------------                                     *
+      *    *                                                           *
+      *    *  - w-let-dcp-pdx-des = descrizione per il prodotto        *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       let-dcp-pdx-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-dcp-pdx-flg      .
+       let-dcp-pdx-010.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare record [dcp]        *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare record [pdx]        *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-dcp-pdx-cod    =    zero  
+                     go to let-dcp-pdx-900.
+       let-dcp-pdx-050.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRO"             to   f-key                  .
+           move      w-let-dcp-pdx-cod    to   rf-dcp-num-pro         .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-800.
+       let-dcp-pdx-100.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori da anagrafica [dcp]      *
+      *              *-------------------------------------------------*
+           move      rf-dcp-des-pro       to   w-let-dcp-pdx-dui      .
+           move      rf-dcp-tip-pro       to   w-let-dcp-pdx-tpr      .
+           move      rf-dcp-cod-iva       to   w-let-dcp-pdx-coi      .
+           move      rf-dcp-ctp-ven       to   w-let-dcp-pdx-ctp      .
+           move      rf-dcp-umi-ven       to   w-let-dcp-pdx-umi      .
+           move      rf-dcp-epz-rgf       to   w-let-dcp-pdx-epz      .
+           move      rf-dcp-tip-cfz       to   w-let-dcp-pdx-tcf      .
+           move      rf-dcp-qta-cfz       to   w-let-dcp-pdx-qcf      .
+           move      rf-dcp-pes-uni       to   w-let-dcp-pdx-psl      .
+           move      rf-dcp-lot-ven       to   w-let-dcp-pdx-ldv      .
+           move      rf-dcp-dec-qta       to   w-let-dcp-pdx-deq      .
+           move      rf-dcp-dec-prz       to   w-let-dcp-pdx-dep      .
+           move      rf-dcp-prz-lst       to   w-let-dcp-pdx-plb      .
+           move      rf-dcp-sgl-vlt       to   w-let-dcp-pdx-vlb      .
+           move      rf-dcp-dec-vlt       to   w-let-dcp-pdx-dlb      .
+           move      rf-dcp-sta-tus       to   w-let-dcp-pdx-tus      .
+           move      rf-dcp-sta-tud       to   w-let-dcp-pdx-tud      .
+           move      rf-dcp-sta-tuc       to   w-let-dcp-pdx-tuc      .
+           move      rf-dcp-cdn-cdm       to   w-let-dcp-pdx-cdn      .
+           move      rf-dcp-dip-lst       to   w-let-dcp-pdx-dir      .
+           move      rf-dcp-add-pro       to   w-let-dcp-pdx-add      .
+      *
+           if        rf-dcp-add-pro       not  numeric
+                     move  zero           to   w-let-dcp-pdx-add      .
+       let-dcp-pdx-200.
+      *              *-------------------------------------------------*
+      *              * Trattamento della descrizione                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione valore in uscita            *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-let-dcp-pdx-des      .
+       let-dcp-pdx-300.
+      *                  *---------------------------------------------*
+      *                  * Test su tipo archivio                       *
+      *                  *---------------------------------------------*
+           if        w-let-dcp-pdx-tar    not  = "C"
+                     go to let-dcp-pdx-500.
+       let-dcp-pdx-320.
+      *                  *---------------------------------------------*
+      *                  * Se cliente                                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test su codice cliente                  *
+      *                      *-----------------------------------------*
+           if        w-let-dcp-pdx-arc    =    zero
+                     go to let-dcp-pdx-600.
+      *                          *-------------------------------------*
+      *                          * Tentativo di lettura file [pdx] per *
+      *                          * descrizione per il cliente          *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Azzeramento contatore records   *
+      *                              * letti                           *
+      *                              *---------------------------------*
+           move      zero                 to   w-let-dcp-pdx-ctr      .
+      *                              *---------------------------------*
+      *                              * Start su file [pdx]             *
+      *                              *---------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "TRCLNG"             to   f-key                  .
+           move      03                   to   rf-pdx-tip-rec         .
+           move      w-let-dcp-pdx-arc    to   rf-pdx-cod-arc         .
+           move      spaces               to   rf-pdx-cod-lng         .
+           move      w-let-dcp-pdx-cod    to   rf-pdx-cod-num         .
+           move      spaces               to   rf-pdx-for-mat         .
+           move      zero                 to   rf-pdx-num-prg         .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                              *---------------------------------*
+      *                              * Test su esito operazione : se   *
+      *                              * record non trovato a test sul   *
+      *                              * contatore                       *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-370.
+       let-dcp-pdx-360.
+      *                              *---------------------------------*
+      *                              * Read Next file [pdx]            *
+      *                              *---------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                              *---------------------------------*
+      *                              * Test se 'At end' : a test sul   *
+      *                              * contatore                       *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-370.
+      *                              *---------------------------------*
+      *                              * Test sul massimo                *
+      *                              *---------------------------------*
+           if        rf-pdx-tip-rec       not  = 03                or
+                     rf-pdx-cod-arc       not  = w-let-dcp-pdx-arc or
+                     rf-pdx-cod-lng       not  = spaces            or
+                     rf-pdx-cod-num       not  = w-let-dcp-pdx-cod or
+                     rf-pdx-for-mat       not  = spaces
+                     go to let-dcp-pdx-370.
+      *                              *---------------------------------*
+      *                              * Aggiornamento numero records    *
+      *                              * letti                           *
+      *                              *---------------------------------*
+           if        w-let-dcp-pdx-ctr    <    10
+                     add   1              to   w-let-dcp-pdx-ctr
+           else      go to let-dcp-pdx-370.
+      *                              *---------------------------------*
+      *                              * Bufferizzazione descrizione     *
+      *                              *---------------------------------*
+           move      rf-pdx-des-pro       to   w-let-dcp-pdx-drg
+                                              (rf-pdx-num-prg)        .
+      *                              *---------------------------------*
+      *                              * Riciclo su Read Next [pdx]      *
+      *                              *---------------------------------*
+           go to     let-dcp-pdx-360.
+       let-dcp-pdx-370.
+      *                          *-------------------------------------*
+      *                          * Tentativo di lettura file [pdx] per *
+      *                          * codice prodotto per il cliente      *
+      *                          *-------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "TRCLNG"             to   f-key                  .
+           move      05                   to   rf-pdx-tip-rec         .
+           move      w-let-dcp-pdx-arc    to   rf-pdx-cod-arc         .
+           move      spaces               to   rf-pdx-cod-lng         .
+           move      w-let-dcp-pdx-cod    to   rf-pdx-cod-num         .
+           move      spaces               to   rf-pdx-for-mat         .
+           move      01                   to   rf-pdx-num-prg         .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                          *-------------------------------------*
+      *                          * Bufferizzazione codice prodotto per *
+      *                          * il cliente                          *
+      *                          *-------------------------------------*
+           if        f-sts                =    e-not-err
+                     move  rf-pdx-des-pro to   w-let-dcp-pdx-cpc
+           else      move  spaces         to   w-let-dcp-pdx-cpc      .
+      *                          *-------------------------------------*
+      *                          * Test su numero record di descrizio- *
+      *                          * ne letti: se zero a lettura descri- *
+      *                          * zione con codice lingua             *
+      *                          *-------------------------------------*
+           if        w-let-dcp-pdx-ctr    =    zero
+                     go to let-dcp-pdx-600.
+       let-dcp-pdx-380.
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     let-dcp-pdx-999.
+       let-dcp-pdx-500.
+      *                  *---------------------------------------------*
+      *                  * Se fornitore                                *
+      *                  *---------------------------------------------*
+           if        w-let-dcp-pdx-tar    not  = "F"
+                     go to let-dcp-pdx-600.
+      *                      *-----------------------------------------*
+      *                      * Test su codice fornitore                *
+      *                      *-----------------------------------------*
+           if        w-let-dcp-pdx-arc    =    zero
+                     go to let-dcp-pdx-600.
+       let-dcp-pdx-520.
+      *                          *-------------------------------------*
+      *                          * Tentativo di lettura file [pdx] per *
+      *                          * descrizione per il fornitore        *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Azzeramento contatore records   *
+      *                              * letti                           *
+      *                              *---------------------------------*
+           move      zero                 to   w-let-dcp-pdx-ctr      .
+      *                              *---------------------------------*
+      *                              * Start su file [pdx]             *
+      *                              *---------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "TRCLNG"             to   f-key                  .
+           move      13                   to   rf-pdx-tip-rec         .
+           move      w-let-dcp-pdx-arc    to   rf-pdx-cod-arc         .
+           move      w-let-dcp-pdx-lng    to   rf-pdx-cod-lng         .
+           move      w-let-dcp-pdx-cod    to   rf-pdx-cod-num         .
+           move      spaces               to   rf-pdx-for-mat         .
+           move      zero                 to   rf-pdx-num-prg         .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                              *---------------------------------*
+      *                              * Test su esito operazione : se   *
+      *                              * record non trovato a test sul   *
+      *                              * contatore                       *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-570.
+       let-dcp-pdx-560.
+      *                              *---------------------------------*
+      *                              * Read Next file [pdx]            *
+      *                              *---------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                              *---------------------------------*
+      *                              * Test se 'At end' : a test sul   *
+      *                              * contatore                       *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-570.
+      *                              *---------------------------------*
+      *                              * Test sul massimo                *
+      *                              *---------------------------------*
+           if        rf-pdx-tip-rec       not  = 13                or
+                     rf-pdx-cod-arc       not  = w-let-dcp-pdx-arc or
+                     rf-pdx-cod-lng       not  = w-let-dcp-pdx-lng or
+                     rf-pdx-cod-num       not  = w-let-dcp-pdx-cod or
+                     rf-pdx-for-mat       not  = spaces
+                     go to let-dcp-pdx-570.
+      *                              *---------------------------------*
+      *                              * Aggiornamento numero records    *
+      *                              * letti                           *
+      *                              *---------------------------------*
+           if        w-let-dcp-pdx-ctr    <    10
+                     add   1              to   w-let-dcp-pdx-ctr
+           else      go to let-dcp-pdx-570.
+      *                              *---------------------------------*
+      *                              * Bufferizzazione descrizione     *
+      *                              *---------------------------------*
+           move      rf-pdx-des-pro       to   w-let-dcp-pdx-drg
+                                              (rf-pdx-num-prg)        .
+      *                              *---------------------------------*
+      *                              * Riciclo su Read Next [pdx]      *
+      *                              *---------------------------------*
+           go to     let-dcp-pdx-560.
+       let-dcp-pdx-570.
+      *                          *-------------------------------------*
+      *                          * Test su numero record letti: se ze- *
+      *                          * ro a lettura descrizione con codice *
+      *                          * lingua                              *
+      *                          *-------------------------------------*
+           if        w-let-dcp-pdx-ctr    =    zero
+                     go to let-dcp-pdx-600.
+       let-dcp-pdx-580.
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     let-dcp-pdx-999.
+       let-dcp-pdx-600.
+      *                      *-----------------------------------------*
+      *                      * Se codice lingua 'I  '                  *
+      *                      *-----------------------------------------*
+           if        w-let-dcp-pdx-lng    not  = "I  "
+                     go to let-dcp-pdx-650.
+       let-dcp-pdx-610.
+      *                          *-------------------------------------*
+      *                          * Descrizione contenuta nel record    *
+      *                          *-------------------------------------*
+           if        rf-dcp-des-pdx       =    0
+                     move  rf-dcp-des-pro to   w-let-dcp-pdx-des
+                     go to let-dcp-pdx-700.
+      *                          *-------------------------------------*
+      *                          * Descrizione in file di estensione   *
+      *                          *-------------------------------------*
+           move      zero                 to   w-let-dcp-pdx-ctr      .
+       let-dcp-pdx-620.
+           add       1                    to   w-let-dcp-pdx-ctr      .
+           if        w-let-dcp-pdx-ctr    >    10
+                     go to let-dcp-pdx-700.
+      *                              *---------------------------------*
+      *                              * Lettura archivio [pdx]          *
+      *                              *---------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "TRCLNG"             to   f-key                  .
+           move      01                   to   rf-pdx-tip-rec         .
+           move      zero                 to   rf-pdx-cod-arc         .
+           move      "I  "                to   rf-pdx-cod-lng         .
+           move      w-let-dcp-pdx-cod    to   rf-pdx-cod-num         .
+           move      spaces               to   rf-pdx-for-mat         .
+           move      w-let-dcp-pdx-ctr    to   rf-pdx-num-prg         .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-700.
+           move      rf-pdx-des-pro       to   w-let-dcp-pdx-drg
+                                              (w-let-dcp-pdx-ctr)     .
+           go to     let-dcp-pdx-620.
+       let-dcp-pdx-650.
+      *                      *-----------------------------------------*
+      *                      * Se codice lingua diverso da 'I  '       *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Tentativo di lettura file [pdx] per *
+      *                          * descrizione in lingua estera        *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Azzeramento numero records letti*
+      *                              *---------------------------------*
+           move      zero                 to   w-let-dcp-pdx-ctr      .
+      *                              *---------------------------------*
+      *                              * Start su file [pdx]             *
+      *                              *---------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "TRCLNG"             to   f-key                  .
+           move      02                   to   rf-pdx-tip-rec         .
+           move      zero                 to   rf-pdx-cod-arc         .
+           move      w-let-dcp-pdx-lng    to   rf-pdx-cod-lng         .
+           move      w-let-dcp-pdx-cod    to   rf-pdx-cod-num         .
+           move      spaces               to   rf-pdx-for-mat         .
+           move      zero                 to   rf-pdx-num-prg         .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                              *---------------------------------*
+      *                              * Test su esito operazione        *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-670.
+       let-dcp-pdx-660.
+      *                              *---------------------------------*
+      *                              * Read Next file [pdx]            *
+      *                              *---------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                              *---------------------------------*
+      *                              * Test se 'At end'                *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-dcp-pdx-670.
+      *                              *---------------------------------*
+      *                              * Test sul massimo                *
+      *                              *---------------------------------*
+           if        rf-pdx-tip-rec       not  = 02                or
+                     rf-pdx-cod-arc       not  = zero              or
+                     rf-pdx-cod-lng       not  = w-let-dcp-pdx-lng or
+                     rf-pdx-cod-num       not  = w-let-dcp-pdx-cod or
+                     rf-pdx-for-mat       not  = spaces
+                     go to let-dcp-pdx-670.
+      *                              *---------------------------------*
+      *                              * Aggiornamento numero records    *
+      *                              * letti                           *
+      *                              *---------------------------------*
+           if        w-let-dcp-pdx-ctr    <    10
+                     add   1              to   w-let-dcp-pdx-ctr
+           else      go to let-dcp-pdx-670.
+      *                              *---------------------------------*
+      *                              * Bufferizzazione descrizione     *
+      *                              *---------------------------------*
+           move      rf-pdx-des-pro       to   w-let-dcp-pdx-drg
+                                              (rf-pdx-num-prg)        .
+      *                              *---------------------------------*
+      *                              * Riciclo su Read Next [pdx]      *
+      *                              *---------------------------------*
+           go to     let-dcp-pdx-660.
+       let-dcp-pdx-670.
+      *                          *-------------------------------------*
+      *                          * Test su numero record letti: se ze- *
+      *                          * ro a lettura descrizione con codice *
+      *                          * lingua 'I  '                        *
+      *                          *-------------------------------------*
+           if        w-let-dcp-pdx-ctr    =    zero
+                     go to let-dcp-pdx-610.
+       let-dcp-pdx-700.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-dcp-pdx-999.
+       let-dcp-pdx-800.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-dcp-pdx-flg      .
+           move      spaces               to   w-let-dcp-pdx-des      .
+           move      all   "."            to   w-let-dcp-pdx-drg (1)  .
+           move      all   "."            to   w-let-dcp-pdx-dui      .
+           go to     let-dcp-pdx-920.
+       let-dcp-pdx-900.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-dcp-pdx-des      .
+           move      spaces               to   w-let-dcp-pdx-dui      .
+       let-dcp-pdx-920.
+           move      zero                 to   w-let-dcp-pdx-tpr      .
+           move      spaces               to   w-let-dcp-pdx-cpc      .
+           move      zero                 to   w-let-dcp-pdx-coi      .
+           move      zero                 to   w-let-dcp-pdx-ctp      .
+           move      spaces               to   w-let-dcp-pdx-umi      .
+           move      zero                 to   w-let-dcp-pdx-epz      .
+           move      zero                 to   w-let-dcp-pdx-tcf      .
+           move      zero                 to   w-let-dcp-pdx-qcf      .
+           move      zero                 to   w-let-dcp-pdx-psl      .
+           move      zero                 to   w-let-dcp-pdx-ldv      .
+           move      zero                 to   w-let-dcp-pdx-deq      .
+           move      zero                 to   w-let-dcp-pdx-dep      .
+           move      zero                 to   w-let-dcp-pdx-plb      .
+           move      spaces               to   w-let-dcp-pdx-vlb      .
+           move      zero                 to   w-let-dcp-pdx-dlb      .
+           move      zero                 to   w-let-dcp-pdx-tus      .
+           move      zero                 to   w-let-dcp-pdx-tud      .
+           move      zero                 to   w-let-dcp-pdx-tuc      .
+           move      zero                 to   w-let-dcp-pdx-cdn      .
+           move      spaces               to   w-let-dcp-pdx-dir      .
+           move      zero                 to   w-let-dcp-pdx-add      .
+       let-dcp-pdx-999.
+           exit.

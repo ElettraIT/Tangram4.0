@@ -1,0 +1,369 @@
+      *================================================================*
+      * Area di Link per programmi della fase 'pgep3000'               *
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di identificazione                                   *
+      *    *-----------------------------------------------------------*
+       01  i-ide.
+           05  i-ide-sap                  pic  x(03)                  .
+           05  i-ide-arg                  pic  x(03)                  .
+           05  i-ide-set                  pic  x(03)                  .
+           05  i-ide-fas                  pic  x(06)                  .
+           05  i-ide-pro                  pic  x(10)                  .
+           05  i-ide-des                  pic  x(40)                  .
+
+      *    *===========================================================*
+      *    * Work-area per personalizzazioni                           *
+      *    *-----------------------------------------------------------*
+       01  w-prs.
+      *        *-------------------------------------------------------*
+      *        * Personalizzazioni per gestione portafoglio 'gep'      *
+      *        *-------------------------------------------------------*
+           05  w-prs-gep.
+      *            *---------------------------------------------------*
+      *            * Si/No aggiornamenti contabili a fronte delle mo-  *
+      *            * vimentazioni di portafoglio, valido per ogni ti-  *
+      *            * po di movimento di portafoglio                    *
+      *            *                                                   *
+      *            * - S : Si                                          *
+      *            * - N : No                                          *
+      *            *                                                   *
+      *            * Default : Si                                      *
+      *            *                                                   *
+      *            * N.B. : Se questa personalizzazione indica che non *
+      *            *        si devono eseguire gli aggiornamenti con-  *
+      *            *        tabili, tutti i parametri successivi rela- *
+      *            *        tivi alle modalita' per gli aggiornamenti  *
+      *            *        contabili stessi diventano non significa-  *
+      *            *        tivi.                                      *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  w-prs-gep-snx-cge      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Data registrazione minima per movimenti contabili *
+      *            *---------------------------------------------------*
+               10  w-prs-gep-drc-min      pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Personalizzazioni per riemissione nuova scadenza      *
+      *        *-------------------------------------------------------*
+           05  w-prs-rie.
+      *            *---------------------------------------------------*
+      *            * Modalita' di riemissione                          *
+      *            *                                                   *
+      *            * - 00 : Tutte le richieste esplicite all'operatore,*
+      *            *        e di cinseguenza tutte le possibilita'     *
+      *            * - 01 : Tutte le richieste esplicite all'operatore,*
+      *            *        se pero' non viene richiesta la riemissio- *
+      *            *        ne di una scadenza si genera automatica-   *
+      *            *        mente una scadenza di tipo rimessa diretta *
+      *            *        a vista                                    *
+      *            * - 02 : Si forza a Si' il parametro di si/no rie-  *
+      *            *        missione, ma si chiede di volta in volta   *
+      *            *        il tipo di scadenza da emettere            *
+      *            * - 03 : Si forza a Si' il parametro di si/no rie-  *
+      *            *        missione, e si forza anche il tipo di sca- *
+      *            *        denza da emettere                          *
+      *            * - 04 : Si forza a Si' il parametro di si/no rie-  *
+      *            *        missione, e si forza anche il tipo di sca- *
+      *            *        denza da emettere, inoltre si forza anche  *
+      *            *        la data di scadenza                        *
+      *            * - 99 : Non viene gestita la riemissione delle     *
+      *            *        scadenze                                   *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  w-prs-rie-mod-rie      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di scadenza forzato per la riemissione       *
+      *            *                                                   *
+      *            * - 01 : Rimessa diretta                            *
+      *            * - 02 : Incasso elettronico                        *
+      *            * - 03 : Ri.Ba.                                     *
+      *            * - 04 : C.d.O.                                     *
+      *            * - 05 : M.Av.                                      *
+      *            * - 06 : R.I.D.                                     *
+      *            * - 07 : Bonifico bancario                          *
+      *            * - 08 : C/C postale                                *
+      *            * - 09 : Ricevuta bancaria                          *
+      *            * - 10 : Tratta                                     *
+      *            * - 11 : Paghero' cambiario                         *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  w-prs-rie-tip-sca      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Indicazione sulla data scadenza forzata per la    *
+      *            * riemissione                                       *
+      *            *                                                   *
+      *            * - AV : A vista                                    *
+      *            * - SD : Stessa data scadenza della scadenza che si *
+      *            *        sostituisce                                *
+      *            * - FM : Alla fine del mese rispetto alla data di   *
+      *            *        scadenza che si sostituisce                *
+      *            * - +1 : Stessa data scadenza della scadenza che si *
+      *            *        sostituisce, ma aumentata di un mese       *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  w-prs-rie-ind-sds      pic  x(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di ripercussione su anagrafica commerciale   *
+      *            * del cliente                                       *
+      *            *                                                   *
+      *            * - 00 : Nessuna ripercussione                      *
+      *            * - 01 : Attivazione blocco ordini                  *
+      *            * - 02 : Attivazione blocco consegne                *
+      *            * - 03 : Attivazione blocco ordini e consegne       *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  w-prs-rie-snx-blc      pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Personalizzazioni per possibilita' di data scadenza   *
+      *        * inferiore alla data di registrazione e all'eventua-   *
+      *        * le data documento                                     *
+      *        *-------------------------------------------------------*
+           05  w-prs-dsi.
+      *            *---------------------------------------------------*
+      *            * Tabella per gli undici tipi di scadenza           *
+      *            *   - Indice 01 : Rimesse dirette                   *
+      *            *   - Indice 02 : Incassi elettronici               *
+      *            *   - Indice 03 : Ri.Ba.                            *
+      *            *   - Indice 04 : C.d.O.                            *
+      *            *   - Indice 05 : M.Av.                             *
+      *            *   - Indice 06 : R.I.D.                            *
+      *            *   - Indice 07 : Bonifici bancari                  *
+      *            *   - Indice 08 : C/Correnti postali                *
+      *            *   - Indice 09 : Ricevute bancarie                 *
+      *            *   - Indice 10 : Tratte                            *
+      *            *   - Indice 11 : Paghero'                          *
+      *            *---------------------------------------------------*
+               10  w-prs-dsi-tbl.
+      *                *-----------------------------------------------*
+      *                * Elementi della tabella                        *
+      *                *-----------------------------------------------*
+                   15  w-prs-dsi-tbl-ele  occurs 11.
+      *                    *-------------------------------------------*
+      *                    * Si/No possibilita' di essere inferiore    *
+      *                    * alla data di registrazione                *
+      *                    *  - S : Si, possibile                      *
+      *                    *  - N : No, non possibile                  *
+      *                    *  - ? : No, non possibile, ma senza blocco *
+      *                    *            bensi' sola segnalazione       *
+      *                    *-------------------------------------------*
+                       20  w-prs-dsi-dat-reg
+                                          pic  x(01)                  .
+      *                    *-------------------------------------------*
+      *                    * Si/No possibilita' di essere inferiore    *
+      *                    * all'eventuale data documento              *
+      *                    *  - S : Si, possibile                      *
+      *                    *  - N : No, non possibile                  *
+      *                    *  - ? : No, non possibile, ma senza blocco *
+      *                    *            bensi' sola segnalazione       *
+      *                    *-------------------------------------------*
+                       20  w-prs-dsi-dat-doc
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di file da produrre per il supporto magnetico    *
+      *        *                                                       *
+      *        *  - 'M' : File di tipo MS-DOS, default                 *
+      *        *  - 'T' : File di tipo MS-DOS, con estensione '.TXT'   *
+      *        *  - 'U' : File di tipo UNIX                            *
+      *        *-------------------------------------------------------*
+           05  w-prs-tip-fsm              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no gestione riferimenti a CIG e CUP in distinta    *
+      *        *-------------------------------------------------------*
+           05  w-prs-cig-cup              pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work-area per tipi operazione                             *
+      *    *-----------------------------------------------------------*
+       01  w-top.
+      *        *-------------------------------------------------------*
+      *        * Tabella tipi operazione e dati ad essi associati      *
+      *        *-------------------------------------------------------*
+           05  w-top-tbl-top.
+      *            *---------------------------------------------------*
+      *            * Indice per puntamento su elemento in tabella      *
+      *            *---------------------------------------------------*
+               10  w-top-ele-inx          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Numero effettivo di elementi in tabella           *
+      *            *---------------------------------------------------*
+               10  w-top-ele-num          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Max numero di elementi in tabella                 *
+      *            *---------------------------------------------------*
+               10  w-top-ele-max          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Elementi per tipi operazione                      *
+      *            *---------------------------------------------------*
+               10  w-top-ele-top occurs 50.
+      *                *-----------------------------------------------*
+      *                * Codice tipo operazione                        *
+      *                *-----------------------------------------------*
+                   15  w-top-cod-top      pic  9(04)                  .
+      *                *-----------------------------------------------*
+      *                * Codice mnemonico                              *
+      *                *-----------------------------------------------*
+                   15  w-top-cod-mne      pic  x(04)                  .
+      *                *-----------------------------------------------*
+      *                * Descrizione                                   *
+      *                *-----------------------------------------------*
+                   15  w-top-des-top      pic  x(50)                  .
+      *                *-----------------------------------------------*
+      *                * Codice causale contabile                      *
+      *                *-----------------------------------------------*
+                   15  w-top-cau-cge      pic  9(03)                  .
+      *                *-----------------------------------------------*
+      *                * Codice sottoconto contabile                   *
+      *                *-----------------------------------------------*
+                   15  w-top-stc-cge      pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Codice contropartita contabile                *
+      *                *-----------------------------------------------*
+                   15  w-top-ctp-cge      pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 1                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f01-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 2                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f02-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 3                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f03-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 4                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f04-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 5                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f05-top      pic  9(02)                  .
+
+      *    *===========================================================*
+      *    * Work-area per valori di defaults generali                 *
+      *    *-----------------------------------------------------------*
+       01  w-def.
+      *        *-------------------------------------------------------*
+      *        * Data di registrazione di default                      *
+      *        *-------------------------------------------------------*
+           05  w-def-dat-reg              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo operazione di default                     *
+      *        *-------------------------------------------------------*
+           05  w-def-tip-ope              pic  9(04)                  .
+
+      *    *===========================================================*
+      *    * Work-area per bufferizzazione campi accettazione campi    *
+      *    * chiave trattati dal main                                  *
+      *    *-----------------------------------------------------------*
+       01  w-key.
+      *        *-------------------------------------------------------*
+      *        * Tipo funzione richiesta al sottoprogramma 'pgep3003'  *
+      *        *                                                       *
+      *        * - OP : Open  globale                                  *
+      *        * - CL : Close globale                                  *
+      *        *-------------------------------------------------------*
+           05  w-key-tip-fun              pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di registrazione                                 *
+      *        *-------------------------------------------------------*
+           05  w-key-dat-reg              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo operazione                                *
+      *        *-------------------------------------------------------*
+           05  w-key-tip-ope              pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per codice tipo operazione                *
+      *        *-------------------------------------------------------*
+           05  w-key-tip-ope-des          pic  x(50)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di uscita da completamento impostazione campi    *
+      *        * chiave effettuato nel sottoprogramma specifico per    *
+      *        * l'esecuzione della funzione corrispondente al tipo    *
+      *        * operazione                                            *
+      *        *                                                       *
+      *        * - Spaces : Il sottoprogramma ha provveduto a far im-  *
+      *        *            postare i campi residui della chiave, ed   *
+      *        *            ha completato il suo lavoro; pertanto il   *
+      *        *            main-program deve riciclare all'imposta-   *
+      *        *            zione campi chiave, riproponendo l'ultima  *
+      *        *            data registrazione e l'ultimo tipo opera-  *
+      *        *            zione                                      *
+      *        *                                                       *
+      *        * - E      : Il sottoprogramma ha raccolto Exit in im-  *
+      *        *            postazione dei campi residui della chiave, *
+      *        *            pertanto il main deve chiudere globalmente *
+      *        *            il programma                               *
+      *        *                                                       *
+      *        * - U      : Il sottoprogramma ha raccolto Up in impo-  *
+      *        *            stazione dei campi residui della chiave,   *
+      *        *            pertanto il main deve rientrare all' im-   *
+      *        *            postazione del tipo operazione             *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  w-key-tus-ack              pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di richiesta emissione nuova scadenza a fronte   *
+      *        * dell'operazione appena completata                     *
+      *        * - Spaces : No                                         *
+      *        * - #      : Si                                         *
+      *        *-------------------------------------------------------*
+           05  w-key-ric-ens              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di emissione nuova scadenza a fronte dell'ope-   *
+      *        * zione appena completata in corso                      *
+      *        * - Spaces : No                                         *
+      *        * - #      : Si                                         *
+      *        *-------------------------------------------------------*
+           05  w-key-flg-ens              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione per nuova scadenza da emettere     *
+      *        *-------------------------------------------------------*
+           05  w-key-dtr-ens              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo nuova scadenza da emettere                       *
+      *        *-------------------------------------------------------*
+           05  w-key-tns-ens              pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo nuova scadenza da emettere                    *
+      *        *-------------------------------------------------------*
+           05  w-key-imp-ens              pic s9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No data scadenza forzata per scadenza da emettere  *
+      *        *-------------------------------------------------------*
+           05  w-key-fds-ens              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza forzata per scadenza da emettere        *
+      *        *-------------------------------------------------------*
+           05  w-key-dts-ens              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Forzatura della riemissione                           *
+      *        * - Spaces : No                                         *
+      *        * - #      : Si                                         *
+      *        *-------------------------------------------------------*
+           05  w-key-frz-ens              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero della scadenza a fronte della quale deve esse- *
+      *        * re emessa una nuova scadenza                          *
+      *        *-------------------------------------------------------*
+           05  w-key-nvs-ens              pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione che ha causato la richiesta di emis-  *
+      *        * sione nuova scadenza                                  *
+      *        * - 0200 : Storno                                       *
+      *        * - 0300 : Riscossione                                  *
+      *        * - 0600 : Insoluto su scadenza presentata              *
+      *        * - 0620 : Richiamo di scadenza presentata              *
+      *        *-------------------------------------------------------*
+           05  w-key-tvo-ens              pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di controllo per la riemissione                 *
+      *        *-------------------------------------------------------*
+           05  w-key-f00-ens.
+               10  w-key-f01-ens          pic  x(01)                  .
+               10  w-key-f02-ens          pic  x(01)                  .
+               10  w-key-f03-ens          pic  x(01)                  .
+               10  w-key-f04-ens          pic  x(01)                  .

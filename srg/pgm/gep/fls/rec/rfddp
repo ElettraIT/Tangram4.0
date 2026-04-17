@@ -1,0 +1,285 @@
+      *    *===========================================================*
+      *    * Record file [ddp] Distinte di presentazione               *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMDDP    " = rf-ddp-num-ddp                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-ddp-ide-dat                    *
+      *    *                         rf-ddp-num-ddp                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-ddp.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di composizione distinta *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dtr-com             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero distinta : s.aa.nnnnnnnn                       *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-num-ddp             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo distinta                                         *
+      *        *                                                       *
+      *        * - 01 : Incassi elettronici                            *
+      *        * - 02 : Effetti                                        *
+      *        * - 03 : Paghero' cambiari                              *
+      *        * - 04 : Cessioni da clienti                            *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-tip-ddp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo avviso richiesto                                 *
+      *        * - 01 : Conferme d'ordine oppure Ri.Ba.                *
+      *        * - 02 : Conferme d'ordine oppure M.Av.                 *
+      *        * - 03 : Solo Ri.Ba.                                    *
+      *        * - 04 : Solo M.Av.                                     *
+      *        * - 05 : Solo R.I.D.                                    *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-tav-ric             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipi scadenza da includere in distinta                *
+      *        * - 0002 : Incassi elettronici                          *
+      *        * - 0003 : Ri.Ba.                                       *
+      *        * - 0004 : C.d.O.                                       *
+      *        * - 0005 : M.Av.                                        *
+      *        * - 0006 : R.I.D.                                       *
+      *        * - 0009 : Ricevute bancarie                            *
+      *        * - 0010 : Tratte                                       *
+      *        * - 0011 : Paghero' cambiari                            *
+      *        * - 0061 : Paghero' cambiari avuti in cessione          *
+      *        * - 0203 : Incassi elettronici e Ri.Ba.                 *
+      *        * - 0204 : Incassi elettronici e C.d.O.                 *
+      *        * - 0205 : Incassi elettronici e M.Av.                  *
+      *        * - 0910 : Ricevute bancarie e Tratte                   *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-tsc-das             pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza minima da selezionare                   *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dsc-min             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza massima da selezionare                  *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dsc-max             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Anche scadenze a vista da selezionare                 *
+      *        * - S : Si                                              *
+      *        * - N : No                                              *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dsc-vis             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Selezione su circuiti interbancari                    *
+      *        *                                                       *
+      *        * N.B.: (01/06/98) Dal momento che questa selezione non *
+      *        *                  viene piu' utilizzata, la si utiliz- *
+      *        *                  za per ospitare il campo 'ns. banca  *
+      *        *                  di appoggio' il quale opera una se-  *
+      *        *                  lezione a livello di anagrafica com- *
+      *        *                  merciale del cliente.                *
+      *        *                                                       *
+      *        *                  Il nuovo campo occupa tutti e 10 i   *
+      *        *                  caratteri disponibili.               *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-cir-itb.
+               10  rf-ddp-cod-cib  occurs 05
+                                          pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo massimo per la distinta, in valuta base       *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-imp-max             pic s9(13)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo effettivo della distinta, in valuta base      *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-imp-ddp             pic s9(13)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di presentazione distin- *
+      *        * ta alla banca                                         *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dtr-pre             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di presentazione distinta alla banca    *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-drc-pre             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di presentazione distinta alla banca    *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-npc-pre             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di presentazione                                 *
+      *        * - 01 : Accredito SBF a maturazione di valuta          *
+      *        * - 02 : Accredito immediato SBF                        *
+      *        * - 03 : Accredito al dopo incasso                      *
+      *        * - 04 : Allo sconto                                    *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-tip-pre             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca per la presentazione              *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-cod-cbp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Stampa cartacea distinta                              *
+      *        * - S : Si                                              *
+      *        * - N : No                                              *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-snx-stp             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa su carta eseguita, solo per  *
+      *        * le stampe eseguite post presentazione distinta        *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-flc-stp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Preparazione archivio di supporto per trasmissione    *
+      *        * distinta alla banca                                   *
+      *        * - S : Si                                              *
+      *        * - N : No                                              *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-snx-ads             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di preparazione archivio di supporto   *
+      *        * per trasmissione distinta alla banca eseguita         *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-flc-ads             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di invio dell'archivio di supporto alla banca    *
+      *        * - 01 : Tramite dischetto                              *
+      *        * - 02 : Tramite Home Banking                           *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-tip-ias             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di invio dell'archivio di supporto al- *
+      *        * la banca eseguito                                     *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-flc-ias             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di accettazione distinta *
+      *        * da parte della banca                                  *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dtr-act             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di accettazione distinta da parte della *
+      *        * banca                                                 *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-drc-act             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di accettazione distinta da parte della *
+      *        * banca                                                 *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-npc-act             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data contabile bancaria per il movimento di accetta-  *
+      *        * zione distinta da parte della banca                   *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dcb-act             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero contabile bancaria per il movimento di accet-  *
+      *        * tazione distinta da parte della banca                 *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-ncb-act             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca al momento della *
+      *        * accettazione della distinta, in valuta base           *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-spe-act             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo interessi addebitati dalla banca al momento   *
+      *        * della accettazione della distinta, in valuta base     *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-int-act             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di accredito distinta in *
+      *        * conto corrente da parte della banca                   *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dtr-acd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di accredito distinta in conto corrente *
+      *        * da parte della banca                                  *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-drc-acd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di accredito distinta in conto corrente *
+      *        * da parte della banca                                  *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-npc-acd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data contabile bancaria per il movimento di accredito *
+      *        * distinta in conto corrente da parte della banca       *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-dcb-acd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero contabile bancaria per il movimento di accre-  *
+      *        * dito distinta in conto corrente da parte della banca  *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-ncb-acd             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca al momento del-  *
+      *        * l'accredito in conto corrente da parte della banca,   *
+      *        * in valuta base                                        *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-spe-acd             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo interessi addebitati dalla banca al momento   *
+      *        * dell'accredito in conto corrente da parte della banca *
+      *        * in valuta base                                        *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-int-acd             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-ddp-flg-blo.
+                   15  rf-ddp-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-ddp-flg-nbl.
+                   15  rf-ddp-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-ddp-alx-exp.
+               10  filler    occurs 20    pic  x(01)                  .

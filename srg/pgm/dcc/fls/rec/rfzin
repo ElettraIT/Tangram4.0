@@ -1,0 +1,93 @@
+      *    *===========================================================*
+      *    * Record tabella addebito spese incasso [zin]               *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODSPI    " = rf-zin-cod-spi                    *
+      *    *                         rf-zin-tip-pag                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zin.
+      *        *-------------------------------------------------------*
+      *        * Codice spesa incasso                                  *
+      *        *-------------------------------------------------------*
+           05  rf-zin-cod-spi             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di pagamento                                     *
+      *        *                                                       *
+      *        * - 01 : Rimessa diretta                                *
+      *        * - 02 : Incasso elettronico                            *
+      *        * - 03 : Ri.Ba.                                         *
+      *        * - 04 : Di.Pa.                                         *
+      *        * - 05 : Mav - Mediante avviso                          *
+      *        * - 06 : Rid - Accredito preautorizzato in conto        *
+      *        * - 07 : Bonifico bancario                              *
+      *        * - 08 : Conto corrente postale                         *
+      *        * - 09 : Ricevuta bancaria tradizionale                 *
+      *        * - 10 : Tratta                                         *
+      *        * - 11 : Paghero'                                       *
+      *        *                                                       *
+      *        * N.B. : Il tipo pagamento 00 indica l'intestazione per *
+      *        *        il codice spesa incasso, e deve essere creato  *
+      *        *        preventivamente rispetto ai tipi di pagamento  *
+      *        *        reali.                                         *
+      *        *-------------------------------------------------------*
+           05  rf-zin-tip-pag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per il codice spesa incasso, ad uso in-   *
+      *        * terno                                                 *
+      *        *                                                       *
+      *        * Solo se tipo pagamento 00                             *
+      *        *-------------------------------------------------------*
+           05  rf-zin-des-spi             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per spese incasso                          *
+      *        *                                                       *
+      *        * N.B. : Puo' essere a zero, e in questo caso l'ammon-  *
+      *        *        tare delle spese incasso sara' distribuito     *
+      *        *        proporzionalmente tra tutti gli imponibili     *
+      *        *        presenti nel documento.                        *
+      *        *                                                       *
+      *        * Solo se tipo pagamento 00                             *
+      *        *-------------------------------------------------------*
+           05  rf-zin-civ-spi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per spese incasso                *
+      *        *                                                       *
+      *        * N.B. : Puo' essere a zero, e in questo caso l'ammon-  *
+      *        *        tare delle spese incasso sara' distribuito     *
+      *        *        proporzionalmente tra tutte le contropartite   *
+      *        *        presenti nel documento.                        *
+      *        *                                                       *
+      *        * Solo se tipo pagamento 00                             *
+      *        *-------------------------------------------------------*
+           05  rf-zin-ccp-spi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo funzionamento per il codice spese incasso        *
+      *        *                                                       *
+      *        * - 1 : Automatico, in funzione del numero di scadenze  *
+      *        *       e del tipo di ogni scadenza                     *
+      *        * - 2 : Manuale da impostazione ammontare spese         *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *-------------------------------------------------------*
+           05  rf-zin-tfu-spi             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare addebito spesa per ogni scadenza            *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *-------------------------------------------------------*
+           05  rf-zin-amm-spi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuale per ogni scadenza                         *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito, e puo' servire    *
+      *        *        solo per applicazioni speciali. Attualmente    *
+      *        *        viene forzato al valore normalizzato.          *
+      *        *-------------------------------------------------------*
+           05  rf-zin-per-spi             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zin-alx-exp             pic  x(80)                  .

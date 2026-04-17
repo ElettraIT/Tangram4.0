@@ -1,0 +1,827 @@
+      *    *===========================================================*
+      *    * Record file [bir] Bolle clienti righe                     *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-bir-num-prt                    *
+      *    *                         rf-bir-num-prg                    *
+      *    *                                                           *
+      *    *          "MAGDAT    " = rf-bir-cod-dpz                    *
+      *    *                         rf-bir-tip-mag                    *
+      *    *                         rf-bir-num-pro                    *
+      *    *                         rf-bir-dat-doc                    *
+      *    *                         rf-bir-num-doc                    *
+      *    *                         rf-bir-num-prt                    *
+      *    *                         rf-bir-num-prg                    *
+      *    *                                                           *
+      *    *          "RIFORC    " = rf-bir-cod-dpz                    *
+      *    *                         rf-bir-coc-prt                    *
+      *    *                         rf-bir-coc-prg                    *
+      *    *                         rf-bir-num-prt                    *
+      *    *                         rf-bir-num-prg                    *
+      *    *                                                           *
+      *    *          "RIFODS    " = rf-bir-cod-dpz                    *
+      *    *                         rf-bir-ods-prt                    *
+      *    *                         rf-bir-ods-prg                    *
+      *    *                         rf-bir-coc-prt                    *
+      *    *                         rf-bir-coc-prg                    *
+      *    *                         rf-bir-num-prt                    *
+      *    *                         rf-bir-num-prg                    *
+      *    *                                                           *
+      *    *          "ARCRIG    " = rf-bir-cod-dpz  ___ DA IMPLEM ___ *
+      *    *                         rf-bir-tip-arc                    *
+      *    *                         rf-bir-cod-arc                    *
+      *    *                         rf-bir-num-prt                    *
+      *    *                         rf-bir-num-prg                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-bir.
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.dd.nnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo nel protocollo                     *
+      *        *-------------------------------------------------------*
+           05  rf-bir-num-prg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento per la bolla                           *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cod-tmb             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha emesso il documento          *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento : s.aa.gg.nnnnnn                     *
+      *        * - s      : secolo                                     *
+      *        * - aa     : anno                                       *
+      *        * - xx     : numero giornale iva, se bolla/fattura      *
+      *        *            codice dipendenza  , se bolla              *
+      *        * - nnnnnn : numero progressivo                         *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-num-doc             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio per il movimento                        *
+      *        *                                                       *
+      *        * - N : No tipo archivio                                *
+      *        * - C : Cliente                                         *
+      *        * - F : Fornitore                                       *
+      *        * - D : Deposito                                        *
+      *        * - A : Agente (Incaricato alla vendita)                *
+      *        *                                                       *
+      *        * N.B. : Se il documento interessa la fatturazione, il  *
+      *        *        tipo archivio deve essere pari a 'C'           *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio                       *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bir-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bir-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-bir-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-bir-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Flag blocco di documento                              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-bld-flb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo blocco di documento                              *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-bld-tpb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga nel blocco di documento                     *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-bld-rgb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga                                             *
+      *        *                                                       *
+      *        * P   : Prodotti di vendita                             *
+      *        * S   : Semilavorati                                    *
+      *        * M   : Materie prime                                   *
+      *        * PN  : Prodotti di vendita non codificati              *
+      *        *                                                       *
+      *        * A   : Addebito o Accredito a forfait                  *
+      *        *                                                       *
+      *        * C   : Commento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-bir-tip-rig             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino                              *
+      *        *                                                       *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Prodotti di vendita (se tipo riga P o PN)      *
+      *        * - 02 : Semilavorati        (se tipo riga S)           *
+      *        * - 03 : Materie prime       (se tipo riga M)           *
+      *        *-------------------------------------------------------*
+           05  rf-bir-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto numerico                              *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Codice numerico su [dcp]                  *
+      *        *        - S  Codice numerico su [dps]                  *
+      *        *        - M  Codice numerico su [dpm]                  *
+      *        *                                                       *
+      *        *        - PN Codice numerico su [dcp] del similare     *
+      *        *-------------------------------------------------------*
+           05  rf-bir-num-pro             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto alfanumerico                          *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Codice alfanumerico su [dcp]              *
+      *        *        - S  Codice alfanumerico su [dps]              *
+      *        *        - M  Codice alfanumerico su [dpm]              *
+      *        *                                                       *
+      *        *        - PN Codice alfanumerico su [dcp] del similare *
+      *        *-------------------------------------------------------*
+           05  rf-bir-alf-pro             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della variante per il prodotto                  *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Solo se codice [dcp] gestito a variante   *
+      *        *        - S  Solo se codice [dps] gestito a variante   *
+      *        *        - M  Solo se codice [dpm] gestito a variante   *
+      *        *                                                       *
+      *        *        - PN Solo se codice [dcp] del similare gestito *
+      *        *             a variante                                *
+      *        *                                                       *
+      *        *        Questo valore non e' gestito direttamente dal  *
+      *        *        programma di bollettazione; il campo puo' as-  *
+      *        *        sumere un valore solo nel caso in cui il tipo  *
+      *        *        origine del documento non sia manuale.         *
+      *        *                                                       *
+      *        * N.B. : in presenza di apposita personalizzazione, il  *
+      *        *        campo puo' ospitare una sigla lotto e una data *
+      *        *        scadenza lotto                                 *
+      *        *-------------------------------------------------------*
+           05  rf-bir-sgl-vrn             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto secondo il cliente                    *
+      *        *                                                       *
+      *        * N.B. : il campo puo' risultare insufficiente se per   *
+      *        *        cliente e' previsto un codice prodotto di      *
+      *        *        lunghezza maggiore. In tal caso bisogna ricor- *
+      *        *        rere al record [pdk]                           *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cop-scl             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Presenza della descrizione estesa di max 400 caratte- *
+      *        * ri in file di estensione                              *
+      *        *                                                       *
+      *        * ****************** NOTA IMPORTANTE ****************** *
+      *        * A partire dal 29/01/2010, il file di estensione viene *
+      *        * comunque riempito, in presenza di una descrizione, di *
+      *        * qualunque provenienza, che superi i 40 caratteri.     *
+      *        * Cio' significa che questo campo e' destinato a diven- *
+      *        * tare inutile                                          *
+      *        * ***************************************************** *
+      *        *                                                       *
+      *        * - 0 : No                                              *
+      *        *                                                       *
+      *        *       Cio' avviene nei seguenti casi                  *
+      *        *       - Il tipo riga e' P,S,M, e la descrizione, pari *
+      *        *         alla descrizione originale in anagrafica dcp] *
+      *        *         o [dps] o [dpm], oppure variata rispetto ad   *
+      *        *         essa, non supera i 40 caratteri               *
+      *        *       - Il tipo riga e' PN,A,C, e la descrizione di-  *
+      *        *         gitata non supera i 40 caratteri              *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 1 : Si, in file di estensione descrizione per bol-  *
+      *        *           lettazione [bix]                            *
+      *        *                                                       *
+      *        *       Cio' avviene nei seguenti casi                  *
+      *        *       - Il tipo riga e' P,S,M, e la descrizione, di-  *
+      *        *         versa dalla descrizione originale in anagra-  *
+      *        *         fica [dcp] o [dps] o [dpm], supera i 40 ca-   *
+      *        *         ratteri                                       *
+      *        *       - Il tipo riga e' PN,A,C, e la descrizione di-  *
+      *        *         gitata supera i 40 caratteri                  *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 2 : Si, in file di estensione descrizione per pro-  *
+      *        *           dotti [pdx]                                 *
+      *        *       - Il tipo riga e' P, e la descrizione, uguale   *
+      *        *         alla descrizione originale in anagrafica      *
+      *        *         [dcp], supera i 40 caratteri                  *
+      *        *                                                       *
+      *        * N.B. : Se il valore e' pari a 1, la descrizione este- *
+      *        *        sa sostituisce completamente la descrizione di *
+      *        *        40 caratteri contenuta in questo record.       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-des-ext             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per la riga di bolla                      *
+      *        *                                                       *
+      *        * - Se tipo riga P,S,M                                  *
+      *        *                                                       *
+      *        *   - Se des-ext 0 : Descrizione originale o modifica-  *
+      *        *                    ta,  che comunque non supera glo-  *
+      *        *                    balmente i 40 caratteri            *
+      *        *                                                       *
+      *        *   - Se des-ext 1 : Descrizione originale dell'anagra- *
+      *        *                    fica [dcp] o [dps] o [dpm] di 40   *
+      *        *                    caratteri                          *
+      *        *                                                       *
+      *        *   - Se des-ext 2 : Descrizione originale dell'anagra- *
+      *        *                    fica [dcp] di 40 caratteri         *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - Se tipo riga PN,A,C                                 *
+      *        *                                                       *
+      *        *   - Se des-ext 0 : Descrizione impostata, la quale    *
+      *        *                    non supera globalmente i 40 ca-    *
+      *        *                    ratteri                            *
+      *        *                                                       *
+      *        *   - Se des-ext 1 : Primi 40 caratteri della descri-   *
+      *        *                    zione impostata, la quale supera   *
+      *        *                    globalmente i 40 caratteri         *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-des-rig             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo prodotto                                         *
+      *        *                                                       *
+      *        * - Se tipo riga P o PN                                 *
+      *        *                                                       *
+      *        *   - 01 : Merce                                        *
+      *        *   - 02 : Servizio                                     *
+      *        *   - 03 : Imballo                                      *
+      *        *   - 09 : Extra attivita' aziendale                    *
+      *        *                                                       *
+      *        * - Se tipo riga S o M                                  *
+      *        *                                                       *
+      *        *   - 01 : Merce                                        *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-tip-pro             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per la vendita                             *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cod-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per la vendita                   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-ctp-ven             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Unita' di misura per la vendita                       *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Da anagrafica [dcp]                       *
+      *        *        - S  Da anagrafica [dps]                       *
+      *        *        - M  Da anagrafica [dpm]                       *
+      *        *                                                       *
+      *        *        - PN Da anagrafica [dcp] del similare          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-umi-ven             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali quantita' per la vendita : 0..3       *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Da anagrafica [dcp]                       *
+      *        *        - S  Da anagrafica [dps]                       *
+      *        *        - M  Da anagrafica [dpm]                       *
+      *        *                                                       *
+      *        *        - PN Da anagrafica [dcp] del similare          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-dec-qta             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' di vendita                                  *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga P,S,M,PN                  *
+      *        *-------------------------------------------------------*
+           05  rf-bir-qta-ven             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione effettivo, da tipo movimento      *
+      *        *                                                       *
+      *        * N.B. : Questo campo attualmente non e' gestito        *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cod-dsl             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione della seconda quantita' nella     *
+      *        * fatturazione                                          *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *-------------------------------------------------------*
+           05  rf-bir-snx-2qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la seconda quantita'              *
+      *        *                                                       *
+      *        * N.B. : Significativi solo se 'si' gestione seconda    *
+      *        *        quantita'                                      *
+      *        *-------------------------------------------------------*
+           05  rf-bir-dec-2qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Seconda quantita'                                     *
+      *        *                                                       *
+      *        * N.B. : Significativa solo se 'si' gestione seconda    *
+      *        *        quantita'                                      *
+      *        *-------------------------------------------------------*
+           05  rf-bir-qta-a02             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione della terza quantita'             *
+      *        *                                                       *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-snx-3qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la terza quantita'                *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-dec-3qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Terza quantita'                                       *
+      *        *                                                       *
+      *        * N.B. : Questo campo e' gestito come numero colli in   *
+      *        *        riga, previa personalizzazione                 *
+      *        *-------------------------------------------------------*
+           05  rf-bir-qta-a03             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per il prezzo di vendita : 0..3       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-dec-prz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione dei prezzi standard          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-vps.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bir-sgl-vps         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bir-dec-vps         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bir-tdc-vps         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di fatturazione, non effettivo, ben-    *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bir-cdc-vps         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo lordo standard, in valuta di espressione dei   *
+      *        * prezzi standard                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-prz-lrs             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Prezzo netto standard, in valuta di espressione dei   *
+      *        * prezzi standard : pari al prezzo lordo standard e-    *
+      *        * ventualmente abbattuto dagli sconti standard          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-prz-nts             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del prezzo di vendita        *
+      *        *-------------------------------------------------------*
+           05  rf-bir-vpp.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bir-sgl-vpp         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bir-dec-vpp         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bir-tdc-vpp         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di fatturazione, non effettivo, ben-    *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bir-cdc-vpp         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo unitario di vendita, in valuta                 *
+      *        *-------------------------------------------------------*
+           05  rf-bir-prz-ven             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione del secondo prezzo nella fattura- *
+      *        * zione                                                 *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-snx-2pz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Secondo prezzo, in valuta                             *
+      *        *-------------------------------------------------------*
+           05  rf-bir-prz-a02             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del legame valutario         *
+      *        *-------------------------------------------------------*
+           05  rf-bir-vpl.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bir-sgl-vpl         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bir-dec-vpl         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bir-tdc-vpl         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Prezzo di riferimento per legame valutario, in    *
+      *            * valuta                                            *
+      *            *---------------------------------------------------*
+               10  rf-bir-prz-vpl         pic  9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di espressione del prezzo di vendita,   *
+      *            * effettivo se applicazione al momento della bolla, *
+      *            * altrimenti relativo alla data documento bolla     *
+      *            *---------------------------------------------------*
+               10  rf-bir-cdc-vpl         pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio di riferimento per la tra- *
+      *            * sformazione nella valuta di espressione del prez- *
+      *            * zo di vendita                                     *
+      *            *---------------------------------------------------*
+               10  rf-bir-ccr-vpl         pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Percentuale di limitazione della trasformazione   *
+      *            * nella valuta di espressione del prezzo di vendita *
+      *            *---------------------------------------------------*
+               10  rf-bir-plm-vpl         pic  9(01)v9(02)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di limitazione della trasformazione nella    *
+      *            * valuta di espressione del prezzo di vendita       *
+      *            * - T : Tolleranza                                  *
+      *            * - F : Franchigia                                  *
+      *            * - M : Massimo tetto                               *
+      *            *---------------------------------------------------*
+               10  rf-bir-tlm-vpl         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Momento di applicazione della trasformazione re-  *
+      *            * lativa al legame valutario                        *
+      *            * - F : Al momento della fattura                    *
+      *            * - B : Al momento della bolla                      *
+      *            *---------------------------------------------------*
+               10  rf-bir-map-vpl         pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di esposizione della riga di fattura             *
+      *        *                                                       *
+      *        * - Se tipo riga P o Pn                                 *
+      *        *                                                       *
+      *        *    - 1 : Quantita', prezzo, sconti, importo           *
+      *        *    - 2 : Solo quantita' e importo                     *
+      *        *    - 3 : Solo importo                                 *
+      *        *    - 4 : Solo importo se quantita pari a 1,000, al-   *
+      *        *               trimenti tutto come il tipo 1           *
+      *        *    - 5 : Solo importo se quantita pari a 1,000, al-   *
+      *        *               trimenti tutto come il tipo 2           *
+      *        *                                                       *
+      *        * - Se tipo riga S o M                                  *
+      *        *                                                       *
+      *        *    - 1 : Quantita', prezzo, sconti, importo           *
+      *        *-------------------------------------------------------*
+           05  rf-bir-epz-rgf             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di sconto in riga associata al prodotto     *
+      *        *-------------------------------------------------------*
+           05  rf-bir-csr-aap             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Precentuali di sconto in riga associate al prodotto   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-psr-aap occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di sconto in riga 1..5                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-per-scr occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo netto effettivo, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-bir-prz-net             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di esposizione prezzi e sconti della riga di     *
+      *        * fattura                                               *
+      *        *                                                       *
+      *        * - Se tipo riga P o PN                                 *
+      *        *                                                       *
+      *        *    - 11 : Prezzo di vendita e sconti                  *
+      *        *    - 21 : Solo prezzo netto                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-epz-pes             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del costo di riferimento     *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-vpc.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bir-sgl-vpc         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bir-dec-vpc         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bir-tdc-vpc         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di fatturazione, non effettivo, ben-    *
+      *            * si' relativo alla data documento bolla            *
+      *            *---------------------------------------------------*
+               10  rf-bir-cdc-vpc         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per il costo di riferimento : 0..2    *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-dec-cos             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Costo di riferimento, in valuta                       *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cos-rif             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo definitivo per la riga, in valuta             *
+      *        *                                                       *
+      *        * - Per le righe esterne ad ogni blocco, questo e' sem- *
+      *        *   pre pari all'impostazione effettuata dall'operatore *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 1,2,3   *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per la riga apparente sara' sempre pari alla som- *
+      *        *     ma degli importi impostati dall'operatore per le  *
+      *        *     righe reali del blocco                            *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 4,5,6,7 *
+      *        *   - Per le righe reali sara' sempre in funzione alla  *
+      *        *     redistribuzione eseguita in funzione della somma  *
+      *        *     dei valori impostati dall'operatore per le righe  *
+      *        *     apparenti del blocco, tenendo presente che per i  *
+      *        *     blocchi di tipo 4,5,6, puo' esistere al massimo   *
+      *        *     una riga apparente                                *
+      *        *   - Per le righe apparenti sara' sempre pari a quanto *
+      *        *     impostato dall'operatore                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-imp-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo ausiliario per gestione blocchi, in valuta    *
+      *        *                                                       *
+      *        * - Per le righe esterne ad ogni blocco, questo e' sem- *
+      *        *   pre pari all'impostazione effettuata dall'operatore *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 1,2,3   *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per la riga apparente sara' sempre pari alla som- *
+      *        *     ma degli importi impostati dall'operatore per le  *
+      *        *     righe reali del blocco                            *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 4,5,6,7 *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per le righe apparenti sara' sempre pari a quanto *
+      *        *     impostato dall'operatore                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-iau-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigione associata al prodotto        *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cpv-aap             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione associate al prodotto                *
+      *        *-------------------------------------------------------*
+           05  rf-bir-ppv-aap occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Flag di significativita' dati provvigionali in riga   *
+      *        * - 01 : Si, calcolate automaticamente                  *
+      *        * - 02 : No provvigioni in riga                         *
+      *        * - 03 : Si, speciali                                   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-fsp-rig             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigione in riga effettiva            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cpv-rig             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione in riga effettive                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-ppv-rig occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Importo provvigione a forfait in riga, in valuta base *
+      *        *-------------------------------------------------------*
+           05  rf-bir-pvf-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento ordine del cliente                *
+      *        *-------------------------------------------------------*
+           05  rf-bir-ocl-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento ordine del cliente              *
+      *        *-------------------------------------------------------*
+           05  rf-bir-ocl-num             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento nostra commissione al cliente          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cmc-tip             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento nostra commissione al cliente     *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cmc-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento nostra commissione al cliente   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-cmc-num             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento nostra conferma d'ordine               *
+      *        *-------------------------------------------------------*
+           05  rf-bir-coc-tip             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento nostra conferma d'ordine          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-coc-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento nostra conferma d'ordine        *
+      *        *-------------------------------------------------------*
+           05  rf-bir-coc-num             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo nostra conferma d'ordine            *
+      *        *-------------------------------------------------------*
+           05  rf-bir-coc-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo nel protocollo nostra conferma     *
+      *        * d'ordine                                              *
+      *        *-------------------------------------------------------*
+           05  rf-bir-coc-prg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di forzatura a saldo della quantita' di eva-  *
+      *        * sione riga ordine cliente                             *
+      *        * - spaces : No forzatura                               *
+      *        * - S      : Forzatura a saldo                          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-coc-fzs             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo ordine di spedizione                *
+      *        *-------------------------------------------------------*
+           05  rf-bir-ods-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo nel protocollo ordine di spedizio- *
+      *        * ne                                                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-ods-prg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Documento da sottoporre a fatturazione differita      *
+      *        * - N : No                                              *
+      *        * - S : Si                                              *
+      *        *-------------------------------------------------------*
+           05  rf-bir-fat-snx             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data fattura                                          *
+      *        *-------------------------------------------------------*
+           05  rf-bir-fat-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero fattura : s.aa.dd.nnnnnn                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-fat-num             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo bolla nella fattura                *
+      *        *-------------------------------------------------------*
+           05  rf-bir-fat-npb             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-bir-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-bir-flg-blo.
+                   15  rf-bir-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            *  - 01 : (libero)                                  *
+      *            *  - 02 : (libero)                                  *
+      *            *  - 03 : riga da considerare ai fini dell'evasione *
+      *            *         ordine cliente                            *
+      *            *          - spaces : riga da considerare           *
+      *            *          - '#'    : riga da non considerare       *
+      *            *---------------------------------------------------*
+               10  rf-bir-flg-nbl.
+                   15  rf-bir-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-bir-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di prezzo unitario relativo alla quantita'       *
+      *        *                                                       *
+      *        * - Spaces : prezzo unitario normale                    *
+      *        * - K      : prezzo riferito a 1000 unita'              *
+      *        * - C      : prezzo riferito a 100 unita'               *
+      *        * - D      : prezzo riferito a 10 unita'                *
+      *        *                                                       *
+      *        * Nota : Questo flag influenza la gestione della secon- *
+      *        *        da quantita' di fatturazione                   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-flg-puq             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-bir-alx-exp.
+               10  filler  occurs 80      pic  x(01)                  .

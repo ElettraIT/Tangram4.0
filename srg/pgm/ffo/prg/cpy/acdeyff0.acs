@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione tipo movimento per fattura *
+      *    * fornitore                                                 *
+      *    *-----------------------------------------------------------*
+       cod-des-yff-opn-000.
+           move      "pgm/ffo/prg/obj/acdeyff0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-des-yff-pth      .
+           move      "OP"                 to   w-cod-des-yff-ope      .
+           perform   cod-des-yff-cll-000  thru cod-des-yff-cll-999    .
+       cod-des-yff-opn-999.
+           exit.
+       cod-des-yff-cls-000.
+           move      "CL"                 to   w-cod-des-yff-ope      .
+           perform   cod-des-yff-cll-000  thru cod-des-yff-cll-999    .
+           move      "C?"                 to   w-cod-des-yff-ope      .
+           perform   cod-des-yff-cll-000  thru cod-des-yff-cll-999    .
+           if        w-cod-des-yff-ope    not  = spaces
+                     go to cod-des-yff-cls-999.
+           cancel    w-cod-des-yff-pth                                .
+       cod-des-yff-cls-999.
+           exit.
+       cod-des-yff-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-des-yff-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pffo0100"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-yff-foi-999.
+           move      "pgm/ffo/prg/obj/pffo0100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-des-yff-ope      .
+           go to     cod-des-yff-foi-999.
+       cod-des-yff-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-des-yff-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pffo0110"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-yff-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/ffo/prg/obj/pffo0110"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-des-yff-ope      .
+           go to     cod-des-yff-foi-999.
+       cod-des-yff-foi-999.
+           exit.
+       cod-des-yff-cll-000.
+           call      w-cod-des-yff-pth   using w-cod-des-yff
+                                               v
+                                               s                      .
+       cod-des-yff-cll-999.
+           exit.
+

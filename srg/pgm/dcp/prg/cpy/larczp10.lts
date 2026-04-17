@@ -1,0 +1,60 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zp1]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zp1-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zp1-flg      .
+           move      spaces               to   w-let-arc-zp1-des      .
+           move      spaces               to   w-let-arc-zp1-mne      .
+           move      spaces               to   w-let-arc-zp1-umi      .
+           move      zero                 to   w-let-arc-zp1-sud      .
+           move      zero                 to   w-let-arc-zp1-sqz      .
+       let-arc-zp1-100.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCLA    "         to   f-key                  .
+           move      w-let-arc-zp1-cla    to   rf-zp1-cod-cla         .
+           move      "pgm/dcp/fls/ioc/obj/iofzp1"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zp1                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zp1-400.
+       let-arc-zp1-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zp1-des-cla       to   w-let-arc-zp1-des      .
+           move      rf-zp1-mne-cla       to   w-let-arc-zp1-mne      .
+           move      rf-zp1-ult-sud       to   w-let-arc-zp1-sud      .
+           move      rf-zp1-sqz-num       to   w-let-arc-zp1-sqz      .
+           move      rf-zp1-umi-def       to   w-let-arc-zp1-umi      .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     let-arc-zp1-900.
+       let-arc-zp1-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zp1-flg      .
+           move      all   "."            to   w-let-arc-zp1-des      .
+           move      w-let-arc-zp1-cla    to   w-let-arc-zp1-mne      .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     let-arc-zp1-900.
+       let-arc-zp1-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zp1-999.
+       let-arc-zp1-999.
+           exit.
+

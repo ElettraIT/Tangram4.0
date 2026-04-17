@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per lettura fattura 'xml' fornitore           *
+      *    *-----------------------------------------------------------*
+       mdl-xml-for-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   m-xml-for-tip-ope      .
+           perform   mdl-xml-for-cll-000  thru mdl-xml-for-cll-999    .
+       mdl-xml-for-opn-999.
+           exit.
+
+       mdl-xml-for-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   m-xml-for-tip-ope      .
+           perform   mdl-xml-for-cll-000  thru mdl-xml-for-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   m-xml-for-tip-ope      .
+           perform   mdl-xml-for-cll-000  thru mdl-xml-for-cll-999    .
+      *
+           if        m-xml-for-exi-sts    not  = spaces
+                     go to mdl-xml-for-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/scf/prg/obj/mxmlfor0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       mdl-xml-for-cls-999.
+           exit.
+
+       mdl-xml-for-cll-000.
+      *              *=================================================*
+      *              * Chiamata modulo                                 *
+      *              *-------------------------------------------------*
+           move      "pgm/scf/prg/obj/mxmlfor0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using m-xml-for              .
+       mdl-xml-for-cll-999.
+           exit.
+

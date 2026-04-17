@@ -1,0 +1,132 @@
+      *    *===========================================================*
+      *    * Record estensioni al record prodotto per le descrizioni   *
+      *    * in lingua estera o alternative in italiano [pdx]          *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "TRCLNG    " = rf-pdx-tip-rec                    *
+      *    *                         rf-pdx-cod-arc                    *
+      *    *                         rf-pdx-cod-lng                    *
+      *    *                         rf-pdx-cod-num                    *
+      *    *                         rf-pdx-for-mat                    *
+      *    *                         rf-pdx-num-prg                    *
+      *    *                                                           *
+      *    *          "DESPRO    " = rf-pdx-tip-rec  ___ DA IMPL ___   *
+      *    *                         rf-pdx-des-pro                    *
+      *    *                         rf-pdx-cod-arc                    *
+      *    *                         rf-pdx-cod-lng                    *
+      *    *                         rf-pdx-cod-num                    *
+      *    *                         rf-pdx-for-mat                    *
+      *    *                         rf-pdx-num-prg                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-pdx.
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        *                                                       *
+      *        * - 01 : Estensione al file [dcp] per descrizioni in    *
+      *        *        lingua italiana alternative, fino a 400 carat- *
+      *        *        teri                                           *
+      *        *                                                       *
+      *        * - 02 : Estensione al file [dcp] per descrizioni in    *
+      *        *        lingua estera, fino a 400 caratteri            *
+      *        *                                                       *
+      *        * - 03 : Estensione al file [dcp] per descrizioni       *
+      *        *        associate al cliente, indipendentemente        *
+      *        *        dal codice lingua, fino a 400 caratteri        *
+      *        *                                                       *
+      *        * - 04 : Estensione al file [dcp] per descrizioni       *
+      *        *        in lingua italiana destinate ai listini di     *
+      *        *        vendita, fino a 400 caratteri                  *
+      *        *                                                       *
+      *        * - 05 : Estensione al file [dcp] per codice prodotto   *
+      *        *        associato al cliente, indipendentemente dal    *
+      *        *        codice lingua                                  *
+      *        *                                                       *
+      *        * - 06 : Estensione al file [dcp] per descrizioni       *
+      *        *        in lingua italiana destinate all'ufficio       *
+      *        *        tecnico, fino a 400 caratteri                  *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 13 : Estensione al file [aaf] relativo al [dcp] per *
+      *        *        descrizioni in lingua italiana o estera asso-  *
+      *        *        ciate al fornitore, fino a 400 caratteri       *
+      *        *                                                       *
+      *        * - 14 : Estensione al file [aaf] relativo al [dcp] per *
+      *        *        annotazioni, fino a 400 caratteri              *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 33 : Estensione al file [aaf] relativo al [dpm] per *
+      *        *        descrizioni in lingua italiana o estera asso-  *
+      *        *        ciate al fornitore, fino a 400 caratteri       *
+      *        *                                                       *
+      *        * - 34 : Estensione al file [aaf] relativo al [dpm] per *
+      *        *        annotazioni, fino a 400 caratteri              *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 43 : Estensione al file [aaf] relativo al [mtv] per *
+      *        *        descrizioni in lingua italiana o estera asso-  *
+      *        *        ciate al fornitore, fino a 400 caratteri       *
+      *        *                                                       *
+      *        * - 44 : Estensione al file [aaf] relativo al [mtv] per *
+      *        *        annotazioni, fino a 400 caratteri              *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-pdx-tip-rec             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *                                                       *
+      *        * N.B. : Per i tipi record 03 e 05 il campo deve con-   *
+      *        *        tenere un codice cliente.                      *
+      *        *                                                       *
+      *        *        Per i tipi record 13 33 e 43 il campo deve     *
+      *        *        contenere un codice fornitore.                 *
+      *        *                                                       *
+      *        *        Per tutti gli altri tipi record il campo deve  *
+      *        *        essere a zero.                                 *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-pdx-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua, deve trovare corrispondenza anche nel- *
+      *        * la tabella nazioni del database geografico            *
+      *        *                                                       *
+      *        * N.B. : Per i tipi record 01 e 04 il valore deve es-   *
+      *        *        sere pari ad 'I  '.                            *
+      *        *                                                       *
+      *        *        Per il tipo record 02 il valore non puo' es-   *
+      *        *        sere pari ad 'I  '.                            *
+      *        *                                                       *
+      *        *        Per il tipi record 03, 05, 13, 33, 43 il       *
+      *        *        valore deve essere a spaces.                   *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-pdx-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto numerico                              *
+      *        *-------------------------------------------------------*
+           05  rf-pdx-cod-num             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Formato relativo al codice prodotto numerico          *
+      *        *                                                       *
+      *        * N.B. : Valido per i soli tipi record 13 33 43         *
+      *        *-------------------------------------------------------*
+           05  rf-pdx-for-mat             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo                                    *
+      *        *                                                       *
+      *        * N.B. : Il tipo record 05 conterra' solo il progres-   *
+      *        *        sivo 01                                        *
+      *        *-------------------------------------------------------*
+           05  rf-pdx-num-prg             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione prodotto alternativa oppure in lingua     *
+      *        *                                                       *
+      *        * N.B. : Questa descrizione e' solo la decima parte     *
+      *        *        dell'intera descrizione, la quale risulta      *
+      *        *        composta da un minimo di uno ad un massimo     *
+      *        *        di dieci parti, numerate rispettivamente con   *
+      *        *        i numeri progressivi da 01 a 10, compattate    *
+      *        *        a fisarmonica partendo dal numero progressi-   *
+      *        *        vo 01.                                         *
+      *        *-------------------------------------------------------*
+           05  rf-pdx-des-pro             pic  x(40)                  .

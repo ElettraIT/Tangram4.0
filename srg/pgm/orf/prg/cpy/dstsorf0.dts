@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione stato ordine fornitore     *
+      *    *-----------------------------------------------------------*
+       det-sts-orf-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-sts-orf-tip-ope      .
+           perform   det-sts-orf-cll-000  thru det-sts-orf-cll-999    .
+       det-sts-orf-opn-999.
+           exit.
+
+       det-sts-orf-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-sts-orf-tip-ope      .
+           perform   det-sts-orf-cll-000  thru det-sts-orf-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-sts-orf-tip-ope      .
+           perform   det-sts-orf-cll-000  thru det-sts-orf-cll-999    .
+           if        d-sts-orf-exi-sts    not  = spaces
+                     go to det-sts-orf-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/orf/prg/obj/dstsorf0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-sts-orf-cls-999.
+           exit.
+
+       det-sts-orf-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/orf/prg/obj/dstsorf0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-sts-orf
+                                               rf-oft                 .
+       det-sts-orf-cll-999.
+           exit.
+

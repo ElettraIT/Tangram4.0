@@ -1,0 +1,297 @@
+      *    *===========================================================*
+      *    * Link-area comune per programmi della serie pdcc4500       *
+      *    *-----------------------------------------------------------*
+
+      *    *===========================================================*
+      *    * Area di identificazione                                   *
+      *    *-----------------------------------------------------------*
+       01  i-ide.
+      *        *-------------------------------------------------------*
+      *        * Sistema applicativo                                   *
+      *        *-------------------------------------------------------*
+           05  i-ide-sap                  pic  x(03) value
+                     "pgm"                                            .
+      *        *-------------------------------------------------------*
+      *        * Area gestionale                                       *
+      *        *-------------------------------------------------------*
+           05  i-ide-arg                  pic  x(03) value
+                     "dcc"                                            .
+      *        *-------------------------------------------------------*
+      *        * Settore gestionale                                    *
+      *        *-------------------------------------------------------*
+           05  i-ide-set                  pic  x(03) value
+                     "com"                                            .
+      *        *-------------------------------------------------------*
+      *        * Fase gestionale                                       *
+      *        *-------------------------------------------------------*
+           05  i-ide-fas                  pic  x(06) value
+                     "dcc450"                                         .
+      *        *-------------------------------------------------------*
+      *        * Sigla interna del programma                           *
+      *        *-------------------------------------------------------*
+           05  i-ide-pro                  pic  x(10) value
+                     "pdcc4500"                                       .
+      *        *-------------------------------------------------------*
+      *        * Descrizione del programma                             *
+      *        *-------------------------------------------------------*
+           05  i-ide-des                  pic  x(40) value
+                     "    MANUTENZIONE ANAGRAFICHE CLIENTI    "       .
+
+      *    *===========================================================*
+      *    * Work-area per richiamo overlay per l'esecuzione effettiva *
+      *    * del tipo di manutenzione                                  *
+      *    *-----------------------------------------------------------*
+       01  w-ovy-exe.
+      *        *-------------------------------------------------------*
+      *        * Pathname per il richiamo della overlay                *
+      *        *-------------------------------------------------------*
+           05  w-ovy-exe-pat.
+      *            *---------------------------------------------------*
+      *            * Prefisso comune                                   *
+      *            *---------------------------------------------------*
+               10  w-ovy-exe-pre          pic  x(16)       value
+                     "pgm/dcc/prg/obj/"                               .
+      *            *---------------------------------------------------*
+      *            * Postfisso variabile                               *
+      *            *---------------------------------------------------*
+               10  w-ovy-exe-pos          pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Salvataggio per il postfisso variabile                *
+      *        *-------------------------------------------------------*
+           05  w-ovy-exe-inx              pic  9(02)       value zero .
+           05  w-ovy-exe-spv occurs 20    pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Salvataggio visualizzazione forzata da segreteria     *
+      *        *-------------------------------------------------------*
+           05  w-ovy-exe-vis              pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work-area per tipi manutenzione                           *
+      *    *-----------------------------------------------------------*
+       01  w-tmn.
+      *        *-------------------------------------------------------*
+      *        * Tabella tipi manutenzione e dati ad essi associati    *
+      *        *-------------------------------------------------------*
+           05  w-tmn-tbl-tmn.
+      *            *---------------------------------------------------*
+      *            * Indice per puntamento su elemento in tabella ed   *
+      *            * altri indici di comodo                            *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-inx          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Comodo per caricamento iniziale elementi          *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-wci.
+                   15  w-tmn-ele-wci-des  pic  x(50)                  .
+                   15  filler             pic  x(01)                  .
+                   15  w-tmn-ele-wci-alf  pic  x(10)                  .
+                   15  filler             pic  x(01)                  .
+                   15  w-tmn-ele-wci-ovy  pic  x(10)                  .
+      *            *---------------------------------------------------*
+      *            * Numero effettivo di elementi in tabella           *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-num          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero di elementi per pagina                     *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-nep          pic  9(03)       value 14   .
+      *            *---------------------------------------------------*
+      *            * Numero di pagine totali                           *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-npt          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero pagina attualmente visualizzata            *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-pag          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Max numero di elementi in tabella                 *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-max          pic  9(03)       value 50   .
+      *            *---------------------------------------------------*
+      *            * Elementi per tipi manutenzione                    *
+      *            *---------------------------------------------------*
+               10  w-tmn-ele-tmn occurs 50.
+      *                *-----------------------------------------------*
+      *                * Codice numerico tipo manutenzione             *
+      *                *-----------------------------------------------*
+                   15  w-tmn-num-tmn      pic  9(04)                  .
+      *                *-----------------------------------------------*
+      *                * Sigla alfanumerica tipo manutenzione          *
+      *                *-----------------------------------------------*
+                   15  w-tmn-alf-tmn      pic  x(10)                  .
+      *                *-----------------------------------------------*
+      *                * Descrizione tipo manutenzione                 *
+      *                *-----------------------------------------------*
+                   15  w-tmn-des-tmn      pic  x(50)                  .
+      *                *-----------------------------------------------*
+      *                * Overlay da richiamare per il tipo di manuten- *
+      *                * zione                                         *
+      *                *-----------------------------------------------*
+                   15  w-tmn-ovy-tmn      pic  x(10)                  .
+
+      *    *===========================================================*
+      *    * Work-area per sottoprogrammi attivi della fase            *
+      *    *-----------------------------------------------------------*
+       01  w-spg.
+      *        *-------------------------------------------------------*
+      *        * Work per test se sottoprogramma gia' attivo, codice   *
+      *        * alfanumerico del tipo di manutenzione                 *
+      *        *-------------------------------------------------------*
+           05  w-spg-alf-gat              pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Work per test se sottoprogramma gia' attivo, risposta *
+      *        * - Spaces : No                                         *
+      *        * - S      : Si                                         *
+      *        *-------------------------------------------------------*
+           05  w-spg-snx-gat              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tabella dei sottoprogrammi attivi                     *
+      *        *-------------------------------------------------------*
+           05  w-spg-tbl-spg.
+      *            *---------------------------------------------------*
+      *            * Indice per puntamento in tabella                  *
+      *            *---------------------------------------------------*
+               10  w-spg-ele-inx          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero effettivo di elementi in tabella           *
+      *            *---------------------------------------------------*
+               10  w-spg-ele-num          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Max numero di elementi in tabella                 *
+      *            *---------------------------------------------------*
+               10  w-spg-ele-max          pic  9(03)       value 99   .
+      *            *---------------------------------------------------*
+      *            * Elementi per sottoprogrammi attivi                *
+      *            *---------------------------------------------------*
+               10  w-spg-ele-spg occurs 99.
+      *                *-----------------------------------------------*
+      *                * Sigla alfanumerica tipo manutenzione          *
+      *                *-----------------------------------------------*
+                   15  w-spg-alf-tmn      pic  x(10)                  .
+
+      *    *===========================================================*
+      *    * Work-area personalizzazioni                               *
+      *    *-----------------------------------------------------------*
+       01  w-prs.
+      *        *-------------------------------------------------------*
+      *        * Personalizzazione relativa al default tipo ordina-    *
+      *        * mento di caricamento                                  *
+      *        *                                                       *
+      *        * - "R" : Ordinamento per Ragione sociale               *
+      *        * - "C" : Ordinamento per Codice                        *
+      *        * - "M" : Ordinamento per Mnemonico                     *
+      *        *-------------------------------------------------------*
+           05  w-prs-tip-ord.
+               10  w-prs-tip-ord-tip      pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero livelli del piano dei conti                    *
+      *        *-------------------------------------------------------*
+           05  w-prs-liv-pdc              pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No gestione archivio per fatturazione              *
+      *        *-------------------------------------------------------*
+           05  w-prs-ges-apf              pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Personalizzazioni relative alle spese per la fattura- *
+      *        * zione                                                 *
+      *        *-------------------------------------------------------*
+           05  w-prs-spe-fat.
+      *            *---------------------------------------------------*
+      *            * Numero di spese personalizzate caricate           *
+      *            *---------------------------------------------------*
+               10  w-prs-spe-fat-nst      pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Numero linea a video per la prima spesa diminu-   *
+      *            * ita di uno                                        *
+      *            *---------------------------------------------------*
+               10  w-prs-spe-fat-lv1      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tabella spese personalizzate, impaccate in alto,  *
+      *            * le spese non personalizzate non sono contenute    *
+      *            * nella tabella                                     *
+      *            *---------------------------------------------------*
+               10  w-prs-spe-fat-tbl occurs 06.
+      *                *-----------------------------------------------*
+      *                * Numero spesa : 1..6                           *
+      *                *-----------------------------------------------*
+                   15  w-prs-spe-fat-npt  pic  9(01)                  .
+      *                *-----------------------------------------------*
+      *                * Descrizione per il video estesa               *
+      *                *-----------------------------------------------*
+                   15  w-prs-spe-fat-dve  pic  x(25)                  .
+      *                *-----------------------------------------------*
+      *                * Tipo funzionamento spesa                      *
+      *                * - 01 : A percentuale fissa per tutti i clien- *
+      *                *        ti cui viene addebitata la spesa       *
+      *                * - 02 : A percentuale variabile per ogni cli-  *
+      *                *        ente cui viene addebitata la spesa,    *
+      *                *        con la percentuale di spesa espressa   *
+      *                *        nel record dati commerciali cliente    *
+      *                * - 03 : Ad importo fisso per tutti i clienti   *
+      *                *        cui viene addebitata la spesa          *
+      *                * - 04 : Ad importo variabile per tutti i cli-  *
+      *                *        enti cui viene addebitata la spesa,    *
+      *                *        con l'importo della spesa espresso nel *
+      *                *        record dati commerciali cliente        *
+      *                * - 05 : A seconda dei clienti, per ognuno dei  *
+      *                *        quali si esprimera', nel record dati   *
+      *                *        commerciali, se la spesa :             *
+      *                *        - non va' addebitata                   *
+      *                *        - va' addebitata in percentuale        *
+      *                *        - va' addebitata ad importo            *
+      *                *        e dove inoltre si esprimera' l'even-   *
+      *                *        tuale percentuale o importo da addebi- *
+      *                *        tare                                   *
+      *                *-----------------------------------------------*
+                   15  w-prs-spe-fat-tfs  pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Contatori, indici, e comodi locali                *
+      *            *---------------------------------------------------*
+               10  w-prs-spe-fat-i01      pic  9(01)                  .
+               10  w-prs-spe-fat-i02      pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Personalizzazioni relative alle voci descrittive per  *
+      *        * la fatturazione                                       *
+      *        *-------------------------------------------------------*
+           05  w-prs-vde-fat.
+      *            *---------------------------------------------------*
+      *            * Numero di voci personalizzate caricate            *
+      *            *---------------------------------------------------*
+               10  w-prs-vde-fat-nvt      pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Numero linea a video per la prima voce diminuito  *
+      *            * di uno                                            *
+      *            *---------------------------------------------------*
+               10  w-prs-vde-fat-lv1      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tabella voci personalizzate, impaccate in alto,   *
+      *            * le voci non personalizzate non sono contenute     *
+      *            * nella tabella                                     *
+      *            *---------------------------------------------------*
+               10  w-prs-vde-fat-tbl occurs 06.
+      *                *-----------------------------------------------*
+      *                * Numero voce 1..6                              *
+      *                *-----------------------------------------------*
+                   15  w-prs-vde-fat-npt  pic  9(01)                  .
+      *                *-----------------------------------------------*
+      *                * Descrizione per il video estesa               *
+      *                *-----------------------------------------------*
+                   15  w-prs-vde-fat-dve  pic  x(25)                  .
+      *            *---------------------------------------------------*
+      *            * Contatori, indici, e comodi locali                *
+      *            *---------------------------------------------------*
+               10  w-prs-vde-fat-i01      pic  9(01)                  .
+               10  w-prs-vde-fat-i02      pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No bollettazione attiva                            *
+      *        *-------------------------------------------------------*
+           05  w-prs-bol-snx              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo trattamento codice categoria per le dipendenze   *
+      *        *-------------------------------------------------------*
+           05  w-prs-trt-cat              pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no gestione documenti via EDI                      *
+      *        *-------------------------------------------------------*
+           05  w-prs-snx-edi              pic  x(01)                  .
+

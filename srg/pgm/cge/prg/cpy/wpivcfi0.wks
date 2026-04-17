@@ -1,0 +1,363 @@
+      *    *===========================================================*
+      *    * Routines di controllo codici fiscali                      *
+      *    *===========================================================*
+      *    *                                                           *
+      *    * ctl-prt-iva-000/999 : Controllo formale su Partita Iva    *
+      *    *                                                           *
+      *    * ctl-cod-fis-000/999 : Controllo formale su Codice Fiscale *
+      *    *                                                           *
+      *    *===========================================================*
+
+      *    *===========================================================*
+      *    * Controllo formale su partita i.v.a.                       *
+      *    *                                                           *
+      *    * Input  : w-ctl-prt-iva-piv = partita iva da controllare   *
+      *    *                                                           *
+      *    * Output : w-ctl-prt-iva-flg = - spaces : p.i. corretta     *
+      *    *                              - #      : p.i. errata       *
+      *    *-----------------------------------------------------------*
+       ctl-prt-iva-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-ctl-prt-iva-flg      .
+      *              *-------------------------------------------------*
+      *              * Se p.i. a zero si esce per OK                   *
+      *              *-------------------------------------------------*
+           if        w-ctl-prt-iva-piv    =    zero
+                     go to ctl-prt-iva-999.
+      *              *-------------------------------------------------*
+      *              * Inizializzazione contatore caratteri e sommato- *
+      *              * ria dei primi dieci caratteri                   *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-ctl-prt-iva-ctr
+                                               w-ctl-prt-iva-sum      .
+       ctl-prt-iva-100.
+      *              *-------------------------------------------------*
+      *              * Incremento contatore caratteri                  *
+      *              *-------------------------------------------------*
+           add       1                    to   w-ctl-prt-iva-ctr      .
+      *              *-------------------------------------------------*
+      *              * Se entro i primi dieci caratteri                *
+      *              *-------------------------------------------------*
+           if        w-ctl-prt-iva-ctr    >    10
+                     go to ctl-prt-iva-500.
+      *                  *---------------------------------------------*
+      *                  * Se 1. o 3. o 5. o 7. o 9. carattere         *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Somma del carattere nella sommatoria    *
+      *                      *-----------------------------------------*
+           add       w-ctl-prt-iva-chr
+                    (w-ctl-prt-iva-ctr)   to   w-ctl-prt-iva-sum      .
+      *                  *---------------------------------------------*
+      *                  * Se 2. o 4. o 6. o 8. o 10. carattere        *
+      *                  *---------------------------------------------*
+           add       1                    to   w-ctl-prt-iva-ctr      .
+      *                      *-----------------------------------------*
+      *                      * Moltiplica il carattere per due         *
+      *                      *-----------------------------------------*
+           multiply  2                    by   w-ctl-prt-iva-chr
+                                              (w-ctl-prt-iva-ctr)
+                                        giving w-ctl-prt-iva-w20      .
+      *                      *-----------------------------------------*
+      *                      * Somma nella sommatoria il carattere si- *
+      *                      * nistro e il carattere destro del risul- *
+      *                      * tato della moltiplicazione              *
+      *                      *-----------------------------------------*
+           add       w-ctl-prt-iva-w21    to   w-ctl-prt-iva-sum      .
+           add       w-ctl-prt-iva-w22    to   w-ctl-prt-iva-sum      .
+      *                  *---------------------------------------------*
+      *                  * Ricicla su prossimo carattere               *
+      *                  *---------------------------------------------*
+           go to     ctl-prt-iva-100.
+       ctl-prt-iva-500.
+      *              *-------------------------------------------------*
+      *              * Se undicesimo carattere                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Calcolo della differenza tra 100 e la som-  *
+      *                  * matoria calcolata                           *
+      *                  *---------------------------------------------*
+           subtract  w-ctl-prt-iva-sum    from 100
+                                        giving w-ctl-prt-iva-w20      .
+      *                  *---------------------------------------------*
+      *                  * Confronto tra la cifra di destra della dif- *
+      *                  * ferenza e l'undicesimo carattere : se  non  *
+      *                  * sono uguali c'e' un errore formale          *
+      *                  *---------------------------------------------*
+           if        w-ctl-prt-iva-w22    not  = w-ctl-prt-iva-chr
+                                                (w-ctl-prt-iva-ctr)
+                     move  "#"            to   w-ctl-prt-iva-flg      .
+       ctl-prt-iva-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Controllo formale su codice fiscale                       *
+      *    *                                                           *
+      *    * Input  : w-ctl-cod-fis-cof = codice fiscale da controlla- *
+      *    *                              re                           *
+      *    *                                                           *
+      *    * Output : w-ctl-cod-fis-flg = - spaces : c.f. corretto     *
+      *    *                              - #      : c.f. errato       *
+      *    *-----------------------------------------------------------*
+       ctl-cod-fis-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-ctl-cod-fis-flg      .
+      *              *-------------------------------------------------*
+      *              * Se c.f. a spaces si esce per OK                 *
+      *              *-------------------------------------------------*
+           if        w-ctl-cod-fis-cof    =    spaces
+                     go to ctl-cod-fis-999.
+      *              *-------------------------------------------------*
+      *              * Inizializzazione contatore caratteri            *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctr      .
+       ctl-cod-fis-220.
+      *              *-------------------------------------------------*
+      *              * Se carattere 1. o 2. o 3. o 4. o 5. o 6.        *
+      *              *-------------------------------------------------*
+           add       1                    to   w-ctl-cod-fis-ctr      .
+           if        w-ctl-cod-fis-ctr    >    6
+                     go to ctl-cod-fis-240.
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' A-Z : errore         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-alf
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+           go to     ctl-cod-fis-220.
+       ctl-cod-fis-240.
+      *              *-------------------------------------------------*
+      *              * Se carattere 7.                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' 0-9 : errore         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-num
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx        =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+           add       1                    to   w-ctl-cod-fis-ctr      .
+      *              *-------------------------------------------------*
+      *              * Se carattere 8.                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' 0-9 : errore         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-num
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+           add       1                    to   w-ctl-cod-fis-ctr      .
+      *              *-------------------------------------------------*
+      *              * Se carattere 9.                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' una sigla di mese    *
+      *                  * riconosciuta : errore                       *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-mes
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+           add       1                    to   w-ctl-cod-fis-ctr      .
+      *              *-------------------------------------------------*
+      *              * Se carattere 10.                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' 0-9 : errore         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-num
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+           add       1                    to   w-ctl-cod-fis-ctr      .
+      *              *-------------------------------------------------*
+      *              * Se carattere 11.                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' 0-9 : errore         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-num
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+           add       1                    to   w-ctl-cod-fis-ctr      .
+      *              *-------------------------------------------------*
+      *              * Se carattere 12.                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' A-Z : errore         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-alf
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+       ctl-cod-fis-260.
+      *              *-------------------------------------------------*
+      *              * Se carattere 13. o 14. o 15.                    *
+      *              *-------------------------------------------------*
+           add       1                    to   w-ctl-cod-fis-ctr      .
+           if        w-ctl-cod-fis-ctr    >    15
+                     go to ctl-cod-fis-280.
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' 0-9 : errore         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-num
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+           go to     ctl-cod-fis-260.
+       ctl-cod-fis-280.
+      *              *-------------------------------------------------*
+      *              * Se carattere 16.                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se il carattere non e' 0-9 o A-Z : errore   *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-num
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     go to ctl-cod-fis-300
+           else      go to ctl-cod-fis-320.
+       ctl-cod-fis-300.
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-alf
+                                      tallying w-ctl-cod-fis-ctx
+                     for                  all  w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    =    zero
+                     move  "#"            to   w-ctl-cod-fis-flg
+                     go to ctl-cod-fis-999.
+       ctl-cod-fis-320.
+      *              *-------------------------------------------------*
+      *              * Verifica del codice di controllo                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione del contatore caratteri e  *
+      *                  * della sommatoria di controllo               *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctr
+                                               w-ctl-cod-fis-sum      .
+       ctl-cod-fis-450.
+      *                  *---------------------------------------------*
+      *                  * Se 1. 3. 5. 7. 9. 11. 13. 15. carattere     *
+      *                  *---------------------------------------------*
+           add       1                    to   w-ctl-cod-fis-ctr      .
+      *                      *-----------------------------------------*
+      *                      * Determino il numero d'ordine del carat- *
+      *                      * tere nella tabella di traslazione, con- *
+      *                      * siderando che i caratteri 0..9 contano  *
+      *                      * come A..J                               *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-tbt
+                                      tallying w-ctl-cod-fis-ctx
+                     for   characters   before
+                                       initial w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx        >    25
+                     subtract  26         from w-ctl-cod-fis-ctx      .
+           add       1                    to   w-ctl-cod-fis-ctx      .
+      *                      *-----------------------------------------*
+      *                      * Somma nella sommatoria del valore nume- *
+      *                      * rico corrispondente al carattere        *
+      *                      *-----------------------------------------*
+           add       w-ctl-cod-fis-dix
+                    (w-ctl-cod-fis-ctx)   to   w-ctl-cod-fis-sum      .
+      *                  *---------------------------------------------*
+      *                  * Se 2. 4. 6. 8. 10. 12. 14. carattere        *
+      *                  *---------------------------------------------*
+           add       1                    to   w-ctl-cod-fis-ctr      .
+           if        w-ctl-cod-fis-ctr    >    15
+                     go to ctl-cod-fis-500.
+      *                      *-----------------------------------------*
+      *                      * Determino il numero d'ordine del carat- *
+      *                      * tere nella tabella di traslazione, con- *
+      *                      * siderando che i caratteri 0..9 contano  *
+      *                      * per il loro effettivo valore            *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-tbt
+                                      tallying w-ctl-cod-fis-ctx
+                     for   characters   before
+                                       initial w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+           if        w-ctl-cod-fis-ctx    >    25
+                     subtract  26         from w-ctl-cod-fis-ctx      .
+      *                      *-----------------------------------------*
+      *                      * Somma nella sommatoria del numero d'or- *
+      *                      * dine del carattere cosi' calcolato      *
+      *                      *-----------------------------------------*
+           add       w-ctl-cod-fis-ctx    to   w-ctl-cod-fis-sum      .
+           go to     ctl-cod-fis-450.
+       ctl-cod-fis-500.
+      *                  *---------------------------------------------*
+      *                  * Se 16. carattere                            *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Determinazione del resto della divisio- *
+      *                      * ne della sommatoria per 26              *
+      *                      *-----------------------------------------*
+           divide    26                   into w-ctl-cod-fis-sum
+                                        giving w-ctl-cod-fis-tou      .
+           multiply  26                   by   w-ctl-cod-fis-tou      .
+           subtract  w-ctl-cod-fis-tou    from w-ctl-cod-fis-sum      .
+      *                      *-----------------------------------------*
+      *                      * Determinazione del numero d'ordine del  *
+      *                      * 16. carattere                           *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-ctl-cod-fis-ctx      .
+           inspect   w-ctl-cod-fis-alf
+                                      tallying w-ctl-cod-fis-ctx
+                     for   characters   before
+                                       initial w-ctl-cod-fis-chr
+                                              (w-ctl-cod-fis-ctr)     .
+      *                      *-----------------------------------------*
+      *                      * Se i due valori non corrispondono : er- *
+      *                      * rore                                    *
+      *                      *-----------------------------------------*
+           if        w-ctl-cod-fis-ctx    not  = w-ctl-cod-fis-sum
+                     move  "#"            to   w-ctl-cod-fis-flg      .
+       ctl-cod-fis-999.
+           exit.
+

@@ -1,0 +1,70 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zpu]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zpu-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zpu-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a spaces                         *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zpu-cod    =    spaces
+                     go to let-arc-zpu-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODTPU    "         to   f-key                  .
+           move      w-let-arc-zpu-cod    to   rf-zpu-cod-tpu         .
+           move      "pgm/cge/fls/ioc/obj/iofzpu"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zpu                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zpu-400.
+       let-arc-zpu-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zpu-des-tpu       to   w-let-arc-zpu-des      .
+           move      rf-zpu-mod-utl       to   w-let-arc-zpu-mdu      .
+           move      rf-zpu-tip-sez       to   w-let-arc-zpu-sez      .
+           move      rf-zpu-snx-rrt       to   w-let-arc-zpu-rrt      .
+           move      rf-zpu-snx-ran       to   w-let-arc-zpu-ran      .
+           move      rf-zpu-snx-cat       to   w-let-arc-zpu-cat      .
+           move      rf-zpu-snx-cuf       to   w-let-arc-zpu-cuf      .
+           move      rf-zpu-snx-att       to   w-let-arc-zpu-att      .
+           move      rf-zpu-stc-deb       to   w-let-arc-zpu-deb      .
+           move      rf-zpu-stc-cre       to   w-let-arc-zpu-cre      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zpu-999.
+       let-arc-zpu-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zpu-flg      .
+           move      all   "."            to   w-let-arc-zpu-des      .
+           go to     let-arc-zpu-600.
+       let-arc-zpu-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zpu-des      .
+       let-arc-zpu-600.
+           move      spaces               to   w-let-arc-zpu-mdu      .
+           move      zero                 to   w-let-arc-zpu-sez      .
+           move      spaces               to   w-let-arc-zpu-rrt      .
+           move      spaces               to   w-let-arc-zpu-ran      .
+           move      spaces               to   w-let-arc-zpu-cat      .
+           move      spaces               to   w-let-arc-zpu-cuf      .
+           move      spaces               to   w-let-arc-zpu-att      .
+           move      zero                 to   w-let-arc-zpu-deb      .
+           move      zero                 to   w-let-arc-zpu-cre      .
+       let-arc-zpu-999.
+           exit.
+

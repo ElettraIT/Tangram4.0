@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione inter-relazioni documenti  *
+      *    * di vendita                                                *
+      *    *-----------------------------------------------------------*
+       det-ird-ven-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-ird-ven-tip-ope      .
+           perform   det-ird-ven-cll-000  thru det-ird-ven-cll-999    .
+       det-ird-ven-opn-999.
+           exit.
+
+       det-ird-ven-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-ird-ven-tip-ope      .
+           perform   det-ird-ven-cll-000  thru det-ird-ven-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-ird-ven-tip-ope      .
+           perform   det-ird-ven-cll-000  thru det-ird-ven-cll-999    .
+           if        d-ird-ven-exi-sts    not  = spaces
+                     go to det-ird-ven-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/fat/prg/obj/dirdven0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-ird-ven-cls-999.
+           exit.
+
+       det-ird-ven-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/fat/prg/obj/dirdven0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-ird-ven              .
+       det-ird-ven-cll-999.
+           exit.
+

@@ -1,0 +1,167 @@
+      *    *===========================================================*
+      *    * Record tabella addebito spese bollo [zbo]                 *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODSPB    " = rf-zbo-cod-spb                    *
+      *    *                         rf-zbo-tip-pag                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zbo.
+      *        *-------------------------------------------------------*
+      *        * Codice spesa bollo                                    *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-cod-spb             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di pagamento                                     *
+      *        *                                                       *
+      *        * - 01 : Rimessa diretta                                *
+      *        * - 02 : Incasso elettronico                            *
+      *        * - 03 : Ri.Ba.                                         *
+      *        * - 04 : Di.Pa.                                         *
+      *        * - 05 : Mav - Mediante avviso                          *
+      *        * - 06 : Rid - Accredito preautorizzato in conto        *
+      *        * - 07 : Bonifico bancario                              *
+      *        * - 08 : Conto corrente postale                         *
+      *        * - 09 : Ricevuta bancaria tradizionale                 *
+      *        * - 10 : Tratta                                         *
+      *        * - 11 : Paghero'                                       *
+      *        *                                                       *
+      *        * N.B. : Il tipo pagamento 00 indica l'intestazione per *
+      *        *        il codice spesa bollo, e deve essere creato    *
+      *        *        preventivamente rispetto ai tipi di pagamento  *
+      *        *        reali.                                         *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-tip-pag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per il codice spesa bollo, ad uso interno *
+      *        *                                                       *
+      *        * Solo se tipo pagamento 00                             *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-des-spb             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per spese bollo                            *
+      *        *                                                       *
+      *        * N.B. : Puo' essere a zero, e in questo caso l'ammon-  *
+      *        *        tare delle spese bollo sara' distribuito pro-  *
+      *        *        porzionalmente tra tutti gli imponibili  pre-  *
+      *        *        senti nel documento.                           *
+      *        *                                                       *
+      *        * Solo se tipo pagamento 00                             *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-civ-spb             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per spese bollo                  *
+      *        *                                                       *
+      *        * N.B. : Puo' essere a zero, e in questo caso l'ammon-  *
+      *        *        tare delle spese bollo sara' distribuito pro-  *
+      *        *        porzionalmente tra tutte le contropartite      *
+      *        *        presenti nel documento.                        *
+      *        *                                                       *
+      *        * Solo se tipo pagamento 00                             *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-ccp-spb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di automatismo per la determinazione delle spese *
+      *        * bollo per questo tipo pagamento                       *
+      *        *                                                       *
+      *        * - 01 : In percentuale sul totale scadenza             *
+      *        * - 02 : A scaglioni                                    *
+      *        * - 03 : A scaglioni con percentuale sull'eccedenza     *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-tau-spb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuale per la determinazione delle spese bollo   *
+      *        * per questo tipo di pagamento                          *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Solo se tipo automatismo 01                           *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-per-spb             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Tabella scaglioni per la determinazione delle spese   *
+      *        * bollo per questo tipo di pagamento                    *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Solo se tipo automatismo 02 o 03                      *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-tbs-spb.
+      *            *---------------------------------------------------*
+      *            * Elemento della tabella scaglioni                  *
+      *            *---------------------------------------------------*
+               10  rf-zbo-tbe-spb occurs 10.
+      *                *-----------------------------------------------*
+      *                * Scaglione                                     *
+      *                *-----------------------------------------------*
+                   15  rf-zbo-tbe-scg     pic  9(11)                  .
+      *                *-----------------------------------------------*
+      *                * Ammontare sullo scaglione                     *
+      *                *                                               *
+      *                * Solo se tipo di automatismo 02                *
+      *                *-----------------------------------------------*
+                   15  rf-zbo-tbe-asc     pic  9(11)                  .
+      *                *-----------------------------------------------*
+      *                * Percentuale sullo scaglione                   *
+      *                *                                               *
+      *                * Solo se tipo di automatismo 03                *
+      *                *-----------------------------------------------*
+                   15  rf-zbo-tbe-psc     pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Tetto di esenzione per la spesa                       *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-tet-spb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore minimo delle spese bollo per questo tipo di    *
+      *        * pagamento                                             *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-min-spb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore massimo delle spese bollo per questo tipo di   *
+      *        * pagamento                                             *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-max-spb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di arrotondamento sul valore determinato delle   *
+      *        * spese bollo per questo tipo di pagamento              *
+      *        *                                                       *
+      *        * - 00 : Nessun arrotondamento                          *
+      *        * - 01 : Arrotondamento al valore superiore             *
+      *        * - 02 : Arrotondamento al valore inferiore             *
+      *        * - 03 : Arrotondamento di tipo commerciale             *
+      *        * - 04 : Arrotondamento di tipo statale                 *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-tar-spb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore di arrotondamento sul valore determinato delle *
+      *        * spese bollo per questo tipo di pagamento              *
+      *        *                                                       *
+      *        * Solo se tipo pagamento diverso da 00                  *
+      *        *                                                       *
+      *        * Solo se tipo arrotondamento diverso da 00             *
+      *        *                                                       *
+      *        * Per tutti i tipi di automatismo                       *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-var-spb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zbo-alx-exp             pic  x(80)                  .

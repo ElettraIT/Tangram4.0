@@ -1,0 +1,150 @@
+      *        *-------------------------------------------------------*
+      *        * Flag blocco di documento                              *
+      *        * - 0 : Riga all'esterno di ogni blocco                 *
+      *        * - 1 : Riga di inizio blocco                           *
+      *        * - 2 : Riga all'interno di un blocco                   *
+      *        * - 3 : Riga di fine blocco                             *
+      *        *-------------------------------------------------------*
+           05  rf-bir-bld-flb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo blocco di documento                              *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 0                       *
+      *        * - 0 : Valore fisso                                    *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 1 o 2 o 3               *
+      *        * - 1 : Blocco di tipo 1                                *
+      *        * - 2 : Blocco di tipo 2                                *
+      *        * - 3 : Blocco di tipo 3                                *
+      *        * - 4 : Blocco di tipo 4                                *
+      *        * - 5 : Blocco di tipo 5                                *
+      *        * - 6 : Blocco di tipo 6                                *
+      *        * - 7 : Blocco di tipo 7                                *
+      *        *                                                       *
+      *        * ----------------------------------------------------- *
+      *        *                                                       *
+      *        * N.B. : In un documento possono esistere blocchi di    *
+      *        *        tipo diverso, codificati numericamente :       *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 1. : Lista con valore totale automatico finale        *
+      *        *                                                       *
+      *        *      In questo caso esisteranno piu' righe reali se-  *
+      *        *      guite da una riga di tipo apparente. L'importo   *
+      *        *      in riga sara' impostato solamente per le righe   *
+      *        *      di tipo reale, mentre sara' determinato automa-  *
+      *        *      ticamente per la riga totale di tipo apparente.  *
+      *        *      La stampa comportera' tutte le righe reali, sen- *
+      *        *      za indicazione di prezzo ne' di importo, e alla  *
+      *        *      fine la riga apparente come riga di importo to-  *
+      *        *      tale per le voci precedenti.                     *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 2. : Lista con valore totale automatico iniziale      *
+      *        *                                                       *
+      *        *      In questo caso esistera' una riga di tipo appa-  *
+      *        *      rente seguita da piu' righe di tipo reale. L'im- *
+      *        *      porto in riga sara' impostato solamente per le   *
+      *        *      righe di tipo reale, mentre sara' determinato    *
+      *        *      automaticamente per la riga totale iniziale di   *
+      *        *      tipo apparente. La stampa comportera' all'inizio *
+      *        *      la riga totale apparente come riga di importo    *
+      *        *      totale delle voci successive, e poi tutte le ri- *
+      *        *      ghe reali senza indicazione di prezzo ne' di im- *
+      *        *      porto.                                           *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 3. : Lista con il solo valore totale automatico       *
+      *        *                                                       *
+      *        *      Funziona come il blocco di tipo 1, con la diffe- *
+      *        *      renza che viene stampata solamente la riga appa- *
+      *        *      rente di totale.                                 *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 4. : Lista con valore totale manuale finale           *
+      *        *                                                       *
+      *        *      In questo caso esisteranno piu' righe reali se-  *
+      *        *      guite da una riga di tipo apparente. Sia le ri-  *
+      *        *      ghe reali che quella apparente avranno un impor- *
+      *        *      to in riga. Alla fine l'importo della riga appa- *
+      *        *      rente sara' redistribuito ponderatamente sulle   *
+      *        *      righe reali. La stampa del documento comportera' *
+      *        *      tutte le righe reali, senza indicazione di prez- *
+      *        *      zo ne' di importo, e alla fine la riga apparente *
+      *        *      come riga di importo totale per le voci prece-   *
+      *        *      denti.                                           *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 5. : Lista con valore totale manuale iniziale         *
+      *        *                                                       *
+      *        *      In questo caso esistera' una riga di tipo appa-  *
+      *        *      rente seguita da piu' righe di tipo reale. L'im- *
+      *        *      porto in riga sara' impostato sia per la riga    *
+      *        *      apparente iniziale che per tutte le righe reali. *
+      *        *      L'importo della riga apparente sara' redistribu- *
+      *        *      ito ponderatamente sulle righe reali. La stampa  *
+      *        *      del documento comportera' all'inizio la riga to- *
+      *        *      tale apparente, e poi tutte le righe reali senza *
+      *        *      indicazione di prezzo ne' di importo.            *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 6. : Lista con il solo valore totale manuale          *
+      *        *                                                       *
+      *        *      Funziona come il blocco di tipo 4, con la diffe- *
+      *        *      renza che viene stampata solamente la riga appa- *
+      *        *      rente di totale.                                 *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 7. : Lista con piu' valori totali manuali             *
+      *        *                                                       *
+      *        *      In questo caso esisteranno piu' righe reali se-  *
+      *        *      guite da piu' righe di tipo apparente. Sia le    *
+      *        *      righe reali che quelle apparenti avranno un im-  *
+      *        *      porto in riga. Alla fine la somma degli importi  *
+      *        *      delle righe apparenti sara' redistribuita ponde- *
+      *        *      ratamente sulle righe reali. La stampa del docu- *
+      *        *      mento comportera' solo le righe apparenti.       *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-bld-tpb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga nel blocco di documento                     *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 0                       *
+      *        * - 0 : Valore fisso                                    *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 1 o 2 o 3               *
+      *        * - 1 : Tipo riga reale                                 *
+      *        * - 2 : Tipo riga apparente                             *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bir-bld-rgb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga                                             *
+      *        *                                                       *
+      *        * P   : Prodotti di vendita                             *
+      *        * S   : Semilavorati                                    *
+      *        * M   : Materie prime                                   *
+      *        * PN  : Prodotti di vendita non codificati              *
+      *        *                                                       *
+      *        * A   : Addebito o Accredito a forfait                  *
+      *        *                                                       *
+      *        * C   : Commento                                        *
+      *        *                                                       *
+      *        * N.B.: In fase di bollettazione l'operatore puo' impo- *
+      *        *       stare anche altri tipi riga, ovvero             *
+      *        *       - L1 : Inizio blocco di tipo 1                  *
+      *        *       - L2 : Inizio blocco di tipo 2                  *
+      *        *       - L3 : Inizio blocco di tipo 3                  *
+      *        *       - L4 : Inizio blocco di tipo 4                  *
+      *        *       - L5 : Inizio blocco di tipo 5                  *
+      *        *       - L6 : Inizio blocco di tipo 6                  *
+      *        *       - L7 : Inizio blocco di tipo 7                  *
+      *        *       - FL : Fine blocco                              *
+      *        *                                                       *
+      *        *      Tuttavia questi tipi riga non sono dei veri tipi *
+      *        *      riga, bensi' modalita' di funzionamento che si   *
+      *        *      ripercuotono sulla riga iniziale, quelle inter-  *
+      *        *      medie, e quella finale del blocco.               *
+      *        *-------------------------------------------------------*
+           05  rf-bir-tip-rig             pic  x(05)                  .

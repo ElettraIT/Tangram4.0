@@ -1,0 +1,36 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione righe ordine a fornitore     *
+      *    *-----------------------------------------------------------*
+       esp-rig-ofr-opn-000.
+           move      "pgm/orf/prg/obj/porf301x"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-rig-ofr-pth      .
+           move      "OP"                 to   w-esp-rig-ofr-ope      .
+           perform   esp-rig-ofr-cll-000  thru esp-rig-ofr-cll-999    .
+       esp-rig-ofr-opn-999.
+           exit.
+       esp-rig-ofr-cls-000.
+           move      "CL"                 to   w-esp-rig-ofr-ope      .
+           perform   esp-rig-ofr-cll-000  thru esp-rig-ofr-cll-999    .
+           move      "C?"                 to   w-esp-rig-ofr-ope      .
+           perform   esp-rig-ofr-cll-000  thru esp-rig-ofr-cll-999    .
+           if        w-esp-rig-ofr-ope    not  = spaces
+                     go to esp-rig-ofr-cls-999.
+           cancel    w-esp-rig-ofr-pth                                .
+       esp-rig-ofr-cls-999.
+           exit.
+       esp-rig-ofr-esp-000.
+           move      "ES"                 to   w-esp-rig-ofr-ope      .
+           perform   esp-rig-ofr-cll-000  thru esp-rig-ofr-cll-999    .
+           go to     esp-rig-ofr-esp-999.
+       esp-rig-ofr-esp-999.
+           exit.
+       esp-rig-ofr-cll-000.
+           call      w-esp-rig-ofr-pth   using w-esp-rig-ofr
+                                               v
+                                               s                      .
+       esp-rig-ofr-cll-999.
+           exit.
+

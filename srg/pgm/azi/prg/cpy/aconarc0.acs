@@ -1,0 +1,1713 @@
+      *    *===========================================================*
+      *    * Accettazione : Contatti e utenze                          *
+      *    *-----------------------------------------------------------*
+      *    * Subroutine in copy nei seguenti programmi:                *
+      *    *                                                           *
+      *    * - pdcc4000 : anagrafica Commerciale Clienti               *
+      *    * - pdcc6000 : anagrafica Marketing   Clienti               *
+      *    * - pcge4000 : anagrafica Contabile   Clienti               *
+      *    * - pdcf4000 : anagrafica Commerciale Fornitori             *
+      *    * - pcge5000 : anagrafica Contabile   Fornitori             *
+      *    * - page2000 : anagrafica             Agenti                *
+      *    * - pbol2000 : anagrafica             Vettori               *
+      *    * - pgep0150 : anagrafica             Banche                *
+      *    *                                                           *
+      *    * Aggiornata : 11/01/23                                     *
+      *    *-----------------------------------------------------------*
+       acc-con-arc-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione pagina contatti a partire   *
+      *                  * dall'elemento numero 1                      *
+      *                  *---------------------------------------------*
+           move      1                    to   w-acc-con-arc-n1v      .
+           perform   acc-con-arc-900      thru acc-con-arc-909        .
+       acc-con-arc-060.
+      *                  *---------------------------------------------*
+      *                  * Primo elemento visualizzato : 1             *
+      *                  *---------------------------------------------*
+           move      1                    to   w-acc-con-arc-pev      .
+      *                  *---------------------------------------------*
+      *                  * Numero elemento in accettazione : 1         *
+      *                  *---------------------------------------------*
+           move      1                    to   w-acc-con-arc-nel      .
+      *                  *---------------------------------------------*
+      *                  * Ad accettazione                             *
+      *                  *---------------------------------------------*
+           go to     acc-con-arc-100.
+       acc-con-arc-080.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione pagina se necessario            *
+      *              *-------------------------------------------------*
+       acc-con-arc-082.
+           move      w-acc-con-arc-pev    to   w-acc-con-arc-c0a      .
+           move      w-acc-con-arc-c0a    to   w-acc-con-arc-c0b      .
+           add       w-acc-con-arc-lpp    to   w-acc-con-arc-c0b      .
+           subtract  1                    from w-acc-con-arc-c0b      .
+      *
+           if        w-acc-con-arc-nel    <    w-acc-con-arc-c0a or
+                     w-acc-con-arc-nel    >    w-acc-con-arc-c0b
+                     go to acc-con-arc-084
+           else      go to acc-con-arc-086.
+       acc-con-arc-084.
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-n1v      .
+           subtract  1                    from w-acc-con-arc-n1v      .
+           divide    w-acc-con-arc-lpp    into w-acc-con-arc-n1v      .
+           multiply  w-acc-con-arc-lpp    by   w-acc-con-arc-n1v      .
+           add       1                    to   w-acc-con-arc-n1v      .
+           move      w-acc-con-arc-n1v    to   w-acc-con-arc-pev      .
+           perform   acc-con-arc-900      thru acc-con-arc-909        .
+       acc-con-arc-086.
+           go to     acc-con-arc-100.
+       acc-con-arc-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione linea                              *
+      *              *-------------------------------------------------*
+       acc-con-arc-150.
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valori precedenti linea         *
+      *                  *---------------------------------------------*
+           move      w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          to   w-acc-con-arc-stc      .
+           move      w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          to   w-acc-con-arc-snc      .
+           move      w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                                          to   w-acc-con-arc-sic      .
+       acc-con-arc-200.
+      *                  *---------------------------------------------*
+      *                  * Calcolo linea video                         *
+      *                  *---------------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       w-acc-con-arc-inl    to   w-acc-con-arc-c0r      .
+      *                  *---------------------------------------------*
+      *                  * Cursore                                     *
+      *                  *---------------------------------------------*
+           perform   acc-con-arc-950      thru acc-con-arc-959        .
+      *                  *---------------------------------------------*
+      *                  * Accettazione tipo contatto                  *
+      *                  *---------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "E"                  to   v-tip                  .
+           move      w-exp-tip-con-lun    to   v-car                  .
+           move      w-exp-tip-con-num    to   v-ldt                  .
+           move      "NTFCEPWS#"          to   v-msk                  .
+           move      spaces               to   v-edm                  .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           move      02                   to   v-pos                  .
+           move      w-exp-tip-con-tbl    to   v-txt                  .
+      *
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "   "
+                     move  01             to   v-num
+           else if   w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "TEL"
+                     move  02             to   v-num
+           else if   w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "FAX"
+                     move  03             to   v-num
+           else if   w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "CEL"
+                     move  04             to   v-num
+           else if   w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "EML"
+                     move  05             to   v-num
+           else if   w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "PEC"
+                     move  06             to   v-num
+           else if   w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "WWW"
+                     move  07             to   v-num
+           else if   w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "SEP"
+                     move  08             to   v-num
+           else      move  zero           to   v-num                  .
+      *                      *-----------------------------------------*
+      *                      * Tasti funzione                          *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * 'UP  '                              *
+      *                          *-------------------------------------*
+           move      "UP  "               to   v-pfk (01)             .
+      *                          *-------------------------------------*
+      *                          * 'DOWN'                              *
+      *                          *-------------------------------------*
+           move      "DOWN"               to   v-pfk (02)             .
+      *                          *-------------------------------------*
+      *                          * 'INSR'                              *
+      *                          *-------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          not  = spaces and
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-max)
+                                          =    spaces
+                     move  "INSR"         to   v-pfk (04)             .
+      *                          *-------------------------------------*
+      *                          * 'DO  '                              *
+      *                          *-------------------------------------*
+           move      "DO  "               to   v-pfk (05)             .
+      *                          *-------------------------------------*
+      *                          * 'REMV'                              *
+      *                          *-------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          not  = spaces
+                     go to acc-con-arc-202.
+      *
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0a      .
+           add       1                    to   w-acc-con-arc-c0a      .
+      *
+           if        w-acc-con-arc-c0a    >    w-acc-con-arc-max
+                     go to acc-con-arc-204.
+      *
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0a)
+                                          =    spaces
+                     go to acc-con-arc-204.
+       acc-con-arc-202.
+           move      "REMV"               to   v-pfk (06)             .
+       acc-con-arc-204.
+      *                          *-------------------------------------*
+      *                          * 'PRSC'                              *
+      *                          *-------------------------------------*
+           move      "PRSC"               to   v-pfk (07)             .
+      *                          *-------------------------------------*
+      *                          * 'NXSC'                              *
+      *                          *-------------------------------------*
+           move      "NXSC"               to   v-pfk (08)             .
+      *                          *-------------------------------------*
+      *                          * 'BACK'                              *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-nel    >    1
+                     move  "BACK"         to   v-pfk (09)             .
+      *                          *-------------------------------------*
+      *                          * 'TAB '                              *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-nel    =    w-acc-con-arc-max
+                     go to acc-con-arc-208.
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0a      .
+           add       1                    to   w-acc-con-arc-c0a      .
+      *
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces and
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-c0a)
+                                          =    spaces
+                     go to acc-con-arc-208.
+           move      "TAB "               to   v-pfk (10)             .
+       acc-con-arc-208.
+           move      w-acc-con-arc-stc    to   v-alf                  .
+      *                      *-----------------------------------------*
+      *                      * Accettazione                            *
+      *                      *-----------------------------------------*
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *                      *-----------------------------------------*
+      *                      * Valore in campo di destinazione         *
+      *                      *-----------------------------------------*
+           if        v-num                =    01
+                     move  "   "          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else if   v-num                =    02
+                     move  "TEL"          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else if   v-num                =    03
+                     move  "FAX"          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else if   v-num                =    04
+                     move  "CEL"          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else if   v-num                =    05
+                     move  "EML"          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else if   v-num                =    06
+                     move  "PEC"          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else if   v-num                =    07
+                     move  "WWW"          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else if   v-num                =    08
+                     move  "SEP"          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+           else      move  spaces         to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                      *-----------------------------------------*
+      *                      * Se Exit                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-tes
+                     go to acc-con-arc-800.
+      *                      *-----------------------------------------*
+      *                      * Se Delt                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-tes
+                     go to acc-con-arc-800.
+      *                      *-----------------------------------------*
+      *                      * Se Return                               *
+      *                      *-----------------------------------------*
+           if        v-key                =    spaces
+                     go to acc-con-arc-430.
+      *                      *-----------------------------------------*
+      *                      * In ogni altro caso il valore deve esse- *
+      *                      * re inalterato                           *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Test se separatore                  *
+      *                          *-------------------------------------*
+           if        v-alf                =    "---"
+                     go to acc-con-arc-210.
+      *                          *-------------------------------------*
+      *                          * Confronto                           *
+      *                          *-------------------------------------*
+           if        v-alf                not  = w-acc-con-arc-stc
+                     go to acc-con-arc-200.
+       acc-con-arc-210.
+      *                      *-----------------------------------------*
+      *                      * Se Up                                   *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "UP  "
+                     go to acc-con-arc-225.
+      *                          *-------------------------------------*
+      *                          * Compattamento se necessario         *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-920      thru acc-con-arc-929        .
+      *                          *-------------------------------------*
+      *                          * Se sul primo : uscita               *
+      *                          *-------------------------------------*
+           subtract  1                    from w-acc-con-arc-nel      .
+      *
+           if        w-acc-con-arc-nel    =    zero
+                     move  "UP  "         to   v-key
+                     go to acc-con-arc-800
+           else      go to acc-con-arc-080.
+       acc-con-arc-225.
+      *                      *-----------------------------------------*
+      *                      * Se Down                                 *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "DOWN"
+                     go to acc-con-arc-250.
+      *                          *-------------------------------------*
+      *                          * Compattamento se necessario         *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-920      thru acc-con-arc-929        .
+      *                          *-------------------------------------*
+      *                          * Se sull'ultimo : uscita             *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-fce    =    spaces
+                     add   1              to   w-acc-con-arc-nel      .
+           if        w-acc-con-arc-nel    >    w-acc-con-arc-max
+                     move  "DOWN"         to   v-key
+                     go to acc-con-arc-800.
+           if        w-acc-con-arc-nel    =    1
+                     go to acc-con-arc-230
+           else      go to acc-con-arc-235.
+       acc-con-arc-230.
+           if        w-tes-tip-con (1, 1) =    spaces and
+                     w-tes-tip-con (1, 2) =    spaces
+                     move  "DOWN"         to   v-key
+                     go to acc-con-arc-800
+           else      go to acc-con-arc-080.
+       acc-con-arc-235.
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0a      .
+           move      w-acc-con-arc-c0a    to   w-acc-con-arc-c0b      .
+           subtract  1                    from w-acc-con-arc-c0b      .
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0a)
+                                          =    spaces and
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-c0b)
+                                          =    spaces
+                     move  "DOWN"         to   v-key
+                     go to acc-con-arc-800
+           else      go to acc-con-arc-080.
+       acc-con-arc-250.
+      *                      *-----------------------------------------*
+      *                      * Se Insr                                 *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "INSR"
+                     go to acc-con-arc-275.
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-940      thru acc-con-arc-949        .
+           go to     acc-con-arc-080.
+       acc-con-arc-275.
+      *                      *-----------------------------------------*
+      *                      * Se Do                                   *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "DO  "
+                     go to acc-con-arc-300.
+      *                          *-------------------------------------*
+      *                          * Controlli per tasto Do              *
+      *                          *-------------------------------------*
+           perform   cnt-tdo-nok-000      thru cnt-tdo-nok-999        .
+           if        w-cnt-tdo-nok-flg    =    spaces
+                     go to acc-con-arc-280
+           else      move  spaces         to   w-cnt-tus-acc-tes
+                     go to acc-con-arc-200.
+       acc-con-arc-280.
+      *                          *-------------------------------------*
+      *                          * Compattamento se necessario         *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-920      thru acc-con-arc-929        .
+      *                          *-------------------------------------*
+      *                          * Uscita                              *
+      *                          *-------------------------------------*
+           move      "S"                  to   w-cnt-tus-acc-tes      .
+           go to     acc-con-arc-800.
+       acc-con-arc-300.
+      *                      *-----------------------------------------*
+      *                      * Se Remv                                 *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "REMV"
+                     go to acc-con-arc-325.
+      *                          *-------------------------------------*
+      *                          * Compattamento in ogni caso          *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-930      thru acc-con-arc-939        .
+      *                          *-------------------------------------*
+      *                          * A reimpostare                       *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-080.
+       acc-con-arc-325.
+      *                      *-----------------------------------------*
+      *                      * Se Prsc                                 *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "PRSC"
+                     go to acc-con-arc-350.
+      *                          *-------------------------------------*
+      *                          * Compattamento se necessario         *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-920      thru acc-con-arc-929        .
+      *                          *-------------------------------------*
+      *                          * Se su prima facciata : uscita       *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-nel    not  > w-acc-con-arc-lpp
+                     move  "UP  "         to   v-key
+                     go to acc-con-arc-800.
+      *                          *-------------------------------------*
+      *                          * Al primo elemento della facciata    *
+      *                          * precedente                          *
+      *                          *-------------------------------------*
+           subtract  1                    from w-acc-con-arc-nel      .
+           divide    w-acc-con-arc-lpp    into w-acc-con-arc-nel      .
+           subtract  1                    from w-acc-con-arc-nel      .
+           multiply  w-acc-con-arc-lpp    by   w-acc-con-arc-nel      .
+           add       1                    to   w-acc-con-arc-nel      .
+           go to     acc-con-arc-080.
+       acc-con-arc-350.
+      *                      *-----------------------------------------*
+      *                      * Se Nxsc                                 *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "NXSC"
+                     go to acc-con-arc-375.
+      *                          *-------------------------------------*
+      *                          * Compattamento se necessario         *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-920      thru acc-con-arc-929        .
+      *                          *-------------------------------------*
+      *                          * Preparazione contatori              *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0a      .
+           subtract  1                    from w-acc-con-arc-c0a      .
+           divide    w-acc-con-arc-lpp    into w-acc-con-arc-c0a      .
+           add       1                    to   w-acc-con-arc-c0a      .
+           multiply  w-acc-con-arc-lpp    by   w-acc-con-arc-c0a      .
+           add       1                    to   w-acc-con-arc-c0a      .
+      *                          *-------------------------------------*
+      *                          * Se su ultima facciata : uscita      *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-c0a    >    w-acc-con-arc-max
+                     move  "DOWN"         to   v-key
+                     go to acc-con-arc-800.
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0a)
+                                          =    spaces
+                     move  "DOWN"         to   v-key
+                     go to acc-con-arc-800.
+      *                          *-------------------------------------*
+      *                          * Al primo elemento della facciata    *
+      *                          * successiva                          *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-c0a    to   w-acc-con-arc-nel      .
+           go to     acc-con-arc-080.
+       acc-con-arc-375.
+      *                      *-----------------------------------------*
+      *                      * Se Back                                 *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "BACK"
+                     go to acc-con-arc-400.
+      *                          *-------------------------------------*
+      *                          * Compattamento se necessario         *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-920      thru acc-con-arc-929        .
+      *                          *-------------------------------------*
+      *                          * Al primo elemento                   *
+      *                          *-------------------------------------*
+           move      1                    to   w-acc-con-arc-nel      .
+           go to     acc-con-arc-080.
+       acc-con-arc-400.
+      *                      *-----------------------------------------*
+      *                      * Se Tab                                  *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "TAB "
+                     go to acc-con-arc-420.
+      *                          *-------------------------------------*
+      *                          * Compattamento se necessario         *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-920      thru acc-con-arc-929        .
+      *                          *-------------------------------------*
+      *                          * Dopo l'ultimo elemento inserito     *
+      *                          *-------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-max)
+                                          not  = spaces
+                     move  w-acc-con-arc-max
+                                          to   w-acc-con-arc-nel
+                     go to acc-con-arc-080.
+           move      w-acc-con-arc-max    to   w-acc-con-arc-nel      .
+       acc-con-arc-405.
+           if        w-acc-con-arc-nel    =    zero
+                     go to acc-con-arc-410.
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces
+                     subtract  1          from w-acc-con-arc-nel
+                     go to     acc-con-arc-405.
+       acc-con-arc-410.
+           add       1                    to   w-acc-con-arc-nel      .
+           go to     acc-con-arc-080.
+       acc-con-arc-420.
+      *                      *-----------------------------------------*
+      *                      * Se Return                               *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Controllo valore impostato          *
+      *                          *-------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces
+                     go to acc-con-arc-450.
+      *                          *-------------------------------------*
+      *                          * In ogni altro caso il valore deve   *
+      *                          * essere inalterato                   *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-stc    =    spaces
+                     go to acc-con-arc-430.
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          not  = w-acc-con-arc-stc
+                     move  w-acc-con-arc-stc
+                                          to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)
+                     go to acc-con-arc-200.
+       acc-con-arc-430.
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "TEL" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "FAX" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "CEL" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "EML" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "PEC" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "WWW" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "SEP"
+                     go to acc-con-arc-470.
+      *                          *-------------------------------------*
+      *                          * A ri-accettazione                   *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-200.
+       acc-con-arc-450.
+      *                          *-------------------------------------*
+      *                          * Se impostato spaces                 *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Se il valore precedente era a   *
+      *                              * spaces : come per Down          *
+      *                              *---------------------------------*
+           if        w-acc-con-arc-stc    =    spaces
+                     move  "DOWN"         to   v-key
+                     go to acc-con-arc-225.
+      *                              *---------------------------------*
+      *                              * Altrimenti come per Remv        *
+      *                              *---------------------------------*
+           move      "REMV"               to   v-key                  .
+           go to     acc-con-arc-300.
+       acc-con-arc-470.
+      *                          *-------------------------------------*
+      *                          * Dipendenze dall'impostazione        *
+      *                          *-------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "SEP"
+                     move  all "-"        to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)
+                     move  all "-"        to   w-tes-int-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                          *-------------------------------------*
+      *                          * Visualizzazione pagina              *
+      *                          *-------------------------------------*
+           perform   acc-con-arc-900      thru acc-con-arc-909        .
+       acc-con-arc-500.
+      *                  *---------------------------------------------*
+      *                  * Accettazione interlocutore                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se campo da accettare              *
+      *                      *-----------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "SEP"
+                     go to acc-con-arc-700.
+      *                      *-----------------------------------------*
+      *                      * Note operative - solo email Clienti o   *
+      *                      *                  Fornitori              *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Test se email o Pec                 *
+      *                          *-------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          not  = "EML" and
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          not  = "PEC"
+                     go to acc-con-arc-505.
+      *                          *-------------------------------------*
+      *                          * Test se Clienti o Fornitori e valo- *
+      *                          * re a spazi                          *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-nel    >    zero   and
+                     w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces and
+                     w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces and
+                    (i-ide-fas            =    "cge400" or
+                     i-ide-fas            =    "dcc400" or
+                     i-ide-fas            =    "cge500" or
+                     i-ide-fas            =    "dcf400")
+                     go to acc-con-arc-503
+           else      go to acc-con-arc-505.
+       acc-con-arc-503.
+      *                      *-----------------------------------------*
+      *                      * Note operative - solo Clienti           *
+      *                      *-----------------------------------------*
+           move      "NT"                 to   v-ope                  .
+           move      "Digitare '<f', '<b' o '<o' seguito da invio per i 
+      -              "documenti elettronici"
+                                          to   v-nt1                  .
+           move      "F1 : Tasto funzione 1 per copiare la riga preceden
+      -              "te"                 to   v-nt2                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-505.
+      *                      *-----------------------------------------*
+      *                      * Preparazione parametri                  *
+      *                      *-----------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      30                   to   v-car                  .
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       w-acc-con-arc-inl    to   w-acc-con-arc-c0r      .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           move      07                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "REMV"               to   v-pfk (06)             .
+      *
+           if        w-acc-con-arc-nel    >    1      and
+                     w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces and
+                     w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces
+                     move  "[1] "         to   v-pfk (14)             .
+      *
+           move      w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                                          to   v-alf                  .
+      *                      *-----------------------------------------*
+      *                      * Accettazione                            *
+      *                      *-----------------------------------------*
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *                      *-----------------------------------------*
+      *                      * Cancellazione eventuali note operative  *
+      *                      *-----------------------------------------*
+           move      "NT"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                      *-----------------------------------------*
+      *                      * Se Exit                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "EXIT"
+                     go to acc-con-arc-510.
+      *                      *-----------------------------------------*
+      *                      * Se Remv                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "REMV"
+                     go to acc-con-arc-520.
+      *                      *-----------------------------------------*
+      *                      * Se Pf1                                  *
+      *                      *-----------------------------------------*
+           if        v-key                =    "[1] "
+                     go to acc-con-arc-530.
+      *                      *-----------------------------------------*
+      *                      * Se Delt                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-tes
+                     go to acc-con-arc-800.
+      *                      *-----------------------------------------*
+      *                      * Se Return o Down                        *
+      *                      *-----------------------------------------*
+           if        v-key                =    spaces or
+                     v-key                =    "DOWN"
+                     go to acc-con-arc-540.
+      *                      *-----------------------------------------*
+      *                      * In ogni altro caso il valore deve esse- *
+      *                      * re inalterato                           *
+      *                      *-----------------------------------------*
+           if        v-alf                not  = w-acc-con-arc-sic
+                     go to acc-con-arc-200.
+           go to     acc-con-arc-540.
+       acc-con-arc-510.
+      *                      *-----------------------------------------*
+      *                      * Se Exit                                 *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Ripristino valori linea             *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-stc    to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)   .
+           move      w-acc-con-arc-snc    to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)   .
+           move      w-acc-con-arc-sic    to   w-tes-int-con
+                                              (1, w-acc-con-arc-nel)   .
+      *                          *-------------------------------------*
+      *                          * Rivisualizzazione linea             *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nev      .
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       9                    to   w-acc-con-arc-c0r      .
+           perform   acc-con-arc-910      thru acc-con-arc-919        .
+      *                          *-------------------------------------*
+      *                          * A reimpostazione linea              *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-080.
+       acc-con-arc-520.
+      *                      *-----------------------------------------*
+      *                      * Se Remv                                 *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Compattamento in ogni caso          *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-930      thru acc-con-arc-939        .
+      *                          *-------------------------------------*
+      *                          * A reimpostazione linea              *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-080.
+       acc-con-arc-530.
+      *                      *-----------------------------------------*
+      *                      * Se Pf1                                  *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Copia linea precedente              *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0w      .
+           subtract  1                    from w-acc-con-arc-c0w      .
+           move      w-tes-num-con
+                    (1, w-acc-con-arc-c0w)
+                                          to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)  .
+           move      w-tes-int-con
+                    (1, w-acc-con-arc-c0w)
+                                          to   w-tes-int-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                          *-------------------------------------*
+      *                          * Rivisualizzazione linea             *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nev      .
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       9                    to   w-acc-con-arc-c0r      .
+           perform   acc-con-arc-910      thru acc-con-arc-919        .
+      *                          *-------------------------------------*
+      *                          * A reimpostazione                    *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-500.
+       acc-con-arc-540.
+      *                      *-----------------------------------------*
+      *                      * Se Return o Down                        *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Valore in campo di destinazione     *
+      *                          *-------------------------------------*
+           move      v-alf                to   w-tes-int-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                          *-------------------------------------*
+      *                          * Controllo valore impostato          *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Attualmente solo per Clienti o  *
+      *                              * Fornitori                       *
+      *                              *---------------------------------*
+           if        i-ide-fas            not  = "cge400" and
+                     i-ide-fas            not  = "dcc400" and
+                     i-ide-fas            not  = "cge500" and
+                     i-ide-fas            not  = "dcf400"
+                     go to acc-con-arc-600.
+      *                              *---------------------------------*
+      *                              * Verifica di eventuali formati   *
+      *                              * errati                          *
+      *                              *---------------------------------*
+      *                                  *-----------------------------*
+      *                                  * Controllo                   *
+      *                                  *-----------------------------*
+           if        w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                    (01 : 04)             not  = "fat=" and
+                     w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                    (01 : 04)             not  = "bol=" and 
+                     w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                    (01 : 04)             not  = "ord="
+                     go to acc-con-arc-560.
+      *                                  *-----------------------------*
+      *                                  * Messaggio di errore         *
+      *                                  *-----------------------------*
+           move      "Formato non corretto!                             
+      -              "          "         to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                                  *-----------------------------*
+      *                                  * Ad accettazione             *
+      *                                  *-----------------------------*
+           go to     acc-con-arc-500.
+       acc-con-arc-560.
+      *                              *---------------------------------*
+      *                              * Test se contiene l'indicatore   *
+      *                              * per l'invio di documenti elet-  *
+      *                              * tronici                         *
+      *                              *---------------------------------*
+           if        w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                    (01 : 01)             not  = "<"
+                     go to acc-con-arc-600.
+      *                              *---------------------------------*
+      *                              * Test se gia' impostato          *
+      *                              *---------------------------------*
+           move      w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                                          to   w-all-str-alf          .
+           move      ">"                  to   w-all-str-del          .
+           perform   all-str-chr-000      thru all-str-chr-999        .
+           if        w-all-str-num        =    1
+                     go to acc-con-arc-600.
+      *                              *---------------------------------*
+      *                              * Data di sistema                 *
+      *                              *---------------------------------*
+           move      "IG"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                              *---------------------------------*
+      *                              * Editing data di sistema         *
+      *                              *---------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      s-dat                to   v-dat                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           move      v-edt                to   w-all-str-cat (3)      .
+      *                              *---------------------------------*
+      *                              * Precablaggio eventuale          *
+      *                              *---------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      04                   to   w-all-str-num          .
+           move      "<"                  to   w-all-str-cat (1)      .
+      *
+           if        w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                    (02 : 01)             =    "o"
+                     move  "ord="         to   w-all-str-cat (2)
+           else if   w-tes-int-con
+                    (1, w-acc-con-arc-nel)
+                    (02 : 01)             =    "b"
+                     move  "bol="         to   w-all-str-cat (2)
+           else      move  "fat="         to   w-all-str-cat (2)      .
+      *
+           move      ">"                  to   w-all-str-cat (4)      .
+           perform   all-str-cat-000      thru all-str-cat-999        .
+           move      w-all-str-alf        to   w-tes-int-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                              *---------------------------------*
+      *                              * Rivisualizzazione linea         *
+      *                              *---------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nev      .
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       9                    to   w-acc-con-arc-c0r      .
+           perform   acc-con-arc-910      thru acc-con-arc-919        .
+       acc-con-arc-600.
+      *                  *---------------------------------------------*
+      *                  * Accettazione utenza                         *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se campo da accettare              *
+      *                      *-----------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "SEP"
+                     go to acc-con-arc-700.
+      *                      *-----------------------------------------*
+      *                      * Test se note operative da visualizzare  *
+      *                      *-----------------------------------------*
+           if        w-acc-con-arc-nel    >    1      and
+                     w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces
+                     go to acc-con-arc-603
+           else      go to acc-con-arc-605.
+       acc-con-arc-603.
+      *                      *-----------------------------------------*
+      *                      * Note operative                          *
+      *                      *-----------------------------------------*
+           move      "NT"                 to   v-ope                  .
+           move      "PF1 : Tasto funzione 1 per copiare il numero prece
+      -              "dente"              to   v-not                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-605.
+      *                      *-----------------------------------------*
+      *                      * Preparazione parametri                  *
+      *                      *-----------------------------------------*
+           move      "AC"                 to   v-ope                  .
+      *
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "TEL" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "FAX" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "CEL"
+                     move  "U"            to   v-tip
+                     move  20             to   v-car
+           else      move  "T"            to   v-tip
+                     move  40             to   v-car
+                     move  02             to   v-ldt                  .
+      *
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       w-acc-con-arc-inl    to   w-acc-con-arc-c0r      .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           move      40                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "REMV"               to   v-pfk (06)             .
+      *
+           if        w-acc-con-arc-nel    >    1      and
+                     w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          =    spaces
+                     move  "[1] "         to   v-pfk (14)             .
+      *
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "TEL" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "FAX" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "CEL"
+                     move  w-tes-num-con
+                          (1, w-acc-con-arc-nel)
+                                          to   v-alf
+           else      move  w-tes-num-con
+                          (1, w-acc-con-arc-nel)
+                                          to   v-txt                  .
+      *                      *-----------------------------------------*
+      *                      * Accettazione                            *
+      *                      *-----------------------------------------*
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *                      *-----------------------------------------*
+      *                      * Cancellazione eventuali note operative  *
+      *                      *-----------------------------------------*
+           move      "NT"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                      *-----------------------------------------*
+      *                      * Se Exit                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "EXIT"
+                     go to acc-con-arc-610.
+      *                      *-----------------------------------------*
+      *                      * Se Remv                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "REMV"
+                     go to acc-con-arc-620.
+      *                      *-----------------------------------------*
+      *                      * Se Pf1                                  *
+      *                      *-----------------------------------------*
+           if        v-key                =    "[1] "
+                     go to acc-con-arc-635.
+      *                      *-----------------------------------------*
+      *                      * Se Delt                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-tes
+                     go to acc-con-arc-800.
+      *                      *-----------------------------------------*
+      *                      * Se Return o Down                        *
+      *                      *-----------------------------------------*
+           if        v-key                =    spaces or
+                     v-key                =    "DOWN"
+                     go to acc-con-arc-640.
+      *                      *-----------------------------------------*
+      *                      * In ogni altro caso il valore deve esse- *
+      *                      * re inalterato                           *
+      *                      *-----------------------------------------*
+           if        v-alf                not  = w-acc-con-arc-snc
+                     go to acc-con-arc-600.
+      *                      *-----------------------------------------*
+      *                      * Se Up                                   *
+      *                      *-----------------------------------------*
+           if        v-key                =    "UP  "
+                     go to acc-con-arc-630.
+           go to     acc-con-arc-640.
+       acc-con-arc-610.
+      *                      *-----------------------------------------*
+      *                      * Se Exit                                 *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Ripristino valori linea             *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-stc    to   w-tes-tip-con
+                                              (1, w-acc-con-arc-nel)  .
+           move      w-acc-con-arc-snc    to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)  .
+           move      w-acc-con-arc-sic    to   w-tes-int-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                          *-------------------------------------*
+      *                          * Rivisualizzazione linea             *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nev      .
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       9                    to   w-acc-con-arc-c0r      .
+           perform   acc-con-arc-910      thru acc-con-arc-919        .
+      *                          *-------------------------------------*
+      *                          * A reimpostazione linea              *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-080.
+       acc-con-arc-620.
+      *                      *-----------------------------------------*
+      *                      * Se Remv                                 *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Compattamento in ogni caso          *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nec      .
+           perform   acc-con-arc-930      thru acc-con-arc-939        .
+      *                          *-------------------------------------*
+      *                          * A reimpostazione linea              *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-080.
+       acc-con-arc-630.
+      *                      *-----------------------------------------*
+      *                      * Se Up                                   *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Ritorno ad impostazione precedente  *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-500.
+       acc-con-arc-635.
+      *                      *-----------------------------------------*
+      *                      * Se Pf1                                  *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Copia campo precedente              *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0w      .
+           subtract  1                    from w-acc-con-arc-c0w      .
+           move      w-tes-num-con
+                    (1, w-acc-con-arc-c0w)
+                                          to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                          *-------------------------------------*
+      *                          * Rivisualizzazione linea             *
+      *                          *-------------------------------------*
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-nev      .
+           move      w-acc-con-arc-nel    to   w-acc-con-arc-c0r      .
+           subtract  w-acc-con-arc-pev    from w-acc-con-arc-c0r      .
+           add       9                    to   w-acc-con-arc-c0r      .
+           perform   acc-con-arc-910      thru acc-con-arc-919        .
+      *                          *-------------------------------------*
+      *                          * A reimpostazione                    *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-600.
+       acc-con-arc-640.
+      *                      *-----------------------------------------*
+      *                      * Se Return o Down                        *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Valore in campo di destinazione     *
+      *                          *-------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "TEL" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "FAX" or
+                     w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          =    "CEL"
+                     move  v-alf          to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)
+           else      move  v-txt          to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                          *-------------------------------------*
+      *                          * Controllo valore impostato          *
+      *                          *-------------------------------------*
+           if        w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          not  = spaces
+                     go to acc-con-arc-650.
+           go to     acc-con-arc-600.
+       acc-con-arc-650.
+      *                          *-------------------------------------*
+      *                          * Controllo per coerenza e-mail       *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Test se e-mail                  *
+      *                              *---------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nel)
+                                          not  = "EML" and
+                                          not  = "PEC"
+                     go to acc-con-arc-680.
+      *                              *---------------------------------*
+      *                              * Tutta la stringa viene comunque *
+      *                              * posta in lowercase              *
+      *                              *---------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          to   w-all-str-alf          .
+           perform   all-str-low-000      thru all-str-low-999        .
+           move      w-all-str-alf        to   w-tes-num-con
+                                              (1, w-acc-con-arc-nel)  .
+      *                              *---------------------------------*
+      *                              * Che contenga solo 1 '@'         *
+      *                              *---------------------------------*
+           move      zero                 to   w-acc-con-arc-c0w      .
+           inspect   w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                    tallying   w-acc-con-arc-c0w
+                                          for  all "@"                .
+           if        w-acc-con-arc-c0w    =    1
+                     go to acc-con-arc-656
+           else if   w-acc-con-arc-c0w    =    0
+                     go to acc-con-arc-652
+           else      go to acc-con-arc-654.
+       acc-con-arc-652.
+      *                                  *-----------------------------*
+      *                                  * Messaggio di errore         *
+      *                                  *-----------------------------*
+           move      "Indirizzo e-mail formalmente non corretto (senza @
+      -              ") !       "         to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+           go to     acc-con-arc-680.
+       acc-con-arc-654.
+      *                                  *-----------------------------*
+      *                                  * Messaggio di errore         *
+      *                                  *-----------------------------*
+           move      "Indirizzo e-mail formalmente non corretto (troppi 
+      -              "@) !      "         to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+           go to     acc-con-arc-680.
+       acc-con-arc-656.
+      *                              *---------------------------------*
+      *                              * Che contenga almeno 1 '.'       *
+      *                              *---------------------------------*
+           move      zero                 to   w-acc-con-arc-c0w      .
+           inspect   w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                    tallying   w-acc-con-arc-c0w
+                                          for  all "."                .
+           if        w-acc-con-arc-c0w    >    zero
+                     go to acc-con-arc-660.
+       acc-con-arc-658.
+      *                                  *-----------------------------*
+      *                                  * Messaggio di errore         *
+      *                                  *-----------------------------*
+           move      "Indirizzo e-mail formalmente non corretto (senza p
+      -              "unti) !   "         to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+           go to     acc-con-arc-680.
+       acc-con-arc-660.
+      *                              *---------------------------------*
+      *                              * Che non contenga spazi          *
+      *                              *---------------------------------*
+           move      w-tes-num-con
+                    (1, w-acc-con-arc-nel)
+                                          to   w-all-str-alf          .
+           move      80                   to   w-all-str-lun          .
+           perform   all-str-ble-000      thru all-str-ble-999        .
+           if        w-all-str-flg        =    spaces
+                     go to acc-con-arc-680.
+      *                                  *-----------------------------*
+      *                                  * Messaggio di errore         *
+      *                                  *-----------------------------*
+           move      "Indirizzo e-mail formalmente non corretto (contien
+      -              "e spazi)! "         to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+       acc-con-arc-680.
+       acc-con-arc-700.
+      *                  *---------------------------------------------*
+      *                  * Passaggio ad elemento successivo            *
+      *                  *---------------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Incremento numero elemento          *
+      *                          *-------------------------------------*
+           add       1                    to   w-acc-con-arc-nel      .
+      *                          *-------------------------------------*
+      *                          * Se fine elementi : uscita           *
+      *                          *-------------------------------------*
+           if        w-acc-con-arc-nel    >    w-acc-con-arc-max
+                     move  spaces         to   v-key
+                     go to acc-con-arc-800.
+      *                          *-------------------------------------*
+      *                          * Altrimenti : ad impostazione linea  *
+      *                          *-------------------------------------*
+           go to     acc-con-arc-080.
+       acc-con-arc-800.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Salvataggio v-key e w-cnt-tus-acc-tes       *
+      *                  *---------------------------------------------*
+           move      v-key                to   w-acc-con-arc-svk      .
+           move      w-cnt-tus-acc-tes    to   w-acc-con-arc-stu      .
+      *                  *---------------------------------------------*
+      *                  * Test se uscita per Exit o Delt              *
+      *                  *---------------------------------------------*
+           if        w-acc-con-arc-stu    =    "E" or
+                     w-acc-con-arc-stu    =    "X"
+                     go to acc-con-arc-825.
+       acc-con-arc-825.
+      *                  *---------------------------------------------*
+      *                  * Ripristino v-key e w-cnt-tus-acc-tes        *
+      *                  *---------------------------------------------*
+           move      w-acc-con-arc-svk    to   v-key                  .
+           move      w-acc-con-arc-stu    to   w-cnt-tus-acc-tes      .
+      *                  *---------------------------------------------*
+      *                  * Fine routine                                *
+      *                  *---------------------------------------------*
+           go to     acc-con-arc-999.
+       acc-con-arc-900.
+      *              *=================================================*
+      *              * Subroutines interne                             *
+      *              *-------------------------------------------------*
+      *                  *=============================================*
+      *                  * Visualizzazione pagina contatti a partire   *
+      *                  * dall'elemento numero w-acc-con-arc-n1v      *
+      *                  *---------------------------------------------*
+           move      w-acc-con-arc-n1v    to   w-acc-con-arc-c0p      .
+           subtract  1                    from w-acc-con-arc-c0p      .
+           move      w-acc-con-arc-c0p    to   w-acc-con-arc-c0q      .
+           add       w-acc-con-arc-lpp    to   w-acc-con-arc-c0q      .
+       acc-con-arc-901.
+           add       1                    to   w-acc-con-arc-c0p      .
+           if        w-acc-con-arc-c0p    >    w-acc-con-arc-max
+                     go to acc-con-arc-905.
+           if        w-acc-con-arc-c0p    >    w-acc-con-arc-c0q
+                     go to acc-con-arc-909.
+           move      w-acc-con-arc-c0p    to   w-acc-con-arc-nev      .
+           move      w-acc-con-arc-nev    to   w-acc-con-arc-c0r      .
+       acc-con-arc-903.
+           if        w-acc-con-arc-c0r    >    w-acc-con-arc-lpp
+                     subtract  w-acc-con-arc-lpp
+                                          from w-acc-con-arc-c0r
+                     go to     acc-con-arc-903.
+           add       w-acc-con-arc-inl    to   w-acc-con-arc-c0r      .
+           perform   acc-con-arc-910      thru acc-con-arc-919        .
+           go to     acc-con-arc-901.
+       acc-con-arc-905.
+           if        w-acc-con-arc-c0p    >    w-acc-con-arc-c0q
+                     go to acc-con-arc-909.
+           add       1                    to   w-acc-con-arc-c0r      .
+      *                      *-----------------------------------------*
+      *                      * Visualizzazione linea vuota             *
+      *                      *-----------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           add       1                    to   w-acc-con-arc-c0p      .
+           go to     acc-con-arc-905.
+       acc-con-arc-909.
+           exit.
+       acc-con-arc-910.
+      *                  *=============================================*
+      *                  * Visualizzazione elemento indirizzato da     *
+      *                  * w-acc-con-arc-nev a linea w-acc-con-arc-c0r *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-acc-con-arc-led      .
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nev)
+                                          =    spaces
+                     go to acc-con-arc-916.
+           move      w-tes-tip-con
+                    (1, w-acc-con-arc-nev)
+                                          to   w-acc-con-arc-ted      .
+           move      w-tes-num-con
+                    (1, w-acc-con-arc-nev)
+                                          to   w-acc-con-arc-ued      .
+           move      w-tes-int-con
+                    (1, w-acc-con-arc-nev)
+                                          to   w-acc-con-arc-ied      .
+      *
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nev)
+                                          =    "SEP"
+                     move  "---"          to   w-acc-con-arc-ted      .
+       acc-con-arc-916.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           subtract  01                   from v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-acc-con-arc-led    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-919.
+           exit.
+       acc-con-arc-920.
+      *                  *=============================================*
+      *                  * Compattamento dell' elemento indirizzato da *
+      *                  * w-acc-con-arc-nec se necessario             *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione flag fine elementi      *
+      *                      *-----------------------------------------*
+           move      spaces               to   w-acc-con-arc-fce      .
+      *                      *-----------------------------------------*
+      *                      * Test se tipo a spaces                   *
+      *                      *-----------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-nec)
+                                          not  = spaces
+                     go to acc-con-arc-928.
+      *                      *-----------------------------------------*
+      *                      * Compattamento                           *
+      *                      *-----------------------------------------*
+           move      w-acc-con-arc-nec    to   w-acc-con-arc-c0a      .
+           move      w-acc-con-arc-c0a    to   w-acc-con-arc-c0b      .
+           add       1                    to   w-acc-con-arc-c0b      .
+      *                      *-----------------------------------------*
+      *                      * Test se raggiungimento max              *
+      *                      *-----------------------------------------*
+           if        w-acc-con-arc-c0b    >    w-acc-con-arc-max
+                     go to acc-con-arc-928.
+      *                      *-----------------------------------------*
+      *                      * Test se tipo a spaces                   *
+      *                      *-----------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0b)
+                                          =    spaces
+                     go to acc-con-arc-928.
+      *                      *-----------------------------------------*
+      *                      * Subroutine di compattamento             *
+      *                      *-----------------------------------------*
+           perform   acc-con-arc-930      thru acc-con-arc-939        .
+           move      "#"                  to   w-acc-con-arc-fce      .
+       acc-con-arc-928.
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     acc-con-arc-929.
+       acc-con-arc-929.
+           exit.
+       acc-con-arc-930.
+      *                  *=============================================*
+      *                  * Compattamento dell' elemento indirizzato da *
+      *                  * w-acc-con-arc-nec in ogni caso              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Attivazione flag di modifica avvenuta   *
+      *                      *-----------------------------------------*
+           move      "#"                  to   w-cnt-acc-flg-aum      .
+      *                      *-----------------------------------------*
+      *                      * Preparazione contatori                  *
+      *                      *-----------------------------------------*
+           move      w-acc-con-arc-nec    to   w-acc-con-arc-c0a      .
+           move      w-acc-con-arc-c0a    to   w-acc-con-arc-c0b      .
+           add       1                    to   w-acc-con-arc-c0b      .
+       acc-con-arc-931.
+           if        w-acc-con-arc-c0b    >    w-acc-con-arc-max
+                     go to acc-con-arc-932.
+      *                      *-----------------------------------------*
+      *                      * Elemento successivo in precedente       *
+      *                      *-----------------------------------------*
+           move      w-tes-con-arc
+                    (1, w-acc-con-arc-c0b)
+                                          to   w-tes-con-arc
+                                              (1, w-acc-con-arc-c0a)  .
+      *                      *-----------------------------------------*
+      *                      * Test se tipo a spaces                   *
+      *                      *-----------------------------------------*
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0b)
+                                          =    spaces
+                     go to acc-con-arc-933.
+      *                      *-----------------------------------------*
+      *                      * Incremento contatori                    *
+      *                      *-----------------------------------------*
+           add       1                    to   w-acc-con-arc-c0a      .
+           add       1                    to   w-acc-con-arc-c0b      .
+      *                      *-----------------------------------------*
+      *                      * Riciclo                                 *
+      *                      *-----------------------------------------*
+           go to     acc-con-arc-931.
+       acc-con-arc-932.
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione elemento                *
+      *                      *-----------------------------------------*
+           move      spaces               to   w-tes-con-arc
+                                              (1, w-acc-con-arc-c0a)  .
+       acc-con-arc-933.
+           move      w-acc-con-arc-nec    to   w-acc-con-arc-c0a      .
+       acc-con-arc-934.
+           if        w-acc-con-arc-c0a    >    w-acc-con-arc-lpp
+                     subtract  w-acc-con-arc-lpp
+                                          from w-acc-con-arc-c0a
+                     go to acc-con-arc-934.
+           move      w-acc-con-arc-c0a    to   w-acc-con-arc-c0b      .
+           add       w-acc-con-arc-inl    to   w-acc-con-arc-c0b      .
+           subtract  1                    from w-acc-con-arc-c0b      .
+           move      w-acc-con-arc-c0b    to   w-acc-con-arc-c0c      .
+           add       1                    to   w-acc-con-arc-c0c      .
+       acc-con-arc-935.
+      *                      *-----------------------------------------*
+      *                      * Test se ultima linea                    *
+      *                      *-----------------------------------------*
+           if        w-acc-con-arc-c0a    =    w-acc-con-arc-lpp
+                     go to acc-con-arc-936.
+      *                      *-----------------------------------------*
+      *                      * Fetch Line                              *
+      *                      *-----------------------------------------*
+           move      "FL"                 to   v-ope                  .
+           move      w-acc-con-arc-c0c    to   v-lin                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           move      v-alf                to   w-acc-con-arc-fcl      .
+      *
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      w-acc-con-arc-c0b    to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-acc-con-arc-fcl    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           add       1                    to   w-acc-con-arc-c0a      .
+           add       1                    to   w-acc-con-arc-c0b      .
+           add       1                    to   w-acc-con-arc-c0c      .
+           go to     acc-con-arc-935.
+       acc-con-arc-936.
+           move      w-acc-con-arc-nec    to   w-acc-con-arc-c0a      .
+       acc-con-arc-937.
+           if        w-acc-con-arc-c0a    >    w-acc-con-arc-lpp
+                     subtract  w-acc-con-arc-lpp
+                                          from w-acc-con-arc-c0a
+                     go to     acc-con-arc-937.
+           subtract  w-acc-con-arc-c0a    from w-acc-con-arc-lpp
+                                        giving w-acc-con-arc-c0b      .
+           add       w-acc-con-arc-nec
+                     w-acc-con-arc-c0b  giving w-acc-con-arc-c0c      .
+           if        w-acc-con-arc-c0c    >    w-acc-con-arc-max
+                     go to acc-con-arc-938.
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0c)
+                                          =    spaces
+                     go to acc-con-arc-938.
+           move      w-acc-con-arc-c0c    to   w-acc-con-arc-nev      .
+           move      w-acc-con-arc-mxl    to   w-acc-con-arc-c0r      .
+           perform   acc-con-arc-910      thru acc-con-arc-919        .
+           go to     acc-con-arc-939.
+       acc-con-arc-938.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      w-acc-con-arc-mxl    to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-939.
+           exit.
+       acc-con-arc-940.
+      *                  *=============================================*
+      *                  * Inserimento dell' elemento indirizzato da   *
+      *                  * w-acc-con-arc-nec                           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Attivazione flag di modifica avvenuta   *
+      *                      *-----------------------------------------*
+           move      "#"                  to   w-cnt-acc-flg-aum      .
+      *                      *-----------------------------------------*
+      *                      * Contatori                               *
+      *                      *-----------------------------------------*
+           move      w-acc-con-arc-max    to   w-acc-con-arc-c0b      .
+           move      w-acc-con-arc-c0b    to   w-acc-con-arc-c0a      .
+           subtract  1                    from w-acc-con-arc-c0a      .
+       acc-con-arc-941.
+      *                      *-----------------------------------------*
+      *                      * Elemento precedente in successivo       *
+      *                      *-----------------------------------------*
+           move      w-tes-con-arc
+                    (1, w-acc-con-arc-c0a)
+                                          to   w-tes-con-arc
+                                              (1, w-acc-con-arc-c0b)  .
+           if        w-acc-con-arc-c0a    =    w-acc-con-arc-nec
+                     go to acc-con-arc-942.
+           subtract  1                    from w-acc-con-arc-c0a      .
+           subtract  1                    from w-acc-con-arc-c0b      .
+           go to     acc-con-arc-941.
+       acc-con-arc-942.
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione elemento                *
+      *                      *-----------------------------------------*
+           move      spaces               to   w-tes-con-arc
+                                              (1, w-acc-con-arc-nec)  .
+           move      w-acc-con-arc-nec    to   w-acc-con-arc-c0a      .
+       acc-con-arc-943.
+           if        w-acc-con-arc-c0a    >    w-acc-con-arc-lpp
+                     subtract  w-acc-con-arc-lpp
+                                          from w-acc-con-arc-c0a
+                     go to acc-con-arc-943.
+           add       w-acc-con-arc-inl    to   w-acc-con-arc-c0a      .
+           subtract  1                    from w-acc-con-arc-c0a      .
+           if        w-acc-con-arc-c0a    =    w-acc-con-arc-mxl
+                     go to acc-con-arc-945.
+           move      w-acc-con-arc-mxl    to   w-acc-con-arc-c0b      .
+           subtract  1                    from w-acc-con-arc-c0b      .
+           move      w-acc-con-arc-mxl    to   w-acc-con-arc-c0c      .
+       acc-con-arc-944.
+      *                      *-----------------------------------------*
+      *                      * Fetch Line                              *
+      *                      *-----------------------------------------*
+           move      "FL"                 to   v-ope                  .
+           move      w-acc-con-arc-c0b    to   v-lin                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           move      v-alf                to   w-acc-con-arc-fcl      .
+      *
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      w-acc-con-arc-c0c    to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-acc-con-arc-fcl    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           if        w-acc-con-arc-c0b    =    w-acc-con-arc-c0a
+                     go to acc-con-arc-945.
+           subtract  1                    from w-acc-con-arc-c0b      .
+           subtract  1                    from w-acc-con-arc-c0c      .
+           go to     acc-con-arc-944.
+       acc-con-arc-945.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      w-acc-con-arc-c0a    to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-949.
+           exit.
+       acc-con-arc-950.
+      *                  *=============================================*
+      *                  * Cursore ausiliario                          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Pulizia riga successiva, se non e' gia' *
+      *                      * l'ultima                                *
+      *                      *-----------------------------------------*
+           if        w-acc-con-arc-c0r    =    w-acc-con-arc-mxl
+                     go to acc-con-arc-954.
+      *
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           add       1                    to   v-lin                  .
+           move      38                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-954.
+      *                      *-----------------------------------------*
+      *                      * Pulizia riga precedente, se non e' gia' *
+      *                      * la prima                                *
+      *                      *-----------------------------------------*
+           if        w-acc-con-arc-c0r    =    w-acc-con-arc-inl
+                     go to acc-con-arc-956.
+      *
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           subtract  1                    from v-lin                  .
+           move      38                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-956.
+      *                      *-----------------------------------------*
+      *                      * Cursore vero e proprio                  *
+      *                      *-----------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      w-acc-con-arc-c0r    to   v-lin                  .
+           move      38                   to   v-pos                  .
+           move      ">"                  to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-con-arc-959.
+           exit.
+       acc-con-arc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione : Contatti e utenze                       *
+      *    *-----------------------------------------------------------*
+       vis-con-arc-000.
+      *              *-------------------------------------------------*
+      *              * Video in Off                                    *
+      *              *-------------------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Erase linee impegnate                           *
+      *              *-------------------------------------------------*
+           move      "EL"                 to   v-ope                  .
+           move      08                   to   v-lin                  .
+           move      21                   to   v-lto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Ciclo di visualizzazione                        *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-acc-con-arc-c0w      .
+       vis-con-arc-200.
+           add       1                    to   w-acc-con-arc-c0w      .
+           if        w-acc-con-arc-c0w    >    14
+                     go to vis-con-arc-800.
+      *              *-------------------------------------------------*
+      *              * Preparazione                                    *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-acc-con-arc-led      .
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0w)
+                                          =    spaces
+                     go to vis-con-arc-400.
+           move      w-tes-tip-con
+                    (1, w-acc-con-arc-c0w)
+                                          to   w-acc-con-arc-ted      .
+           move      w-tes-num-con
+                    (1, w-acc-con-arc-c0w)
+                                          to   w-acc-con-arc-ued      .
+           move      w-tes-int-con
+                    (1, w-acc-con-arc-c0w)
+                                          to   w-acc-con-arc-ied      .
+      *
+           if        w-tes-tip-con
+                    (1, w-acc-con-arc-c0w)
+                                          =    "SEP"
+                     move  "---"          to   w-acc-con-arc-ted      .
+       vis-con-arc-400.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione                                 *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      w-acc-con-arc-inl    to   v-lin                  .
+           subtract  1                    from v-lin                  .
+           add       w-acc-con-arc-c0w    to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-acc-con-arc-led    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-con-arc-600.
+      *              *-------------------------------------------------*
+      *              * Riciclo                                         *
+      *              *-------------------------------------------------*
+           go to     vis-con-arc-200.
+       vis-con-arc-800.
+      *              *-------------------------------------------------*
+      *              * Video in On                                     *
+      *              *-------------------------------------------------*
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-con-arc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     vis-con-arc-999.
+       vis-con-arc-999.
+           exit.
+

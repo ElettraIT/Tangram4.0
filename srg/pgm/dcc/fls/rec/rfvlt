@@ -1,0 +1,59 @@
+      *    *===========================================================*
+      *    * Record cambi per valute [vlt]                             *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "DATSGL    " = rf-vlt-dat-vlt                    *
+      *    *                         rf-vlt-sgl-vlt                    *
+      *    *                                                           *
+      *    *          "SGLDRE    " = rf-vlt-sgl-vlt                    *
+      *    *                         rf-vlt-dat-rev                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-vlt.
+      *        *-------------------------------------------------------*
+      *        * Data rilevazione cambio                               *
+      *        *-------------------------------------------------------*
+           05  rf-vlt-dat-vlt             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data rilevazione cambio in formato 'reverse'          *
+      *        *                                                       *
+      *        * Si ottiene con il seguente calcolo:                   *
+      *        * rf-zlv-dat-rev = (99999999-(19000000+rf-vlt-dat-vlt)) *
+      *        *                                                       *
+      *        * Se rf-vlt-dat-vlt vale zero, questo campo viene for-  *
+      *        * zato al valore 99999999                               *
+      *        *                                                       *
+      *        * E' da osservare pertanto che record senza data di ri- *
+      *        * levazione cambio avranno qui il valore 99999999       *
+      *        *-------------------------------------------------------*
+           05  rf-vlt-dat-rev             pic  9(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla internazionale della valuta                     *
+      *        *                                                       *
+      *        * Nota : Per le lire italiane deve essere utilizzato il *
+      *        *        codice 'LIT', che deve comunque essere presen- *
+      *        *        te nella tabella valute.                       *
+      *        *-------------------------------------------------------*
+           05  rf-vlt-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo coefficiente di cambio                           *
+      *        *                                                       *
+      *        * - '/' : Divisore                                      *
+      *        * - '*' : Moltiplicatore                                *
+      *        *-------------------------------------------------------*
+           05  rf-vlt-tdc-vlt             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Coefficiente di cambio ufficiale                      *
+      *        *-------------------------------------------------------*
+           05  rf-vlt-cdc-vlt             pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Coefficienti di cambio addizionali                    *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito, tutti i valori   *
+      *        *       vengono normalizzati al cambio ufficiale        *
+      *        *-------------------------------------------------------*
+           05  rf-vlt-cdc-add  occurs 09  pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-vlt-alx-exp             pic  x(10)                  .

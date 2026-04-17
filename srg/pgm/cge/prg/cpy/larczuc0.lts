@@ -1,0 +1,54 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zuc]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zuc-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zuc-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zuc-cod    =    zero
+                     go to let-arc-zuc-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODUBI    "         to   f-key                  .
+           move      w-let-arc-zuc-cod    to   rf-zuc-cod-ubi         .
+           move      "pgm/cge/fls/ioc/obj/iofzuc"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zuc                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zuc-400.
+       let-arc-zuc-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zuc-des-ubi       to   w-let-arc-zuc-des      .
+           move      rf-zuc-cod-mne       to   w-let-arc-zuc-mne      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zuc-999.
+       let-arc-zuc-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zuc-flg      .
+           move      all   "."            to   w-let-arc-zuc-des      .
+           go to     let-arc-zuc-600.
+       let-arc-zuc-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zuc-des      .
+       let-arc-zuc-600.
+           move      spaces               to   w-let-arc-zuc-mne      .
+       let-arc-zuc-999.
+           exit.
+

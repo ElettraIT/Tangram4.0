@@ -1,0 +1,163 @@
+      *    *===========================================================*
+      *    * Record file [mmz] Saldi magazzino terzi                   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "MAGARC    " = rf-mmz-ann-ese                    *
+      *    *                         rf-mmz-cod-dpz                    *
+      *    *                         rf-mmz-tip-mag                    *
+      *    *                         rf-mmz-num-mag                    *
+      *    *                         rf-mmz-var-mag                    *
+      *    *                         rf-mmz-tip-ctm                    *
+      *    *                         rf-mmz-cod-ctm                    *
+      *    *                         rf-mmz-tip-arc                    *
+      *    *                         rf-mmz-cod-arc                    *
+      *    *                         rf-mmz-dpz-arc                    *
+      *    *                                                           *
+      *    *          "ARCMAG    " = rf-mmz-ann-ese                    *
+      *    *                         rf-mmz-cod-dpz                    *
+      *    *                         rf-mmz-tip-arc                    *
+      *    *                         rf-mmz-cod-arc                    *
+      *    *                         rf-mmz-dpz-arc                    *
+      *    *                         rf-mmz-tip-mag                    *
+      *    *                         rf-mmz-num-mag                    *
+      *    *                         rf-mmz-var-mag                    *
+      *    *                         rf-mmz-tip-ctm                    *
+      *    *                         rf-mmz-cod-ctm                    *
+      *    *                                                           *
+      *    *          "MGCMAR    " = rf-mmz-ann-ese                    *
+      *    *                         rf-mmz-tip-mag                    *
+      *    *                         rf-mmz-num-mag                    *
+      *    *                         rf-mmz-var-mag                    *
+      *    *                         rf-mmz-tip-ctm                    *
+      *    *                         rf-mmz-cod-ctm                    *
+      *    *                         rf-mmz-tip-arc                    *
+      *    *                         rf-mmz-cod-arc                    *
+      *    *                         rf-mmz-dpz-arc                    *
+      *    *                         rf-mmz-cod-dpz                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-mmz.
+      *        *-------------------------------------------------------*
+      *        * Anno di esercizio : s.aa                              *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-ann-ese             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza                                     *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino                              *
+      *        *                                                       *
+      *        * - 01 : Prodotti di vendita                            *
+      *        * - 02 : Semilavorati                                   *
+      *        * - 03 : Materie prime                                  *
+      *        * - 04 : Materiali vari                                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico magazzino                             *
+      *        *                                                       *
+      *        * - Se prodotto di vendita   : codice su [dcp]          *
+      *        * - Se semilavorato          : codice su [dps]          *
+      *        * - Se materia prima         : codice su [dpm]          *
+      *        * - Se materiale vario       : codice su [mtv]          *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-num-mag             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della variante di magazzino                     *
+      *        *                                                       *
+      *        * N.B. : Questo campo attualmente non e' gestito        *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-var-mag             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Conto merce                                           *
+      *        *                                                       *
+      *        * - N : Merce presso terzi ma non di loro proprieta'    *
+      *        * - T : Merce presso di noi ma non di nostra proprieta' *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-tip-ctm             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto merce                                    *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-cod-ctm             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio interessato dal documento               *
+      *        *                                                       *
+      *        * - C : Archivio clienti                                *
+      *        * - F : Archivio fornitori                              *
+      *        * - A : Agente (Incaricato alla vendita)                *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio interessato dal documento             *
+      *        *                                                       *
+      *        * - Se tip-arc 'C' : Codice cliente                     *
+      *        * - Se tip-arc 'F' : Codice fornitore                   *
+      *        * - Se tip-arc 'A' : Codice agente (tentata vendita)    *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza relativo al codice archivio         *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' ad inizio esercizio                         *
+      *        *                                                       *
+      *        * - Se conto merce 'N' rappresenta il residuo nostro    *
+      *        *   credito ad inizio esercizio                         *
+      *        *                                                       *
+      *        * - Se conto merce 'T' rappresenta il residuo nostro    *
+      *        *   debito ad inizio esercizio                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-qta-ini             pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Progressivi mensili                                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-prg-mes occurs 12.
+      *            *---------------------------------------------------*
+      *            * Nostro credito                                    *
+      *            *---------------------------------------------------*
+               10  rf-mmz-prg-cre         pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Nostro debito                                     *
+      *            *---------------------------------------------------*
+               10  rf-mmz-prg-deb         pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Progressivo differenze inventariali positive rilevate *
+      *        * nell'inventario di fine esercizio                     *
+      *        *                                                       *
+      *        * N.B. : Campo non piu' gestito, in quanto non piu' ne- *
+      *        *        cessario. A disposizione per eventuali imple-  *
+      *        *        mentazioni                                     *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-dip-ife             pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Progressivo differenze inventariali negative rilevate *
+      *        * nell'inventario di fine esercizio                     *
+      *        *                                                       *
+      *        * N.B. : Campo non piu' gestito, in quanto non piu' ne- *
+      *        *        cessario. A disposizione per eventuali imple-  *
+      *        *        mentazioni                                     *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-din-ife             pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmz-alx-exp.
+               10  filler     occurs 20   pic  x(01)                  .

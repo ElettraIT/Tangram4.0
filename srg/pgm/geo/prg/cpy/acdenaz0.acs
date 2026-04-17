@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice nazione         *
+      *    *-----------------------------------------------------------*
+       cod-des-naz-opn-000.
+           move      "pgm/geo/prg/obj/acdenaz0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-des-naz-pth      .
+           move      "OP"                 to   w-cod-des-naz-ope      .
+           perform   cod-des-naz-cll-000  thru cod-des-naz-cll-999    .
+       cod-des-naz-opn-999.
+           exit.
+       cod-des-naz-cls-000.
+           move      "CL"                 to   w-cod-des-naz-ope      .
+           perform   cod-des-naz-cll-000  thru cod-des-naz-cll-999    .
+           move      "C?"                 to   w-cod-des-naz-ope      .
+           perform   cod-des-naz-cll-000  thru cod-des-naz-cll-999    .
+           if        w-cod-des-naz-ope    not  = spaces
+                     go to cod-des-naz-cls-999.
+           cancel    w-cod-des-naz-pth                                .
+       cod-des-naz-cls-999.
+           exit.
+       cod-des-naz-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-des-naz-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pgeo1000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-naz-foi-999.
+           move      "pgm/geo/prg/obj/pgeo1000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-des-naz-ope      .
+           go to     cod-des-naz-foi-999.
+       cod-des-naz-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-des-naz-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pgeo1010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-naz-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/geo/prg/obj/pgeo1010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-des-naz-ope      .
+           go to     cod-des-naz-foi-999.
+       cod-des-naz-foi-999.
+           exit.
+       cod-des-naz-cll-000.
+           call      w-cod-des-naz-pth   using w-cod-des-naz
+                                               v
+                                               s                      .
+       cod-des-naz-cll-999.
+           exit.
+

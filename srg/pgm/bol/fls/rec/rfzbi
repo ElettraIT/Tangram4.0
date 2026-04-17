@@ -1,0 +1,390 @@
+      *    *===========================================================*
+      *    * Record tabella tipi movimento bollettazione Italia [zbi]  *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODTMB    " = rf-zbi-cod-tmb                    *
+      *    *                         rf-zbi-cod-dpz                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zbi-des-key                    *
+      *    *                         rf-zbi-cod-tmb                    *
+      *    *                         rf-zbi-cod-dpz                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zbi.
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento per bollettazione               *
+      *        *-------------------------------------------------------*
+           05  rf-zbi-cod-tmb             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza                                     *
+      *        *                                                       *
+      *        * N.B.: per valore zero vengono gestite le informazioni *
+      *        *       generali per il tipo movimento                  *
+      *        *-------------------------------------------------------*
+           05  rf-zbi-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati generali                                         *
+      *        *-------------------------------------------------------*
+           05  rf-zbi-dti-gen.
+      *            *---------------------------------------------------*
+      *            * Descrizione tipo movimento per uso interno in up- *
+      *            * percase                                           *
+      *            *---------------------------------------------------*
+               10  rf-zbi-des-key         pic  x(30)                  .
+      *            *---------------------------------------------------*
+      *            * Descrizione tipo movimento per uso interno        *
+      *            *---------------------------------------------------*
+               10  rf-zbi-des-tmb         pic  x(30)                  .
+      *            *---------------------------------------------------*
+      *            * Password per il tipo movimento                    *
+      *            *---------------------------------------------------*
+               10  rf-zbi-pwd-tmb         pic  x(08)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No movimento che interessa la fatturazione     *
+      *            *                                                   *
+      *            * - 01 : No                                         *
+      *            * - 02 : Si, il documento deve successivamente es-  *
+      *            *            sere sottoposto alla procedura di fat- *
+      *            *            turazione automatica da bolle emesse   *
+      *            * - 03 : Si, il documento stesso e' anche una fat-  *
+      *            *            tura                                   *
+      *            *                                                   *
+      *            * N.B. : il tipo '03' e' in obsolescenza e di con-  *
+      *            *        seguenza i successivi campi in relazione   *
+      *            *---------------------------------------------------*
+               10  rf-zbi-int-ftr         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento di fatturazione                    *
+      *            *                                                   *
+      *            * - Se movimento che interessa la fatturazione 01   *
+      *            *      - Valore fisso Spaces, non significativo     *
+      *            *                                                   *
+      *            * - Se movimento che interessa la fatturazione 02   *
+      *            *      - Codice tipo movimento di fatturazione che  *
+      *            *        sara' utilizzato dalla procedura di fat-   *
+      *            *        turazione automatica da bolle emesse       *
+      *            *                                                   *
+      *            * - Se movimento che interessa la fatturazione 03   *
+      *            *      - Codice tipo movimento di fatturazione cor- *
+      *            *        rispondente alla componente 'fattura' del  *
+      *            *        presente tipo movimento di bollettazione   *
+      *            *---------------------------------------------------*
+               10  rf-zbi-tmo-ftr         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No documento che accompagna la merce           *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-acm         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Default per trasporto a cura di                   *
+      *            *                                                   *
+      *            * - 01     : Nessun default                         *
+      *            * - 10     : Mittente                               *
+      *            * - 20     : Destinatario                           *
+      *            * - 30     : Vettore                                *
+      *            *---------------------------------------------------*
+               10  rf-zbi-def-tac         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Default per la causale del trasporto              *
+      *            *---------------------------------------------------*
+               10  rf-zbi-def-ctr         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice causale per movimento di magazzino         *
+      *            *                                                   *
+      *            * N.B. : Se a zero non si esegue movimentazione di  *
+      *            *        magazzino a fronte di questo documento     *
+      *            *---------------------------------------------------*
+               10  rf-zbi-cau-mag         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice c/merce di gestione magazzino              *
+      *            *                                                   *
+      *            * N.B. : Solo se codice causale per movimento di    *
+      *            *        magazzino diverso da zero                  *
+      *            *                                                   *
+      *            *        Solo causale di magazzino che riguarda     *
+      *            *        movimentazione di conto merce              *
+      *            *---------------------------------------------------*
+               10  rf-zbi-cod-mic         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice causale di magazzino aggiuntiva            *
+      *            *                                                   *
+      *            * N.B. : Solo per i tipi movimento di trasferimento *
+      *            *        a dipendenza                               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-cam-agg         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo archivio automaticamente proposto come de-   *
+      *            * fault per il tipo movimento                       *
+      *            *                                                   *
+      *            * - Spaces : Nessun tipo archivio proposto          *
+      *            * - N      : No tipo archivio                       *
+      *            * - C      : Cliente                                *
+      *            * - F      : Fornitore                              *
+      *            * - D      : Dipendenza                             *
+      *            * - A      : Agente (Incaricato alla vendita)       *
+      *            *                                                   *
+      *            * N.B. : Se il documento interessa la fatturazione, *
+      *            *        il tipo archivio deve essere pari a 'C'    *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-zbi-def-tar         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No possibilita' di variare il tipo archivio    *
+      *            * proposto come default per il tipo movimento       *
+      *            *                                                   *
+      *            * - S : Si, e'possibile variare il tipo archivio    *
+      *            *           proposto automaticamente come default;  *
+      *            *           in questo caso il default puo' anche    *
+      *            *           essere a Spaces, pero' e' necessario    *
+      *            *           che esista un elemento nella lista dei  *
+      *            *           tipi archivio ammessi per il tipo mo-   *
+      *            *           vimento corrispondente al tipo archivio *
+      *            *           impostato                               *
+      *            * - N : No, non e'possibile variare il tipo archi-  *
+      *            *           vio proposto automaticamente come de-   *
+      *            *           fault; in questo caso il default deve   *
+      *            *           essere diverso da Spaces, e non e' ne-  *
+      *            *           cessario che esso sia presente nella    *
+      *            *           lista dei tipi archivio ammessi per il  *
+      *            *           tipo movimento                          *
+      *            *                                                   *
+      *            * N.B. : Se il documento interessa la fatturazione, *
+      *            *        il valore deve essere pari a 'N'           *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snv-tar         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Lista dei tipi archivio ammessi per la causale;   *
+      *            * se vuota sono ammessi tutti i tipi archivio       *
+      *            *---------------------------------------------------*
+               10  rf-zbi-lst-tar         pic  x(04)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo origine del documento associato al tipo mo-  *
+      *            * vimento                                           *
+      *            *                                                   *
+      *            * - 01 : Manuale                                    *
+      *            * - 11 : Automatica                                 *
+      *            *---------------------------------------------------*
+               10  rf-zbi-org-doc         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo provenienza del documento se origine automa- *
+      *            * tica                                              *
+      *            *                                                   *
+      *            * - Se tipo origine del documento 11                *
+      *            *   - 01 : Da evasione ordini                       *
+      *            *---------------------------------------------------*
+               10  rf-zbi-prv-doc         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Sigla numerazione per il documento associato al   *
+      *            * tipo movimento                                    *
+      *            *---------------------------------------------------*
+               10  rf-zbi-sgl-num         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Movimento a fronte di :                           *
+      *            * - 01 : Niente                                     *
+      *            * - 02 : Ordine cliente                             *
+      *            * - 03 : Ordine di spedizione                       *
+      *            * - 04 : Bolla di consegna                          *
+      *            *---------------------------------------------------*
+               10  rf-zbi-mov-afd         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento di default se movimento a fronte   *
+      *            *                                                   *
+      *            * N.B.: Significativo solo se campo precedente di   *
+      *            *       verso da zero                               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-def-tmf         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Descrizione tipo documento associato al tipo mo-  *
+      *            * vimento per la stampa                             *
+      *            *---------------------------------------------------*
+               10  rf-zbi-des-stp         pic  x(25)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa prezzo nel documento                 *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-prz         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa sconti nel documento                 *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-sco         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa importo nel documento                *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-imp         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa codice iva nel documento             *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-civ         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa totale nel documento                 *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-ttd         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa dicitura nel documento               *
+      *            *                                                   *
+      *            * - 01 : Si                                         *
+      *            * - 02 : No                                         *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-dct         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Descrizione dicitura                              *
+      *            *                                                   *
+      *            * N.B.: solo se campo precedente a 01               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-des-dct.
+                   15  rf-zbi-rig-dct occurs 04
+                                          pic  x(60)                  .
+      *            *---------------------------------------------------*
+      *            * Numero copie da stampare                          *
+      *            *                                                   *
+      *            * (Ex : Tipo stampa quantita' in lettere)           *
+      *            *                                                   *
+      *            * N.B.: Campo riconvertito (24/11/00)               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-tip-sql         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Default tipo vendita per l'agente                 *
+      *            *                                                   *
+      *            * (Ex : Posizione per stampa quantita' in lettere)  *
+      *            *                                                   *
+      *            * N.B.: Campo riconvertito (12/04/02)               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-pos-sql         pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Si/no default data inizio trasporto               *
+      *            *                                                   *
+      *            * (Ex : Si/No stampa qta' in lettere tra parentesi) *
+      *            *                                                   *
+      *            * N.B.: Campo riconvertito (11/06/02)               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-par         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Validita' per le dipendenze                       *
+      *            *                                                   *
+      *            *  - spaces : Valido per tutte le dipendenze        *
+      *            *  - 'S'    : Valido solo per la Sede               *
+      *            *  - 'D'    : Valido solo per le dipendenze         *
+      *            *  - 'X'    : Valido solo per le dipendenze indica- *
+      *            *             te                                    *
+      *            *---------------------------------------------------*
+               10  rf-zbi-vld-dpz         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa riferimento all'Agente               *
+      *            *                                                   *
+      *            *  - 'S' : Codice e Nominativo dell'Agente          *
+      *            *  - 'N' : Nessun riferimento all'Agente            *
+      *            *  - 'C' : Solo il codice dell'Agente               *
+      *            *  - 'T' : Solo il nominativo dell'Agente           *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-age         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa riferimento alla nostra Dipendenza   *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-ndp         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No stampa forma di pagamento                   *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-fop         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No controllo su numero copie gia' eseguite     *
+      *            *                                                   *
+      *            *  - spaces : Ristampa libera, senza controllo      *
+      *            *  - 'S'    : Ristampa con controllo                *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-lib         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Default per accettazione tipo riga corpo          *
+      *            *---------------------------------------------------*
+               10  rf-zbi-def-tpr         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No numerazione modificabile                    *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-nmm         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento di fatturazione alternativo        *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-zbi-tmo-ft2         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No numero copie variabile                      *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-ncv         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Status per il tipo movimento                      *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-zbi-sta-tus         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Data di determinazione dello status               *
+      *            *                                                   *
+      *            * Solo se status diverso da 01                      *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-zbi-sta-tud         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice tipo movimento di riferimento              *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-zbi-sta-tuc         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di trattamento nelle statistiche per i  *
+      *            * documenti precedenti il cambiamento di status     *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-zbi-sta-tux         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice listino di vendita di default associato al *
+      *            * tipo documento                                    *
+      *            *---------------------------------------------------*
+               10  rf-zbi-cod-lst         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No numerazione controllata                     *
+      *            *---------------------------------------------------*
+               10  rf-zbi-snx-nmc         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No riferimenti in fattura elettronica          *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non implementato         *
+      *            *---------------------------------------------------*
+______*        10  rf-zbi-snx-rfe         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-alx-gen.
+                   15  filler  occurs 36  pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati relativi alla dipendenza                         *
+      *        *-------------------------------------------------------*
+           05  rf-zbi-dti-dpz.
+      *            *---------------------------------------------------*
+      *            * Codice dislocazione di origine per il documento   *
+      *            *                                                   *
+      *            * N.B. : Se esiste un valore nel record 'zero' vale *
+      *            *        come default per le dipendenze per le      *
+      *            *        quali e' stata indicata la validita'       *
+      *            *---------------------------------------------------*
+               10  rf-zbi-cod-dsl         pic  x(07)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  rf-zbi-alx-dpz.
+                   15  filler  occurs 40  pic  x(01)                  .

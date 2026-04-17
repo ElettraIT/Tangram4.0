@@ -1,0 +1,42 @@
+      *    *===========================================================*
+      *    * Subroutines per richiamo modulo per la determinazione     *
+      *    * della voce 'Fatturato' sulle statistiche di vendita sul   *
+      *    * fatturato da Testata Documenti                            *
+      *    *-----------------------------------------------------------*
+       mod-scf-sff-opn-000.
+           move      "pgm/saf/prg/obj/mscfsff0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-mod-scf-sff-pth      .
+           move      "OP"                 to   w-mod-scf-sff-ope      .
+           perform   mod-scf-sff-cll-000  thru mod-scf-sff-cll-999    .
+       mod-scf-sff-opn-999.
+           exit.
+       mod-scf-sff-cls-000.
+           move      "CL"                 to   w-mod-scf-sff-ope      .
+           perform   mod-scf-sff-cll-000  thru mod-scf-sff-cll-999    .
+           cancel    w-mod-scf-sff-pth                                .
+       mod-scf-sff-cls-999.
+           exit.
+       mod-scf-sff-gts-000.
+           move      "GS"                 to   w-mod-scf-sff-ope      .
+           perform   mod-scf-sff-cll-000  thru mod-scf-sff-cll-999    .
+       mod-scf-sff-gts-999.
+           exit.
+       mod-scf-sff-get-000.
+           move      "GT"                 to   w-mod-scf-sff-ope      .
+           perform   mod-scf-sff-cll-000  thru mod-scf-sff-cll-999    .
+       mod-scf-sff-get-999.
+           exit.
+       mod-scf-sff-dvf-000.
+           move      "VF"                 to   w-mod-scf-sff-ope      .
+           perform   mod-scf-sff-cll-000  thru mod-scf-sff-cll-999    .
+       mod-scf-sff-dvf-999.
+           exit.
+       mod-scf-sff-cll-000.
+           call      w-mod-scf-sff-pth   using w-mod-scf-sff
+                                               rf-sff                 .
+       mod-scf-sff-cll-999.
+           exit.
+

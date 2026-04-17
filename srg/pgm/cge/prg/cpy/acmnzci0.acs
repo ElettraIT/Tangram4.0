@@ -1,0 +1,91 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice Iva             *
+      *    *-----------------------------------------------------------*
+       cod-mne-zci-opn-000.
+      *              *-------------------------------------------------*
+      *              * Operazione di Open                              *
+      *              *-------------------------------------------------*
+           move      "pgm/cge/prg/obj/acmnzci0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zci-pth      .
+           move      "OP"                 to   w-cod-mne-zci-ope      .
+           perform   cod-mne-zci-cll-000  thru cod-mne-zci-cll-999    .
+       cod-mne-zci-opn-999.
+           exit.
+       cod-mne-zci-cls-000.
+      *              *-------------------------------------------------*
+      *              * Operazione di Close                             *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   w-cod-mne-zci-ope      .
+           perform   cod-mne-zci-cll-000  thru cod-mne-zci-cll-999    .
+           move      "C?"                 to   w-cod-mne-zci-ope      .
+           perform   cod-mne-zci-cll-000  thru cod-mne-zci-cll-999    .
+           if        w-cod-mne-zci-ope    not  = spaces
+                     go to cod-mne-zci-cls-999.
+           cancel    w-cod-mne-zci-pth                                .
+       cod-mne-zci-cls-999.
+           exit.
+       cod-mne-zci-foi-000.
+      *              *-------------------------------------------------*
+      *              * Operazione di INSR                              *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zci-foi-500.
+           if        w-cod-mne-zci-edm
+                    (20 : 01)             =    "N"
+                     go to cod-mne-zci-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0400"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zci-foi-999.
+           move      "pgm/cge/prg/obj/pcge0400"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zci-ope      .
+           go to     cod-mne-zci-foi-999.
+       cod-mne-zci-foi-500.
+      *              *-------------------------------------------------*
+      *              * Operazione di FIND                              *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zci-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0410"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zci-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/cge/prg/obj/pcge0410"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zci-ope      .
+           go to     cod-mne-zci-foi-999.
+       cod-mne-zci-foi-999.
+           exit.
+       cod-mne-zci-cll-000.
+      *              *-------------------------------------------------*
+      *              * Operazione di chiamata generica del modulo      *
+      *              *-------------------------------------------------*
+           call      w-cod-mne-zci-pth   using w-cod-mne-zci
+                                               v
+                                               s                      .
+       cod-mne-zci-cll-999.
+           exit.

@@ -1,0 +1,38 @@
+      *    *===========================================================*
+      *    * Subroutines per richiamo modulo per la determinazione del *
+      *    * valore della voce 'Note' da esporre sulle statistiche di  *
+      *    * vendita sul fatturato                                     *
+      *    *-----------------------------------------------------------*
+       mod-not-svb-opn-000.
+           move      "ele/svf/prg/obj/mnotsvb0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-mod-not-svb-pth      .
+           move      "OP"                 to   w-mod-not-svb-ope      .
+           perform   mod-not-svb-cll-000  thru mod-not-svb-cll-999    .
+       mod-not-svb-opn-999.
+           exit.
+       mod-not-svb-cls-000.
+           move      "CL"                 to   w-mod-not-svb-ope      .
+           perform   mod-not-svb-cll-000  thru mod-not-svb-cll-999    .
+           cancel    w-mod-not-svb-pth                                .
+       mod-not-svb-cls-999.
+           exit.
+       mod-not-svb-dvn-000.
+           move      "VN"                 to   w-mod-not-svb-ope      .
+           perform   mod-not-svb-cll-000  thru mod-not-svb-cll-999    .
+       mod-not-svb-dvn-999.
+           exit.
+       mod-not-svb-cpe-000.
+           move      "CP"                 to   w-mod-not-svb-ope      .
+           perform   mod-not-svb-cll-000  thru mod-not-svb-cll-999    .
+       mod-not-svb-cpe-999.
+           exit.
+       mod-not-svb-cll-000.
+           call      w-mod-not-svb-pth   using w-mod-not-svb
+                                               rf-bit
+                                               rf-bir                 .
+       mod-not-svb-cll-999.
+           exit.
+

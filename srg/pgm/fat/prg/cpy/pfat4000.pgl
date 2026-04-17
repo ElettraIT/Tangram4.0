@@ -1,0 +1,136 @@
+      *    *===========================================================*
+      *    * Link-area comune per programmi della serie pfat4000       *
+      *    *                                                           *
+      *    * L'area comprende :                                        *
+      *    *                                                           *
+      *    *  - 'rr'        : Work-area richieste per stampa           *
+      *    *  - 'w-rfa'     : Work-area per file di appoggio           *
+      *    *-----------------------------------------------------------*
+
+      *    *===========================================================*
+      *    * Work-area richieste per stampa                            *
+      *    *-----------------------------------------------------------*
+       01  rr.
+      *        *-------------------------------------------------------*
+      *        * Dipendenza da cui si emettono le fatture              *
+      *        *-------------------------------------------------------*
+           05  rr-dpz-emi                 pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo esecuzione                                       *
+      *        *                                                       *
+      *        * - 1 : Stampa di simulazione                           *
+      *        * - 2 : Emissione definitiva                            *
+      *        *-------------------------------------------------------*
+           05  rr-tip-exe                 pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice agente                                         *
+      *        *-------------------------------------------------------*
+           05  rr-cod-age                 pic  9(07)                  .
+           05  rr-cod-age-nom             pic  x(20)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente                                        *
+      *        *-------------------------------------------------------*
+           05  rr-cod-cli                 pic  9(07)                  .
+           05  rr-cod-cli-rag             pic  x(40)                  .
+           05  rr-cod-cli-via             pic  x(40)                  .
+           05  rr-cod-cli-loc             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no elementi selezionati per il codice cliente      *
+      *        *-------------------------------------------------------*
+           05  rr-cod-cli-sns             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero elementi selezionati per il codice cliente     *
+      *        *-------------------------------------------------------*
+           05  rr-cod-cli-els             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Elenco elementi selezionati per il codice cliente     *
+      *        *-------------------------------------------------------*
+           05  rr-cod-cli-edd.
+               10  rr-cod-cli-ele occurs 36.
+                   15  rr-cod-cli-eco     pic  9(07)                  .
+                   15  rr-cod-cli-ers     pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documenti da fatturare minima                    *
+      *        *                                                       *
+      *        * N.B. : Solo per stampa di simulazione                 *
+      *        *-------------------------------------------------------*
+           05  rr-dat-ddi                 pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documenti da fatturare massima                   *
+      *        *-------------------------------------------------------*
+           05  rr-dat-ddf                 pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza da fatturare                        *
+      *        *-------------------------------------------------------*
+           05  rr-cod-dpz                 pic  9(02)                  .
+           05  rr-cod-dpz-des             pic  x(20)                  .
+      *        *-------------------------------------------------------*
+      *        * Periodicita' di fatturazione                          *
+      *        * - 99 : tutte                                          *
+      *        * - 01 : giornaliera                                    *
+      *        * - 02 : settimanale                                    *
+      *        * - 03 : decadale                                       *
+      *        * - 04 : quindicinale                                   *
+      *        * - 05 : mensile                                        *
+      *        * - 06 : bimestrale                                     *
+      *        * - 07 : trimestrale                                    *
+      *        * - 08 : quadrimestrale                                 *
+      *        * - 09 : semestrale                                     *
+      *        * - 10 : annuale                                        *
+      *        * - 11 : biennale                                       *
+      *        *-------------------------------------------------------*
+           05  rr-per-fat                 pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data emissione fatture                                *
+      *        *-------------------------------------------------------*
+           05  rr-dat-emi                 pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento da selezionare                         *
+      *        *-------------------------------------------------------*
+           05  rr-cod-tmo                 pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento da selezionare, descrizione            *
+      *        *-------------------------------------------------------*
+           05  rr-cod-tmo-des             pic  x(30)                  .
+
+      *    *===========================================================*
+      *    * Record per file di appoggio                               *
+      *    *-----------------------------------------------------------*
+       01  w-rfa.
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        * - 'fit '                                              *
+      *        * - 'fir '                                              *
+      *        * - 'fix '                                              *
+      *        *-------------------------------------------------------*
+           05  w-rfa-tip-rec              pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto scadenze                                  *
+      *        *                                                       *
+      *        * N.B.: Solo per tipo record 'fit '                     *
+      *        *-------------------------------------------------------*
+           05  w-rfa-scd-cst.
+               10  w-rfa-scd-ele          pic  9(02)                  .
+               10  w-rfa-scd-tbl occurs 96.
+                   15  w-rfa-scd-tip      pic  9(02)                  .
+                   15  w-rfa-scd-dat      pic  9(07)                  .
+                   15  w-rfa-scd-cau      pic  9(03)                  .
+                   15  w-rfa-scd-imp      pic s9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Buffer contenente i  numeri di protocollo delle bolle *
+      *        * contenute nella fattura                               *
+      *        *                                                       *
+      *        * N.B.: Solo per tipo record 'fit '                     *
+      *        *-------------------------------------------------------*
+           05  w-rfa-pbf-buf.
+               10   w-rfa-pbf-num         pic  9(03)                  .
+               10   w-rfa-pbf-max         pic  9(03) value 200        .
+               10   w-rfa-pbf-tbl.
+                    15  w-rfa-pbf-ele     occurs 200                  .
+                        20  w-rfa-pbf-prt pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Area destinata a contenere il record sopra definito   *
+      *        *-------------------------------------------------------*
+           05  w-rfa-dti-rec.
+               10  filler occurs 2048     pic  x(01)                  .
+

@@ -1,0 +1,629 @@
+      *    *===========================================================*
+      *    * Record file [oct] Ordini clienti testate                  *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-oct-ide-dat                    *
+      *    *                         rf-oct-dat-doc                    *
+      *    *                         rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *          "IDEDOC    " = rf-oct-dat-doc                    *
+      *    *                         rf-oct-cod-dpz                    *
+      *    *                         rf-oct-num-doc                    *
+      *    *                         rf-oct-tmo-orc                    *
+      *    *                         rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *          "CNTDEN    " = rf-oct-scl-ann                    *
+      *    *                         rf-oct-cod-dpz                    *
+      *    *                         rf-oct-sgl-num                    *
+      *    *                         rf-oct-num-doc                    *
+      *    *                         rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZARCDAT " = rf-oct-cod-dpz                    *
+      *    *                         rf-oct-tip-arc                    *
+      *    *                         rf-oct-cod-arc                    *
+      *    *                         rf-oct-dat-doc                    *
+      *    *                         rf-oct-num-doc                    *
+      *    *                         rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZTMODAT " = rf-oct-cod-dpz                    *
+      *    *                         rf-oct-tmo-orc                    *
+      *    *                         rf-oct-dat-doc                    *
+      *    *                         rf-oct-num-doc                    *
+      *    *                         rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZOCH    " = rf-oct-cod-dpz                    *
+      *    *                         rf-oct-flg-och                    *
+      *    *                         rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *          "ARCOCHDAT " = rf-oct-tip-arc   ___ DA IMPL ___  *
+      *    *                         rf-oct-cod-arc                    *
+      *    *                         rf-oct-flg-och                    *
+      *    *                         rf-oct-cod-dpz                    *
+      *    *                         rf-oct-dat-doc                    *
+      *    *                         rf-oct-num-doc                    *
+      *    *                         rf-oct-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-oct.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.dd.nnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-oct-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento ordini clienti                         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tmo-orc             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha emesso il documento          *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-oct-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento : s.aa.dd.nnnnnn                     *
+      *        *                                                       *
+      *        * - s      : secolo                                     *
+      *        * - aa     : anno                                       *
+      *        * - dd     : codice dipendenza                          *
+      *        * - nnnnnn : numero progressivo                         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-num-doc             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Secolo ed anno relativi alla data documento           *
+      *        *-------------------------------------------------------*
+           05  rf-oct-scl-ann             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla numerazione relativa al numero documento        *
+      *        *-------------------------------------------------------*
+           05  rf-oct-sgl-num             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio per il movimento                        *
+      *        *                                                       *
+      *        * - C : Cliente                                         *
+      *        * - D : Dipendenza                                      *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio                       *
+      *        *-------------------------------------------------------*
+           05  rf-oct-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo fornitura                                        *
+      *        *                                                       *
+      *        * - 01 : Diretta                                        *
+      *        * - 11 : Tramite Leasing                                *
+      *        * - 21 : Tramite gruppo d'acquisto                      *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tip-frn             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio per la fatturazione                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-arc-plf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio per la fatturazione   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-dpz-plf             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo fatturazione                                     *
+      *        *                                                       *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Separata dagli altri associati                 *
+      *        * - 02 : Cumulativa, assieme agli altri associati       *
+      *        *                                                       *
+      *        * N.B.: Significativo solo se tipo fornitura tramite    *
+      *        *       gruppo d'acquisto                               *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tip-ftz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo indirizzo di spedizione                          *
+      *        *                                                       *
+      *        * - 01 : Alla sede legale                               *
+      *        * - 02 : Manuale                                        *
+      *        * - 03 : Alla sede                                      *
+      *        * - 04 : Alla dipendenza                                *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tip-ids             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data ordine del cliente                               *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ocl-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero ordine del cliente                             *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ocl-num             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Riferimenti ordine del cliente                        *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ocl-rif             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice responsabile ordine                            *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-rsp             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Data consegna prevista                                *
+      *        *                                                       *
+      *        * N.B.: in caso di ordine 'forecast' o di tipo 'con-    *
+      *        *       tratto', si considera come data di scadenza     *
+      *        *-------------------------------------------------------*
+           05  rf-oct-dat-cns             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Formato di stampa data consegna                       *
+      *        *                                                       *
+      *        * - 01 : Formato gg/mm/aa                               *
+      *        * - 02 : Formato mm/aa                                  *
+      *        * - 03 : No stampa                                      *
+      *        * - 04 : Formato st/aaaa                                *
+      *        *-------------------------------------------------------*
+           05  rf-oct-fds-dtc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di evasione richiesta                            *
+      *        *                                                       *
+      *        * - 01 : Il totale ordine                               *
+      *        * - 02 : Il totale riga                                 *
+      *        * - 03 : Il parziale riga                               *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tip-eva             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Priorita' di evasione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-oct-pri-eva             pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice condizioni di vendita                          *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-cdv             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Commento ad uso interno                               *
+      *        *-------------------------------------------------------*
+           05  rf-oct-com-int.
+               10  rf-oct-com-rig occurs 03
+                                          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *-------------------------------------------------------*
+           05  rf-oct-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-oct-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-oct-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-oct-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-oct-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Assoggettamento iva per il documento                  *
+      *        *                                                       *
+      *        * - 00000 : Soggetto iva                                *
+      *        * - nnnnn : Titolo di esenzione                         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ass-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Conto di contabilita' generale usato come contropar-  *
+      *        * tita vendite per l'intero documento                   *
+      *        *                                                       *
+      *        * - 0000000 : A seconda delle righe fatturate           *
+      *        * - nnnnnnn : Conto di contropartita vendite            *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ctp-ven             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Fatturazione separata per questo documento            *
+      *        *                                                       *
+      *        * - N : No, segue le regole di fatturazione del cliente *
+      *        * - S : Si, questo documento deve essere comunque fat-  *
+      *        *       turato a parte                                  *
+      *        *-------------------------------------------------------*
+           05  rf-oct-fat-sep             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro documento                                     *
+      *        *                                                       *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-inl-dcm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro pagamenti                                     *
+      *        *                                                       *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-inl-pgt             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice listino da applicare per il documento          *
+      *        *                                                       *
+      *        * - Spaces : listino base                               *
+      *        * - xxx    : listino xxx                                *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-lst             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in riga associata al cliente         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-csr-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in riga associate al cliente                 *
+      *        *-------------------------------------------------------*
+           05  rf-oct-psr-aac occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in chiusura associato al cliente     *
+      *        *-------------------------------------------------------*
+           05  rf-oct-csc-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto chiusura associato al cliente                *
+      *        *-------------------------------------------------------*
+           05  rf-oct-psc-aac             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigioni associata al cliente         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cpv-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di provvigione associate al cliente       *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ppv-aac occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Voci descrittive in fattura                           *
+      *        *-------------------------------------------------------*
+           05  rf-oct-voc-des occurs 06   pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice forma di pagamento per il documento            *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-fop             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sconto pagamento associato alla forma di pagamento    *
+      *        *-------------------------------------------------------*
+           05  rf-oct-scp-aap             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI dell'istituto di credito di appoggio per   *
+      *        * gli effetti, per il documento                         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-abi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice CAB per lo sportello dell'istituto di credito  *
+      *        * di appoggio per gli effetti, per il documento         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-cab             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente del cliente presso l'istituto   *
+      *        * di credito per l'appoggio del pagamento, solo per gli *
+      *        * accrediti pre-autorizzati in conto 'RID', per il do-  *
+      *        * cumento.                                              *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ccc-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca per pagamenti per mezzo bonifico  *
+      *        * bancario                                              *
+      *        *-------------------------------------------------------*
+           05  rf-oct-nos-ban             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostro c/c postale per pagamenti per mezzo c/c *
+      *        * postale                                               *
+      *        *-------------------------------------------------------*
+           05  rf-oct-nos-ccp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese incasso per il documento        *
+      *        *-------------------------------------------------------*
+           05  rf-oct-add-spi             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese bollo per il documento          *
+      *        *-------------------------------------------------------*
+           05  rf-oct-add-spb             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo incasso alternativo per incassi elettronici,     *
+      *        * normalmente destinati a risolversi in una dispo-      *
+      *        * sizione di pagamento                                  *
+      *        *                                                       *
+      *        * - 01 : Nessuna preferenza                             *
+      *        * - 02 : Ri.Ba.                                         *
+      *        * - 03 : M.av.                                          *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ipr-iel             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza pagamento nel caso che la forma di pa-  *
+      *        * gamento preveda un codice di pagamento con data di    *
+      *        * decorrenza manuale                                    *
+      *        *-------------------------------------------------------*
+           05  rf-oct-pag-dsm             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare della quota a forfait nel caso che la forma *
+      *        * di pagamento preveda un codice di pagamento relativa  *
+      *        * ad una quota a forfait, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-oct-pag-qaf             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare dell'acconto nel caso che la forma di paga- *
+      *        * mento preveda la deduzione dell'acconto relativamente *
+      *        * ad uno dei tre codici di pagamento previsti,          *
+      *        * in valuta                                             *
+      *        *-------------------------------------------------------*
+           05  rf-oct-pag-act             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice agente per le provvigioni sul documento        *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-age             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di significativita' provvigioni per il documento *
+      *        *                                                       *
+      *        * - 01 : Si, da righe documento                         *
+      *        * - 02 : No provvigioni per il documento                *
+      *        * - 03 : A forfait per l'intero documento, importo      *
+      *        * - 04 : A forfait per l'intero documento, in %         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-fsp-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'agente, in valuta base                              *
+      *        *                                                       *
+      *        * N.B.: Significativo solo se campo precedente a 03 o,  *
+      *        *       se a 04, contiene una % (2 interi e 2 decimali) *
+      *        *-------------------------------------------------------*
+           05  rf-oct-pvf-age             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo vendita per l'agente                             *
+      *        * - 01 : Diretta                                        *
+      *        * - 02 : Indiretta                                      *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tip-vpa             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigioni associata all'agente         *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cpv-aaa             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di provvigione in riga associate all'a-   *
+      *        * gente                                                 *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ppv-aaa occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice intermediario per le provvigioni sul documento *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito (vedi 'rffit')    *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-ime             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'intermediario, in valuta base                       *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-pvf-ime             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Totali di suddivisione per le righe, in valuta        *
+      *        *                                                       *
+      *        * - 01 : Totale merce                                   *
+      *        * - 02 : Totale servizi                                 *
+      *        * - 03 : Totale imballi                                 *
+      *        * - 04 : Totale libero 4                                *
+      *        * - 05 : Totale libero 5                                *
+      *        * - 06 : Totale libero 6                                *
+      *        * - 07 : Totale libero 7                                *
+      *        * - 08 : Totale libero 8                                *
+      *        * - 09 : Totale extra                                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tot-rig occurs 09   pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto in chiusura, in valuta                 *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tot-scc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in chiusura                                  *
+      *        *-------------------------------------------------------*
+           05  rf-oct-per-scc             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto pagamento, in valuta                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tot-scp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto pagamento                                    *
+      *        *-------------------------------------------------------*
+           05  rf-oct-per-scp             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Si/No addebito spese e modalita' di addebito          *
+      *        *-------------------------------------------------------*
+           05  rf-oct-spe-add occurs 06.
+      *            *---------------------------------------------------*
+      *            * Si/No addebito spese                              *
+      *            *                                                   *
+      *            * - 0 : No addebito                                 *
+      *            * - 1 : Si addebito                                 *
+      *            *---------------------------------------------------*
+               10  rf-oct-spe-snx         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di addebito spese                       *
+      *            *                                                   *
+      *            * - 1 : addebito a percentuale fissa                *
+      *            * - 2 : addebito a percentuale variabile            *
+      *            * - 3 : addebito ad importo fisso                   *
+      *            * - 4 : addebito ad importo variabile               *
+      *            *---------------------------------------------------*
+               10  rf-oct-spe-mad         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale di addebito della spesa               *
+      *            *---------------------------------------------------*
+               10  rf-oct-spe-per         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di imponibile per la percentuale della spesa *
+      *            *                                                   *
+      *            * - 00 : Non significativo                          *
+      *            * - 01 : Totale lordo                               *
+      *            * - 02 : Totale netto                               *
+      *            * - 03 : Su una combinazione delle voci seguenti    *
+      *            * - 11 : Totale merci                               *
+      *            * - 12 : Totale servizi                             *
+      *            * - 13 : Totale imballi                             *
+      *            * - 14 : Totale libero 4                            *
+      *            * - 15 : Totale libero 5                            *
+      *            * - 16 : Totale libero 6                            *
+      *            * - 17 : Totale libero 7                            *
+      *            * - 18 : Totale libero 8                            *
+      *            * - 19 : Totale extra                               *
+      *            *---------------------------------------------------*
+               10  rf-oct-spe-ibl         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Totalizzatori da considerarsi per la determina-   *
+      *            * zione dell'imponibile per la percentuale della    *
+      *            * spesa, in valuta                                  *
+      *            *                                                   *
+      *            * Solo se l'imponibile per la percentuale e' pari a *
+      *            * 03                                                *
+      *            *                                                   *
+      *            * Per ogni totalizzatore deve essere specificato un *
+      *            * valore di un carattere, dove :                    *
+      *            *                                                   *
+      *            * - N : Non concorre a formare l'imponibile         *
+      *            * - S : Concorre a formare l'imponibile             *
+      *            *                                                   *
+      *            * Il significato dei totalizzatori e' di tipo posi- *
+      *            * zionale, con la seguente codifica :               *
+      *            *                                                   *
+      *            * 1 : Totale merci                                  *
+      *            * 2 : Totale servizi                                *
+      *            * 3 : Totale imballi                                *
+      *            * 4 : Totale libero 4                               *
+      *            * 5 : Totale libero 5                               *
+      *            * 6 : Totale libero 6                               *
+      *            * 7 : Totale libero 7                               *
+      *            * 8 : Totale libero 8                               *
+      *            * 9 : Totale extra                                  *
+      *            *---------------------------------------------------*
+               10  rf-oct-ibt-spe.
+                   15  rf-oct-ibx-spe  occurs 09
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Importo di addebito della spesa, in valuta        *
+      *            *---------------------------------------------------*
+               10  rf-oct-spe-imp         pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Totale documento, in valuta                           *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tot-doc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Numero di stampe eseguite per il documento, max 99    *
+      *        *-------------------------------------------------------*
+           05  rf-oct-ctr-stp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di ordine completamente chiuso                   *
+      *        *                                                       *
+      *        * - Spaces : Non ancora completamente chiuso            *
+      *        * - #      : Completamente chiuso                       *
+      *        *-------------------------------------------------------*
+           05  rf-oct-flg-och             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-oct-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *                                                   *
+      *            * 01 : (libero)                                     *
+      *            * 02 : (libero)                                     *
+      *            * 03 : (libero)                                     *
+      *            * 04 : (libero)                                     *
+      *            * 05 : (libero)                                     *
+      *            * 06 : (libero)                                     *
+      *            * 07 : (libero)                                     *
+      *            *---------------------------------------------------*
+               10  rf-oct-flg-blo.
+                   15  rf-oct-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            * 01 : Flag di ordine in attesa di verifica         *
+      *            *                                                   *
+      *            *       - Spaces : verificato                       *
+      *            *       - '#'    : in attesa di verifica            *
+      *            *       - 'P'    : parzialmente verificato          *
+      *            *                                                   *
+      *            *      N.B.: Soggetto a personalizzazione           *
+      *            *                                                   *
+      *            *                                                   *
+      *            * 02 : Flag di stampa prezzi e sconti in conferma   *
+      *            *                                                   *
+      *            *       - Spaces : segue le regole del tipo ordine  *
+      *            *       - 'N'    : No, non stampa prezzi e sconti   *
+      *            *                                                   *
+      *            * 03 : (libero)                                     *
+      *            *---------------------------------------------------*
+               10  rf-oct-flg-nbl.
+                   15  rf-oct-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-oct-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di ordine                                        *
+      *        *                                                       *
+      *        * - Spaces : normale                                    *
+      *        * - P      : pro-forma (non impegna il magazzino)       *
+      *        * - F      : forecast  (previsionale)                   *
+      *        * - C      : contratto (non impegna il magazzino)       *
+      *        *-------------------------------------------------------*
+           05  rf-oct-tip-ord             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice primo vettore                                  *
+      *        *                                                       *
+      *        * N.B.: solo se stabilito gia' a livello ordine         *
+      *        *       (campo aggiunto 01/03/15)                       *
+      *        *-------------------------------------------------------*
+           05  rf-oct-cod-vet             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di regime fiscale particolare                    *
+      *        *                                                       *
+      *        * - Spaces o N : Normale regime fiscale                 *
+      *        * - S          : Regime di Scissione Pagamenti          *
+      *        *-------------------------------------------------------*
+           05  rf-oct-flg-rfp             pic  x(01)                  .           
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-oct-alx-exp.
+               10  filler  occurs 31      pic  x(01)                  .

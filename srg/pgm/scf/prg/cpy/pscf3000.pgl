@@ -1,0 +1,322 @@
+      *================================================================*
+      * Area di Link per programmi della fase 'pscf3000'               *
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di identificazione                                   *
+      *    *-----------------------------------------------------------*
+       01  i-ide.
+           05  i-ide-sap                  pic  x(03)                  .
+           05  i-ide-arg                  pic  x(03)                  .
+           05  i-ide-set                  pic  x(03)                  .
+           05  i-ide-fas                  pic  x(06)                  .
+           05  i-ide-pro                  pic  x(10)                  .
+           05  i-ide-des                  pic  x(40)                  .
+
+      *    *===========================================================*
+      *    * Work-area per personalizzazioni                           *
+      *    *-----------------------------------------------------------*
+       01  w-prs.
+      *        *-------------------------------------------------------*
+      *        * Numero livelli del piano dei conti                    *
+      *        *-------------------------------------------------------*
+           05  w-prs-liv-pdc              pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Multinumerazione giornale iva acquisti                *
+      *        *-------------------------------------------------------*
+           05  w-prs-mul-gia.
+      *            *---------------------------------------------------*
+      *            * Si/No multinumerazione                            *
+      *            *---------------------------------------------------*
+               10  w-prs-mul-gia-snx      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Max codice per multinumerazione                   *
+      *            *---------------------------------------------------*
+               10  w-prs-mul-gia-max      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No default se multinumerazione                 *
+      *            *---------------------------------------------------*
+               10  w-prs-mul-gia-snd      pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No ammissibilita' partite zoppe in primanota       *
+      *        *-------------------------------------------------------*
+           05  w-prs-snx-pzo              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Protocollo iva fornitori automatico                   *
+      *        *-------------------------------------------------------*
+           05  w-prs-pif-aut              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione contabile futura                   *
+      *        *-------------------------------------------------------*
+           05  w-prs-dat-dfu              pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Personalizzazioni per gestione scadenze fornitori     *
+      *        *-------------------------------------------------------*
+           05  w-prs-scf.
+      *            *---------------------------------------------------*
+      *            * Si/No aggiornamenti contabili a fronte delle mo-  *
+      *            * vimentazioni scadenze fornitori, valido per ogni  *
+      *            * tipo di movimento scadenze fornitori              *
+      *            *                                                   *
+      *            * - S : Si                                          *
+      *            * - N : No                                          *
+      *            *                                                   *
+      *            * Default : Si                                      *
+      *            *                                                   *
+      *            * N.B. : Se questa personalizzazione indica che non *
+      *            *        si devono eseguire gli aggiornamenti con-  *
+      *            *        tabili, tutti i parametri successivi rela- *
+      *            *        tivi alle modalita' per gli aggiornamenti  *
+      *            *        contabili stessi diventano non significa-  *
+      *            *        tivi.                                      *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  w-prs-scf-snx-cge      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Data registrazione minima per movimenti contabili *
+      *            *---------------------------------------------------*
+               10  w-prs-scf-drc-min      pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No ragione sociale fornitore in commento in    *
+      *            * riga                                              *
+      *            *---------------------------------------------------*
+               10  w-prs-scf-rsf-icr      pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di file da produrre per il supporto magnetico    *
+      *        *                                                       *
+      *        *  - 'M' : File di tipo MS-DOS                          *
+      *        *  - 'T' : File di tipo MS-DOS, con estensione '.TXT'   *
+      *        *  - 'U' : File di tipo UNIX                            *
+      *        *-------------------------------------------------------*
+           05  w-prs-tip-fsm              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No gestione archivio documenti fornitori           *
+      *        *                                                       *
+      *        * N.B.: in obsolescenza                                 *
+      *        *-------------------------------------------------------*
+           05  w-prs-snx-pdf              pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work-area referenze                                       *
+      *    *-----------------------------------------------------------*
+       01  w-ref.
+      *        *-------------------------------------------------------*
+      *        * Sottoconto 'iva acquisti'                             *
+      *        *-------------------------------------------------------*
+           05  w-ref-iva-acq              pic  9(07)                  .
+           05  w-ref-iva-acq-des          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sottoconto 'iva a debito acquisti intracomunitari'    *
+      *        *-------------------------------------------------------*
+           05  w-ref-iva-dai              pic  9(07)                  .
+           05  w-ref-iva-dai-des          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sottoconto 'iva a credito acquisti intracomunitari'   *
+      *        *-------------------------------------------------------*
+           05  w-ref-iva-cai              pic  9(07)                  .
+           05  w-ref-iva-cai-des          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sottoconto 'acquisti'                                 *
+      *        *-------------------------------------------------------*
+           05  w-ref-stc-acq              pic  9(07)                  .
+           05  w-ref-stc-acq-des          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sottoconto 'resi su acquisti'                         *
+      *        *-------------------------------------------------------*
+           05  w-ref-res-acq              pic  9(07)                  .
+           05  w-ref-res-acq-des          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sottoconto 'iva a debito acquisti Reverse Charge'     *
+      *        *-------------------------------------------------------*
+           05  w-ref-iva-dar              pic  9(07)                  .
+           05  w-ref-iva-dar-des          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sottoconto 'iva a credito acquisti Reverse Charge'    *
+      *        *-------------------------------------------------------*
+           05  w-ref-iva-car              pic  9(07)                  .
+           05  w-ref-iva-car-des          pic  x(40)                  .
+
+      *    *===========================================================*
+      *    * Work-area per tipi operazione                             *
+      *    *-----------------------------------------------------------*
+       01  w-top.
+      *        *-------------------------------------------------------*
+      *        * Tabella tipi operazione e dati ad essi associati      *
+      *        *-------------------------------------------------------*
+           05  w-top-tbl-top.
+      *            *---------------------------------------------------*
+      *            * Indice per puntamento su elemento in tabella      *
+      *            *---------------------------------------------------*
+               10  w-top-ele-inx          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Numero effettivo di elementi in tabella           *
+      *            *---------------------------------------------------*
+               10  w-top-ele-num          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Max numero di elementi in tabella                 *
+      *            *---------------------------------------------------*
+               10  w-top-ele-max          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Elementi per tipi operazione                      *
+      *            *---------------------------------------------------*
+               10  w-top-ele-top occurs 50.
+      *                *-----------------------------------------------*
+      *                * Codice tipo operazione                        *
+      *                *-----------------------------------------------*
+                   15  w-top-cod-top      pic  9(04)                  .
+      *                *-----------------------------------------------*
+      *                * Codice mnemonico                              *
+      *                *-----------------------------------------------*
+                   15  w-top-cod-mne      pic  x(04)                  .
+      *                *-----------------------------------------------*
+      *                * Descrizione                                   *
+      *                *-----------------------------------------------*
+                   15  w-top-des-top      pic  x(50)                  .
+      *                *-----------------------------------------------*
+      *                * Codice causale contabile                      *
+      *                *-----------------------------------------------*
+                   15  w-top-cau-cge      pic  9(03)                  .
+      *                *-----------------------------------------------*
+      *                * Codice sottoconto contabile                   *
+      *                *-----------------------------------------------*
+                   15  w-top-stc-cge      pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Codice contropartita contabile                *
+      *                *-----------------------------------------------*
+                   15  w-top-ctp-cge      pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 1                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f01-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 2                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f02-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 3                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f03-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 4                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f04-top      pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Flag 5                                        *
+      *                *-----------------------------------------------*
+                   15  w-top-f05-top      pic  9(02)                  .
+
+      *    *===========================================================*
+      *    * Work-area per valori di defaults generali                 *
+      *    *-----------------------------------------------------------*
+       01  w-def.
+      *        *-------------------------------------------------------*
+      *        * Data di registrazione di default                      *
+      *        *-------------------------------------------------------*
+           05  w-def-dat-reg              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo operazione di default                     *
+      *        *-------------------------------------------------------*
+           05  w-def-tip-ope              pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di registrazione per contabilita'                *
+      *        *-------------------------------------------------------*
+           05  w-def-drg-cge              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero giornale Iva per contabilita'                  *
+      *        *-------------------------------------------------------*
+           05  w-def-num-giv              pic  9(02)                  .
+
+      *    *===========================================================*
+      *    * Work-area per bufferizzazione campi accettazione campi    *
+      *    * chiave trattati dal main                                  *
+      *    *-----------------------------------------------------------*
+       01  w-key.
+      *        *-------------------------------------------------------*
+      *        * Tipo funzione richiesta al sottoprogramma richiamato  *
+      *        * dal main-program; il significato varia da sottopro-   *
+      *        * gramma a sottoprogramma; attualmente viene passata a  *
+      *        * spaces a tutti i sottoprogrammi                       *
+      *        *-------------------------------------------------------*
+           05  w-key-tip-fun              pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di registrazione                                 *
+      *        *-------------------------------------------------------*
+           05  w-key-dat-reg              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo operazione                                *
+      *        *-------------------------------------------------------*
+           05  w-key-tip-ope              pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per codice tipo operazione                *
+      *        *-------------------------------------------------------*
+           05  w-key-tip-ope-des          pic  x(50)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di uscita da completamento impostazione campi    *
+      *        * chiave effettuato nel sottoprogramma specifico per    *
+      *        * l'esecuzione della funzione corrispondente al tipo    *
+      *        * operazione                                            *
+      *        *                                                       *
+      *        * - Spaces : Il sottoprogramma ha provveduto a far im-  *
+      *        *            postare i campi residui della chiave, ed   *
+      *        *            ha completato il suo lavoro; pertanto il   *
+      *        *            main-program deve riciclare all'imposta-   *
+      *        *            zione campi chiave, riproponendo l'ultima  *
+      *        *            data registrazione e l'ultimo tipo opera-  *
+      *        *            zione                                      *
+      *        *                                                       *
+      *        * - E      : Il sottoprogramma ha raccolto Exit in im-  *
+      *        *            postazione dei campi residui della chiave, *
+      *        *            pertanto il main deve rientrare all' im-   *
+      *        *            postazione del tipo operazione             *
+      *        *                                                       *
+      *        * - U      : Il sottoprogramma ha raccolto Up in impo-  *
+      *        *            stazione dei campi residui della chiave,   *
+      *        *            pertanto il main deve rientrare all' im-   *
+      *        *            postazione del tipo operazione             *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  w-key-tus-ack              pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di richiesta registrazione nuova scadenza a      *
+      *        * fronte dell'operazione appena completata              *
+      *        * - Spaces : No                                         *
+      *        * - #      : Si                                         *
+      *        *-------------------------------------------------------*
+           05  w-key-ric-rns              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di registrazione nuova scadenza a fronte dell'o- *
+      *        * perazione appena completata in corso                  *
+      *        * - Spaces : No                                         *
+      *        * - #      : Si                                         *
+      *        *-------------------------------------------------------*
+           05  w-key-flg-rns              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione per nuova scadenza da registrare   *
+      *        *-------------------------------------------------------*
+           05  w-key-dtr-rns              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione per nuova scadenza da registrare      *
+      *        *-------------------------------------------------------*
+           05  w-key-top-rns              pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo nuova scadenza da registrare                  *
+      *        *-------------------------------------------------------*
+           05  w-key-imp-rns              pic s9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione che ha causato la richiesta di regi-  *
+      *        * strazione nuova scadenza                              *
+      *        * - 1200 : Storno                                       *
+      *        * - 1600 : Pagamento o richiesta di pagamento           *
+      *        *-------------------------------------------------------*
+           05  w-key-tvo-rns              pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero della scadenza a fronte della quale deve esse- *
+      *        * re registrata una nuova scadenza                      *
+      *        *-------------------------------------------------------*
+           05  w-key-nvs-rns              pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero del pagamento a fronte del quale deve essere   *
+      *        * registrata una nuova scadenza                         *
+      *        *-------------------------------------------------------*
+           05  w-key-nvp-rns              pic  9(11)                  .
+

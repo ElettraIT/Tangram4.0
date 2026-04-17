@@ -1,0 +1,675 @@
+      *    *===========================================================*
+      *    * Record file [dcf] Archivio dati commerciali fornitori     *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODFNT    " = rf-dcf-cod-fnt                    *
+      *    *                         rf-dcf-dpz-fnt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-dcf-ide-dat                    *
+      *    *                         rf-dcf-cod-fnt                    *
+      *    *                         rf-dcf-dpz-fnt                    *
+      *    *                                                           *
+      *    *          "RAGKEY    " = rf-dcf-rag-key                    *
+      *    *                         rf-dcf-cod-fnt                    *
+      *    *                         rf-dcf-dpz-fnt                    *
+      *    *                                                           *
+      *    * MEMO: IMPLEMENTARE SETTIMANA LAVORATIVA COME DCC ___      *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-dcf.
+      *        *-------------------------------------------------------*
+      *        * Informazioni generali                                 *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-gen.
+      *            *---------------------------------------------------*
+      *            * Data di sistema di ultimo inserimento/modifica    *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ide-dat         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice utente di ultimo inserimento/modifica      *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ide-ute         pic  x(08)                  .
+      *            *---------------------------------------------------*
+      *            * Fase di ultimo inserimento/modifica               *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ide-fas         pic  x(06)                  .
+      *            *---------------------------------------------------*
+      *            * Codice fornitore, deve trovare corrispondenza in  *
+      *            * anagrafica fornitori per contabilita'             *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-fnt         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice dipendenza del fornitore                   *
+      *            *---------------------------------------------------*
+               10  rf-dcf-dpz-fnt         pic  x(04)                  .
+      *            *---------------------------------------------------*
+      *            * Ragione sociale in uppercase                      *
+      *            *---------------------------------------------------*
+               10  rf-dcf-rag-key         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Ragione sociale fornitore                         *
+      *            *---------------------------------------------------*
+               10  rf-dcf-rag-soc         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Indirizzo fornitore                               *
+      *            *---------------------------------------------------*
+               10  rf-dcf-via-dcf         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * C.a.p. e citta'                                   *
+      *            *---------------------------------------------------*
+               10  rf-dcf-loc-dcf         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice nazione                                    *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-naz         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice comune                                     *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-cmn         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice frazione                                   *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-fzn         pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice localita'                                  *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-lct         pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Ragione sociale per invio documento - parte 1     *
+      *            *---------------------------------------------------*
+               10  rf-dcf-rs1-doc         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Ragione sociale per invio documento - parte 2     *
+      *            *---------------------------------------------------*
+               10  rf-dcf-rs2-doc         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Campi non più utilizzati, sostituiti da archivio  *
+      *            * apposito, per un totale di 40 caratteri           *
+      *            *                                                   *
+      *            * POSSONO ESSERE RIUTILIZZATI PREVIA NORMALIZZA-    *
+      *            * ZIONE CON .k (Displacement 287)                   *
+      *            *---------------------------------------------------*
+               10  rf-dcf-num-tel         pic  x(20)                  .
+      *            *---------------------------------------------------*
+      *            * Codice ID trasmittente per fatture elettroniche   *
+      *            * ricevute tramite SDI                              *
+      *            *                                                   *
+      *            * - '99999999999XXXXX'   : Id trasmittente          *
+      *            *                                                   *
+      *            * N.B. : Campo riutilizzato, ex Fax                 *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del cliente principale.              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-num-fax         pic  x(20)                  .
+      *            *---------------------------------------------------*
+      *            * Codice Destinatario per invio dei documenti in    *
+      *            * formato elettronico tramite SDI                   *
+      *            *                                                   *
+      *            * - '999999'   : Destinatario Pubblica Amministraz. *
+      *            * - '9999999'  : Destinatario Privato               *
+      *            * - '0000000'  : Destinatario Privato - solo PEC    *
+      *            *                                                   *
+      *            * N.B. : Campo riutilizzato, ex Telex               *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del cliente principale.              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-num-tlx         pic  x(20)                  .
+      *            *---------------------------------------------------*
+      *            * Campi non più utilizzati, sostituiti da archivio  *
+      *            * apposito, per un totale di 70 caratteri           *
+      *            *---------------------------------------------------*
+               10  rf-dcf-nom-int         pic  x(30)                  .
+               10  rf-dcf-eml-int         pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Inoltro documenti                                 *
+      *            *                                                   *
+      *            * - 01 : alla sede                                  *
+      *            * - 02 : alla sede legale (contabile)               *
+      *            * - 03 : alla dipendenza                            *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-inl-dcm         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Inoltro nostri pagamenti al fornitore             *
+      *            *                                                   *
+      *            * - 01 : alla sede                                  *
+      *            * - 02 : alla sede legale (contabile)               *
+      *            * - 03 : alla dipendenza                            *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-inl-pgt         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice che il fornitore ci ha assegnato come cli- *
+      *            * ente, da esprimere solamente se si vuole che que- *
+      *            * sto sia citato nella corrispondenza con il forni- *
+      *            * tore                                              *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-noi-cli         pic  x(15)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per la fatturazione da parte del forni-  *
+      *        * tore                                                  *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-fat.
+      *            *---------------------------------------------------*
+      *            * Tipo assoggettamento iva per il fornitore         *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-tas-ivf         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Conto di contabilita' generale usato come contro- *
+      *            * partita per gli acquisti dal fornitore. Se a zero *
+      *            * si assumeranno le contropartite acquisti dai pro- *
+      *            * dotto a noi fatturati dal fornitore               *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ctp-acq         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Periodicita' di fatturazione a noi da parte del   *
+      *            * fornitore                                         *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-per-fat         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo raggruppamento bolle in fattura da parte del *
+      *            * fornitore                                         *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-rag-bft         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice valuta applicato dal fornitore             *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-vlt         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice lingua per il fornitore                    *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-lng         pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per le condizioni di acquisto            *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-cda.
+      *            *---------------------------------------------------*
+      *            * Codice listino applicato dal fornitore            *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-lst         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice categoria sconto in riga, a noi applicato  *
+      *            * dal fornitore                                     *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cat-scr         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuali di sconto in riga 1..5, a noi appli-  *
+      *            * cate dal fornitore                                *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-per-scr occurs 05
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Codice categoria sconto in chiusura, a noi appli- *
+      *            * cato dal fornitore                                *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cat-scc         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale di sconto in chiusura, a noi applica- *
+      *            * to dal fornitore                                  *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-per-scc         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Si/No addebito spese, da parte del fornitore, e   *
+      *            * modalita' di addebito                             *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-add-spe occurs 06.
+      *                *-----------------------------------------------*
+      *                * Si/No addebito spese e modalita'              *
+      *                * - 01 : No addebito                            *
+      *                * - 02 : Si addebito, secondo le modalita' e-   *
+      *                *        spresse nel modo di funzionamento per  *
+      *                *        la spesa                               *
+      *                * - 03 : Si addebito a percentuale, solo se il  *
+      *                *        funzionamento della spesa e' tipo 05   *
+      *                * - 04 : Si addebito ad importo, solo se il     *
+      *                *        funzionamento della spesa e' tipo 05   *
+      *                *                                               *
+      *                * N.B. : Per i fornitori con fatturazione in    *
+      *                *        valuta non si tiene conto dei tipi     *
+      *                *        funzionamento spesa 02 e 04, che ven-  *
+      *                *        gono rispettivamente considerati come  *
+      *                *        se fossero 03 o 05                     *
+      *                *-----------------------------------------------*
+                   15  rf-dcf-snm-spe     pic  9(02)                  .
+      *                *-----------------------------------------------*
+      *                * Percentuale di addebito della spesa           *
+      *                *-----------------------------------------------*
+                   15  rf-dcf-per-spe     pic  9(02)v9(01)            .
+      *                *-----------------------------------------------*
+      *                * Importo di addebito della spesa, espresso in  *
+      *                * valuta base                                   *
+      *                *-----------------------------------------------*
+                   15  rf-dcf-imp-spe     pic  9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Voci descrittive in fattura 1..6                  *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-vde-fat occurs 06.
+      *                *-----------------------------------------------*
+      *                * Codice della voce descrittiva per fattura, da *
+      *                * utilizzarsi specialmente nella gestione ordi- *
+      *                * ni a fornitori                                *
+      *                *-----------------------------------------------*
+                   15  rf-dcf-vde-cod     pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per le condizioni di pagamento           *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-cdp.
+      *            *---------------------------------------------------*
+      *            * Codice forma di pagamento abituale del fornitore  *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-fop         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo esclusione mesi per le scadenze              *
+      *            *                                                   *
+      *            * - 01 : Nessun mese escluso                        *
+      *            * - 02 : Si sposta la scadenza di un mese           *
+      *            * - 03 : Si sposta la scadenza ad un giorno fisso   *
+      *            *        del mese successivo                        *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-tip-esm         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Giorno di scadenza fisso nel mese successivo, se  *
+      *            * tipo esclusione mese pari a 03                    *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ggg-alt         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * 1. mese di esclusione per le scadenze             *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-mmm-e01         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * 2. mese di esclusione per le scadenze             *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-mmm-e02         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice addebito spese incasso da parte del forni- *
+      *            * tore                                              *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-add-spi         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice addebito spese bollo da parte del fornito- *
+      *            * re                                                *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-add-spb         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice nostra banca di appoggio per pagamenti a   *
+      *            * mezzo circuiti bancari                            *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-nos-ban         pic  x(10)                  .
+      *            *---------------------------------------------------*
+      *            * Codice ABI dell'istituto di credito di appoggio   *
+      *            * per pagamenti da effettuarsi al fornitore a mez-  *
+      *            * zo banca, per effettuare bonifici bancari al for- *
+      *            * nitore                                            *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale, a meno che *
+      *            *        la voce 'Inoltro pagamenti' nel fornitore  *
+      *            *        principale non indichi un inoltro pagamen- *
+      *            *        ti alla dipendenza.                        *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-abi         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice sportello CAB per l'istituto di credito di *
+      *            * appoggio per pagamenti da effettuarsi al fornito- *
+      *            * re a mezzo banca, per effettuare bonifici banca-  *
+      *            * ri al fornitore                                   *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale, a meno che *
+      *            *        la voce 'Inoltro pagamenti' nel fornitore  *
+      *            *        principale non indichi un inoltro pagamen- *
+      *            *        ti alla dipendenza.                        *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-cab         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice conto corrente nella banca del fornitore   *
+      *            * di appoggio per pagamenti da effettuarsi al for-  *
+      *            * nitore a mezzo banca, per effettuare bonifici     *
+      *            * bancari al fornitore                              *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale, a meno che *
+      *            *        la voce 'Inoltro pagamenti' nel fornitore  *
+      *            *        principale non indichi un inoltro pagamen- *
+      *            *        ti alla dipendenza.                        *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ccc-app         pic  x(12)                  .
+      *            *---------------------------------------------------*
+      *            * Codice conto corrente postale di appoggio per pa- *
+      *            * gamenti da effettuarsi al fornitore a mezzo c/c   *
+      *            * postale, per effettuare bonifici postali al for-  *
+      *            * nitore                                            *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale, a meno che *
+      *            *        la voce 'Inoltro pagamenti' nel fornitore  *
+      *            *        principale non indichi un inoltro pagamen- *
+      *            *        ti alla dipendenza.                        *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ccp-app         pic  x(12)                  .
+      *            *---------------------------------------------------*
+      *            * Indice di priorita' per i pagamenti al fornitore  *
+      *            *                                                   *
+      *            * - 01 : Alta                                       *
+      *            * - 02 : Media                                      *
+      *            * - 03 : Bassa                                      *
+      *            *                                                   *
+      *            * Campo riutilizzato, ex:                           *
+      *            *                                                   *
+      *            * Tipo incasso alternativo per incassi elettronici, *
+      *            * normalmente destinati a risolversi in una dispo-  *
+      *            * sizione di pagamento [mai utilizzato]             *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-ipr-iel         pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per la gestione acquisitori              *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-aqt.
+      *            *---------------------------------------------------*
+      *            * Codice acquisitore abituale per il fornitore, o   *
+      *            * per la dipendenza                                 *
+      *            *                                                   *
+      *            * N.B. : Campo riconvertito in data acquisizione    *
+      *            *        del fornitore (12/12/02)                   *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-aqt         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice categoria provvigionale per il fornitore,  *
+      *            * rispetto all'acquisitore                          *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cdp-aqt         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuali provvigioni per il fornitore 1..3,    *
+      *            * rispetto all'acquisitore                          *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-dcf-pdp-aqt  occurs 03
+                                          pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per le classificazioni statistiche       *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-pcs.
+      *            *---------------------------------------------------*
+      *            * Codice zona commerciale per il fornitore          *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-zon         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice categoria commerciale per il fornitore     *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-cat         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice statistico commerciale per il fornitore    *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cod-stt         pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per il controllo del budget              *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-bdg.
+      *            *---------------------------------------------------*
+      *            * Codice classe di budget per il fornitore          *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale, che vale   *
+      *            *        anche per le dipendenze del fornitore,     *
+      *            *        poiche' il budget si riferisce al forni-   *
+      *            *        tore nella sua globalita', indipendente-   *
+      *            *        mente dalle sue filiali.                   *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cla-bdg         pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per la gestione ordini a fornitori       *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-orf.
+      *            *---------------------------------------------------*
+      *            * Segnale di fornitore con blocco sugli ordini      *
+      *            * - 01 : No, si possono fare ordini al fornitore    *
+      *            * - 02 : Si, ordini al fornitore bloccati           *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-for-blo         pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per applicazioni speciali                *
+      *        *-------------------------------------------------------*
+           05  rf-dcf-inf-aps.
+      *            *---------------------------------------------------*
+      *            * Status commerciale del fornitore                  *
+      *            *                                                   *
+      *            *  - 01 : Normale                                   *
+      *            *  - 11 : Esauriti i rapporti commerciali           *
+      *            *  - 21 : Sostituito da ns. nuovo cliente           *
+      *            *  - 51 : Cessata attivita'                         *
+      *            *  - 52 : Cessata attivita', ma sostituito da ns.   *
+      *            *         nuovo cliente                             *
+      *            *  - 61 : In contenzioso                            *
+      *            *  - 62 : In contenzioso, ma sostituito da ns. nuo- *
+      *            *         vo fornitore                              *
+      *            *  - 71 : Fallito                                   *
+      *            *  - 72 : Fallito, ma sostituito da ns. nuovo for-  *
+      *            *         nitore                                    *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-sta-tus         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Data di determinazione dello status commerciale   *
+      *            *                                                   *
+      *            * Solo se status diverso da 01                      *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-sta-tud         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice fornitore di riferimento in relazione allo *
+      *            * status del fornitore, ovvero codice del nuovo     *
+      *            * fornitore                                         *
+      *            *                                                   *
+      *            * Solo se status a 21,52,62,72                      *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-sta-tuc         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di trattamento nelle statistiche per i  *
+      *            * documenti precedenti il cambiamento di status     *
+      *            *                                                   *
+      *            * Solo se codice fornitore di riferimento diverso   *
+      *            * da zero                                           *
+      *            *                                                   *
+      *            *  - 00 : Non significativo                         *
+      *            *  - 01 : Statistiche distinte                      *
+      *            *  - 02 : Statistiche girate sul fornitore di rife- *
+      *            *         rimento, ma sempre sulla sua sede prin-   *
+      *            *         cipale                                    *
+      *            *  - 03 : Statistiche girate sul fornitore di rife- *
+      *            *         rimento, conservando il codice dipendenza *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-sta-tux         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CIN italiano                               *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale, a meno che *
+      *            *        la voce 'Inoltro pagamenti' nel fornitore  *
+      *            *        principale non indichi un inoltro pagamen- *
+      *            *        ti alla dipendenza.                        *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cin-ita         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CIN europeo                                *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale, a meno che *
+      *            *        la voce 'Inoltro pagamenti' nel fornitore  *
+      *            *        principale non indichi un inoltro pagamen- *
+      *            *        ti alla dipendenza.                        *
+      *            *---------------------------------------------------*
+               10  rf-dcf-cin-eur         pic  x(02)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di calcolo importo                      *
+      *            *                                                   *
+      *            *  - spaces : Standard (Prezzo netto x qta')        *
+      *            *  - 'L'    : Prezzo lordo x qta', scontato         *
+      *            *  - 'S'    : Standard ma con possibilita' di       *
+      *            *             modifica                              *
+      *            *  - 'X'    : Come 'L' ma con possibilita' di       *
+      *            *             modifica (DA IMPLEMENTARE)            *
+      *            *                                                   *
+      *            * N.B. : Se codice dipendenza diverso da spaces, il *
+      *            *        valore non e' significativo, in quanto va- *
+      *            *        le quello espresso in anagrafica commer-   *
+      *            *        ciale del fornitore principale.            *
+      *            *---------------------------------------------------*
+               10  rf-dcf-tip-mci         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *                                                   *
+      *            * N.B. : All'occorrenza usare le ex utenze ___      *
+      *            *                                                   *
+      *            * N.B. : In ogni caso, se il codice dipendenza e'   *
+      *            *        diverso da spaces il contenuto di questa   *
+      *            *        area non e' significativo, in quanto sa-   *
+      *            *        ra' considerato il contenuto dell'area     *
+      *            *        corrispondente espresso nell'anagrafica    *
+      *            *        commerciale del fornitore principale.      *
+      *            *---------------------------------------------------*
+               10  rf-dcf-alx-exp.
+                   15  filler occurs 18   pic  x(01)                  .

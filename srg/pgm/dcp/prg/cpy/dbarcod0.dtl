@@ -1,0 +1,78 @@
+      *    *===========================================================*
+      *    * Area di comunicazione per determinazione, relativamente   *
+      *    * ad un prodotto, di :                                      *
+      *    *                                                           *
+      *    * - Bar-code su file EPS di tipo EAN13 o 128 (numerico)     *
+      *    *                                                           *
+      *    * - Pathname : /abd/asc/bcd/99/XXXXXXXXXX.eps               *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  d-bar-cod.
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione                               [Input] *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-tip-ope          pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice                                   [Input] *
+      *        *                                                       *
+      *        *  - EAN13STD : EAN 13                                  *
+      *        *  - C128N05A : Code 128 - numerico di 5 caratteri  (A) *
+      *        *  - C128N06C : Code 128 - numerico di 6 caratteri  (C) *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-tip-cod          pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice prodotto da utilizzare            [Input] *
+      *        *                                                       *
+      *        *  - 'A' : Alfanumerico                                 *
+      *        *  - 'N' : Numerico                                     *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-tip-cdp          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero caratteri del codice                   [Input] *
+      *        *                                                       *
+      *        * Solo per CODE 128                                     *
+      *        *                                                       *
+      *        * N.B.: attualmente non gestito                         *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-sub-chr          pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice alfanumerico                           [Input] *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-alf-cod          pic  x(13)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico                               [Input] *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-num-cod          pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no stampa del codice leggibile             [Input] *
+      *        *                                                       *
+      *        * N.B.: attualmente non gestito                         *
+      *        *-------------------------------------------------------*
+______*    05  d-bar-cod-scl-snx          pic  x(01)                  .
+      *        *=======================================================*
+      *        * Bar-code completo                            [Output] *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-bar-cod          pic  x(13)                  .
+      *        *-------------------------------------------------------*
+      *        * Check digit                                  [Output] *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-chk-dgt          pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Return status code                           [Output] *
+      *        *  - Spaces : Operazione eseguita                       *
+      *        *  - #      : Errore di esecuzione                      *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-exi-sts          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Buffer contenente definizione PostScript     [Output] *
+      *        *                                                       *
+      *        * N.B.: attualmente usato dal 'driver' 'psua4'          *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-buf-eps.
+               10  d-bar-cod-buf-lin occurs 80.
+                   15  d-bar-cod-buf-txt  pic  x(80)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per implementazioni future                *
+      *        *-------------------------------------------------------*
+           05  d-bar-cod-alx-exp          pic  x(20)                  .
+

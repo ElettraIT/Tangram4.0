@@ -1,0 +1,861 @@
+      *    *===========================================================*
+      *    * Record file [fit] Fatture clienti testate                 *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-fit-num-prt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-fit-ide-dat                    *
+      *    *                         rf-fit-dat-doc                    *
+      *    *                         rf-fit-num-prt                    *
+      *    *                                                           *
+      *    *          "IDEDOC    " = rf-fit-dat-doc                    *
+      *    *                         rf-fit-cod-dpz                    *
+      *    *                         rf-fit-num-doc                    *
+      *    *                         rf-fit-cod-tmo                    *
+      *    *                         rf-fit-num-prt                    *
+      *    *                                                           *
+      *    *          "CNTDEN    " = rf-fit-scl-ann                    *
+      *    *                         rf-fit-num-giv                    *
+      *    *                         rf-fit-sgl-num                    *
+      *    *                         rf-fit-num-doc                    *
+      *    *                         rf-fit-num-prt                    *
+      *    *                                                           *
+      *    *          "CLIDAT    " = rf-fit-cod-cli                    *
+      *    *                         rf-fit-dat-doc                    *
+      *    *                         rf-fit-num-doc                    *
+      *    *                         rf-fit-cod-tmo                    *
+      *    *                         rf-fit-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-fit.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.nnnnnn                       *
+      *        *-------------------------------------------------------*
+           05  rf-fit-num-prt             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento, deve fare riferimento alla ta- *
+      *        * bella dei tipi movimento per la fatturazione [zfi]    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-tmo             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento associato al tipo movimento            *
+      *        *                                                       *
+      *        * - 01 : Fattura                                        *
+      *        * - 02 : Nota di addebito                               *
+      *        * - 03 : Nota di accredito                              *
+      *        * - 04 : Fattura Pro-Forma                              *
+      *        * - 05 : Auto-fattura                                   *
+      *        * - 06 : Acconto su fattura                             *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tip-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo origine del documento associato al tipo movimen- *
+      *        * to                                                    *
+      *        *                                                       *
+      *        * - Se tipo documento associato 01                      *
+      *        *                                                       *
+      *        *   - 01 : Manuale, fattura o nota credito o debito     *
+      *        *   - 02 : Manuale, fattura + bolla di consegna         *
+      *        *   - 03 : Manuale, fattura + ricevuta fiscale          *
+      *        *   - 11 : Automatica, a fronte bolla di uscita         *
+      *        *                                                       *
+      *        * - Se tipo documento associato 03                      *
+      *        *                                                       *
+      *        *   - 31 : Automatica, a fronte bolla di entrata        *
+      *        *                                                       *
+      *        * - Se tipo documento associato 04                      *
+      *        *                                                       *
+      *        *   - 41 : Automatica, a fronte ordine                  *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-fit-org-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di giornale iva per il documento associato al  *
+      *        * tipo movimento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-fit-num-giv             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha emesso il documento          *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-fit-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento : s.aa.gg.nnnnnn                     *
+      *        *                                                       *
+      *        * - s      : secolo                                     *
+      *        * - aa     : anno                                       *
+      *        * - gg     : numero giornale iva                        *
+      *        * - nnnnnn : numero progressivo                         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-num-doc             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Secolo ed anno relativi alla data documento           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-scl-ann             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla numerazione relativa al numero documento        *
+      *        *-------------------------------------------------------*
+           05  rf-fit-sgl-num             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente commerciale                            *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-cli             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla dipendenza del cliente commerciale              *
+      *        *-------------------------------------------------------*
+           05  rf-fit-dpz-cli             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo fornitura                                        *
+      *        *                                                       *
+      *        * - 01 : Diretta                                        *
+      *        * - 11 : Tramite Leasing                                *
+      *        * - 21 : Tramite gruppo d'acquisto                      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tip-frn             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente per la fatturazione                    *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Pari al commerciale               *
+      *        * - Se tip-frn = 11 : Specifico per la fatturazione     *
+      *        * - Se tip-frn = 21 : Specifico per la fatturazione     *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cli-plf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza del cliente per la fatturazione     *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Pari al commerciale               *
+      *        * - Se tip-frn = 11 : Specifico per la fatturazione     *
+      *        * - Se tip-frn = 21 : Specifico per la fatturazione     *
+      *        *-------------------------------------------------------*
+           05  rf-fit-dpc-plf             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-fit-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-fit-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-fit-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-fit-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Assoggettamento iva per il documento                  *
+      *        *                                                       *
+      *        * - 00000 : Soggetto iva                                *
+      *        * - nnnnn : Titolo di esenzione                         *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ass-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Conto di contabilita' generale usato come contropar-  *
+      *        * tita vendite per l'intero documento                   *
+      *        * - 0000000 : A seconda delle righe fatturate           *
+      *        * - nnnnnnn : Conto di contropartita vendite            *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ctp-ven             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro documenti                                     *
+      *        *                                                       *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        *                                                       *
+      *        * In caso di fattura accompagnatoria viene forzato al   *
+      *        * valore 99                                             *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-inl-dcm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro pagamenti                                     *
+      *        *                                                       *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-inl-pgt             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice listino da applicare per il documento          *
+      *        *                                                       *
+      *        * - Spaces : listino base                               *
+      *        * - xxx    : listino xxx                                *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-lst             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in riga associata al cliente         *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-csr-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in riga associate al cliente                 *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-psr-aac occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in chiusura associato al cliente     *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-csc-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto chiusura associato al cliente                *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-psc-aac             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigioni associata al cliente         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cpv-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di provvigione associate al cliente       *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ppv-aac occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Voci descrittive in fattura                           *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-voc-des occurs 06   pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice forma di pagamento per il documento            *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-fop             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto pagamento associata alla forma di pagamento  *
+      *        *-------------------------------------------------------*
+           05  rf-fit-scp-aap             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI dell'istituto di credito di appoggio per   *
+      *        * gli effetti, per il documento                         *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-abi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice CAB per lo sportello dell'istituto di credito  *
+      *        * di appoggio per gli effetti, per il documento         *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-cab             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente del cliente presso l'istituto   *
+      *        * di credito per l'appoggio del pagamento, solo per gli *
+      *        * accrediti pre-autorizzati in conto 'RID', per il do-  *
+      *        * cumento.                                              *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ccc-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca per pagamenti per mezzo bonifico  *
+      *        * bancario                                              *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-nos-ban             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostro c/c postale per pagamenti per mezzo c/c *
+      *        * postale                                               *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-nos-ccp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese bollo per il documento          *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-add-spb             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo incasso preferenziale per gli incassi elettroni- *
+      *        * ci per il documento                                   *
+      *        *                                                       *
+      *        * - 01 : Nessuna preferenza                             *
+      *        * - 02 : Ri.Ba.                                         *
+      *        * - 03 : M.av.                                          *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ipr-iel             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza pagamento nel caso che la forma di pa-  *
+      *        * gamento preveda un codice di pagamento con data di    *
+      *        * decorrenza manuale                                    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-pag-dsm             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare della quota a forfait nel caso che la forma *
+      *        * di pagamento preveda un codice di pagamento relativa  *
+      *        * ad una quota a forfait, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-fit-pag-qaf             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare dell'acconto nel caso che la forma di paga- *
+      *        * mento preveda la deduzione dell'acconto relativamente *
+      *        * ad uno dei tre codici di pagamento previsti,          *
+      *        * in valuta                                             *
+      *        *-------------------------------------------------------*
+           05  rf-fit-pag-act             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice agente per le provvigioni sul documento        *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente commerciale, se c'e',  *
+      *        *                     altrimenti da cliente per la      *
+      *        *                     fatturazione                      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-age             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di significativita' provvigioni per il documento *
+      *        *                                                       *
+      *        * - 01 : Si, da righe documento                         *
+      *        * - 02 : No provvigioni per il documento                *
+      *        * - 03 : A forfait per l'intero documento, importo      *
+      *        * - 04 : A forfait per l'intero documento, in %         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-fsp-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'agente, in valuta base                              *
+      *        *                                                       *
+      *        * N.B.: Significativo solo se campo precedente a 03 o,  *
+      *        *       se a 04, contiene una % (2 interi e 2 decimali) *
+      *        *-------------------------------------------------------*
+           05  rf-fit-pvf-age             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo vendita per l'agente                             *
+      *        *                                                       *
+      *        * - 01 : Diretta                                        *
+      *        * - 02 : Indiretta                                      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tip-vpa             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigioni associata all'agente         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cpv-aaa             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di provvigione in riga associate all'a-   *
+      *        * gente                                                 *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ppv-aaa occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice intermediario per le provvigioni sul documento *
+      *        *                                                       *
+      *        * N.B.: Campo riconvertito (15/09/2022) e soggetto a    *
+      *        *       personalizzazione                               *
+      *        *                                                       *
+      *        *       Ospita il codice categoria commerciale del      *
+      *        *       cliente, solo se diverso da quello espresso in  *
+      *        *       anagrafica 'dcc' con il significato di Area     *
+      *        *       Manager (ELETTRA)                               *
+      *        *                                                       *
+      *        * N.B.: Campo non piu' utilizzato (03/06/2024)          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-fit-cod-ime             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'intermediario, in valuta base                       *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-fit-pvf-ime             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Totali di suddivisione per le righe, in valuta        *
+      *        *                                                       *
+      *        * - 01 : Totale merce                                   *
+      *        * - 02 : Totale servizi                                 *
+      *        * - 03 : Totale imballi                                 *
+      *        * - 04 : Totale servizi periodici (DA IMPLEMENTARE)     *
+      *        * - 05 : Totale libero 5                                *
+      *        * - 06 : Totale libero 6                                *
+      *        * - 07 : Totale libero 7                                *
+      *        * - 08 : Totale libero 8                                *
+      *        * - 09 : Totale extra                                   *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tot-rig occurs 09   pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto in chiusura, in valuta                 *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tot-scc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in chiusura                                  *
+      *        *-------------------------------------------------------*
+           05  rf-fit-per-scc             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto in chiusura           *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-civ-scc             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto in chiusura *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ccp-scc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto pagamento, in valuta                   *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tot-scp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto pagamento                                    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-per-scp             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto pagamento             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-civ-scp             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto pagamento   *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ccp-scp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No addebito spese e modalita' di addebito          *
+      *        *                                                       *
+      *        * - Se tip-frn = 01 : Da cliente commerciale            *
+      *        * - Se tip-frn = 11 : Da cliente commerciale            *
+      *        * - Se tip-frn = 21 : Da cliente per la fatturazione    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-spe-add occurs 06.
+      *            *---------------------------------------------------*
+      *            * Si/No addebito spese                              *
+      *            * - 0 : No addebito                                 *
+      *            * - 1 : Si addebito                                 *
+      *            *---------------------------------------------------*
+               10  rf-fit-spe-snx         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di addebito spese                       *
+      *            * - 1 : Addebito a percentuale fissa                *
+      *            * - 2 : Addebito a percentuale variabile            *
+      *            * - 3 : Addebito ad importo fisso                   *
+      *            * - 4 : Addebito ad importo variabile               *
+      *            *---------------------------------------------------*
+               10  rf-fit-spe-mad         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale di addebito della spesa               *
+      *            *---------------------------------------------------*
+               10  rf-fit-spe-per         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di imponibile per la percentuale della spesa *
+      *            *                                                   *
+      *            * - 00 : Non significativo                          *
+      *            * - 01 : Totale lordo                               *
+      *            * - 02 : Totale netto                               *
+      *            * - 03 : Su una combinazione delle voci seguenti    *
+      *            * - 11 : Totale merci                               *
+      *            * - 12 : Totale servizi                             *
+      *            * - 13 : Totale imballi                             *
+      *            * - 14 : Totale libero 4                            *
+      *            * - 15 : Totale libero 5                            *
+      *            * - 16 : Totale libero 6                            *
+      *            * - 17 : Totale libero 7                            *
+      *            * - 18 : Totale libero 8                            *
+      *            * - 19 : Totale extra                               *
+      *            *---------------------------------------------------*
+               10  rf-fit-spe-ibl         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Totalizzatori da considerarsi per la determina-   *
+      *            * zione dell'imponibile per la percentuale della    *
+      *            * spesa, in valuta                                  *
+      *            *                                                   *
+      *            * Solo se l'imponibile per la percentuale e' pari a *
+      *            * 03                                                *
+      *            *                                                   *
+      *            * Per ogni totalizzatore deve essere specificato un *
+      *            * valore di un carattere, dove :                    *
+      *            *                                                   *
+      *            * - N : Non concorre a formare l'imponibile         *
+      *            * - S : Concorre a formare l'imponibile             *
+      *            *                                                   *
+      *            * Il significato dei totalizzatori e' di tipo posi- *
+      *            * zionale, con la seguente codifica :               *
+      *            *                                                   *
+      *            * 1 : Totale merci                                  *
+      *            * 2 : Totale servizi                                *
+      *            * 3 : Totale imballi                                *
+      *            * 4 : Totale libero 4                               *
+      *            * 5 : Totale libero 5                               *
+      *            * 6 : Totale libero 6                               *
+      *            * 7 : Totale libero 7                               *
+      *            * 8 : Totale libero 8                               *
+      *            * 9 : Totale extra                                  *
+      *            *---------------------------------------------------*
+               10  rf-fit-ibt-spe.
+                   15  rf-fit-ibx-spe  occurs 09
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Importo di addebito della spesa, in valuta        *
+      *            *---------------------------------------------------*
+               10  rf-fit-spe-imp         pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Codice iva per la spesa                           *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non e'    *
+      *            *        soggetta ad un particolare codice iva, ma  *
+      *            *        che l'importo spesa va' sventagliato in    *
+      *            *        proporzione ai codici iva gia' presenti    *
+      *            *        nel documento                              *
+      *            *---------------------------------------------------*
+               10  rf-fit-spe-civ         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice contropartita per la spesa                 *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non si    *
+      *            *        riferisce ad una particolare contropartita,*
+      *            *        ma che l'importo spesa va' sventagliato in *
+      *            *        proporzione alle contropartite gia' pre-   *
+      *            *        senti nel documento                        *
+      *            *---------------------------------------------------*
+               10  rf-fit-spe-ccp         pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese incasso per il documento        *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-add-spi             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese incasso                       *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-civ-spi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese incasso             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ccp-spi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese incasso calcolate, in valuta            *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tot-sic             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese incasso aggiuntive, in valuta           *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tot-sia             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese bollo, in valuta                        *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tot-spb             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese bollo                         *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fit-civ-spb             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese bollo               *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ccp-spb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo per movimento di contabilita' gene- *
+      *        * rale relativo al documento                            *
+      *        *                                                       *
+      *        * N.B. : La data di registrazione per il movimento di   *
+      *        *        contabilita' generale relativo al documento e' *
+      *        *        sempre pari alla data del documento            *
+      *        *-------------------------------------------------------*
+           05  rf-fit-prt-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero registrazioni di contabilita' generale genera- *
+      *        * te per il documento                                   *
+      *        *-------------------------------------------------------*
+           05  rf-fit-nrg-mgd             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento per movimento di contabilita' ge- *
+      *        * nerale relativo al documento                          *
+      *        *                                                       *
+      *        * N.B. : solo in caso di nota di credito o di fattura   *
+      *        *        di acconto                                     *
+      *        *-------------------------------------------------------*
+           05  rf-fit-dri-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento per movimento di contabilita'   *
+      *        * generale relativo al documento                        *
+      *        *                                                       *
+      *        * N.B. : solo in caso di nota di credito o di fattura   *
+      *        *        di acconto                                     *
+      *        *-------------------------------------------------------*
+           05  rf-fit-nri-mgd             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero scadenza della prima scadenza generata per la  *
+      *        * gestione del portafoglio effetti attivi               *
+      *        *                                                       *
+      *        * N.B. : Le scadenze successive alla prima hanno un nu- *
+      *        *        mero scadenza in progressione di uno in uno    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-nps-sdb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di scadenze generate per la gestione del por-  *
+      *        * tafoglio effetti attivi : 00..96                      *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ctr-sdb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto iva                                       *
+      *        *-------------------------------------------------------*
+           05  rf-fit-iva-cst.
+      *            *---------------------------------------------------*
+      *            * Righe del castelletto iva                         *
+      *            *---------------------------------------------------*
+               10  rf-fit-iva-rig occurs 06.
+      *                *-----------------------------------------------*
+      *                * Codice iva                                    *
+      *                *-----------------------------------------------*
+                   15  rf-fit-iva-cod     pic  9(05)                  .
+      *                *-----------------------------------------------*
+      *                * Imponibile iva, in valuta                     *
+      *                *-----------------------------------------------*
+                   15  rf-fit-iva-ibl     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Imposta iva, in valuta                        *
+      *                *-----------------------------------------------*
+                   15  rf-fit-iva-imp     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Totale documento, in valuta                       *
+      *            *---------------------------------------------------*
+               10  rf-fit-iva-tdo         pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto contropartite contabili, esclusa iva      *
+      *        *                                                       *
+      *        * N.B.: implementare eventualmente il record 'fic' per  *
+      *        *       consentire un numero maggiore di contropartite  *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ctp-cst.
+      *            *---------------------------------------------------*
+      *            * Righe del castelletto contropartite               *
+      *            *---------------------------------------------------*
+               10  rf-fit-ctp-rig occurs 10.
+      *                *-----------------------------------------------*
+      *                * Codice contropartita                          *
+      *                *-----------------------------------------------*
+                   15  rf-fit-ctp-cod     pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Importo contropartita, in valuta              *
+      *                *-----------------------------------------------*
+                   15  rf-fit-ctp-imp     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Numero di stampe eseguite per il documento, max 99    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-ctr-stp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-fit-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *                                                   *
+      *            * 01 : (libero)                                     *
+      *            * 02 : sottoposizione ad emissione gestione agenti  *
+      *            * 03 : (libero)                                     *
+      *            * 04 : (libero)                                     *
+      *            * 05 : (libero)                                     *
+      *            * 06 : (libero)                                     *
+      *            * 07 : (libero)                                     *
+      *            *---------------------------------------------------*
+               10  rf-fit-flg-blo.
+                   15  rf-fit-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            *      -------------------------------------------- *
+      *            * 01 : Flag di esclusione dalle statistiche         *
+      *            *                                                   *
+      *            *       - Spaces : no esclusione                    *
+      *            *       - '#'    : esclusione                       *
+      *            *      -------------------------------------------- *
+      *            * 02 : Flag di fattura in attesa di verifica        *
+      *            *                                                   *
+      *            *       - Spaces : verificato                       *
+      *            *       - '#'    : in attesa di verifica            *
+      *            *                                                   *
+      *            *      N.B.: Soggetto a personalizzazione           *
+      *            *      -------------------------------------------- *
+      *            * 03 : Flag di documento con imposta di bollo ap-   *
+      *            *      plicata                                      *
+      *            *                                                   *
+      *            *       - Spaces : documento senza bollo virtuale   *
+      *            *       - '#'    : documento con bollo virtuale     *
+      *            *---------------------------------------------------*
+               10  rf-fit-flg-nbl.
+                   15  rf-fit-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di regime fiscale particolare                    *
+      *        *                                                       *
+      *        * - Spaces o N : Normale regime fiscale                 *
+      *        * - S          : Regime di Scissione Pagamenti          *
+      *        *-------------------------------------------------------*
+           05  rf-fit-flg-rfp             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di documento con ritenuta d'acconto              *
+      *        *                                                       *
+      *        * - Spaces o N : Nessuna ritenuta                       *
+      *        * - S          : Ritenuta d'acconto                     *
+      *        *-------------------------------------------------------*
+           05  rf-fit-flg-rda             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuale di ritenuta                               *
+      *        *-------------------------------------------------------*
+           05  rf-fit-per-rda             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Percentuale di imponibile su cui applicare la ritenu- *
+      *        * ta                                                    *
+      *        *                                                       *
+      *        * N.B. : Se flag di ritenuta a 'S' e presente % di ri-  *
+      *        *        tenuta, se % imponibile a zero, si intende     *
+      *        *        al 100%                                        *
+      *        *-------------------------------------------------------*
+           05  rf-fit-pib-rda             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice tipo documento per fatturazione elettronica    *
+      *        *-------------------------------------------------------*
+           05  rf-fit-tdo-fel             pic  x(05)                  .
+
+      *        *-------------------------------------------------------*
+      *        * Flag di documento con imposta di bollo virtuale       *
+      *        *                                                       *
+      *        * - Spaces o N : No                                     *
+      *        * - S          : Bollo virtuale                         *
+      *        *                                                       *
+      *        * N.B. : DA IMPLEMENTARE (vedi 'rf-fit-flg-nbx 3')      *
+      *        *-------------------------------------------------------*
+______*    05  rf-fit-flg-ibv             pic  x(01)                  .
+
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-fit-alx-exp.
+               10  filler  occurs 27      pic  x(01)                  .

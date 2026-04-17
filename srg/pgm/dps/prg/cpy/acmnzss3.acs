@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice statistico 3    *
+      *    *-----------------------------------------------------------*
+       cmn-zss-003-opn-000.
+           move      "pgm/dps/prg/obj/acmnzss3"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cmn-zss-003-pth      .
+           move      "OP"                 to   w-cmn-zss-003-ope      .
+           perform   cmn-zss-003-cll-000  thru cmn-zss-003-cll-999    .
+       cmn-zss-003-opn-999.
+           exit.
+       cmn-zss-003-cls-000.
+           move      "CL"                 to   w-cmn-zss-003-ope      .
+           perform   cmn-zss-003-cll-000  thru cmn-zss-003-cll-999    .
+           move      "C?"                 to   w-cmn-zss-003-ope      .
+           perform   cmn-zss-003-cll-000  thru cmn-zss-003-cll-999    .
+           if        w-cmn-zss-003-ope    not  = spaces
+                     go to cmn-zss-003-cls-999.
+           cancel    w-cmn-zss-003-pth                                .
+       cmn-zss-003-cls-999.
+           exit.
+       cmn-zss-003-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cmn-zss-003-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdps1900"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zss-003-foi-999.
+           move      "pgm/dps/prg/obj/pdps1900"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cmn-zss-003-ope      .
+           go to     cmn-zss-003-foi-999.
+       cmn-zss-003-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cmn-zss-003-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdps1910"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zss-003-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dps/prg/obj/pdps1910"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cmn-zss-003-ope      .
+           go to     cmn-zss-003-foi-999.
+       cmn-zss-003-foi-999.
+           exit.
+       cmn-zss-003-cll-000.
+           call      w-cmn-zss-003-pth   using w-cmn-zss-003
+                                               v
+                                               s                      .
+       cmn-zss-003-cll-999.
+           exit.
+

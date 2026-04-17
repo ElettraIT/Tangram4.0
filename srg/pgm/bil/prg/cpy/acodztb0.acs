@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice tipo bilancio   *
+      *    *-----------------------------------------------------------*
+       cod-cod-ztb-opn-000.
+           move      "pgm/bil/prg/obj/acodztb0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-cod-ztb-pth      .
+           move      "OP"                 to   w-cod-cod-ztb-ope      .
+           perform   cod-cod-ztb-cll-000  thru cod-cod-ztb-cll-999    .
+       cod-cod-ztb-opn-999.
+           exit.
+       cod-cod-ztb-cls-000.
+           move      "CL"                 to   w-cod-cod-ztb-ope      .
+           perform   cod-cod-ztb-cll-000  thru cod-cod-ztb-cll-999    .
+           move      "C?"                 to   w-cod-cod-ztb-ope      .
+           perform   cod-cod-ztb-cll-000  thru cod-cod-ztb-cll-999    .
+           if        w-cod-cod-ztb-ope    not  = spaces
+                     go to cod-cod-ztb-cls-999.
+           cancel    w-cod-cod-ztb-pth                                .
+       cod-cod-ztb-cls-999.
+           exit.
+       cod-cod-ztb-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-cod-ztb-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pbil0100"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-ztb-foi-999.
+           move      "pgm/bil/prg/obj/pbil0100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-cod-ztb-ope      .
+           go to     cod-cod-ztb-foi-999.
+       cod-cod-ztb-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-cod-ztb-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pbil0110"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-ztb-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/bil/prg/obj/pbil0110"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-cod-ztb-ope      .
+           go to     cod-cod-ztb-foi-999.
+       cod-cod-ztb-foi-999.
+           exit.
+       cod-cod-ztb-cll-000.
+           call      w-cod-cod-ztb-pth   using w-cod-cod-ztb
+                                               v
+                                               s                      .
+       cod-cod-ztb-cll-999.
+           exit.
+

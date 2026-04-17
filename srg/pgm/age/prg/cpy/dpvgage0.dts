@@ -1,0 +1,51 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione provvigioni                *
+      *    *-----------------------------------------------------------*
+       det-pvg-age-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-pvg-age-tip-ope      .
+           perform   det-pvg-age-cll-000  thru det-pvg-age-cll-999    .
+       det-pvg-age-opn-999.
+           exit.
+
+       det-pvg-age-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-pvg-age-tip-ope      .
+           perform   det-pvg-age-cll-000  thru det-pvg-age-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-pvg-age-tip-ope      .
+           perform   det-pvg-age-cll-000  thru det-pvg-age-cll-999    .
+           if        d-pvg-age-exi-sts    not  = spaces
+                     go to det-pvg-age-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/age/prg/obj/dpvgage0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-pvg-age-cls-999.
+           exit.
+
+       det-pvg-age-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/age/prg/obj/dpvgage0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-pvg-age              .
+       det-pvg-age-cll-999.
+           exit.
+

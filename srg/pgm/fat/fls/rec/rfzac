@@ -1,0 +1,101 @@
+      *    *===========================================================*
+      *    * Record tabella descrizioni addebiti o commenti codificati *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODAOC    " = rf-zac-tip-rec                    *
+      *    *                         rf-zac-cod-aoc                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zac-tip-rec                    *
+      *    *                         rf-zac-des-key                    *
+      *    *                         rf-zac-cod-aoc                    *
+      *    *                                                           *
+      *    *          "CODMNE    " = rf-zac-tip-rec                    *
+      *    *                         rf-zac-cod-mne                    *
+      *    *                         rf-zac-cod-aoc                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zac.
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        *                                                       *
+      *        * 01 : Addebito                                         *
+      *        * 02 : Commento                                         *
+      *        * 03 : Dicitura per tipo documento (fattura differita)  *
+      *        *-------------------------------------------------------*
+           05  rf-zac-tip-rec             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito o commento o dicitura                 *
+      *        *-------------------------------------------------------*
+           05  rf-zac-cod-aoc             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione                                           *
+      *        *-------------------------------------------------------*
+           05  rf-zac-des-aoc.
+               10  rf-zac-rig-aoc occurs 10
+                                          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione in uppercase per ordinamento              *
+      *        *-------------------------------------------------------*
+           05  rf-zac-des-key             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice mnemonico                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zac-mne-aoc             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva                                            *
+      *        *                                                       *
+      *        * N.B.: solo se tipo record 01 (Addebito)               *
+      *        *-------------------------------------------------------*
+           05  rf-zac-cod-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita contabile                        *
+      *        *                                                       *
+      *        * N.B.: solo se tipo record 01 (Addebito)               *
+      *        *-------------------------------------------------------*
+           05  rf-zac-cod-ctp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * L'addebito deve essere cumulato in uno dei totali di  *
+      *        * suddivisione per le righe, in valuta                  *
+      *        *                                                       *
+      *        * - 00 : No, nessun cumulo                              *
+      *        * - 01 : Totale merce                                   *
+      *        * - 02 : Totale servizi                                 *
+      *        * - 03 : Totale imballi                                 *
+      *        * - 04 : Totale libero 4                                *
+      *        * - 05 : Totale libero 5                                *
+      *        * - 06 : Totale libero 6                                *
+      *        * - 07 : Totale libero 7                                *
+      *        * - 08 : Totale libero 8                                *
+      *        * - 09 : Totale extra                                   *
+      *        *                                                       *
+      *        * N.B.: solo se tipo record 01 (Addebito)               *
+      *        *                                                       *
+      *        * N.B.: attualmente implementato solo in fatturazione   *
+      *        *-------------------------------------------------------*
+           05  rf-zac-tip-tot             pic  9(02)                  .
+           
+      *        *-------------------------------------------------------*
+      *        * Si/no riferimento a documento legato all'addebito     *
+      *        * (caso 'acconto')                                      *
+      *        *                                                       *
+      *        * N.B. : DA IMPLEMENTARE (solo 'tip-rec' = 01)          *
+      *        *-------------------------------------------------------*
+______*    05  rf-zac-snx-rif             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no commento di inizio blocco: tutte le righe suc-  *
+      *        * cessive vengono marcate (*) con lo stesso indicatore  *
+      *        * da 1 a 9                                              *
+      *        *                                                       *
+      *        * Attualmente previsto solo per righe fattura           *
+      *        *                                                       *
+      *        * (*) Tipo riga nel blocco di documento (bld-rgb)       *
+      *        *                                                       *
+      *        * N.B. : DA IMPLEMENTARE (solo 'tip-rec' = 02)          *
+      *        *-------------------------------------------------------*
+______*    05  rf-zac-snx-cib             pic  9(01)                  .
+
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zac-alx-exp.
+               10  filler     occurs 18   pic  x(01)                  .

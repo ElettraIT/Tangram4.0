@@ -1,0 +1,5007 @@
+       Identification Division.
+       Program-Id.                                 porf9500           .
+      *================================================================*
+      *                                                                *
+      * Catalogo:          Sistema applicativo:    pgm                 *
+      *                        Area gestionale:    orf                 *
+      *                                Settore:    uti                 *
+      *                                   Fase:    orf950              *
+      *                    ------------------------------------------- *
+      *                     Versione originale:    001 del 01/03/96    *
+      *                       Ultima revisione:    NdK del 07/06/22    *
+      *                    ------------------------------------------- *
+      *                                 Autore:    Nicola de Kunovich  *
+      *================================================================*
+      *                                                                *
+      * Descrizione pgm:   Chiusura e riapertura ordine fornitore      *
+      *                                                                *
+      *================================================================*
+
+      ******************************************************************
+       Environment Division.
+      ******************************************************************
+
+      *================================================================*
+       Configuration Section.
+      *================================================================*
+
+       Source-Computer.     w-i-p-NdK-PD .
+       Object-Computer.     w-i-p-NdK-PD .
+
+       Special-Names.       Decimal-Point is comma .
+
+      ******************************************************************
+       Data Division.
+      ******************************************************************
+
+      *================================================================*
+       Working-Storage Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di identificazione                                   *
+      *    *-----------------------------------------------------------*
+       01  i-ide.
+      *        *-------------------------------------------------------*
+      *        * Sistema applicativo                                   *
+      *        *-------------------------------------------------------*
+           05  i-ide-sap                  pic  x(03) value
+                     "pgm"                                            .
+      *        *-------------------------------------------------------*
+      *        * Area gestionale                                       *
+      *        *-------------------------------------------------------*
+           05  i-ide-arg                  pic  x(03) value
+                     "orf"                                            .
+      *        *-------------------------------------------------------*
+      *        * Settore gestionale                                    *
+      *        *-------------------------------------------------------*
+           05  i-ide-set                  pic  x(03) value
+                     "uti"                                            .
+      *        *-------------------------------------------------------*
+      *        * Fase gestionale                                       *
+      *        *-------------------------------------------------------*
+           05  i-ide-fas                  pic  x(06) value
+                     "orf950"                                         .
+      *        *-------------------------------------------------------*
+      *        * Sigla interna del programma                           *
+      *        *-------------------------------------------------------*
+           05  i-ide-pro                  pic  x(10) value
+                     "porf9500"                                       .
+      *        *-------------------------------------------------------*
+      *        * Descrizione del programma                             *
+      *        *-------------------------------------------------------*
+           05  i-ide-des                  pic  x(40) value
+                     " CHIUSURA - RIAPERTURA ORDINE FORNITORE "       .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                 "mvideo" *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/v"                                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                "msegrt"  *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/s"                                  .
+
+      *    *===========================================================*
+      *    * Area per definizione codici di errore di i-o              *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/e"                                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per moduli di input-output          *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/f"                                  .
+
+      *    *===========================================================*
+      *    * Work-area di controllo                                    *
+      *    *-----------------------------------------------------------*
+       01  w-cnt.
+      *        *-------------------------------------------------------*
+      *        * Flags di controllo uscita da routines fondamentali    *
+      *        *-------------------------------------------------------*
+           05  w-cnt-flg.
+      *            *---------------------------------------------------*
+      *            * Per routine dic-ini-pgm-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-dic-ini-pgm      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine pre-exe-pgm-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-pre-exe-pgm      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine pos-exe-pgm-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-pos-exe-pgm      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine rou-opn-fls-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-rou-opn-fls      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine rou-let-reg-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-rou-let-reg      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine pre-acc-ins-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-pre-acc-ins      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine pre-acc-mod-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-pre-acc-mod      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine pre-acc-vis-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-pre-acc-vis      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine pre-snx-del-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-pre-snx-del      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per routine pos-snx-del-000                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-pos-snx-del      pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di tipo uscita da routines di accettazione      *
+      *        *-------------------------------------------------------*
+           05  w-cnt-tus.
+      *            *---------------------------------------------------*
+      *            * Da accettazione campi chiave                      *
+      *            *---------------------------------------------------*
+               10  w-cnt-tus-acc-key      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Da accettazione campi non chiave                  *
+      *            *---------------------------------------------------*
+               10  w-cnt-tus-acc-nok      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Da accettazione testata                           *
+      *            *---------------------------------------------------*
+               10  w-cnt-tus-acc-tes      pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di uscita da controlli su tasto Do              *
+      *        *-------------------------------------------------------*
+           05  w-cnt-tdo.
+      *            *---------------------------------------------------*
+      *            * Per tasto Do su campi chiave                      *
+      *            *---------------------------------------------------*
+               10  w-cnt-tdo-key-flg      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per controllo se chiave vuota                     *
+      *            *---------------------------------------------------*
+               10  w-cnt-key-vuo-flg      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Per tasto Do su campi non chiave                  *
+      *            *---------------------------------------------------*
+               10  w-cnt-tdo-nok-flg      pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di controllo su modalita' di funzionamento      *
+      *        *-------------------------------------------------------*
+           05  w-cnt-mfu.
+      *            *---------------------------------------------------*
+      *            * Tipo impostazione                                 *
+      *            * - K : Impostazione campi chiave                   *
+      *            * - T : Impostazione campi testata                  *
+      *            *---------------------------------------------------*
+               10  w-cnt-mfu-tip-imp      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo funzione                                     *
+      *            * - I : Inserimento                                 *
+      *            * - M : Modifica                                    *
+      *            * - V : Visualizzazione                             *
+      *            *---------------------------------------------------*
+               10  w-cnt-mfu-tip-fun      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Visualizzazione forzata da segreteria             *
+      *            *---------------------------------------------------*
+               10  w-cnt-mfu-vis-sgr      pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di controllo su status visualizzazione titolo    *
+      *        *-------------------------------------------------------*
+           05  w-cnt-sts-vis-tit          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di controllo su status impostazioni             *
+      *        *-------------------------------------------------------*
+           05  w-cnt-sts-imp.
+      *            *---------------------------------------------------*
+      *            * Impostazione chiave                               *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-imp-key      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Numero pagina testata in corso di trattamento     *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-imp-npt      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Salvataggio per il campo precedente               *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-imp-svp      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No pagina testata in corso di trattamento      *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-imp-snp      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Numero pagine componenti la testata               *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-imp-mpt      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Impostazione testata                              *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-imp-tes      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Impostazione pagine di testata                    *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-imp-pte.
+                   15  w-cnt-sts-imp-ptx  occurs 9
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Ingresso in pagine di testata                     *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-ing-pte.
+                   15  w-cnt-sts-ing-ptx  occurs 9
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di controllo su status visualizzazione prompts  *
+      *        *-------------------------------------------------------*
+           05  w-cnt-sts-pmt.
+      *            *---------------------------------------------------*
+      *            * Visualizzazione prompts chiave                    *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-pmt-key      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Visualizzazione prompts testata                   *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-pmt-tes      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Visualizzazione prompts pagine di testata         *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-pmt-pte.
+                   15  w-cnt-sts-pmt-ptx  occurs 9
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di controllo su status visualizzazione dati     *
+      *        *-------------------------------------------------------*
+           05  w-cnt-sts-vis.
+      *            *---------------------------------------------------*
+      *            * Visualizzazione dati chiave                       *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-vis-key      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Visualizzazione dati testata                      *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-vis-tes      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Visualizzazione dati pagine di testata            *
+      *            *---------------------------------------------------*
+               10  w-cnt-sts-vis-pte.
+                   15  w-cnt-sts-vis-ptx  occurs 9
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area di controllo per accettazioni singoli campi      *
+      *        *-------------------------------------------------------*
+           05  w-cnt-acc.
+               10  w-cnt-acc-flg-aum      pic  x(01)                  .
+               10  w-cnt-acc-sav-tip      pic  x(01)                  .
+               10  w-cnt-acc-sav-car      pic  9(02)                  .
+               10  w-cnt-acc-sav-ldt      pic  9(02)                  .
+               10  w-cnt-acc-sav-dec      pic  9(01)                  .
+               10  w-cnt-acc-sav-sgn      pic  x(01)                  .
+               10  w-cnt-acc-sav-edm      pic  x(10)                  .
+               10  w-cnt-acc-sav-msk      pic  x(24)                  .
+               10  w-cnt-acc-sav-lin      pic  9(02)                  .
+               10  w-cnt-acc-sav-pos      pic  9(02)                  .
+               10  w-cnt-acc-sav-alf      pic  x(80)                  .
+               10  w-cnt-acc-sav-txt.
+                   15  filler occurs 400  pic  x(01)                  .
+               10  w-cnt-acc-sav-num      pic s9(13)v9(05)  trailing
+                                                            separate
+                                                            character .
+               10  w-cnt-acc-sav-dat      pic  9(07)                  .
+               10  w-cnt-acc-sav-ufk      pic  x(80)                  .
+               10  w-cnt-acc-sav-mod      pic  x(01)                  .
+               10  w-cnt-acc-sav-l23      pic  x(80)                  .
+               10  w-cnt-acc-sav-l24      pic  x(80)                  .
+      *        *-------------------------------------------------------*
+      *        * Work area                                             *
+      *        *-------------------------------------------------------*
+           05  w-cnt-wrk.
+               10  w-cnt-wrk-ctr-001      pic  9(05)                  .
+               10  w-cnt-wrk-ctr-002      pic  9(05)                  .
+               10  w-cnt-wrk-ctr-008      pic  9(05)                  .
+               10  w-cnt-wrk-ctr-009      pic  9(05)                  .
+
+      *    *===========================================================*
+      *    * Record files                                              *
+      *    *-----------------------------------------------------------*
+      *        *-------------------------------------------------------*
+      *        * [oft]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/orf/fls/rec/rfoft"                          .
+      *        *-------------------------------------------------------*
+      *        * [ofr]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/orf/fls/rec/rfofr"                          .
+      *        *-------------------------------------------------------*
+      *        * [yof]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/orf/fls/rec/rfyof"                          .
+      *        *-------------------------------------------------------*
+      *        * [fnt]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/cge/fls/rec/rffnt"                          .
+      *        *-------------------------------------------------------*
+      *        * [dcf]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/dcf/fls/rec/rfdcf"                          .
+
+      *    *===========================================================*
+      *    * Work-area per bufferizzazione testata                     *
+      *    *-----------------------------------------------------------*
+       01  w-tes.
+      *        *-------------------------------------------------------*
+      *        * Valori chiave                                         *
+      *        *-------------------------------------------------------*
+           05  w-tes-val-key.
+      *            *---------------------------------------------------*
+      *            * Codice dipendenza                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-dpz          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Numero protocollo                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-num-prt          pic  9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento ordini fornitori                   *
+      *            *---------------------------------------------------*
+               10  w-tes-tmo-orf          pic  x(05)                  .
+               10  w-tes-tmo-orf-des      pic  x(30)                  .
+               10  w-tes-tmo-orf-vld      pic  9(02)                  .
+               10  w-tes-tmo-orf-dpz      pic  9(02)                  .
+               10  w-tes-tmo-orf-ord      pic  9(02)                  .
+               10  w-tes-tmo-orf-prd      pic  9(02)                  .
+               10  w-tes-tmo-orf-sgl      pic  x(03)                  .
+               10  w-tes-tmo-orf-dtr      pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Data documento                                    *
+      *            *---------------------------------------------------*
+               10  w-tes-dat-doc          pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Numero documento                                  *
+      *            *---------------------------------------------------*
+               10  w-tes-num-doc          pic  9(11)                  .
+               10  w-tes-num-doc-r redefines
+                   w-tes-num-doc.
+                   15  w-tes-num-doc-saa  pic  9(03)                  .
+                   15  w-tes-num-doc-dpz  pic  9(02)                  .
+                   15  w-tes-num-doc-prg  pic  9(06)                  .
+      *            *---------------------------------------------------*
+      *            * Sigla numerazione                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-sgl-num          pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valori attuali e precedenti                           *
+      *        *-------------------------------------------------------*
+           05  w-tes-val-aep occurs 2.
+      *            *---------------------------------------------------*
+      *            * Codice fornitore                                  *
+      *            *---------------------------------------------------*
+               10  w-tes-fnt-org          pic  9(07)                  .
+               10  w-tes-fnt-org-rag      pic  x(40)                  .
+               10  w-tes-fnt-org-via      pic  x(40)                  .
+               10  w-tes-fnt-org-loc      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Flag di ordine chiuso                             *
+      *            *---------------------------------------------------*
+               10  w-tes-flg-och          pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work-area generica per tutto il programma                 *
+      *    *-----------------------------------------------------------*
+       01  w-gen.
+           05  w-gen-dat-att              pic  9(07)                  .
+
+      *    *===========================================================*
+      *    * Work-area referenze                                       *
+      *    *-----------------------------------------------------------*
+       01  w-ref.
+      *        *-------------------------------------------------------*
+      *        * Referenza relativa default per il tipo movimento      *
+      *        *-------------------------------------------------------*
+           05  w-ref-cod-tmo.
+      *            *---------------------------------------------------*
+      *            * Modalita' di trattamento default                  *
+      *            *                                                   *
+      *            *  - ' ' : Nessun default                           *
+      *            *  - 'I' : Default iniziale in entrata programma    *
+      *            *  - 'C' : Default continuo, anche cioe' se valore  *
+      *            *          successivamente variato                  *
+      *            *  - 'O' : Default obbligatorio, cioe' valore non   *
+      *            *          modificabile per nessun motivo           *
+      *            *---------------------------------------------------*
+               10  w-ref-cod-tmo-trt      pic  x(01)                  .
+               10  filler                 pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Codice tipo movimento di default                  *
+      *            *---------------------------------------------------*
+               10  w-ref-cod-tmo-cod      pic  x(05)                  .
+
+      *    *===========================================================*
+      *    * Work per valori di default                                *
+      *    *-----------------------------------------------------------*
+       01  w-def.
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *-------------------------------------------------------*
+           05  w-def-dat-doc              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento per ordine fornitore                   *
+      *        *-------------------------------------------------------*
+           05  w-def-tmo-orf              pic  x(05)                  .
+           05  w-def-tmo-orf-flg          pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work per accettazioni campi espansi                       *
+      *    *-----------------------------------------------------------*
+       01  w-exp.
+      *        *-------------------------------------------------------*
+      *        * Work per : Flag di ordine chiuso                      *
+      *        *-------------------------------------------------------*
+           05  w-exp-flg-och.
+               10  w-exp-flg-och-num      pic  9(02)       value 2    .
+               10  w-exp-flg-och-lun      pic  9(02)       value 02   .
+               10  w-exp-flg-och-tbl.
+                   15  filler             pic  x(02) value
+                            "No"                                      .
+                   15  filler             pic  x(02) value
+                            "Si"                                      .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Select                            *
+      *    *-----------------------------------------------------------*
+       01  w-slc.
+      *        *-------------------------------------------------------*
+      *        * Work per Select numero documento                      *
+      *        *-------------------------------------------------------*
+           05  w-slc-num-oft.
+      *            *---------------------------------------------------*
+      *            * Valori in entrata                                 *
+      *            *---------------------------------------------------*
+               10  w-slc-num-oft-dds      pic  9(07)                  .
+               10  w-slc-num-oft-nds      pic  9(11)                  .
+               10  w-slc-num-oft-nds-r redefines
+                   w-slc-num-oft-nds.
+                   15  w-slc-num-oft-nsa  pic  9(03)                  .
+                   15  w-slc-num-oft-ndp  pic  9(02)                  .
+                   15  w-slc-num-oft-npg  pic  9(06)                  .
+               10  w-slc-num-oft-dpz      pic  9(02)                  .
+               10  w-slc-num-oft-sgl      pic  x(03)                  .
+               10  w-slc-num-oft-saa      pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Valori in uscita                                  *
+      *            *---------------------------------------------------*
+               10  w-slc-num-oft-sel      pic  x(01)                  .
+               10  w-slc-num-oft-toc      pic  x(05)                  .
+               10  w-slc-num-oft-dat      pic  9(07)                  .
+               10  w-slc-num-oft-num      pic  9(11)                  .
+               10  w-slc-num-oft-prt      pic  9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Area di comodo                                    *
+      *            *---------------------------------------------------*
+               10  w-slc-num-oft-c01      pic  9(02)                  .
+               10  w-slc-num-oft-c02      pic  9(02)                  .
+               10  w-slc-num-oft-c03      pic  9(02)                  .
+               10  w-slc-num-oft-c04      pic  9(02)                  .
+               10  w-slc-num-oft-c05      pic  9(02)                  .
+               10  w-slc-num-oft-nli      pic  9(02)                  .
+               10  w-slc-num-oft-crb      pic  9(02)                  .
+               10  w-slc-num-oft-cpb      pic  9(02)                  .
+               10  w-slc-num-oft-cpa      pic  9(02)                  .
+               10  w-slc-num-oft-buf
+                               occurs 30.
+                   15  w-slc-num-oft-bpt  pic  9(11)                  .
+               10  w-slc-num-oft-ltp.
+                   15  filler             pic  x(07) value "Pagina "  .
+                   15  w-slc-num-oft-lt1  pic  9(01)                  .
+                   15  filler             pic  x(04) value " di "     .
+                   15  w-slc-num-oft-lt2  pic  9(01)                  .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Find                              *
+      *    *-----------------------------------------------------------*
+       01  w-fnd.
+      *        *-------------------------------------------------------*
+      *        * Work per Find su archivio [oft]                       *
+      *        *-------------------------------------------------------*
+           05  w-fnd-arc-oft.
+               10  w-fnd-arc-oft-sel      pic  x(01)                  .
+               10  w-fnd-arc-oft-toc      pic  x(05)                  .
+               10  w-fnd-arc-oft-dat      pic  9(07)                  .
+               10  w-fnd-arc-oft-num      pic  9(11)                  .
+               
+      *    *===========================================================*
+      *    * Work per subroutines di Let                               *
+      *    *-----------------------------------------------------------*
+       01  w-let.
+      *        *-------------------------------------------------------*
+      *        * Work per Let su archivio [yof]                        *
+      *        *-------------------------------------------------------*
+           05  w-let-arc-yof.
+               10  w-let-arc-yof-flg      pic  x(01)                  .
+               10  w-let-arc-yof-cod      pic  x(05)                  .
+               10  w-let-arc-yof-des      pic  x(30)                  .
+               10  w-let-arc-yof-vld      pic  9(02)                  .
+               10  w-let-arc-yof-dpz      pic  9(02)                  .
+               10  w-let-arc-yof-ord      pic  9(02)                  .
+               10  w-let-arc-yof-prd      pic  9(02)                  .
+               10  w-let-arc-yof-sgl      pic  x(03)                  .
+               10  w-let-arc-yof-dtr      pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Work per Let su archivio [fnt]                        *
+      *        *-------------------------------------------------------*
+           05  w-let-arc-fnt.
+               10  w-let-arc-fnt-flg      pic  x(01)                  .
+               10  w-let-arc-fnt-cod      pic  9(07)                  .
+               10  w-let-arc-fnt-rag      pic  x(40)                  .
+               10  w-let-arc-fnt-via      pic  x(40)                  .
+               10  w-let-arc-fnt-loc      pic  x(40)                  .
+               10  w-let-arc-fnt-piv      pic  9(11)                  .
+               10  w-let-arc-fnt-stc      pic  9(07)                  .
+               10  w-let-arc-fnt-ass      pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Work per Let su archivio [dcf]                        *
+      *        *-------------------------------------------------------*
+           05  w-let-arc-dcf.
+               10  w-let-arc-dcf-flg      pic  x(01)                  .
+               10  w-let-arc-dcf-fnt      pic  9(07)                  .
+               10  w-let-arc-dcf-dpz      pic  x(04)                  .
+               10  w-let-arc-dcf-rag      pic  x(40)                  .
+               10  w-let-arc-dcf-via      pic  x(40)                  .
+               10  w-let-arc-dcf-loc      pic  x(40)                  .
+               10  w-let-arc-dcf-vlt      pic  x(03)                  .
+               10  w-let-arc-dcf-lng      pic  x(03)                  .
+               10  w-let-arc-dcf-tai      pic  9(02)                  .
+               10  w-let-arc-dcf-cbl      pic  9(02)                  .
+               10  w-let-arc-dcf-obl      pic  9(02)                  .
+               10  w-let-arc-dcf-tpf      pic  9(02)                  .
+               10  w-let-arc-dcf-apf      pic  9(07)                  .
+               10  w-let-arc-dcf-dpf      pic  x(04)                  .
+               10  w-let-arc-dcf-tfz      pic  9(02)                  .
+               10  w-let-arc-dcf-tdp      pic  9(02)                  .
+               10  w-let-arc-dcf-tus      pic  9(02)                  .
+               10  w-let-arc-dcf-tud      pic  9(07)                  .
+               10  w-let-arc-dcf-tuc      pic  9(07)                  .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Det                               *
+      *    *-----------------------------------------------------------*
+       01  w-det.
+      *        *-------------------------------------------------------*
+      *        * Work per Det documento gia' esistente oppure no       *
+      *        *-------------------------------------------------------*
+           05  w-det-doc-ges.
+      *            *---------------------------------------------------*
+      *            * Esito della determinazione                        *
+      *            * - S : Si, documento del tipo movimento cercato e  *
+      *            *       e con data e numero cercato esistente in    *
+      *            *       archivio                                    *
+      *            * - N : No, documento del tipo movimento cercato e  *
+      *            *       e con data e numero cercato non esistente   *
+      *            *       in archivio                                 *
+      *            * - X : No, documento del tipo movimento cercato e  *
+      *            *       e con data e numero cercato non esistente   *
+      *            *       in archivio, ma esistenza di un documento   *
+      *            *       con data e numero cercato, con stesso co-   *
+      *            *       dice numerazione, ma con diverso tipo mo-   *
+      *            *       vimento da quello cercato                   *
+      *            *---------------------------------------------------*
+               10  w-det-doc-ges-snx      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento trovato per valore precedente de-  *
+      *            * terminato a 'X'                                   *
+      *            *---------------------------------------------------*
+               10  w-det-doc-ges-tmt      pic  x(05)                  .
+
+      *    *===========================================================*
+      *    * Work-area per salvataggi                                  *
+      *    *-----------------------------------------------------------*
+       01  w-sav.
+      *        *-------------------------------------------------------*
+      *        * Salvataggio valori chiave                             *
+      *        *-------------------------------------------------------*
+           05  w-sav-val-key.
+               10  filler   occurs 200    pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work-area per routine scr-mov-fil-000/999                 *
+      *    *-----------------------------------------------------------*
+       01  w-scr-mov-fil.
+           05  w-scr-mov-fil-ctr          pic  9(05)                  .
+           05  w-scr-mov-fil-wtr.
+               10  w-scr-mov-fil-wtp      pic  x(01)                  .
+               10  w-scr-mov-fil-wtf      pic  x(01)                  .
+               10  filler                 pic  x(03)                  .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Err                               *
+      *    *-----------------------------------------------------------*
+       01  w-err.
+      *        *-------------------------------------------------------*
+      *        * Work per Err con box centrale                         *
+      *        *-------------------------------------------------------*
+           05  w-err-box-err.
+               10  w-err-box-err-msg      pic  x(65)                  .
+               10  w-err-box-err-m02      pic  x(65)                  .
+
+      *    *===========================================================*
+      *    * Link-area per accettazione tipo movimento ordini fornitori*
+      *    *-----------------------------------------------------------*
+           copy      "pgm/orf/prg/cpy/acdeyof0.acl"                   .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per determinazione stato ordine     *
+      *    * fornitore                                                 *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/orf/prg/cpy/dstsorf0.dtl"                   .
+
+      *    *===========================================================*
+      *    * Area di interfaccia per sottoprogramma         "pazi000d" *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/azi/prg/cpy/pazi000d.pgl"                   .
+
+      *    *===========================================================*
+      *    * Work-area per allineamenti a destra o a sinistra oppure   *
+      *    * al centro di campi alfanumerici di varia lunghezza, fi-   *
+      *    * no ad un massimo di 240 caratteri, oppure per il conca-   *
+      *    * tenamento, con o senza separazione, di max 10 substrin-   *
+      *    * ghe in una unica substringa                               *
+      *    *-----------------------------------------------------------*
+           copy      "swd/std/prg/cpy/wallstr0.cpw"                   .
+
+      ******************************************************************
+       Procedure Division.
+      ******************************************************************
+
+      *================================================================*
+      *       Main                                                     *
+      *================================================================*
+       main-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di visualizzazione titolo  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-sts-vis-tit      .
+      *              *-------------------------------------------------*
+      *              * Dichiarazione di inizio programma               *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-dic-ini-pgm      .
+           perform   dic-ini-pgm-000      thru dic-ini-pgm-999        .
+           if        w-cnt-dic-ini-pgm    not  = spaces
+                     go to main-999.
+      *              *-------------------------------------------------*
+      *              * Esecuzione routine pre-esecuzione programma     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pre-exe-pgm      .
+           perform   pre-exe-pgm-000      thru pre-exe-pgm-999        .
+           if        w-cnt-pre-exe-pgm    not  = spaces
+                     go to main-900.
+       main-050.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-rou-opn-fls      .
+           perform   rou-opn-fls-000      thru rou-opn-fls-999        .
+           if        w-cnt-rou-opn-fls    not  = spaces
+                     go to main-800.
+       main-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione campi chiave                       *
+      *              *-------------------------------------------------*
+           perform   acc-key-reg-000      thru acc-key-reg-999        .
+      *                  *---------------------------------------------*
+      *                  * Se tipo uscita "E" : fine programma         *
+      *                  *---------------------------------------------*
+           if        w-cnt-tus-acc-key    =    "E"
+                     go to main-800.
+      *              *-------------------------------------------------*
+      *              * Lettura registrazione pre-esistente             *
+      *              *-------------------------------------------------*
+           perform   rou-let-reg-000      thru rou-let-reg-999        .
+      *                  *---------------------------------------------*
+      *                  * Se esito negativo : riciclo su chiave       *
+      *                  *---------------------------------------------*
+           if        w-cnt-rou-let-reg    not  = spaces
+                     go to main-100.
+      *              *-------------------------------------------------*
+      *              * Routine pre-accettazione campi non chiave       *
+      *              *-------------------------------------------------*
+           if        w-cnt-mfu-tip-fun    =    "I"
+                     go to main-130
+           else if   w-cnt-mfu-tip-fun    =    "M"
+                     go to main-140
+           else if   w-cnt-mfu-tip-fun    =    "V"
+                     go to main-150
+           else      go to main-100.
+       main-130.
+           move      spaces               to   w-cnt-pre-acc-ins      .
+           perform   pre-acc-ins-000      thru pre-acc-ins-999        .
+           if        w-cnt-pre-acc-ins    =    spaces
+                     go to main-180
+           else      go to main-100.
+       main-140.
+           move      spaces               to   w-cnt-pre-acc-mod      .
+           perform   pre-acc-mod-000      thru pre-acc-mod-999        .
+           if        w-cnt-pre-acc-mod    =    spaces
+                     go to main-180
+           else      go to main-100.
+       main-150.
+           move      spaces               to   w-cnt-pre-acc-vis      .
+           perform   pre-acc-vis-000      thru pre-acc-vis-999        .
+           if        w-cnt-pre-acc-vis    =    spaces
+                     go to main-180
+           else      go to main-100.
+       main-180.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di modifica di almeno un   *
+      *              * campo non chiave                                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-acc-flg-aum      .
+      *              *-------------------------------------------------*
+      *              * Accettazione campi non chiave                   *
+      *              *-------------------------------------------------*
+           perform   acc-nok-reg-000      thru acc-nok-reg-999        .
+      *                  *---------------------------------------------*
+      *                  * Se uscita per Exit                          *
+      *                  *---------------------------------------------*
+           if        w-cnt-tus-acc-nok    not  = "E"
+                     go to main-200.
+      *                      *-----------------------------------------*
+      *                      * Routine post-exit su campi non chiave   *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Se Inserimento                      *
+      *                          *-------------------------------------*
+           if        w-cnt-mfu-tip-fun    =    "I"
+                     perform   pos-exi-ins-000
+                                          thru pos-exi-ins-999
+      *                          *-------------------------------------*
+      *                          * Se Modifica                         *
+      *                          *-------------------------------------*
+           else if   w-cnt-mfu-tip-fun    =    "M"
+                     perform   pos-exi-mod-000
+                                          thru pos-exi-mod-999
+      *                          *-------------------------------------*
+      *                          * Se Visualizzazione                  *
+      *                          *-------------------------------------*
+           else if   w-cnt-mfu-tip-fun    =    "V"
+                     perform   pos-exi-vis-000
+                                          thru pos-exi-vis-999        .
+      *                      *-----------------------------------------*
+      *                      * Riciclo                                 *
+      *                      *-----------------------------------------*
+           go to     main-100.
+       main-200.
+      *                  *---------------------------------------------*
+      *                  * Se uscita per annullamento                  *
+      *                  *---------------------------------------------*
+           if        w-cnt-tus-acc-nok    not  = "X"
+                     go to main-300.
+      *                      *-----------------------------------------*
+      *                      * Routine post-conferma di annullamento   *
+      *                      *-----------------------------------------*
+           perform   pos-cnf-ann-000      thru pos-cnf-ann-999        .
+      *                      *-----------------------------------------*
+      *                      * Riciclo                                 *
+      *                      *-----------------------------------------*
+           go to     main-100.
+       main-300.
+      *                  *---------------------------------------------*
+      *                  * Se uscita per conferma                      *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Routine post-conferma                   *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Se post-conferma di Inserimento     *
+      *                          *-------------------------------------*
+           if        w-cnt-mfu-tip-fun    =    "I"
+                     perform   pos-cnf-ins-000
+                                          thru pos-cnf-ins-999
+      *                          *-------------------------------------*
+      *                          * Se post-conferma di Modifica        *
+      *                          *-------------------------------------*
+           else if   w-cnt-mfu-tip-fun    =    "M"
+                     perform   pos-cnf-mod-000
+                                          thru pos-cnf-mod-999        .
+      *                      *-----------------------------------------*
+      *                      * Riciclo                                 *
+      *                      *-----------------------------------------*
+           go to     main-100.
+       main-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+           perform   rou-cls-fls-000      thru rou-cls-fls-999        .
+      *              *-------------------------------------------------*
+      *              * Esecuzione routine post-esecuzione programma    *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pos-exe-pgm      .
+           perform   pos-exe-pgm-000      thru pos-exe-pgm-999        .
+           if        w-cnt-pos-exe-pgm    not  = spaces
+                     go to main-050.
+       main-900.
+      *              *-------------------------------------------------*
+      *              * Dichiarazione di fine programma                 *
+      *              *-------------------------------------------------*
+           perform   dic-fin-pgm-000      thru dic-fin-pgm-999        .
+       main-999.
+           exit      program                                          .
+
+      *================================================================*
+      *       Routines                                                 *
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Esecuzione accettazione di un campo                       *
+      *    *-----------------------------------------------------------*
+       exe-acc-cmp-000.
+      *              *-------------------------------------------------*
+      *              * Tasto di funzione Exit : sempre abilitato       *
+      *              *-------------------------------------------------*
+           move      "EXIT"               to   v-pfk (20)             .
+      *              *-------------------------------------------------*
+      *              * Tasto di funzione Prsc :                        *
+      *              * - se in tipo impostazione testata e su pagina   *
+      *              *   maggiore di 1 : abilitato                     *
+      *              * - altrimenti    : invariato                     *
+      *              *-------------------------------------------------*
+           if        w-cnt-mfu-tip-imp    =    "T" and
+                     w-cnt-sts-imp-npt    >    1
+                     move  "PRSC"         to   v-pfk (07)             .
+      *              *-------------------------------------------------*
+      *              * Tasto di funzione Nxsc :                        *
+      *              * - se in tipo impostazione testata e se pagina   *
+      *              *   gia' completamente impostata o testata gia'   *
+      *              *   completamente impostata : abilitato           *
+      *              *  - altrimenti             : invariato           *
+      *              *-------------------------------------------------*
+           if        w-cnt-mfu-tip-imp    not  = "T"
+                     go to exe-acc-cmp-050.
+           if        w-cnt-sts-imp-tes    not  = spaces or
+                     w-cnt-sts-imp-ptx
+                    (w-cnt-sts-imp-npt)   not  = spaces
+                     move  "NXSC"         to   v-pfk (08)             .
+       exe-acc-cmp-050.
+      *              *-------------------------------------------------*
+      *              * Tasto di funzione Delt :                        *
+      *              *  - se Impostazione chiave    : non abilitato    *
+      *              *  - se Inserimento            : non abilitato    *
+      *              *  - se Visualizzazione        : non abilitato    *
+      *              *  - se Almeno una modifica    : non abilitato    *
+      *              *  - altrimenti                : abilitato        *
+      *              *-------------------------------------------------*
+           if        w-cnt-mfu-tip-imp    =    "K"   or
+                     w-cnt-mfu-tip-fun    =    "I"   or
+                     w-cnt-mfu-tip-fun    =    "V"   or
+                     w-cnt-acc-flg-aum    not  = spaces
+                     go to exe-acc-cmp-100.
+           move      "DELT"               to   v-pfk (19)             .
+       exe-acc-cmp-100.
+      *              *-------------------------------------------------*
+      *              * Tasto di funzione Do :                          *
+      *              *  - se Visualizzazione     : disabilitati        *
+      *              *  - altrimenti             : inalterati          *
+      *              *-------------------------------------------------*
+           if        w-cnt-mfu-tip-fun    =    "V"
+                     move  spaces         to   v-pfk (05)             .
+      *              *-------------------------------------------------*
+      *              * Salvataggio parametri di accettazione           *
+      *              *-------------------------------------------------*
+           move      v-tip                to   w-cnt-acc-sav-tip      .
+           move      v-car                to   w-cnt-acc-sav-car      .
+           move      v-lin                to   w-cnt-acc-sav-lin      .
+           move      v-pos                to   w-cnt-acc-sav-pos      .
+           if        v-tip                =    "A" or
+                     v-tip                =    "U" or
+                     v-tip                =    "L" or
+                     v-tip                =    "E"
+                     move  v-alf          to   w-cnt-acc-sav-alf      .
+           if        v-tip                =    "N" or
+                     v-tip                =    "V" or
+                     v-tip                =    "P" or
+                     v-tip                =    "E"
+                     move  v-dec          to   w-cnt-acc-sav-dec
+                     move  v-sgn          to   w-cnt-acc-sav-sgn
+                     move  v-edm          to   w-cnt-acc-sav-edm
+                     move  v-msk          to   w-cnt-acc-sav-msk
+                     move  v-num          to   w-cnt-acc-sav-num      .
+           if        v-tip                =    "D"
+                     move  v-dat          to   w-cnt-acc-sav-dat      .
+           if        v-tip                =    "T" or
+                     v-tip                =    "E"
+                     move  v-ldt          to   w-cnt-acc-sav-ldt
+                     move  v-txt          to   w-cnt-acc-sav-txt      .
+           move      v-ufk                to   w-cnt-acc-sav-ufk      .
+       exe-acc-cmp-200.
+      *              *-------------------------------------------------*
+      *              * Accettazione                                    *
+      *              *-------------------------------------------------*
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Memorizzazione segnale di campo modificato      *
+      *              *-------------------------------------------------*
+           move      v-mod                to   w-cnt-acc-sav-mod      .
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "DELT"
+                     go to exe-acc-cmp-800.
+      *              *-------------------------------------------------*
+      *              * Se il campo impostato ha modificato il valore   *
+      *              * precedente : ripetizione impostazione           *
+      *              *-------------------------------------------------*
+           if        w-cnt-acc-sav-mod    not  = spaces
+                     go to exe-acc-cmp-400.
+      *              *-------------------------------------------------*
+      *              * Routine pre-richiesta di ratifica tasto Delete  *
+      *              *-------------------------------------------------*
+           perform   pre-snx-del-000      thru pre-snx-del-999        .
+      *              *-------------------------------------------------*
+      *              * Se errore : a ripristino                        *
+      *              *-------------------------------------------------*
+           if        w-cnt-pre-snx-del    not  = spaces
+                     go to exe-acc-cmp-400.
+      *              *-------------------------------------------------*
+      *              * Salvataggio linee 23 e 24 di note operative     *
+      *              *-------------------------------------------------*
+           move      "GL"                 to   v-ope                  .
+           move      23                   to   v-lin                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           move      v-alf                to   w-cnt-acc-sav-l23      .
+           move      "GL"                 to   v-ope                  .
+           move      24                   to   v-lin                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           move      v-alf                to   w-cnt-acc-sav-l24      .
+      *              *-------------------------------------------------*
+      *              * Cancellazione note operative attuali            *
+      *              *-------------------------------------------------*
+           move      "NT"                 to   v-ope                  .
+           move      spaces               to   v-not                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Richiesta conferma annullamento                 *
+      *              *-------------------------------------------------*
+           move      "MX"                 to   v-ope                  .
+           move      "U"                  to   v-tip                  .
+           move      "#DEL"               to   v-not                  .
+           move      "N"                  to   v-alf                  .
+           move      "SN"                 to   v-msk                  .
+           move      "DELT"               to   v-pfk (19)             .
+           move      "UP  "               to   v-pfk (02)             .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           if        v-key                =    spaces
+                     if      v-alf        =    "S"
+                             move  "DELT" to   v-key
+                     else    move  "UP  " to   v-key                  .
+      *              *-------------------------------------------------*
+      *              * Se non function key DELT si ripristina          *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "DELT"
+                     go to exe-acc-cmp-300.
+      *              *-------------------------------------------------*
+      *              * Routine post-richiesta di ratifica tasto Delete *
+      *              *-------------------------------------------------*
+           perform   pos-snx-del-000      thru pos-snx-del-999        .
+      *              *-------------------------------------------------*
+      *              * Se errore : a ripristino                        *
+      *              *-------------------------------------------------*
+           if        w-cnt-pos-snx-del    not  = spaces
+                     go to exe-acc-cmp-300.
+      *              *-------------------------------------------------*
+      *              * Altrimenti : uscita                             *
+      *              *-------------------------------------------------*
+           go to     exe-acc-cmp-999.
+       exe-acc-cmp-300.
+      *              *-------------------------------------------------*
+      *              * Ripristino linee 23 e 24 di note operative      *
+      *              *-------------------------------------------------*
+           move      "NT"                 to   v-ope                  .
+           move      w-cnt-acc-sav-l23    to   v-nt1                  .
+           move      w-cnt-acc-sav-l24    to   v-nt2                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       exe-acc-cmp-400.
+      *              *-------------------------------------------------*
+      *              * Ripristino parametri di impostazione            *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      w-cnt-acc-sav-tip    to   v-tip                  .
+           move      w-cnt-acc-sav-car    to   v-car                  .
+           move      w-cnt-acc-sav-lin    to   v-lin                  .
+           move      w-cnt-acc-sav-pos    to   v-pos                  .
+           if        v-tip                =    "A" or
+                     v-tip                =    "U" or
+                     v-tip                =    "L" or
+                     v-tip                =    "E"
+                     move  w-cnt-acc-sav-alf
+                                          to   v-alf                  .
+           if        v-tip                =    "N" or
+                     v-tip                =    "V" or
+                     v-tip                =    "P" or
+                     v-tip                =    "E"
+                     move  w-cnt-acc-sav-dec
+                                          to   v-dec
+                     move  w-cnt-acc-sav-sgn
+                                          to   v-sgn
+                     move  w-cnt-acc-sav-edm
+                                          to   v-edm
+                     move  w-cnt-acc-sav-msk
+                                          to   v-msk
+                     move  w-cnt-acc-sav-num
+                                          to   v-num                  .
+           if        v-tip                =    "D"
+                     move  w-cnt-acc-sav-dat
+                                          to   v-dat                  .
+           if        v-tip                =    "T" or
+                     v-tip                =    "E"
+                     move  w-cnt-acc-sav-ldt
+                                          to   v-ldt
+                     move  w-cnt-acc-sav-txt
+                                          to   v-txt                  .
+           move      w-cnt-acc-sav-ufk    to   v-ufk                  .
+      *              *-------------------------------------------------*
+      *              * Ritorno alla impostazione                       *
+      *              *-------------------------------------------------*
+           go to     exe-acc-cmp-200.
+       exe-acc-cmp-800.
+      *              *-------------------------------------------------*
+      *              * Flag globale di avvenuta almeno una modifica    *
+      *              *-------------------------------------------------*
+           if        w-cnt-acc-sav-mod    not  = spaces
+                     move  "#"            to   w-cnt-acc-flg-aum      .
+       exe-acc-cmp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Dichiarazione di inizio programma                         *
+      *    *-----------------------------------------------------------*
+       dic-ini-pgm-000.
+      *              *-------------------------------------------------*
+      *              * Sigla funzione                                  *
+      *              *-------------------------------------------------*
+           move      "P+"                 to   s-ope                  .
+      *              *-------------------------------------------------*
+      *              * Sistema applicativo                             *
+      *              *-------------------------------------------------*
+           move      i-ide-sap            to   s-sap                  .
+      *              *-------------------------------------------------*
+      *              * Area gestionale                                 *
+      *              *-------------------------------------------------*
+           move      i-ide-arg            to   s-arg                  .
+      *              *-------------------------------------------------*
+      *              * Settore gestionale                              *
+      *              *-------------------------------------------------*
+           move      i-ide-set            to   s-set                  .
+      *              *-------------------------------------------------*
+      *              * Fase gestionale                                 *
+      *              *-------------------------------------------------*
+           move      i-ide-fas            to   s-fas                  .
+      *              *-------------------------------------------------*
+      *              * Sigla interna del programma                     *
+      *              *-------------------------------------------------*
+           move      i-ide-pro            to   s-pro                  .
+      *              *-------------------------------------------------*
+      *              * Flag di save video                              *
+      *              *-------------------------------------------------*
+           move      "S"                  to   s-svv                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria               *
+      *              *-------------------------------------------------*
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Controllo esito richiamo modulo                 *
+      *              *-------------------------------------------------*
+           if        s-liv                =    zero
+                     move  "#"            to   w-cnt-dic-ini-pgm      .
+      *              *-------------------------------------------------*
+      *              * Flag di eventuale visualizzazione forzata       *
+      *              *-------------------------------------------------*
+           move      s-sts                to   w-cnt-mfu-vis-sgr      .
+       dic-ini-pgm-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Dichiarazione di fine programma                           *
+      *    *-----------------------------------------------------------*
+       dic-fin-pgm-000.
+      *              *-------------------------------------------------*
+      *              * Sigla funzione                                  *
+      *              *-------------------------------------------------*
+           move      "P-"                 to   s-ope                  .
+      *              *-------------------------------------------------*
+      *              * Sigla interna del programma                     *
+      *              *-------------------------------------------------*
+           move      i-ide-pro            to   s-pro                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria               *
+      *              *-------------------------------------------------*
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+       dic-fin-pgm-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione titolo programma                          *
+      *    *-----------------------------------------------------------*
+       vis-tit-pgm-000.
+      *              *-------------------------------------------------*
+      *              * Test su flag di visualizzazione titolo          *
+      *              *-------------------------------------------------*
+           if        w-cnt-sts-vis-tit    not  = spaces
+                     move  spaces         to   w-cnt-sts-vis-tit
+                     go to vis-tit-pgm-999.
+      *              *-------------------------------------------------*
+      *              * Erase video                                     *
+      *              *-------------------------------------------------*
+           move      "ER"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Trattini a linea 01                             *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      01                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      all   "="            to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Sigla del programma                             *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      06                   to   v-car                  .
+           move      02                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      i-ide-fas            to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Descrizione del programma                       *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      02                   to   v-lin                  .
+           move      21                   to   v-pos                  .
+           move      i-ide-des            to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Trattini a linea 03                             *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      03                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      all   "="            to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Trattini a linea 22                             *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      22                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      all   "="            to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-tit-pgm-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione tipo funzionamento                        *
+      *    *-----------------------------------------------------------*
+       vis-tip-fun-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      15                   to   v-car                  .
+           move      02                   to   v-lin                  .
+           move      66                   to   v-pos                  .
+           if        w-cnt-mfu-tip-fun    =    "I"
+                     move  "    Inserimento"
+                                          to   v-alf
+           else if   w-cnt-mfu-tip-fun    =    "M"
+                     move  "       Modifica"
+                                          to   v-alf
+           else if   w-cnt-mfu-tip-fun    =    "V"
+                     move  "Visualizzazione"
+                                          to   v-alf
+           else      move  spaces         to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-tip-fun-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine pre-esecuzione programma                          *
+      *    *-----------------------------------------------------------*
+       pre-exe-pgm-000.
+      *              *-------------------------------------------------*
+      *              * Test se programma eseguibile                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su flag di eventuale visualizzazione   *
+      *                  *---------------------------------------------*
+           if        w-cnt-mfu-vis-sgr    not  = "V"
+                     go to pre-exe-pgm-020.
+      *                  *---------------------------------------------*
+      *                  * Messaggio di errore                         *
+      *                  *---------------------------------------------*
+           move      "Programma non eseguibile dall'utente !            
+      -              "               "    to   w-err-box-err-msg      .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione messaggio di errore         *
+      *                  *---------------------------------------------*
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                  *---------------------------------------------*
+      *                  * Flag di uscita ad errore                    *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-cnt-pre-exe-pgm      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     pre-exe-pgm-999.
+       pre-exe-pgm-020.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione titolo programma                *
+      *              *-------------------------------------------------*
+           perform   vis-tit-pgm-000      thru vis-tit-pgm-999        .
+           move      "#"                  to   w-cnt-sts-vis-tit      .
+      *              *-------------------------------------------------*
+      *              * Determinazione codici dipendenze per l'azienda  *
+      *              *-------------------------------------------------*
+           move      "IG"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "DA"                 to   w-dpz-tip-ope          .
+           move      s-ter                to   w-dpz-ide-ter          .
+           move      s-ute                to   w-dpz-ide-ute          .
+           move      s-azi                to   w-dpz-ide-azi          .
+           move      s-sap                to   w-dpz-ide-sap          .
+           move      s-arg                to   w-dpz-ide-arg          .
+           move      s-set                to   w-dpz-ide-set          .
+           move      s-fas                to   w-dpz-ide-fas          .
+           move      i-ide-des            to   w-dpz-ide-des          .
+           move      s-pro                to   w-dpz-ide-pro          .
+           call      "pgm/azi/prg/obj/pazi000d"
+                                         using w-dpz                  .
+           cancel    "pgm/azi/prg/obj/pazi000d"                       .
+      *              *-------------------------------------------------*
+      *              * Se zero dipendenze : errore ed uscita           *
+      *              *-------------------------------------------------*
+           if        w-dpz-ctr-dpz        >    zero
+                     go to pre-exe-pgm-120.
+           move      "EN"                 to   w-dpz-tip-ope          .
+           call      "pgm/azi/prg/obj/pazi000d"
+                                         using w-dpz                  .
+           cancel    "pgm/azi/prg/obj/pazi000d"                       .
+           move      "#"                  to   w-cnt-pre-exe-pgm      .
+           go to     pre-exe-pgm-999.
+       pre-exe-pgm-120.
+      *              *-------------------------------------------------*
+      *              * Selezione codice dipendenza per il programma    *
+      *              *-------------------------------------------------*
+           move      "SD"                 to   w-dpz-tip-ope          .
+           call      "pgm/azi/prg/obj/pazi000d"
+                                         using w-dpz                  .
+           cancel    "pgm/azi/prg/obj/pazi000d"                       .
+       pre-exe-pgm-180.
+      *              *-------------------------------------------------*
+      *              * Se scelta non effettuata : uscita               *
+      *              *-------------------------------------------------*
+           if        w-dpz-cod-prg        =    zero
+                     move  "#"            to   w-cnt-pre-exe-pgm
+                     go to pre-exe-pgm-999.
+      *              *-------------------------------------------------*
+      *              * Altrimenti memorizzazione in campo testata      *
+      *              *-------------------------------------------------*
+           move      w-dpz-cod-prg        to   w-tes-cod-dpz          .
+      *              *-------------------------------------------------*
+      *              * Preparazione data attuale                       *
+      *              *-------------------------------------------------*
+           move      "DT"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      s-dat                to   w-gen-dat-att          .
+      *              *-------------------------------------------------*
+      *              * Preparazione data documento                     *
+      *              *-------------------------------------------------*
+           move      w-gen-dat-att        to   w-def-dat-doc          .
+      *              *-------------------------------------------------*
+      *              * Lettura personalizzazioni                       *
+      *              *-------------------------------------------------*
+      *              *-------------------------------------------------*
+      *              * Lettura referenze                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Referenza per default tipo movimento        *
+      *                  *---------------------------------------------*
+           perform   ref-cod-tmo-000      thru ref-cod-tmo-999        .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione default per tipo movimento      *
+      *              *-------------------------------------------------*
+           move      w-ref-cod-tmo-cod    to   w-def-tmo-orf          .
+      *              *-------------------------------------------------*
+      *              * Open moduli accettazione                        *
+      *              *-------------------------------------------------*
+           perform   opn-mdl-acc-000      thru opn-mdl-acc-999        .
+       pre-exe-pgm-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Lettura delle referenze relative al default per il tipo   *
+      *    * movimento                                                 *
+      *    *-----------------------------------------------------------*
+       ref-cod-tmo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work-area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-ref-cod-tmo-cod      .
+           move      spaces               to   w-ref-cod-tmo-trt      .
+       ref-cod-tmo-200.
+      *              *-------------------------------------------------*
+      *              * Lettura referenza                               *
+      *              *-------------------------------------------------*
+           move      "R:"                 to   s-ope                  .
+           move      "pgm/orf/mov/orf300[def-tmo]"
+                                          to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-ves                =    spaces
+                     move  s-alf          to   w-ref-cod-tmo
+           else      move  spaces         to   w-ref-cod-tmo          .
+       ref-cod-tmo-400.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione valori letti                    *
+      *              *-------------------------------------------------*
+           if        w-ref-cod-tmo-trt    not  = spaces and
+                     w-ref-cod-tmo-trt    not  = "I"    and
+                     w-ref-cod-tmo-trt    not  = "C"    and
+                     w-ref-cod-tmo-trt    not  = "O"
+                     move  spaces         to   w-ref-cod-tmo-trt      .
+       ref-cod-tmo-420.
+           if        w-ref-cod-tmo-trt    =    spaces
+                     move  spaces         to   w-ref-cod-tmo-cod      .
+       ref-cod-tmo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-esecuzione programma                         *
+      *    *-----------------------------------------------------------*
+       pos-exe-pgm-000.
+      *              *-------------------------------------------------*
+      *              * Close moduli accettazione                       *
+      *              *-------------------------------------------------*
+           perform   cls-mdl-acc-000      thru cls-mdl-acc-999        .
+       pos-exe-pgm-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Open moduli di accettazione                               *
+      *    *-----------------------------------------------------------*
+       opn-mdl-acc-000.
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione tipo movimento per gli *
+      *              * ordini fornitori                                *
+      *              *-------------------------------------------------*
+           perform   cod-des-yof-opn-000  thru cod-des-yof-opn-999    .
+       opn-mdl-acc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Close moduli di accettazione                              *
+      *    *-----------------------------------------------------------*
+       cls-mdl-acc-000.
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione tipo movimento per    *
+      *              * ordini fornitori                                *
+      *              *-------------------------------------------------*
+           perform   cod-des-yof-cls-000  thru cod-des-yof-cls-999    .
+       cls-mdl-acc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Open files                                                *
+      *    *-----------------------------------------------------------*
+       rou-opn-fls-000.
+      *              *-------------------------------------------------*
+      *              * [oft]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *              *-------------------------------------------------*
+      *              * [ofr]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+      *              *-------------------------------------------------*
+      *              * [yof]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofyof"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yof                 .
+      *              *-------------------------------------------------*
+      *              * [fnt]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+      *              *-------------------------------------------------*
+      *              * [dcf]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *              *-------------------------------------------------*
+      *              * Open modulo di determinazione status ordine     *
+      *              *-------------------------------------------------*
+           perform   det-sts-orf-opn-000  thru det-sts-orf-opn-999    .
+       rou-opn-fls-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Close files                                               *
+      *    *-----------------------------------------------------------*
+       rou-cls-fls-000.
+      *              *-------------------------------------------------*
+      *              * [oft]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *              *-------------------------------------------------*
+      *              * [ofr]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+      *              *-------------------------------------------------*
+      *              * [yof]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofyof"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yof                 .
+      *              *-------------------------------------------------*
+      *              * [fnt]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+      *              *-------------------------------------------------*
+      *              * [dcf]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *              *-------------------------------------------------*
+      *              * Close modulo di determinazione status ordine    *
+      *              *-------------------------------------------------*
+           perform   det-sts-orf-cls-000  thru det-sts-orf-cls-999    .
+       rou-cls-fls-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campi chiave della registrazione             *
+      *    *-----------------------------------------------------------*
+       acc-key-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-tus-acc-key      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione tipo funzionamento              *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-mfu-tip-fun      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione tipo impostazione               *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-mfu-tip-imp      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status impostazione             *
+      *              *-------------------------------------------------*
+           move      1                    to   w-cnt-sts-imp-npt      .
+           move      spaces               to   w-cnt-sts-imp-key
+                                               w-cnt-sts-imp-tes
+                                               w-cnt-sts-imp-pte
+                                               w-cnt-sts-ing-pte      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status visualizzazione prompts  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-sts-pmt-key
+                                               w-cnt-sts-pmt-tes
+                                               w-cnt-sts-pmt-pte      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status visualizzazione dati     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-sts-vis-key
+                                               w-cnt-sts-vis-tes
+                                               w-cnt-sts-vis-pte      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione registrazione                   *
+      *              *-------------------------------------------------*
+           perform   nor-key-nok-000      thru nor-key-nok-999        .
+      *              *-------------------------------------------------*
+      *              * Visualizzazione prompts                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Video in 'OFF'                              *
+      *                  *---------------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione titolo programma            *
+      *                  *---------------------------------------------*
+           perform   vis-tit-pgm-000      thru vis-tit-pgm-999        .
+      *                  *---------------------------------------------*
+      *                  * Prompts per campi chiave                    *
+      *                  *---------------------------------------------*
+           perform   pmt-key-reg-000      thru pmt-key-reg-999        .
+           move      "#"                  to   w-cnt-sts-pmt-key      .
+      *                  *---------------------------------------------*
+      *                  * Prompts per prima pagina testata            *
+      *                  *---------------------------------------------*
+           perform   pmt-tes-reg-000      thru pmt-tes-reg-999        .
+           move      "#"                  to   w-cnt-sts-pmt-ptx
+                                              (w-cnt-sts-imp-npt)     .
+      *                  *---------------------------------------------*
+      *                  * Video in 'ON'                               *
+      *                  *---------------------------------------------*
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Tipo impostazione : chiave                      *
+      *              *-------------------------------------------------*
+           move      "K"                  to   w-cnt-mfu-tip-imp      .
+       acc-key-reg-100.
+      *              *-------------------------------------------------*
+      *              * Accettazioni                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione func-key di impostazione    *
+      *                  *---------------------------------------------*
+           move      spaces               to   v-key                  .
+      *                  *---------------------------------------------*
+      *                  * Tipo movimento ordini fornitori             *
+      *                  *---------------------------------------------*
+           perform   acc-tmo-orf-000      thru acc-tmo-orf-999        .
+           if        w-cnt-tus-acc-key    not  = spaces
+                     go to acc-key-reg-999.
+       acc-key-reg-200.
+      *                  *---------------------------------------------*
+      *                  * Data documento                              *
+      *                  *---------------------------------------------*
+           perform   acc-dat-doc-000      thru acc-dat-doc-999        .
+           if        w-cnt-tus-acc-key    not  = spaces
+                     go to acc-key-reg-999.
+           if        v-key                =    "UP  "
+                     go to acc-key-reg-100.
+       acc-key-reg-300.
+      *                  *---------------------------------------------*
+      *                  * Numero documento                            *
+      *                  *---------------------------------------------*
+           perform   acc-num-doc-000      thru acc-num-doc-999        .
+           if        w-cnt-tus-acc-key    not  = spaces
+                     go to acc-key-reg-999.
+           if        v-key                =    "UP  "
+                     go to acc-key-reg-200.
+       acc-key-reg-900.
+      *              *-------------------------------------------------*
+      *              * Flag di controllo status impostazioni chiave    *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-cnt-sts-imp-key      .
+      *              *-------------------------------------------------*
+      *              * Flag di controllo status visual. dati chiave    *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-cnt-sts-vis-key      .
+      *              *-------------------------------------------------*
+      *              * Test se chiave vuota                            *
+      *              *-------------------------------------------------*
+           perform   cnt-key-vuo-000      thru cnt-key-vuo-999        .
+           if        w-cnt-key-vuo-flg    not  = spaces
+                     move  "E"            to   w-cnt-tus-acc-key
+                     go to acc-key-reg-999.
+      *              *-------------------------------------------------*
+      *              * Controllo globale su tasto Do su chiave         *
+      *              *-------------------------------------------------*
+           perform   cnt-tdo-key-000      thru cnt-tdo-key-999        .
+           if        w-cnt-tdo-key-flg    not  = spaces
+                     go to acc-key-reg-100.
+           move      "S"                  to   w-cnt-tus-acc-key      .
+       acc-key-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campi chiave della registrazione          *
+      *    *-----------------------------------------------------------*
+       vis-key-reg-000.
+      *              *-------------------------------------------------*
+      *              * Tipo movimento                                  *
+      *              *-------------------------------------------------*
+           perform   vis-tmo-orf-000      thru vis-tmo-orf-999        .
+           perform   vis-tmo-orf-des-000  thru vis-tmo-orf-des-999    .
+      *              *-------------------------------------------------*
+      *              * Data documento                                  *
+      *              *-------------------------------------------------*
+           perform   vis-dat-doc-000      thru vis-dat-doc-999        .
+      *              *-------------------------------------------------*
+      *              * Numero documento                                *
+      *              *-------------------------------------------------*
+           perform   vis-num-doc-000      thru vis-num-doc-999        .
+       vis-key-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per campi chiave                  *
+      *    *-----------------------------------------------------------*
+       pmt-key-reg-000.
+      *              *-------------------------------------------------*
+      *              * Erase linee impegnate dalla chiave              *
+      *              *-------------------------------------------------*
+           move      "EL"                 to   v-ope                  .
+           move      04                   to   v-lin                  .
+           move      06                   to   v-lto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Visualizzazioni prompts                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Tipo movimento                              *
+      *                  *---------------------------------------------*
+           perform   pmt-tmo-orf-000      thru pmt-tmo-orf-999        .
+      *                  *---------------------------------------------*
+      *                  * Data documento                              *
+      *                  *---------------------------------------------*
+           perform   pmt-dat-doc-000      thru pmt-dat-doc-999        .
+      *                  *---------------------------------------------*
+      *                  * Numero documento                            *
+      *                  *---------------------------------------------*
+           perform   pmt-num-doc-000      thru pmt-num-doc-999        .
+      *              *-------------------------------------------------*
+      *              * Linea di trattini di separazione                *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      06                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      all "-"              to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       pmt-key-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per tipo movimento                *
+      *    *-----------------------------------------------------------*
+       pmt-tmo-orf-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      16                   to   v-car                  .
+           move      04                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "Tipo movimento :"   to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       pmt-tmo-orf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per data documento                *
+      *    *-----------------------------------------------------------*
+       pmt-dat-doc-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      16                   to   v-car                  .
+           move      04                   to   v-lin                  .
+           move      56                   to   v-pos                  .
+           move      "Data documento :"   to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       pmt-dat-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per numero documento              *
+      *    *-----------------------------------------------------------*
+       pmt-num-doc-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      16                   to   v-car                  .
+           move      05                   to   v-lin                  .
+           move      56                   to   v-pos                  .
+           move      "Nr.  documento :"   to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       pmt-num-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo chiave : Tipo movimento per ordini     *
+      *    * fornitori                                                 *
+      *    *-----------------------------------------------------------*
+       acc-tmo-orf-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Preparazione valore di default              *
+      *                  *---------------------------------------------*
+           perform   acc-tmo-orf-def-000  thru acc-tmo-orf-def-999    .
+           if        w-def-tmo-orf-flg    not  = spaces
+                     go to acc-tmo-orf-400.
+       acc-tmo-orf-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-des-yof-ope      .
+           move      w-tes-tmo-orf        to   w-cod-des-yof-cod      .
+           move      04                   to   w-cod-des-yof-lin      .
+           move      18                   to   w-cod-des-yof-pos      .
+           move      04                   to   w-cod-des-yof-dln      .
+           move      24                   to   w-cod-des-yof-dps      .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           move      "DO  "               to   v-pfk (05)             .
+           perform   cod-des-yof-cll-000  thru cod-des-yof-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-des-yof-foi-000  thru cod-des-yof-foi-999    .
+       acc-tmo-orf-110.
+           perform   cod-des-yof-cll-000  thru cod-des-yof-cll-999    .
+           if        w-cod-des-yof-ope    =    "F+"
+                     go to acc-tmo-orf-115.
+           if        w-cod-des-yof-ope    =    "AC"
+                     go to acc-tmo-orf-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-tmo-orf-115.
+           perform   cod-des-yof-foi-000  thru cod-des-yof-foi-999    .
+           go to     acc-tmo-orf-110.
+       acc-tmo-orf-120.
+           move      w-cod-des-yof-cod    to   v-alf                  .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-key
+                     go to acc-tmo-orf-999.
+       acc-tmo-orf-200.
+      *              *-------------------------------------------------*
+      *              * Valore impostato in campo di destinazione       *
+      *              *-------------------------------------------------*
+           move      v-alf                to   w-tes-tmo-orf          .
+       acc-tmo-orf-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test che non ci siano blanks embedded       *
+      *                  *---------------------------------------------*
+           move      w-tes-tmo-orf        to   w-all-str-alf          .
+           move      05                   to   w-all-str-lun          .
+           perform   all-str-ble-000      thru all-str-ble-999        .
+           if        w-all-str-flg        not  = spaces
+                     go to acc-tmo-orf-100.
+      *                  *---------------------------------------------*
+      *                  * Lettura archivio [yof]                      *
+      *                  *---------------------------------------------*
+           move      w-tes-tmo-orf        to   w-let-arc-yof-cod      .
+           perform   let-arc-yof-000      thru let-arc-yof-999        .
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione valori associati al tipo    *
+      *                  * movimento ordini fornitori                  *
+      *                  *---------------------------------------------*
+           move      w-let-arc-yof-des    to   w-tes-tmo-orf-des      .
+           move      w-let-arc-yof-vld    to   w-tes-tmo-orf-vld      .
+           move      w-let-arc-yof-dpz    to   w-tes-tmo-orf-dpz      .
+           move      w-let-arc-yof-ord    to   w-tes-tmo-orf-ord      .
+           move      w-let-arc-yof-prd    to   w-tes-tmo-orf-prd      .
+           move      w-let-arc-yof-sgl    to   w-tes-tmo-orf-sgl      .
+           move      w-let-arc-yof-dtr    to   w-tes-tmo-orf-dtr      .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione descrizione                 *
+      *                  *---------------------------------------------*
+           perform   vis-tmo-orf-des-000  thru vis-tmo-orf-des-999    .
+      *                  *---------------------------------------------*
+      *                  * Se codice errato : reimpostazione           *
+      *                  *---------------------------------------------*
+           if        w-let-arc-yof-flg    not  = spaces
+                     go to acc-tmo-orf-100.
+      *                  *---------------------------------------------*
+      *                  * Se a spaces : oltre                         *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf        =    spaces
+                     go to acc-tmo-orf-600.
+      *                  *---------------------------------------------*
+      *                  * Test su codice dipendenza                   *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf-vld    not  = 02
+                     go to acc-tmo-orf-420.
+           if        w-tes-cod-dpz        =    w-tes-tmo-orf-dpz
+                     go to acc-tmo-orf-420.
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore                     *
+      *                      *-----------------------------------------*
+           move      "Tipo movimento incompatibile con il codice dipende
+      -              "nza            "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                      *-----------------------------------------*
+      *                      * A reimpostazione                        *
+      *                      *-----------------------------------------*
+           go to     acc-tmo-orf-100.
+       acc-tmo-orf-420.
+      *                  *---------------------------------------------*
+      *                  * Controllo tipo origine del documento        *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf-ord    =   01
+                     go to acc-tmo-orf-600.
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore                     *
+      *                      *-----------------------------------------*
+           move      "Tipo movimento non gestibile da questo programma !
+      -              "               "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                      *-----------------------------------------*
+      *                      * A reimpostazione                        *
+      *                      *-----------------------------------------*
+           go to     acc-tmo-orf-100.
+       acc-tmo-orf-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+       acc-tmo-orf-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "DO  "
+                     go to acc-tmo-orf-999.
+           perform   cnt-key-vuo-000      thru cnt-key-vuo-999        .
+           if        w-cnt-key-vuo-flg    not  = spaces
+                     move  "E"            to   w-cnt-tus-acc-key
+                     go to acc-tmo-orf-999.
+           perform   cnt-tdo-key-000      thru cnt-tdo-key-999        .
+           if        w-cnt-tdo-key-flg    not  = spaces
+                     go to acc-tmo-orf-100
+           else      move  "S"            to   w-cnt-tus-acc-key
+                     go to acc-tmo-orf-999.
+       acc-tmo-orf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo chiave : Tipo movimento                *
+      *    *                                                           *
+      *    * Subroutine di trattamento del default                     *
+      *    *-----------------------------------------------------------*
+       acc-tmo-orf-def-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di obbligatorieta'         *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-def-tmo-orf-flg      .
+       acc-tmo-orf-def-100.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del tipo di trattamento  *
+      *              * da referenza                                    *
+      *              *-------------------------------------------------*
+           if        w-ref-cod-tmo-trt    =    spaces
+                     go to acc-tmo-orf-def-200
+           else if   w-ref-cod-tmo-trt    =    "I"
+                     go to acc-tmo-orf-def-300
+           else if   w-ref-cod-tmo-trt    =    "C"
+                     go to acc-tmo-orf-def-400
+           else if   w-ref-cod-tmo-trt    =    "O"
+                     go to acc-tmo-orf-def-500
+           else      go to acc-tmo-orf-def-900.
+       acc-tmo-orf-def-200.
+      *              *-------------------------------------------------*
+      *              * Se nessun default                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se default da utilizzare               *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf        not  = spaces
+                     go to acc-tmo-orf-def-900.
+      *                  *---------------------------------------------*
+      *                  * Utilizzo del default                        *
+      *                  *---------------------------------------------*
+           move      w-def-tmo-orf        to   w-tes-tmo-orf          .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     acc-tmo-orf-def-900.
+       acc-tmo-orf-def-300.
+      *              *-------------------------------------------------*
+      *              * Se default iniziale                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se default da utilizzare               *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf        not  = spaces
+                     go to acc-tmo-orf-def-900.
+      *                  *---------------------------------------------*
+      *                  * Utilizzo del default                        *
+      *                  *---------------------------------------------*
+           move      w-def-tmo-orf        to   w-tes-tmo-orf          .
+      *                  *---------------------------------------------*
+      *                  * A lettura e visualizzazione                 *
+      *                  *---------------------------------------------*
+           go to     acc-tmo-orf-def-600.
+       acc-tmo-orf-def-400.
+      *              *-------------------------------------------------*
+      *              * Se default continuo                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Utilizzo del default                        *
+      *                  *---------------------------------------------*
+           move      w-ref-cod-tmo-cod    to   w-tes-tmo-orf          .
+      *                  *---------------------------------------------*
+      *                  * A lettura e visualizzazione                 *
+      *                  *---------------------------------------------*
+           go to     acc-tmo-orf-def-600.
+       acc-tmo-orf-def-500.
+      *              *-------------------------------------------------*
+      *              * Se default obbligatorio                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Utilizzo del default                        *
+      *                  *---------------------------------------------*
+           move      w-def-tmo-orf        to   w-tes-tmo-orf          .
+      *                  *---------------------------------------------*
+      *                  * Forzatura del flag di obbligatorieta'       *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-def-tmo-orf-flg      .
+      *                  *---------------------------------------------*
+      *                  * A lettura e visualizzazione                 *
+      *                  *---------------------------------------------*
+           go to     acc-tmo-orf-def-600.
+       acc-tmo-orf-def-600.
+      *              *-------------------------------------------------*
+      *              * Lettura descrizione tipo movimento              *
+      *              *-------------------------------------------------*
+           move      w-tes-tmo-orf        to   w-let-arc-yof-cod      .
+           perform   let-arc-yof-000      thru let-arc-yof-999        .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione descrizione tipo movimento      *
+      *              *-------------------------------------------------*
+           move      w-let-arc-yof-des    to   w-tes-tmo-orf-des      .
+      *              *-------------------------------------------------*
+      *              * Visualizzazione tipo movimento                  *
+      *              *-------------------------------------------------*
+           perform   vis-tmo-orf-000      thru vis-tmo-orf-999        .
+      *              *-------------------------------------------------*
+      *              * Visualizzazione descrizione tipo movimento      *
+      *              *-------------------------------------------------*
+           perform   vis-tmo-orf-des-000  thru vis-tmo-orf-des-999    .
+       acc-tmo-orf-def-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     acc-tmo-orf-def-999.
+       acc-tmo-orf-def-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo chiave : tipo movimento per ordini  *
+      *    * fornitori                                                 *
+      *    *-----------------------------------------------------------*
+       vis-tmo-orf-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      05                   to   v-car                  .
+           move      04                   to   v-lin                  .
+           move      18                   to   v-pos                  .
+           move      w-tes-tmo-orf        to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-tmo-orf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo chiave : descrizione tipo movimento *
+      *    * per ordini fornitori                                      *
+      *    *-----------------------------------------------------------*
+       vis-tmo-orf-des-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      30                   to   v-car                  .
+           move      04                   to   v-lin                  .
+           move      24                   to   v-pos                  .
+           move      w-tes-tmo-orf-des    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-tmo-orf-des-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo chiave : Data documento                *
+      *    *-----------------------------------------------------------*
+       acc-dat-doc-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Eventuale preparazione del valore di de-    *
+      *                  * fault                                       *
+      *                  *---------------------------------------------*
+           if        w-tes-dat-doc        =    zero
+                     move  w-def-dat-doc  to   w-tes-dat-doc          .
+       acc-dat-doc-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      04                   to   v-lin                  .
+           move      73                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "DO  "               to   v-pfk (05)             .
+           move      w-tes-dat-doc        to   v-dat                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-key
+                     go to acc-dat-doc-999.
+       acc-dat-doc-200.
+      *              *-------------------------------------------------*
+      *              * Valore impostato in campo di destinazione       *
+      *              *-------------------------------------------------*
+           move      v-dat                to   w-tes-dat-doc          .
+      *              *-------------------------------------------------*
+      *              * Se Find                                         *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "FIND"
+                     go to acc-dat-doc-400.
+      *                  *---------------------------------------------*
+      *                  * Find su archivio [oft]                      *
+      *                  *---------------------------------------------*
+           perform   fnd-arc-oft-000      thru fnd-arc-oft-999        .
+           if        w-fnd-arc-oft-sel    not  = spaces
+                     go to acc-dat-doc-100.
+      *                  *---------------------------------------------*
+      *                  * Forzatura function-key Do                   *
+      *                  *---------------------------------------------*
+           move      "DO  "               to   v-key                  .
+       acc-dat-doc-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore a zero : reimpostazione, a meno   *
+      *                  * che non si sia su Up                        *
+      *                  *---------------------------------------------*
+           if        w-tes-dat-doc        not  = zero
+                     go to acc-dat-doc-600.
+           if        v-key                =    "UP  "
+                     go to acc-dat-doc-600
+           else      go to acc-dat-doc-100.
+       acc-dat-doc-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+       acc-dat-doc-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "DO  "
+                     go to acc-dat-doc-999.
+           perform   cnt-key-vuo-000      thru cnt-key-vuo-999        .
+           if        w-cnt-key-vuo-flg    not  = spaces
+                     move  "E"            to   w-cnt-tus-acc-key
+                     go to acc-dat-doc-999.
+           perform   cnt-tdo-key-000      thru cnt-tdo-key-999        .
+           if        w-cnt-tdo-key-flg    not  = spaces
+                     go to acc-dat-doc-100
+           else      move  "S"            to   w-cnt-tus-acc-key
+                     go to acc-dat-doc-999.
+       acc-dat-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo chiave : Data documento             *
+      *    *-----------------------------------------------------------*
+       vis-dat-doc-000.
+           move      "DS"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      04                   to   v-lin                  .
+           move      73                   to   v-pos                  .
+           move      w-tes-dat-doc        to   v-dat                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-dat-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo chiave : Numero documento              *
+      *    *-----------------------------------------------------------*
+       acc-num-doc-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+       acc-num-doc-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      06                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "<B"                 to   v-edm                  .
+           move      05                   to   v-lin                  .
+           move      73                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "DO  "               to   v-pfk (05)             .
+           move      "SLCT"               to   v-pfk (11)             .
+           move      w-tes-num-doc-prg    to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-key
+                     go to acc-num-doc-999.
+       acc-num-doc-200.
+      *              *-------------------------------------------------*
+      *              * Valore impostato in campo di destinazione       *
+      *              *-------------------------------------------------*
+           move      v-num                to   w-tes-num-doc-prg      .
+       acc-num-doc-300.
+      *              *-------------------------------------------------*
+      *              * Se Find                                         *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "FIND"
+                     go to acc-num-doc-350.
+      *                  *---------------------------------------------*
+      *                  * Find su archivio [oft]                      *
+      *                  *---------------------------------------------*
+           perform   fnd-arc-oft-000      thru fnd-arc-oft-999        .
+           if        w-fnd-arc-oft-sel    not  = spaces
+                     go to acc-num-doc-100.
+      *                  *---------------------------------------------*
+      *                  * Forzatura function-key Do                   *
+      *                  *---------------------------------------------*
+           move      "DO  "               to   v-key                  .
+      *                  *---------------------------------------------*
+      *                  * A controllo valore impostato                *
+      *                  *---------------------------------------------*
+           go to     acc-num-doc-400.
+       acc-num-doc-350.
+      *              *-------------------------------------------------*
+      *              * Se Select                                       *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "SLCT"
+                     go to acc-num-doc-400.
+      *                  *---------------------------------------------*
+      *                  * Test preliminari                            *
+      *                  *---------------------------------------------*
+           if        w-tes-num-doc-prg    =    zero
+                     go to acc-num-doc-100.
+           if        w-tes-dat-doc        =    zero
+                     go to acc-num-doc-100.
+           if        w-tes-tmo-orf        =    spaces
+                     go to acc-num-doc-100.
+      *                  *---------------------------------------------*
+      *                  * Preparazione dei parametri per la selezione *
+      *                  *---------------------------------------------*
+           move      w-tes-num-doc-prg    to   w-slc-num-oft-npg      .
+           move      w-tes-cod-dpz        to   w-slc-num-oft-dpz      .
+           move      w-tes-tmo-orf-sgl    to   w-slc-num-oft-sgl      .
+           move      w-tes-dat-doc        to   w-slc-num-oft-dds      .
+      *                  *---------------------------------------------*
+      *                  * Routine di ricerca                          *
+      *                  *---------------------------------------------*
+           perform   slc-num-oft-000      thru slc-num-oft-999        .
+      *                  *---------------------------------------------*
+      *                  * Se non selezionato alcun elemento : a       *
+      *                  * reimpostazione                              *
+      *                  *---------------------------------------------*
+           if        w-slc-num-oft-sel    not  = spaces
+                     go to acc-num-doc-100.
+      *                  *---------------------------------------------*
+      *                  * Forzatura function-key Do                   *
+      *                  *---------------------------------------------*
+           move      "DO  "               to   v-key                  .
+      *                  *---------------------------------------------*
+      *                  * A controllo valore impostato                *
+      *                  *---------------------------------------------*
+           go to     acc-num-doc-400.
+       acc-num-doc-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-num-doc-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+       acc-num-doc-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "DO  "
+                     go to acc-num-doc-999.
+           perform   cnt-key-vuo-000      thru cnt-key-vuo-999        .
+           if        w-cnt-key-vuo-flg    not  = spaces
+                     move  "E"            to   w-cnt-tus-acc-key
+                     go to acc-num-doc-999.
+           perform   cnt-tdo-key-000      thru cnt-tdo-key-999        .
+           if        w-cnt-tdo-key-flg    not  = spaces
+                     go to acc-num-doc-100
+           else      move  "S"            to   w-cnt-tus-acc-key
+                     go to acc-num-doc-999.
+       acc-num-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo chiave : Numero documento           *
+      *    *-----------------------------------------------------------*
+       vis-num-doc-000.
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      06                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "<B"                 to   v-edm                  .
+           move      05                   to   v-lin                  .
+           move      73                   to   v-pos                  .
+           move      w-tes-num-doc-prg    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-num-doc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campi non chiave della registrazione         *
+      *    *-----------------------------------------------------------*
+       acc-nok-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-tus-acc-nok      .
+      *              *-------------------------------------------------*
+      *              * Visualizzazione tipo funzionamento              *
+      *              *-------------------------------------------------*
+           perform   vis-tip-fun-000      thru vis-tip-fun-999        .
+      *              *-------------------------------------------------*
+      *              * Assestamento status di impostazione se in modi- *
+      *              * fica o visualizzazione, per testata             *
+      *              *-------------------------------------------------*
+           if        w-cnt-mfu-tip-fun    =    "M" or
+                     w-cnt-mfu-tip-fun    =    "V"
+                     move  "#"            to   w-cnt-sts-imp-tes
+                     move  all "#"        to   w-cnt-sts-imp-pte
+                     move  all "#"        to   w-cnt-sts-ing-pte      .
+       acc-nok-reg-200.
+      *              *-------------------------------------------------*
+      *              * Trattamento testata                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Determinazione del numero di pagine che     *
+      *                  * compongono la testata                       *
+      *                  *---------------------------------------------*
+           perform   dmp-tes-reg-000      thru dmp-tes-reg-999        .
+      *                  *---------------------------------------------*
+      *                  * Video in 'OFF'                              *
+      *                  *---------------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Prompts per campi chiave                    *
+      *                  *---------------------------------------------*
+           if        w-cnt-sts-pmt-key    =    spaces
+                     perform pmt-key-reg-000
+                                          thru pmt-key-reg-999
+                     move    "#"          to   w-cnt-sts-pmt-key      .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione dati campi chiave           *
+      *                  *---------------------------------------------*
+           if        w-cnt-sts-vis-key    =    spaces
+                     perform vis-key-reg-000
+                                          thru vis-key-reg-999
+                     move    "#"          to   w-cnt-sts-vis-key      .
+      *                  *---------------------------------------------*
+      *                  * Prompts per pagina di testata               *
+      *                  *---------------------------------------------*
+           if        w-cnt-sts-pmt-ptx
+                    (w-cnt-sts-imp-npt)   =    spaces
+                     perform pmt-tes-reg-000
+                                          thru pmt-tes-reg-999
+                     move    "#"          to   w-cnt-sts-pmt-ptx
+                                              (w-cnt-sts-imp-npt)     .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione dati pagina testata         *
+      *                  *---------------------------------------------*
+           if        w-cnt-mfu-tip-fun    =    "M"      or
+                     w-cnt-mfu-tip-fun    =    "V"      or
+                     w-cnt-sts-imp-ptx
+                    (w-cnt-sts-imp-npt)   not  = spaces or
+                     w-cnt-sts-ing-ptx
+                    (w-cnt-sts-imp-npt)   not  = spaces
+                     if    w-cnt-sts-vis-ptx
+                          (w-cnt-sts-imp-npt)
+                                          =    spaces
+                           perform vis-tes-reg-000
+                                          thru vis-tes-reg-999
+                           move    "#"    to   w-cnt-sts-vis-ptx
+                                              (w-cnt-sts-imp-npt)     .
+      *                  *---------------------------------------------*
+      *                  * Flag di ingresso in pagina di testata       *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-cnt-sts-ing-ptx
+                                              (w-cnt-sts-imp-npt)     .
+      *                  *---------------------------------------------*
+      *                  * Video in 'ON'                               *
+      *                  *---------------------------------------------*
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Accettazione dati testata                   *
+      *                  *---------------------------------------------*
+           perform   acc-tes-reg-000      thru acc-tes-reg-999        .
+      *                  *---------------------------------------------*
+      *                  * Se tipo uscita definitivo                   *
+      *                  *---------------------------------------------*
+           if        w-cnt-tus-acc-tes    =    "S" or
+                     w-cnt-tus-acc-tes    =    "X" or
+                     w-cnt-tus-acc-tes    =    "E"
+                     move  w-cnt-tus-acc-tes
+                                          to   w-cnt-tus-acc-nok
+                     go to acc-nok-reg-999.
+      *                  *---------------------------------------------*
+      *                  * Se spostamento di pagina                    *
+      *                  *---------------------------------------------*
+           if        w-cnt-tus-acc-tes    =    "-"
+                     go to acc-nok-reg-300
+           else      go to acc-nok-reg-400.
+       acc-nok-reg-300.
+      *                      *-----------------------------------------*
+      *                      * Se spostamento a pagina precedente      *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Se la pagina attuale e' 1 si ignora *
+      *                          *-------------------------------------*
+           if        w-cnt-sts-imp-npt    not  > 1
+                     go to acc-nok-reg-200.
+      *                          *-------------------------------------*
+      *                          * Status di visualizzazione prompts e *
+      *                          * dati della chiave a : no            *
+      *                          *-------------------------------------*
+           move      spaces               to   w-cnt-sts-pmt-key      .
+           move      spaces               to   w-cnt-sts-vis-key      .
+      *                          *-------------------------------------*
+      *                          * Status di visualizzazione prompts e *
+      *                          * dati della pagina attuale a : no    *
+      *                          *-------------------------------------*
+           move      spaces               to   w-cnt-sts-pmt-ptx
+                                              (w-cnt-sts-imp-npt)     .
+           move      spaces               to   w-cnt-sts-vis-ptx
+                                              (w-cnt-sts-imp-npt)     .
+       acc-nok-reg-325.
+      *                          *-------------------------------------*
+      *                          * Decremento numero pagina attuale    *
+      *                          *-------------------------------------*
+           subtract  1                    from w-cnt-sts-imp-npt      .
+      *                          *-------------------------------------*
+      *                          * Test se pagina da trattare          *
+      *                          *-------------------------------------*
+           perform   snp-tes-reg-000      thru snp-tes-reg-999        .
+      *                          *-------------------------------------*
+      *                          * Se no : decremento ulteriore        *
+      *                          *-------------------------------------*
+           if        w-cnt-sts-imp-snp    not  = spaces and
+                     w-cnt-sts-imp-npt    >    1
+                     go to acc-nok-reg-325.
+      *                          *-------------------------------------*
+      *                          * Riciclo ad impostazione testata     *
+      *                          *-------------------------------------*
+           go to     acc-nok-reg-200.
+       acc-nok-reg-400.
+      *                      *-----------------------------------------*
+      *                      * Se spostamento a pagina successiva      *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Salvataggio numero pagina attuale   *
+      *                          *-------------------------------------*
+           move      w-cnt-sts-imp-npt    to   w-cnt-sts-imp-svp      .
+       acc-nok-reg-425.
+      *                          *-------------------------------------*
+      *                          * Status di impostazione dati della   *
+      *                          * della pagina attuale a : si'        *
+      *                          *-------------------------------------*
+           move      "#"                  to   w-cnt-sts-imp-ptx
+                                              (w-cnt-sts-imp-npt)     .
+      *                          *-------------------------------------*
+      *                          * Se la pagina attuale e' la massima  *
+      *                          * si pone lo status di impostazione   *
+      *                          * dati generale testata a si'         *
+      *                          *-------------------------------------*
+           if        w-cnt-sts-imp-npt    not  < w-cnt-sts-imp-mpt
+                     move  "#"            to   w-cnt-sts-imp-tes      .
+      *                          *-------------------------------------*
+      *                          * Se la pagina attuale e' la massima  *
+      *                          * si va' a conferma impostazioni      *
+      *                          *-------------------------------------*
+           if        w-cnt-sts-imp-npt    not  < w-cnt-sts-imp-mpt
+                     move  w-cnt-sts-imp-svp
+                                          to   w-cnt-sts-imp-npt
+                     go to acc-nok-reg-800.
+      *                          *-------------------------------------*
+      *                          * Incremento numero pagina attuale    *
+      *                          *-------------------------------------*
+           add       1                    to   w-cnt-sts-imp-npt      .
+      *                          *-------------------------------------*
+      *                          * Test se pagina da trattare          *
+      *                          *-------------------------------------*
+           perform   snp-tes-reg-000      thru snp-tes-reg-999        .
+      *                          *-------------------------------------*
+      *                          * Se no : a re-incremento             *
+      *                          *-------------------------------------*
+           if        w-cnt-sts-imp-snp    not  = spaces
+                     go to acc-nok-reg-425.
+      *                          *-------------------------------------*
+      *                          * Status di visualizzazione prompts e *
+      *                          * dati della chiave a : no            *
+      *                          *-------------------------------------*
+           move      spaces               to   w-cnt-sts-pmt-key      .
+           move      spaces               to   w-cnt-sts-vis-key      .
+      *                          *-------------------------------------*
+      *                          * Status di visualizzazione prompts e *
+      *                          * dati della pagina impostata a : no  *
+      *                          *-------------------------------------*
+           move      spaces               to   w-cnt-sts-pmt-ptx
+                                              (w-cnt-sts-imp-svp)     .
+           move      spaces               to   w-cnt-sts-vis-ptx
+                                              (w-cnt-sts-imp-svp)     .
+      *                          *-------------------------------------*
+      *                          * Riciclo ad impostazione testata     *
+      *                          *-------------------------------------*
+           go to     acc-nok-reg-200.
+       acc-nok-reg-800.
+      *              *-------------------------------------------------*
+      *              * Conferma impostazioni                           *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Cancellazione eventuali note operative      *
+      *                  *---------------------------------------------*
+           move      "NT"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-nok-reg-810.
+      *                  *---------------------------------------------*
+      *                  * Test se sola visualizzazione                *
+      *                  *---------------------------------------------*
+           if        w-cnt-mfu-tip-fun    =    "V"
+                     go to acc-nok-reg-820
+           else      go to acc-nok-reg-830.
+       acc-nok-reg-820.
+      *                      *-----------------------------------------*
+      *                      * Accettazione se sola visualizzazione    *
+      *                      *-----------------------------------------*
+           move      "MX"                 to   v-ope                  .
+           move      "U"                  to   v-tip                  .
+           move      "#VIS"               to   v-not                  .
+           move      spaces               to   v-alf                  .
+           move      "E"                  to   v-msk                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "EXIT"               to   v-pfk (20)             .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           if        v-key                not  = spaces
+                     go to acc-nok-reg-840.
+           if        v-alf                =    "E"
+                     move  "EXIT"         to   v-key                  .
+           go to     acc-nok-reg-840.
+       acc-nok-reg-830.
+      *                      *-----------------------------------------*
+      *                      * Accettazione se inserimento o modifica  *
+      *                      *-----------------------------------------*
+           move      "MX"                 to   v-ope                  .
+           move      "U"                  to   v-tip                  .
+           move      "#SAV"               to   v-not                  .
+           move      spaces               to   v-alf                  .
+           move      "SNE"                to   v-msk                  .
+           move      "DO  "               to   v-pfk (05)             .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "EXIT"               to   v-pfk (20)             .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           if        v-key                not  = spaces
+                     go to acc-nok-reg-840.
+           if        v-alf                =    "S"
+                     move   "DO  "        to   v-key
+           else if   v-alf                =    "E"
+                     move   "EXIT"        to   v-key
+           else if   v-alf                =    "N"
+                     move   "UP  "        to   v-key                  .
+       acc-nok-reg-840.
+      *                  *---------------------------------------------*
+      *                  * Test su risposta dell'utente                *
+      *                  *---------------------------------------------*
+           if        v-key                =    "DO  "
+                     go to acc-nok-reg-850
+           else if   v-key                =    "EXIT"
+                     go to acc-nok-reg-860
+           else if   v-key                =    "UP  "
+                     go to acc-nok-reg-870
+           else      go to acc-nok-reg-810.
+       acc-nok-reg-850.
+      *                  *---------------------------------------------*
+      *                  * Se Do                                       *
+      *                  *---------------------------------------------*
+           perform   cnt-tdo-nok-000      thru cnt-tdo-nok-999        .
+           if        w-cnt-tdo-nok-flg    =    spaces
+                     move  "S"            to   w-cnt-tus-acc-nok
+                     go to acc-nok-reg-999
+           else      move  spaces         to   w-cnt-tdo-nok-flg
+                     go to acc-nok-reg-800.
+       acc-nok-reg-860.
+      *                  *---------------------------------------------*
+      *                  * Se Exit                                     *
+      *                  *---------------------------------------------*
+           move      "E"                  to   w-cnt-tus-acc-nok      .
+           go to     acc-nok-reg-999.
+       acc-nok-reg-870.
+      *                  *---------------------------------------------*
+      *                  * Se Up                                       *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Ad accettazione testata                 *
+      *                      *-----------------------------------------*
+           move      spaces               to   v-key                  .
+           go to     acc-nok-reg-200.
+       acc-nok-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione numero pagine che compongono la testata    *
+      *    *-----------------------------------------------------------*
+       dmp-tes-reg-000.
+      *              *-------------------------------------------------*
+      *              * La testata e' composta di nr. 1 pagina          *
+      *              *-------------------------------------------------*
+           move      1                    to   w-cnt-sts-imp-mpt      .
+       dmp-tes-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione si/no pagina w-cnt-sts-imp-npt da trattare *
+      *    *-----------------------------------------------------------*
+       snp-tes-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-sts-imp-snp      .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del numero pagina        *
+      *              *-------------------------------------------------*
+           go to     snp-tes-reg-100
+                     depending            on   w-cnt-sts-imp-npt      .
+           go to     snp-tes-reg-999.
+       snp-tes-reg-100.
+      *              *-------------------------------------------------*
+      *              * Test per pagina 1                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     snp-tes-reg-999.
+       snp-tes-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione testata registrazione                        *
+      *    *-----------------------------------------------------------*
+       acc-tes-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione tipo uscita                     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-tus-acc-tes      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione function-key                    *
+      *              *-------------------------------------------------*
+           move      spaces               to   v-key                  .
+      *              *-------------------------------------------------*
+      *              * Tipo impostazione : testata                     *
+      *              *-------------------------------------------------*
+           move      "T"                  to   w-cnt-mfu-tip-imp      .
+      *              *-------------------------------------------------*
+      *              * Accettazioni                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del numero pagina    *
+      *                  *---------------------------------------------*
+           go to     acc-tes-reg-100
+                     depending            on   w-cnt-sts-imp-npt      .
+           go to     acc-tes-reg-999.
+       acc-tes-reg-100.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione func-key di impostazione    *
+      *                  *---------------------------------------------*
+           move      spaces               to   v-key                  .
+      *                  *---------------------------------------------*
+      *                  * Flag di ordine chiuso                       *
+      *                  *---------------------------------------------*
+           perform   acc-flg-och-000      thru acc-flg-och-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-tes      .
+           if        w-cnt-tus-acc-tes    not  = spaces
+                     go to acc-tes-reg-999.
+      *                  *---------------------------------------------*
+      *                  * Fine Pagina                                 *
+      *                  *---------------------------------------------*
+           move      "+"                  to   w-cnt-tus-acc-tes      .
+           go to     acc-tes-reg-999.
+       acc-tes-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione testata registrazione                     *
+      *    *-----------------------------------------------------------*
+       vis-tes-reg-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del numero pagina        *
+      *              *-------------------------------------------------*
+           go to     vis-tes-reg-100
+                     depending            on   w-cnt-sts-imp-npt      .
+           go to     vis-tes-reg-999.
+       vis-tes-reg-100.
+      *              *-------------------------------------------------*
+      *              * Codice fornitore                                *
+      *              *-------------------------------------------------*
+           perform   vis-fnt-org-000      thru vis-fnt-org-999        .
+           perform   vis-fnt-org-des-000  thru vis-fnt-org-des-999    .
+      *              *-------------------------------------------------*
+      *              * Flag di ordine chiuso                           *
+      *              *-------------------------------------------------*
+           perform   vis-flg-och-000      thru vis-flg-och-999        .
+      *              *-------------------------------------------------*
+      *              * Status ordine                                   *
+      *              *-------------------------------------------------*
+           perform   vis-sts-orf-000      thru vis-sts-orf-999        .
+           go to     vis-tes-reg-999.
+       vis-tes-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts testata                           *
+      *    *-----------------------------------------------------------*
+       pmt-tes-reg-000.
+      *              *-------------------------------------------------*
+      *              * Erase linee impegnate                           *
+      *              *-------------------------------------------------*
+           move      "EL"                 to   v-ope                  .
+           move      07                   to   v-lin                  .
+           move      21                   to   v-lto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del numero pagina        *
+      *              *-------------------------------------------------*
+           go to     pmt-tes-reg-100
+                     depending            on   w-cnt-sts-imp-npt      .
+           go to     pmt-tes-reg-999.
+       pmt-tes-reg-100.
+      *              *-------------------------------------------------*
+      *              * Codice fornitore                                *
+      *              *-------------------------------------------------*
+           perform   pmt-fnt-org-000      thru pmt-fnt-org-999        .
+      *              *-------------------------------------------------*
+      *              * Flag di ordine chiuso                           *
+      *              *-------------------------------------------------*
+           perform   pmt-flg-och-000      thru pmt-flg-och-999        .
+           go to     pmt-tes-reg-999.
+       pmt-tes-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompt : Codice fornitore                 *
+      *    *-----------------------------------------------------------*
+       pmt-fnt-org-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      25                   to   v-car                  .
+           move      08                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "Fornitore commerciale   :"
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       pmt-fnt-org-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompt : Flag di ordine chiuso            *
+      *    *-----------------------------------------------------------*
+       pmt-flg-och-000.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione                                 *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      25                   to   v-car                  .
+           move      12                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "Chiusura ordine         :"
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Visualizzazione Note                            *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      18                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "N.B.: Il programma pone a stato di 'chiuso' l'inte
+      -              "ro ordine, righe comprese,    "
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      19                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "      anche se inevaso o parzialmente evaso.      
+      -              "                              "
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       pmt-flg-och-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo testata : Presa visione per pagina     *
+      *    *-----------------------------------------------------------*
+       acc-pre-vpg-000.
+      *              *-------------------------------------------------*
+      *              * Se non esiste alcuna pagina attiva successiva   *
+      *              * alla pagina attuale : uscita                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Salvataggio numero pagina attuale           *
+      *                  *---------------------------------------------*
+           move      w-cnt-sts-imp-npt    to   w-cnt-sts-imp-svp      .
+       acc-pre-vpg-100.
+      *                  *---------------------------------------------*
+      *                  * Se all'ultima pagina : ripristino pagina    *
+      *                  * salvata ed uscita                           *
+      *                  *---------------------------------------------*
+           if        w-cnt-sts-imp-npt    not  < w-cnt-sts-imp-mpt
+                     move  w-cnt-sts-imp-svp
+                                          to   w-cnt-sts-imp-npt
+                     go to acc-pre-vpg-999.
+      *                  *---------------------------------------------*
+      *                  * Incremento numero pagina                    *
+      *                  *---------------------------------------------*
+           add       1                    to   w-cnt-sts-imp-npt      .
+      *                  *---------------------------------------------*
+      *                  * Test se pagina da trattare                  *
+      *                  *---------------------------------------------*
+           perform   snp-tes-reg-000      thru snp-tes-reg-999        .
+      *                  *---------------------------------------------*
+      *                  * Se no : a re-incremento                     *
+      *                  *---------------------------------------------*
+           if        w-cnt-sts-imp-snp    not  = spaces
+                     go to acc-pre-vpg-100.
+      *                  *---------------------------------------------*
+      *                  * Se si : ripristino pagina salvata e accet-  *
+      *                  * tazione presa visione                       *
+      *                  *---------------------------------------------*
+           move      w-cnt-sts-imp-svp    to   w-cnt-sts-imp-npt      .
+       acc-pre-vpg-200.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "MX"                 to   v-ope                  .
+           move      "U"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      spaces               to   v-msk                  .
+           move      spaces               to   v-alf                  .
+           move      spaces               to   v-not                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-tes
+                     go to acc-pre-vpg-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-tes
+                     go to acc-pre-vpg-999.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-tes
+                             go to acc-pre-vpg-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-pre-vpg-000.
+       acc-pre-vpg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo testata : Codice fornitore          *
+      *    *-----------------------------------------------------------*
+       vis-fnt-org-000.
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      08                   to   v-lin                  .
+           move      27                   to   v-pos                  .
+           move      "<B"                 to   v-edm                  .
+           move      w-tes-fnt-org (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-fnt-org-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo testata : Descrizione fornitore     *
+      *    *-----------------------------------------------------------*
+       vis-fnt-org-des-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      08                   to   v-lin                  .
+           move      41                   to   v-pos                  .
+           move      w-tes-fnt-org-rag (1)
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      09                   to   v-lin                  .
+           move      41                   to   v-pos                  .
+           move      w-tes-fnt-org-via (1)
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      10                   to   v-lin                  .
+           move      41                   to   v-pos                  .
+           move      w-tes-fnt-org-loc (1)
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-fnt-org-des-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo testata : Flag di ordine chiuso        *
+      *    *-----------------------------------------------------------*
+       acc-flg-och-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+       acc-flg-och-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "E"                  to   v-tip                  .
+           move      w-exp-flg-och-lun    to   v-car                  .
+           move      w-exp-flg-och-num    to   v-ldt                  .
+           move      "NS"                 to   v-msk                  .
+           move      spaces               to   v-edm                  .
+           move      12                   to   v-lin                  .
+           move      27                   to   v-pos                  .
+           move      w-exp-flg-och-tbl    to   v-txt                  .
+           if        w-tes-flg-och (1)    =    spaces
+                     move  01             to   v-num
+           else if   w-tes-flg-och (1)    =    "#"
+                     move  02             to   v-num
+           else      move  zero           to   v-num                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-tes
+                     go to acc-flg-och-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-tes
+                     go to acc-flg-och-999.
+       acc-flg-och-200.
+      *              *-------------------------------------------------*
+      *              * Valore impostato in campo di destinazione       *
+      *              *-------------------------------------------------*
+           if        v-num                =    01
+                     move  spaces         to   w-tes-flg-och (1)
+           else if   v-num                =    02
+                     move  "#"            to   w-tes-flg-och (1)
+           else      move  spaces         to   w-tes-flg-och (1)      .
+       acc-flg-och-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-flg-och-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+       acc-flg-och-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-tes
+                             go to acc-flg-och-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-flg-och-100.
+       acc-flg-och-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo testata : Flag di ordine chiuso     *
+      *    *-----------------------------------------------------------*
+       vis-flg-och-000.
+           move      "DS"                 to   v-ope                  .
+           move      "E"                  to   v-tip                  .
+           move      w-exp-flg-och-lun    to   v-car                  .
+           move      w-exp-flg-och-num    to   v-ldt                  .
+           move      spaces               to   v-edm                  .
+           move      12                   to   v-lin                  .
+           move      27                   to   v-pos                  .
+           move      w-exp-flg-och-tbl    to   v-txt                  .
+           if        w-tes-flg-och (1)    =    spaces
+                     move  01             to   v-num
+           else if   w-tes-flg-och (1)    =    "#"
+                     move  02             to   v-num
+           else      move  zero           to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-flg-och-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo testata : Status ordine             *
+      *    *-----------------------------------------------------------*
+       vis-sts-orf-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      12                   to   v-lin                  .
+           move      41                   to   v-pos                  .
+           if        d-sts-orf-sts-ord    =    01
+                     move  "Chiuso       "
+                                          to   v-alf
+           else if   d-sts-orf-sts-ord    =    02
+                     move  "Evaso parz.  "
+                                          to   v-alf
+           else if   d-sts-orf-sts-ord    =    03
+                     move  "Evaso        "
+                                          to   v-alf
+           else if   d-sts-orf-sts-ord    =    04
+                     move  "Inevaso      "
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-sts-orf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Box per messaggio di errore                               *
+      *    *-----------------------------------------------------------*
+       box-msg-err-000.
+      *              *-------------------------------------------------*
+      *              * Salvataggio immagine video                      *
+      *              *-------------------------------------------------*
+           move      "SV"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Video in Off                                    *
+      *              *-------------------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Box                                             *
+      *              *-------------------------------------------------*
+           move      "BX"                 to   v-ope                  .
+           move      12                   to   v-lin                  .
+           move      04                   to   v-pos                  .
+           move      14                   to   v-lto                  .
+           move      77                   to   v-pto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Messaggio nel box                               *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      65                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      06                   to   v-pos                  .
+           move      w-err-box-err-msg    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Parentesi quadre di delimitazione               *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      03                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      73                   to   v-pos                  .
+           move      "[ ]"                to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Video in On                                     *
+      *              *-------------------------------------------------*
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Accettazione carattere di presa visione         *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "K"                  to   v-tip                  .
+           move      13                   to   v-lin                  .
+           move      74                   to   v-pos                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Ripristino immagine video                       *
+      *              *-------------------------------------------------*
+           move      "RS"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       box-msg-err-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Box per messaggio di errore esteso, su due righe          *
+      *    *-----------------------------------------------------------*
+       box-msg-e02-000.
+      *              *-------------------------------------------------*
+      *              * Salvataggio immagine video                      *
+      *              *-------------------------------------------------*
+           move      "SV"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Video in Off                                    *
+      *              *-------------------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Box                                             *
+      *              *-------------------------------------------------*
+           move      "BX"                 to   v-ope                  .
+           move      11                   to   v-lin                  .
+           move      04                   to   v-pos                  .
+           move      14                   to   v-lto                  .
+           move      77                   to   v-pto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Messaggio nel box                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Linea 01                                    *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      65                   to   v-car                  .
+           move      12                   to   v-lin                  .
+           move      06                   to   v-pos                  .
+           move      w-err-box-err-msg    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Linea 02                                    *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      65                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      06                   to   v-pos                  .
+           move      w-err-box-err-m02    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Parentesi quadre di delimitazione               *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      03                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      73                   to   v-pos                  .
+           move      "[ ]"                to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Video in On                                     *
+      *              *-------------------------------------------------*
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Accettazione carattere di presa visione         *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "K"                  to   v-tip                  .
+           move      13                   to   v-lin                  .
+           move      74                   to   v-pos                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Ripristino immagine video                       *
+      *              *-------------------------------------------------*
+           move      "RS"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       box-msg-e02-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Controllo su impostazione tasto Do campi chiave           *
+      *    *-----------------------------------------------------------*
+       cnt-tdo-key-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-tdo-key-flg      .
+      *              *-------------------------------------------------*
+      *              * Test su tipo movimento                          *
+      *              *-------------------------------------------------*
+           if        w-tes-tmo-orf        not  = spaces
+                     go to cnt-tdo-key-100.
+           move      "Manca il tipo movimento !                         
+      -              "               "    to   w-err-box-err-msg      .
+           go to     cnt-tdo-key-900.
+       cnt-tdo-key-100.
+      *              *-------------------------------------------------*
+      *              * Test su data documento                          *
+      *              *-------------------------------------------------*
+           if        w-tes-dat-doc        not  = zero
+                     go to cnt-tdo-key-200.
+           move      "Manca la data documento !                         
+      -              "               "    to   w-err-box-err-msg      .
+           go to     cnt-tdo-key-900.
+       cnt-tdo-key-200.
+      *              *-------------------------------------------------*
+      *              * Test su numero documento                        *
+      *              *-------------------------------------------------*
+           if        w-tes-num-doc-prg    not  = zero
+                     go to cnt-tdo-key-300.
+           move      "Manca il numero documento !                       
+      -              "               "    to   w-err-box-err-msg      .
+           go to     cnt-tdo-key-900.
+       cnt-tdo-key-300.
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Completamento numero documento              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Secolo/Anno                             *
+      *                      *-----------------------------------------*
+           move      w-tes-dat-doc        to   s-dat                  .
+           move      s-saa                to   w-tes-num-doc-saa      .
+      *                      *-----------------------------------------*
+      *                      * Codice dipendenza                       *
+      *                      *-----------------------------------------*
+           move      w-tes-cod-dpz        to   w-tes-num-doc-dpz      .
+       cnt-tdo-key-800.
+      *              *-------------------------------------------------*
+      *              * Uscita per controlli superati                   *
+      *              *-------------------------------------------------*
+           go to     cnt-tdo-key-999.
+       cnt-tdo-key-900.
+      *              *-------------------------------------------------*
+      *              * Trattamento errore                              *
+      *              *-------------------------------------------------*
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *              *-------------------------------------------------*
+      *              * Flag di uscita ad errore                        *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-cnt-tdo-key-flg      .
+       cnt-tdo-key-999.
+           exit.
+           
+      *    *===========================================================*
+      *    * Controllo se chiave vuota                                 *
+      *    *-----------------------------------------------------------*
+       cnt-key-vuo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-key-vuo-flg      .
+      *              *-------------------------------------------------*
+      *              * Test                                            *
+      *              *-------------------------------------------------*
+           if        w-tes-tmo-orf        =    spaces and
+                     w-tes-dat-doc        =    zero   and
+                     w-tes-num-doc        =    zero
+                     move  "#"            to   w-cnt-key-vuo-flg      .
+       cnt-key-vuo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Controllo su impostazione tasto Do campi non chiave       *
+      *    *-----------------------------------------------------------*
+       cnt-tdo-nok-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-tdo-nok-flg      .
+       cnt-tdo-nok-999.
+           exit.
+           
+      *    *===========================================================*
+      *    * Normalizzazione dati chiave e non chiave                  *
+      *    *-----------------------------------------------------------*
+       nor-key-nok-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione dati chiave                     *
+      *              *-------------------------------------------------*
+           perform   nor-key-reg-000      thru nor-key-reg-999        .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione dati non chiave testata         *
+      *              *-------------------------------------------------*
+           perform   nor-nok-tes-000      thru nor-nok-tes-999        .
+       nor-key-nok-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Normalizzazione dati chiave                               *
+      *    *-----------------------------------------------------------*
+       nor-key-reg-000.
+           move      zero                 to   w-tes-num-prt          .
+           move      spaces               to   w-tes-tmo-orf          .
+           move      spaces               to   w-tes-tmo-orf-des      .
+           move      zero                 to   w-tes-tmo-orf-vld      .
+           move      zero                 to   w-tes-tmo-orf-dpz      .
+           move      zero                 to   w-tes-tmo-orf-ord      .
+           move      zero                 to   w-tes-tmo-orf-prd      .
+           move      spaces               to   w-tes-tmo-orf-sgl      .
+           move      zero                 to   w-tes-num-doc          .
+           move      zero                 to   w-tes-dat-doc          .
+           move      spaces               to   w-tes-sgl-num          .
+       nor-key-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Normalizzazione dati non chiave testata                   *
+      *    *-----------------------------------------------------------*
+       nor-nok-tes-000.
+           move      zero                 to   w-tes-fnt-org (1)      .
+           move      spaces               to   w-tes-fnt-org-rag (1)  .
+           move      spaces               to   w-tes-fnt-org-via (1)  .
+           move      spaces               to   w-tes-fnt-org-loc (1)  .
+           move      spaces               to   w-tes-flg-och (1)      .
+       nor-nok-tes-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Lettura registrazione pre-esistente                       *
+      *    *-----------------------------------------------------------*
+       rou-let-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-rou-let-reg      .
+      *              *-------------------------------------------------*
+      *              * Determinazione se documento esistente           *
+      *              *-------------------------------------------------*
+           perform   det-doc-ges-000      thru det-doc-ges-999        .
+      *              *-------------------------------------------------*
+      *              * Se documento non esistente : A Errore           *
+      *              *-------------------------------------------------*
+           if        w-det-doc-ges-snx    =    "N"
+                     go to rou-let-reg-050.
+      *              *-------------------------------------------------*
+      *              * Se documento esistente : Modifica               *
+      *              *-------------------------------------------------*
+           if        w-det-doc-ges-snx    =    "S"
+                     go to rou-let-reg-100.
+      *              *-------------------------------------------------*
+      *              * Se documento esistente ma con tipo movimento    *
+      *              * diverso                                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Messaggio di errore                         *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-err-box-err-msg      .
+           string    "Movimento esistente, ma di tipo '"
+                                delimited by   size
+                     w-det-doc-ges-tmt
+                                delimited by   spaces
+                     "' !"
+                                delimited by   size
+                                          into w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                  *---------------------------------------------*
+      *                  * Flag di uscita ad errore                    *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-cnt-rou-let-reg      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     rou-let-reg-999.
+       rou-let-reg-050.
+      *                  *---------------------------------------------*
+      *                  * Se movimento non trovato                    *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore                     *
+      *                      *-----------------------------------------*
+           move      "Documento non esistente in archivio !             
+      -              "               "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Flag di uscita ad errore                *
+      *                      *-----------------------------------------*
+           move      "#"                  to   w-cnt-rou-let-reg      .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     rou-let-reg-999.
+       rou-let-reg-100.
+      *                  *---------------------------------------------*
+      *                  * Se movimento trovato                        *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se ordine chiuso                   *
+      *                      *-----------------------------------------*
+           if        rf-oft-flg-och       =    spaces
+                     go to rou-let-reg-120.
+      *                          *-------------------------------------*
+      *                          * Messaggio di errore                 *
+      *                          *-------------------------------------*
+           move      "Ordine fornitore gia' chiuso !                    
+      -              "               "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+       rou-let-reg-120.
+      *                      *-----------------------------------------*
+      *                      * Tipo funzionamento : Modifica           *
+      *                      *-----------------------------------------*
+           move      "M"                  to   w-cnt-mfu-tip-fun      .
+      *                      *-----------------------------------------*
+      *                      * Completamento valori attuali chiave     *
+      *                      *-----------------------------------------*
+           move      rf-oft-num-prt       to   w-tes-num-prt          .
+           move      rf-oft-sgl-num       to   w-tes-sgl-num          .
+      *                      *-----------------------------------------*
+      *                      * Determinazione valori attuali testata   *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Valori contenuti direttamente in    *
+      *                          * record [oft]                        *
+      *                          *-------------------------------------*
+           move      rf-oft-cod-arc       to   w-tes-fnt-org (1)      .
+           move      rf-oft-flg-och       to   w-tes-flg-och (1)      .
+      *                          *-------------------------------------*
+      *                          * Valori contenuti indirettamente in  *
+      *                          * record [oft]                        *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Anagrafica archivio             *
+      *                              *---------------------------------*
+      *                                  *-----------------------------*
+      *                                  * Lettura record [dcf] prin-  *
+      *                                  * cipale                      *
+      *                                  *-----------------------------*
+           move      w-tes-fnt-org (1)    to   w-let-arc-dcf-fnt      .
+           move      spaces               to   w-let-arc-dcf-dpz      .
+           perform   let-arc-dcf-000      thru let-arc-dcf-999        .
+           move      w-let-arc-dcf-rag    to   w-tes-fnt-org-rag (1)  .
+           move      w-let-arc-dcf-via    to   w-tes-fnt-org-via (1)  .
+           move      w-let-arc-dcf-loc    to   w-tes-fnt-org-loc (1)  .
+      *                      *-----------------------------------------*
+      *                      * Valori precedenti anagrafica            *
+      *                      *-----------------------------------------*
+           move      w-tes-val-aep (1)    to   w-tes-val-aep (2)      .
+       rou-let-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine pre-accettazioni per inserimento                  *
+      *    *-----------------------------------------------------------*
+       pre-acc-ins-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pre-acc-ins      .
+       pre-acc-ins-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine pre-accettazioni per modifica                     *
+      *    *-----------------------------------------------------------*
+       pre-acc-mod-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pre-acc-mod      .
+      *              *-------------------------------------------------*
+      *              * Determinazione status dell'ordine               *
+      *              *-------------------------------------------------*
+           move      "DT"                 to   d-sts-orf-tip-ope      .
+           perform   det-sts-orf-cll-000  thru det-sts-orf-cll-999    .
+       pre-acc-mod-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine pre-accettazioni per visualizzazione              *
+      *    *-----------------------------------------------------------*
+       pre-acc-vis-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pre-acc-vis      .
+       pre-acc-vis-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine pre-richiesta di ratifica tasto Delete            *
+      *    *-----------------------------------------------------------*
+       pre-snx-del-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pre-snx-del      .
+      *              *-------------------------------------------------*
+      *              * Disabilitazione manuale tasto Delt              *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-cnt-pre-snx-del      .
+       pre-snx-del-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-richiesta di ratifica tasto Delete           *
+      *    *-----------------------------------------------------------*
+       pos-snx-del-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pos-snx-del      .
+       pos-snx-del-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-exit su inserimento                          *
+      *    *-----------------------------------------------------------*
+       pos-exi-ins-000.
+       pos-exi-ins-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-exit su modifica                             *
+      *    *-----------------------------------------------------------*
+       pos-exi-mod-000.
+       pos-exi-mod-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-exit su visualizzazione                      *
+      *    *-----------------------------------------------------------*
+       pos-exi-vis-000.
+       pos-exi-vis-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-conferma di inserimento                      *
+      *    *-----------------------------------------------------------*
+       pos-cnf-ins-000.
+       pos-cnf-ins-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-conferma di modifica                         *
+      *    *-----------------------------------------------------------*
+       pos-cnf-mod-000.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento della data di registrazione di    *
+      *              * default                                         *
+      *              *-------------------------------------------------*
+           move      w-tes-dat-doc        to   w-def-dat-doc          .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento del tipo movimento di default     *
+      *              *-------------------------------------------------*
+           move      w-tes-tmo-orf        to   w-def-tmo-orf          .
+      *              *-------------------------------------------------*
+      *              * Scrittura movimento su files                    *
+      *              *-------------------------------------------------*
+           perform   scr-mov-fil-000      thru scr-mov-fil-999        .
+       pos-cnf-mod-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine post-conferma di annullamento                     *
+      *    *-----------------------------------------------------------*
+       pos-cnf-ann-000.
+       pos-cnf-ann-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Scrittura movimento su file                               *
+      *    *-----------------------------------------------------------*
+       scr-mov-fil-000.
+      *              *-------------------------------------------------*
+      *              * Trattamento righe ordine                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione contatore righe scritte    *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-scr-mov-fil-ctr      .
+      *                  *---------------------------------------------*
+      *                  * Start su file [ofr]                         *
+      *                  *---------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-tes-num-prt        to   rf-ofr-num-prt         .
+           move      zero                 to   rf-ofr-num-prg         .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+      *                      *-----------------------------------------*
+      *                      * Test su esito operazione                *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to scr-mov-fil-500.
+       scr-mov-fil-100.
+      *                  *---------------------------------------------*
+      *                  * Ottenimento sequenziale record [ofr]        *
+      *                  *---------------------------------------------*
+           move      "GN"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+      *                      *-----------------------------------------*
+      *                      * Test se 'At End'                        *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to scr-mov-fil-500.
+      *                  *---------------------------------------------*
+      *                  * Test sul massimo                            *
+      *                  *---------------------------------------------*
+           if        rf-ofr-num-prt       not  = w-tes-num-prt
+                     go to scr-mov-fil-500.
+       scr-mov-fil-120.
+      *                  *---------------------------------------------*
+      *                  * Selezioni sul record                        *
+      *                  *---------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Fine selezione sul record                   *
+      *                  *---------------------------------------------*
+           go to     scr-mov-fil-200.
+       scr-mov-fil-160.
+      *                  *---------------------------------------------*
+      *                  * Se selezione sul record non superata        *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Release record [ofr]                    *
+      *                      *-----------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+      *                      *-----------------------------------------*
+      *                      * Riciclo                                 *
+      *                      *-----------------------------------------*
+           go to     scr-mov-fil-100.
+       scr-mov-fil-200.
+      *                  *---------------------------------------------*
+      *                  * Incremento contatore righe scritte          *
+      *                  *---------------------------------------------*
+           add       1                    to   w-scr-mov-fil-ctr      .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento record [ofr]                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Flag di riga chiusa                     *
+      *                      *-----------------------------------------*
+           move      w-tes-flg-och (1)    to   rf-ofr-flg-rch         .
+      *                      *-----------------------------------------*
+      *                      * Update record [ofr]                     *
+      *                      *-----------------------------------------*
+           move      "UP"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+      *                      *-----------------------------------------*
+      *                      * Release record [ofr]                    *
+      *                      *-----------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+       scr-mov-fil-220.
+      *                  *---------------------------------------------*
+      *                  * Riciclo a riga successiva                   *
+      *                  *---------------------------------------------*
+           go to     scr-mov-fil-100.
+       scr-mov-fil-500.
+      *              *-------------------------------------------------*
+      *              * Release ultimo record [ofr]                     *
+      *              *-------------------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofofr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ofr                 .
+      *              *-------------------------------------------------*
+      *              * Test su contatore righe scritte                 *
+      *              *-------------------------------------------------*
+           if        w-scr-mov-fil-ctr    >    zero
+                     go to scr-mov-fil-600.
+      *                  *---------------------------------------------*
+      *                  * Messaggio di errore                         *
+      *                  *---------------------------------------------*
+           move      "Operazione non eseguita.                           
+      -              "               "    to   w-err-box-err-msg      .
+           move      "Nessuna riga per l'ordine richiamato.             
+      -              "               "    to   w-err-box-err-m02      .
+           perform   box-msg-e02-000      thru box-msg-e02-999        .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     scr-mov-fil-999.
+       scr-mov-fil-600.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento record [oft]                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ottenimento record [oft]                    *
+      *                  *---------------------------------------------*
+           move      "GK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-tes-num-prt        to   rf-oft-num-prt         .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *                  *---------------------------------------------*
+      *                  * Flag di ordine chiuso                       *
+      *                  *---------------------------------------------*
+           move      w-tes-flg-och (1)    to   rf-oft-flg-och         .
+      *                  *---------------------------------------------*
+      *                  * Update record [oft]                         *
+      *                  *---------------------------------------------*
+           move      "UP"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *                  *---------------------------------------------*
+      *                  * Rilascio record [oft]                       *
+      *                  *---------------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+       scr-mov-fil-800.
+      *              *-------------------------------------------------*
+      *              * Messaggio di operazione completata              *
+      *              *-------------------------------------------------*
+           move      "Operazione eseguita con successo.                 
+      -              "               "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     scr-mov-fil-999.
+       scr-mov-fil-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Select archivio [oft] in base al numero documento         *
+      *    *-----------------------------------------------------------*
+       slc-num-oft-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-slc-num-oft-sel      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni iniziali                        *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-slc-num-oft-toc      .
+           move      zero                 to   w-slc-num-oft-dat      .
+           move      zero                 to   w-slc-num-oft-num      .
+           move      zero                 to   w-slc-num-oft-crb      .
+      *              *-------------------------------------------------*
+      *              * Preparazione secolo, anno                       *
+      *              *-------------------------------------------------*
+           move      w-slc-num-oft-dds    to   s-dat                  .
+           move      s-saa                to   w-slc-num-oft-saa      .
+       slc-num-oft-080.
+      *              *-------------------------------------------------*
+      *              * Completamento numero documento                  *
+      *              *-------------------------------------------------*
+           move      w-slc-num-oft-saa    to   w-slc-num-oft-nsa      .
+           move      w-slc-num-oft-dpz    to   w-slc-num-oft-ndp      .
+       slc-num-oft-100.
+      *              *-------------------------------------------------*
+      *              * Start su file [oft]                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Start                                       *
+      *                  *---------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "CNTDEN    "         to   f-key                  .
+           move      "NL"                 to   f-cfr                  .
+           move      w-slc-num-oft-saa    to   rf-oft-scl-ann         .
+           move      w-slc-num-oft-dpz    to   rf-oft-cod-dpz         .
+           move      w-slc-num-oft-sgl    to   rf-oft-sgl-num         .
+           move      w-slc-num-oft-nds    to   rf-oft-num-doc         .
+           move      zero                 to   rf-oft-num-prt         .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *                  *---------------------------------------------*
+      *                  * Se errore di start : a controllo contatore  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to slc-num-oft-800.
+       slc-num-oft-200.
+      *              *-------------------------------------------------*
+      *              * Read-next su [oft]                              *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *                  *---------------------------------------------*
+      *                  * Se at end : a controllo contatore           *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to slc-num-oft-500.
+       slc-num-oft-300.
+      *              *-------------------------------------------------*
+      *              * Se oltre il massimo : a controllo contatore     *
+      *              *-------------------------------------------------*
+           if        rf-oft-scl-ann       not  = w-slc-num-oft-saa or
+                     rf-oft-cod-dpz       not  = w-slc-num-oft-dpz or
+                     rf-oft-sgl-num       not  = w-slc-num-oft-sgl or
+                     rf-oft-num-doc       not  = w-slc-num-oft-nds
+                     go to slc-num-oft-500.
+       slc-num-oft-400.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records nel buffer            *
+      *              *-------------------------------------------------*
+           add       1                    to   w-slc-num-oft-crb      .
+      *              *-------------------------------------------------*
+      *              * Test se buffer oltre il numero previsto         *
+      *              *-------------------------------------------------*
+           if        w-slc-num-oft-crb    >    30
+                     go to slc-num-oft-520.
+       slc-num-oft-420.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Protocollo ordine                           *
+      *                  *---------------------------------------------*
+           move      rf-oft-num-prt       to   w-slc-num-oft-bpt
+                                              (w-slc-num-oft-crb)     .
+      *                  *---------------------------------------------*
+      *                  * Riciclo a lettura                           *
+      *                  *---------------------------------------------*
+           go to     slc-num-oft-200.
+       slc-num-oft-500.
+      *                  *---------------------------------------------*
+      *                  * Controllo numero records letti con lo stes- *
+      *                  * so valore                                   *
+      *                  *---------------------------------------------*
+           if        w-slc-num-oft-crb    =    zero
+                     go to slc-num-oft-800.
+      *                  *---------------------------------------------*
+      *                  * Se trovato un solo elemento uscita con      *
+      *                  * quello                                      *
+      *                  *---------------------------------------------*
+           if        w-slc-num-oft-crb    >    1
+                     go to slc-num-oft-520.
+      *                      *-----------------------------------------*
+      *                      * Lettura record [oft]                    *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-oft-bpt (1)
+                                          to   rf-oft-num-prt         .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+           if        f-sts                not  = e-not-err
+                     move  zero           to   rf-oft-dat-doc
+                     move  zero           to   rf-oft-num-doc
+                     move  zero           to   rf-oft-cod-arc
+                     move  spaces         to   rf-oft-dpz-arc         .
+      *                      *-----------------------------------------*
+      *                      * Bufferizzazione dati letti              *
+      *                      *-----------------------------------------*
+           move      rf-oft-dat-doc       to   w-slc-num-oft-dat      .
+           move      rf-oft-num-doc       to   w-slc-num-oft-num      .
+           move      rf-oft-tmo-orf       to   w-slc-num-oft-toc      .
+      *                      *-----------------------------------------*
+      *                      * Ad operazioni prima dell'uscita         *
+      *                      *-----------------------------------------*
+           go to     slc-num-oft-800.
+       slc-num-oft-520.
+      *                  *---------------------------------------------*
+      *                  * Box di espansione                           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Determinazione numero pagine nel buffer *
+      *                      *-----------------------------------------*
+           move      w-slc-num-oft-crb    to   w-slc-num-oft-cpb      .
+           subtract  1                    from w-slc-num-oft-cpb      .
+           divide    6                    into w-slc-num-oft-cpb      .
+           add       1                    to   w-slc-num-oft-cpb      .
+      *                      *-----------------------------------------*
+      *                      * Inizializzazione numero record nel buf- *
+      *                      * fer attualmente trattato                *
+      *                      *-----------------------------------------*
+           move      1                    to   w-slc-num-oft-c01      .
+      *                      *-----------------------------------------*
+      *                      * Salvataggio immagine video              *
+      *                      *-----------------------------------------*
+           move      "SV"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Video in Off                            *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Visualizzazione box vuoto               *
+      *                      *-----------------------------------------*
+           move      "BX"                 to   v-ope                  .
+           move      07                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      18                   to   v-lto                  .
+           move      80                   to   v-pto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Fincatura                               *
+      *                      *-----------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      76                   to   v-car                  .
+           move      08                   to   v-lin                  .
+           move      03                   to   v-pos                  .
+           move      "                       Selezionare l'ordine deside
+      -              "rato                      "
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Sottolineatura fincatura                *
+      *                      *-----------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      76                   to   v-car                  .
+           move      09                   to   v-lin                  .
+           move      03                   to   v-pos                  .
+           move      all   "-"            to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Sottolineatura di chiusura              *
+      *                      *-----------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      76                   to   v-car                  .
+           move      16                   to   v-lin                  .
+           move      03                   to   v-pos                  .
+           move      all   "-"            to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Visualizzazione pagina video contenente *
+      *                      * il record attualmente trattato          *
+      *                      *-----------------------------------------*
+           perform   slc-num-oft-950      thru slc-num-oft-989        .
+      *                      *-----------------------------------------*
+      *                      * Video in On                             *
+      *                      *-----------------------------------------*
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       slc-num-oft-550.
+      *                      *-----------------------------------------*
+      *                      * Determinazione numero linea a video     *
+      *                      *-----------------------------------------*
+           move      w-slc-num-oft-c01    to   w-slc-num-oft-nli      .
+       slc-num-oft-555.
+           if        w-slc-num-oft-nli    >    6
+                     subtract  6          from w-slc-num-oft-nli
+                     go to slc-num-oft-555.
+      *                          *-------------------------------------*
+      *                          * Incremento numero linea a video     *
+      *                          * per posizionamento verticale        *
+      *                          *-------------------------------------*
+           add       09                   to   w-slc-num-oft-nli      .
+       slc-num-oft-560.
+      *                      *-----------------------------------------*
+      *                      * Espansione record attualmente trattato  *
+      *                      *-----------------------------------------*
+       slc-num-oft-575.
+      *                      *-----------------------------------------*
+      *                      * Accettazione del mark-point             *
+      *                      *-----------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "K"                  to   v-tip                  .
+           move      spaces               to   v-ufk                  .
+           if        w-slc-num-oft-c01    >    1
+                     move  "UP  "         to   v-pfk (01)             .
+           if        w-slc-num-oft-c01    <    w-slc-num-oft-crb
+                     move  "DOWN"         to   v-pfk (02)             .
+           move      "DO  "               to   v-pfk (05)             .
+           if        w-slc-num-oft-cpa    >    1
+                     move  "PRSC"         to   v-pfk (07)             .
+           if        w-slc-num-oft-cpa    <    w-slc-num-oft-cpb
+                     move  "NXSC"         to   v-pfk (08)             .
+           move      "EXIT"               to   v-pfk (20)             .
+           move      w-slc-num-oft-nli    to   v-lin                  .
+           move      09                   to   v-pos                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       slc-num-oft-580.
+           if        v-key                =    spaces or
+                     v-key                =    "DO  "
+                     go to slc-num-oft-582
+           else if   v-key                =    "UP  "
+                     go to slc-num-oft-584
+           else if   v-key                =    "DOWN"
+                     go to slc-num-oft-586
+           else if   v-key                =    "EXIT"
+                     go to slc-num-oft-598
+           else if   v-key                =    "NXSC"
+                     go to slc-num-oft-592
+           else if   v-key                =    "PRSC"
+                     go to slc-num-oft-594
+           else      go to slc-num-oft-575.
+       slc-num-oft-582.
+      *              *-------------------------------------------------*
+      *              * Se spaces, Do o select                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Restore video                               *
+      *                  *---------------------------------------------*
+           move      "RS"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                  *---------------------------------------------*
+      *                  * Memorizzazione valore selezionato           *
+      *                  *---------------------------------------------*
+           move      w-slc-num-oft-bpt
+                    (w-slc-num-oft-c01)   to   w-slc-num-oft-prt      .
+      *                  *---------------------------------------------*
+      *                  * Lettura record [oft]                        *
+      *                  *---------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-oft-prt    to   rf-oft-num-prt         .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+           if        f-sts                not  = e-not-err
+                     move  zero           to   rf-oft-dat-doc
+                     move  zero           to   rf-oft-num-doc
+                     move  zero           to   rf-oft-cod-arc
+                     move  spaces         to   rf-oft-dpz-arc         .
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione dati letti                  *
+      *                  *---------------------------------------------*
+           move      rf-oft-dat-doc       to   w-slc-num-oft-dat      .
+           move      rf-oft-num-doc       to   w-slc-num-oft-num      .
+           move      rf-oft-tmo-orf       to   w-slc-num-oft-toc      .
+      *                  *---------------------------------------------*
+      *                  * Ad operazioni prima dell'uscita             *
+      *                  *---------------------------------------------*
+           go to     slc-num-oft-800.
+       slc-num-oft-584.
+      *              *-------------------------------------------------*
+      *              * Se Up                                           *
+      *              *-------------------------------------------------*
+           subtract  1                    from w-slc-num-oft-c01      .
+           if        w-slc-num-oft-nli    =    10
+                     go to slc-num-oft-590
+           else      go to slc-num-oft-550.
+       slc-num-oft-586.
+      *              *-------------------------------------------------*
+      *              * Se Down                                         *
+      *              *-------------------------------------------------*
+           if        w-slc-num-oft-c01    <    w-slc-num-oft-crb
+                     add   1              to   w-slc-num-oft-c01
+                     go to slc-num-oft-588
+           else      go to slc-num-oft-575.
+       slc-num-oft-588.
+           if        w-slc-num-oft-nli    =    15
+                     go to slc-num-oft-590
+           else      go to slc-num-oft-550.
+       slc-num-oft-590.
+           perform   slc-num-oft-950      thru slc-num-oft-989        .
+           go to     slc-num-oft-550.
+       slc-num-oft-592.
+      *              *-------------------------------------------------*
+      *              * Se Next screen                                  *
+      *              *-------------------------------------------------*
+           add       1                    to   w-slc-num-oft-cpa      .
+           go to     slc-num-oft-596.
+       slc-num-oft-594.
+      *              *-------------------------------------------------*
+      *              * Se Previous screen                              *
+      *              *-------------------------------------------------*
+           subtract  1                    from w-slc-num-oft-cpa      .
+       slc-num-oft-596.
+           move      w-slc-num-oft-cpa    to   w-slc-num-oft-c01      .
+           multiply  6                    by   w-slc-num-oft-c01      .
+           subtract  5                    from w-slc-num-oft-c01      .
+           go to     slc-num-oft-590.
+       slc-num-oft-598.
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           move      "RS"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       slc-num-oft-800.
+      *              *-------------------------------------------------*
+      *              * Salvataggio valori chiave                       *
+      *              *-------------------------------------------------*
+           move      w-tes-val-key        to   w-sav-val-key          .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori estratti                 *
+      *              *-------------------------------------------------*
+           move      w-slc-num-oft-toc    to   w-tes-tmo-orf          .
+           move      w-slc-num-oft-dat    to   w-tes-dat-doc          .
+           move      w-slc-num-oft-num    to   w-tes-num-doc          .
+      *              *-------------------------------------------------*
+      *              * Test su valori estratti                         *
+      *              *-------------------------------------------------*
+           if        w-tes-tmo-orf        =    spaces or
+                     w-tes-dat-doc        =    zero   or
+                     w-tes-num-doc        =    zero
+                     go to slc-num-oft-900.
+       slc-num-oft-820.
+      *              *-------------------------------------------------*
+      *              * Determinazione campi derivati e effettuazione   *
+      *              * controlli come se fossero stati impostati       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Lettura archivio [yof]                      *
+      *                  *---------------------------------------------*
+           move      w-tes-tmo-orf        to   w-let-arc-yof-cod      .
+           perform   let-arc-yof-000      thru let-arc-yof-999        .
+      *                  *---------------------------------------------*
+      *                  * Se codice errato : reimpostazione           *
+      *                  *---------------------------------------------*
+           if        w-let-arc-yof-flg    not  = spaces
+                     go to slc-num-oft-900.
+      *                  *---------------------------------------------*
+      *                  * Se a spaces : reimpostazione                *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf        =    spaces
+                     go to slc-num-oft-900.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione valori associati al tipo    *
+      *                  * movimento ordini fornitori                  *
+      *                  *---------------------------------------------*
+           move      w-let-arc-yof-des    to   w-tes-tmo-orf-des      .
+           move      w-let-arc-yof-vld    to   w-tes-tmo-orf-vld      .
+           move      w-let-arc-yof-dpz    to   w-tes-tmo-orf-dpz      .
+           move      w-let-arc-yof-ord    to   w-tes-tmo-orf-ord      .
+           move      w-let-arc-yof-prd    to   w-tes-tmo-orf-prd      .
+           move      w-let-arc-yof-sgl    to   w-tes-tmo-orf-sgl      .
+           move      w-let-arc-yof-dtr    to   w-tes-tmo-orf-dtr      .
+      *                  *---------------------------------------------*
+      *                  * Test su codice dipendenza                   *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf-vld    not  = 02
+                     go to slc-num-oft-840.
+           if        w-tes-cod-dpz        =    w-tes-tmo-orf-dpz
+                     go to slc-num-oft-840.
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore                     *
+      *                      *-----------------------------------------*
+           move      "Tipo movimento incompatibile con il codice dipende
+      -              "nza            "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                      *-----------------------------------------*
+      *                      * A uscita con errore                     *
+      *                      *-----------------------------------------*
+           go to     slc-num-oft-900.
+       slc-num-oft-840.
+      *                  *---------------------------------------------*
+      *                  * Controllo tipo origine del documento        *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf-ord    =   01
+                     go to slc-num-oft-860.
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore                     *
+      *                      *-----------------------------------------*
+           move      "Tipo movimento non gestibile da questo programma !
+      -              "               "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                      *-----------------------------------------*
+      *                      * A uscita con errore                     *
+      *                      *-----------------------------------------*
+           go to     slc-num-oft-900.
+       slc-num-oft-860.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Completamento visualizzazione campi-chiave  *
+      *                  *---------------------------------------------*
+           perform   vis-tmo-orf-000      thru vis-tmo-orf-999        .
+           perform   vis-tmo-orf-des-000  thru vis-tmo-orf-des-999    .
+           perform   vis-dat-doc-000      thru vis-dat-doc-999        .
+           perform   vis-num-doc-000      thru vis-num-doc-999        .
+      *                  *---------------------------------------------*
+      *                  * Uscita con successo                         *
+      *                  *---------------------------------------------*
+           go to     slc-num-oft-999.
+       slc-num-oft-900.
+      *              *-------------------------------------------------*
+      *              * Trattamento errore                              *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ripristino valori chiave salvati            *
+      *                  *---------------------------------------------*
+           move      w-sav-val-key        to   w-tes-val-key          .
+      *                  *---------------------------------------------*
+      *                  * Flag di uscita ad errore                    *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-slc-num-oft-sel      .
+       slc-num-oft-940.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     slc-num-oft-999.
+       slc-num-oft-950.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione pagina video contenente il re-  *
+      *              * cord attualmente trattato                       *
+      *              *-------------------------------------------------*
+           move      w-slc-num-oft-c01    to   w-slc-num-oft-c02      .
+           add       5                    to   w-slc-num-oft-c02      .
+           divide    6                    into w-slc-num-oft-c02      .
+           move      w-slc-num-oft-c02    to   w-slc-num-oft-cpa      .
+           subtract  1                    from w-slc-num-oft-c02      .
+           multiply  6                    by   w-slc-num-oft-c02      .
+           add       1                    to   w-slc-num-oft-c02      .
+           add       5
+                     w-slc-num-oft-c02  giving w-slc-num-oft-c03      .
+           move      w-slc-num-oft-c03    to   w-slc-num-oft-c04      .
+           if        w-slc-num-oft-c03    >    w-slc-num-oft-crb
+                     move  w-slc-num-oft-crb
+                                          to   w-slc-num-oft-c03      .
+           move      10                   to   w-slc-num-oft-c05      .
+       slc-num-oft-951.
+      *              *-------------------------------------------------*
+      *              * Lettura record [oft] per visualizzazione        *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-oft-bpt
+                    (w-slc-num-oft-c02)   to   rf-oft-num-prt         .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+           if        f-sts                not  = e-not-err
+                     move  zero           to   rf-oft-dat-doc
+                     move  zero           to   rf-oft-num-doc
+                     move  zero           to   rf-oft-cod-arc
+                     move  spaces         to   rf-oft-dpz-arc         .
+       slc-num-oft-960.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Codice tipo movimento                       *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      05                   to   v-car                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      03                   to   v-pos                  .
+           move      rf-oft-tmo-orf       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                  *---------------------------------------------*
+      *                  * Data documento                              *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      09                   to   v-pos                  .
+           move      rf-oft-dat-doc       to   v-dat                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                  *---------------------------------------------*
+      *                  * Numero documento                            *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      06                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      18                   to   v-pos                  .
+           move      rf-oft-num-doc (6:6) to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                  *---------------------------------------------*
+      *                  * Codice archivio                             *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "B"                  to   v-edm                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      26                   to   v-pos                  .
+           move      rf-oft-cod-arc       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                  *---------------------------------------------*
+      *                  * Codice dipendenza archivio                  *
+      *                  *---------------------------------------------*
+           if        rf-oft-dpz-arc       =    spaces
+                     go to slc-num-oft-965.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      33                   to   v-pos                  .
+           move      "-"                  to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      04                   to   v-car                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      34                   to   v-pos                  .
+           move      rf-oft-dpz-arc       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       slc-num-oft-965.
+      *                  *---------------------------------------------*
+      *                  * Lettura record [dcf]                        *
+      *                  *---------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFNT    "         to   f-key                  .
+           move      rf-oft-cod-arc       to   rf-dcf-cod-fnt         .
+           move      rf-oft-dpz-arc       to   rf-dcf-dpz-fnt         .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+           if        f-sts                not  = e-not-err
+                     move  all "."        to   rf-dcf-rag-soc         .
+      *                  *---------------------------------------------*
+      *                  * Ragione sociale archivio                    *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      39                   to   v-pos                  .
+           move      rf-dcf-rag-soc       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                  *---------------------------------------------*
+      *                  * Incremento contatori                        *
+      *                  *---------------------------------------------*
+           add       1                    to   w-slc-num-oft-c02      .
+           add       1                    to   w-slc-num-oft-c05      .
+           if        w-slc-num-oft-c02    not  > w-slc-num-oft-c03
+                     go to slc-num-oft-951.
+       slc-num-oft-970.
+           if        w-slc-num-oft-c02    >    w-slc-num-oft-c04
+                     go to slc-num-oft-980.
+           if        w-slc-num-oft-crb    not  > 6
+                     go to slc-num-oft-980.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      60                   to   v-car                  .
+           move      w-slc-num-oft-c05    to   v-lin                  .
+           move      11                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           add       1                    to   w-slc-num-oft-c02      .
+           add       1                    to   w-slc-num-oft-c05      .
+           go to     slc-num-oft-970.
+       slc-num-oft-980.
+      *                  *---------------------------------------------*
+      *                  * Literal 'pagina'                            *
+      *                  *---------------------------------------------*
+           move      w-slc-num-oft-cpa    to   w-slc-num-oft-lt1      .
+           move      w-slc-num-oft-cpb    to   w-slc-num-oft-lt2      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      17                   to   v-lin                  .
+           move      34                   to   v-pos                  .
+           move      w-slc-num-oft-ltp    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       slc-num-oft-989.
+           exit.
+       slc-num-oft-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Find su archivio [oft]                                    *
+      *    *-----------------------------------------------------------*
+       fnd-arc-oft-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-fnd-arc-oft-sel      .
+      *              *-------------------------------------------------*
+      *              * Test se programma di interrogazione gia' attivo *
+      *              *-------------------------------------------------*
+           move      "P?"                 to   s-ope                  .
+           move      "porf3010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     move  "#"            to   w-fnd-arc-oft-sel
+                     go to  fnd-arc-oft-999.
+      *              *-------------------------------------------------*
+      *              * Scrittura variabile di i.p.c. 'snx-slc' per il  *
+      *              * livello successivo per l'ammissibilita' del ta- *
+      *              * sto Slct                                        *
+      *              *-------------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "snx-slc"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      01                   to   s-car                  .
+           move      "S"                  to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Preparazione variabile di i.p.c. per codice di- *
+      *              * pendenza                                        *
+      *              *-------------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "cod-dpz"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      02                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-tes-cod-dpz        to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Richiamo programma di interrogazione            *
+      *              *-------------------------------------------------*
+           move      "pgm/orf/prg/obj/porf3010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+      *              *-------------------------------------------------*
+      *              * Estrazione di eventuali variabili di i.p.c. de- *
+      *              * terminate da function-key "SLCT" durante l'in-  *
+      *              * terrogazione                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Tipo movimento                              *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   s-ope                  .
+           move      "tmo-orf"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-ves                not  = spaces
+                     move  "#"            to   w-fnd-arc-oft-sel
+                     go to fnd-arc-oft-999.
+           move      s-alf                to   w-fnd-arc-oft-toc      .
+      *                  *---------------------------------------------*
+      *                  * Data documento                              *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   s-ope                  .
+           move      "dat-doc"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-ves                not  = spaces
+                     move  "#"            to   w-fnd-arc-oft-sel
+                     go to fnd-arc-oft-999.
+           move      s-dat                to   w-fnd-arc-oft-dat      .
+      *                  *---------------------------------------------*
+      *                  * Numero documento                            *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   s-ope                  .
+           move      "num-doc"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-ves                not  = spaces
+                     move  "#"            to   w-fnd-arc-oft-sel
+                     go to fnd-arc-oft-999.
+           move      s-num                to   w-fnd-arc-oft-num      .
+      *              *-------------------------------------------------*
+      *              * Salvataggio valori chiave                       *
+      *              *-------------------------------------------------*
+           move      w-tes-val-key        to   w-sav-val-key          .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori estratti                 *
+      *              *-------------------------------------------------*
+           move      w-fnd-arc-oft-toc    to   w-tes-tmo-orf          .
+           move      w-fnd-arc-oft-dat    to   w-tes-dat-doc          .
+           move      w-fnd-arc-oft-num    to   w-tes-num-doc          .
+       fnd-arc-oft-400.
+      *              *-------------------------------------------------*
+      *              * Determinazione campi derivati e effettuazione   *
+      *              * controlli come se fossero stati impostati       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Lettura archivio [yof]                      *
+      *                  *---------------------------------------------*
+           move      w-tes-tmo-orf        to   w-let-arc-yof-cod      .
+           perform   let-arc-yof-000      thru let-arc-yof-999        .
+      *                  *---------------------------------------------*
+      *                  * Se codice errato : reimpostazione           *
+      *                  *---------------------------------------------*
+           if        w-let-arc-yof-flg    not  = spaces
+                     go to fnd-arc-oft-900.
+      *                  *---------------------------------------------*
+      *                  * Se a spaces : reimpostazione                *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf        =    spaces
+                     go to fnd-arc-oft-900.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione valori associati al tipo    *
+      *                  * movimento ordini fornitori                  *
+      *                  *---------------------------------------------*
+           move      w-let-arc-yof-des    to   w-tes-tmo-orf-des      .
+           move      w-let-arc-yof-vld    to   w-tes-tmo-orf-vld      .
+           move      w-let-arc-yof-dpz    to   w-tes-tmo-orf-dpz      .
+           move      w-let-arc-yof-ord    to   w-tes-tmo-orf-ord      .
+           move      w-let-arc-yof-prd    to   w-tes-tmo-orf-prd      .
+           move      w-let-arc-yof-sgl    to   w-tes-tmo-orf-sgl      .
+           move      w-let-arc-yof-dtr    to   w-tes-tmo-orf-dtr      .
+      *                  *---------------------------------------------*
+      *                  * Test su codice dipendenza                   *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf-vld    not  = 02
+                     go to fnd-arc-oft-420.
+           if        w-tes-cod-dpz        =    w-tes-tmo-orf-dpz
+                     go to fnd-arc-oft-420.
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore                     *
+      *                      *-----------------------------------------*
+           move      "Tipo movimento incompatibile con il codice dipende
+      -              "nza            "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                      *-----------------------------------------*
+      *                      * A uscita con errore                     *
+      *                      *-----------------------------------------*
+           go to     fnd-arc-oft-900.
+       fnd-arc-oft-420.
+      *                  *---------------------------------------------*
+      *                  * Controllo tipo origine del documento        *
+      *                  *---------------------------------------------*
+           if        w-tes-tmo-orf-ord    =   01
+                     go to fnd-arc-oft-600.
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore                     *
+      *                      *-----------------------------------------*
+           move      "Tipo movimento non gestibile da questo programma !
+      -              "               "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+      *                      *-----------------------------------------*
+      *                      * A uscita con errore                     *
+      *                      *-----------------------------------------*
+           go to     fnd-arc-oft-900.
+       fnd-arc-oft-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Completamento visualizzazione campi-chiave  *
+      *                  *---------------------------------------------*
+           perform   vis-tmo-orf-000      thru vis-tmo-orf-999        .
+           perform   vis-tmo-orf-des-000  thru vis-tmo-orf-des-999    .
+           perform   vis-dat-doc-000      thru vis-dat-doc-999        .
+           perform   vis-num-doc-000      thru vis-num-doc-999        .
+      *                  *---------------------------------------------*
+      *                  * Uscita con successo                         *
+      *                  *---------------------------------------------*
+           go to     fnd-arc-oft-999.
+       fnd-arc-oft-900.
+      *              *-------------------------------------------------*
+      *              * Trattamento errore                              *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ripristino valori chiave salvati            *
+      *                  *---------------------------------------------*
+           move      w-sav-val-key        to   w-tes-val-key          .
+      *                  *---------------------------------------------*
+      *                  * Flag di uscita ad errore                    *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-fnd-arc-oft-sel      .
+       fnd-arc-oft-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di lettura archivio [yof]                         *
+      *    *-----------------------------------------------------------*
+       let-arc-yof-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-yof-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a spazi                          *
+      *              *-------------------------------------------------*
+           if        w-let-arc-yof-cod    =    spaces
+                     go to let-arc-yof-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODTOF"             to   f-key                  .
+           move      w-let-arc-yof-cod    to   rf-yof-cod-tof         .
+           move      "pgm/orf/fls/ioc/obj/iofyof"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yof                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-yof-400.
+       let-arc-yof-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-yof-des-tof       to   w-let-arc-yof-des      .
+           move      rf-yof-vld-dpz       to   w-let-arc-yof-vld      .
+           move      rf-yof-cod-dpz       to   w-let-arc-yof-dpz      .
+           move      rf-yof-org-doc       to   w-let-arc-yof-ord      .
+           move      rf-yof-prv-doc       to   w-let-arc-yof-prd      .
+           move      rf-yof-sgl-num       to   w-let-arc-yof-sgl      .
+           move      rf-yof-def-tpr       to   w-let-arc-yof-dtr      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-yof-999.
+       let-arc-yof-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-yof-flg      .
+           move      all   "."            to   w-let-arc-yof-des      .
+           go to     let-arc-yof-600.
+       let-arc-yof-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-yof-des      .
+       let-arc-yof-600.
+           move      spaces               to   w-let-arc-yof-des      .
+           move      zero                 to   w-let-arc-yof-vld      .
+           move      zero                 to   w-let-arc-yof-dpz      .
+           move      zero                 to   w-let-arc-yof-ord      .
+           move      zero                 to   w-let-arc-yof-prd      .
+           move      spaces               to   w-let-arc-yof-sgl      .
+           move      spaces               to   w-let-arc-yof-dtr      .
+       let-arc-yof-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di lettura archivio [fnt]                         *
+      *    *-----------------------------------------------------------*
+       let-arc-fnt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-fnt-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-arc-fnt-cod    =    zero
+                     go to let-arc-fnt-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFNT"             to   f-key                  .
+           move      w-let-arc-fnt-cod    to   rf-fnt-cod-fnt         .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-fnt-400.
+       let-arc-fnt-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-fnt-rag-soc       to   w-let-arc-fnt-rag      .
+           move      rf-fnt-via-fnt       to   w-let-arc-fnt-via      .
+           move      rf-fnt-loc-fnt       to   w-let-arc-fnt-loc      .
+           move      rf-fnt-prt-iva       to   w-let-arc-fnt-piv      .
+           move      rf-fnt-cod-cge       to   w-let-arc-fnt-stc      .
+           move      rf-fnt-cod-iva       to   w-let-arc-fnt-ass      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-fnt-999.
+       let-arc-fnt-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-fnt-flg      .
+           move      all   "."            to   w-let-arc-fnt-rag      .
+           go to     let-arc-fnt-520.
+       let-arc-fnt-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-fnt-rag      .
+       let-arc-fnt-520.
+           move      spaces               to   w-let-arc-fnt-via      .
+           move      spaces               to   w-let-arc-fnt-loc      .
+           move      zero                 to   w-let-arc-fnt-piv      .
+           move      zero                 to   w-let-arc-fnt-stc      .
+           move      zero                 to   w-let-arc-fnt-ass      .
+       let-arc-fnt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di lettura archivio [dcf]                         *
+      *    *-----------------------------------------------------------*
+       let-arc-dcf-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-dcf-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codici a zero o spazi                   *
+      *              *-------------------------------------------------*
+           if        w-let-arc-dcf-fnt    =    zero
+                     go to let-arc-dcf-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFNT"             to   f-key                  .
+           move      w-let-arc-dcf-fnt    to   rf-dcf-cod-fnt         .
+           move      w-let-arc-dcf-dpz    to   rf-dcf-dpz-fnt         .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-dcf-400.
+       let-arc-dcf-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-dcf-rag-soc       to   w-let-arc-dcf-rag      .
+           move      rf-dcf-via-dcf       to   w-let-arc-dcf-via      .
+           move      rf-dcf-loc-dcf       to   w-let-arc-dcf-loc      .
+           move      rf-dcf-cod-vlt       to   w-let-arc-dcf-vlt      .
+           move      rf-dcf-cod-lng       to   w-let-arc-dcf-lng      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-dcf-999.
+       let-arc-dcf-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-dcf-flg      .
+           move      all   "."            to   w-let-arc-dcf-rag      .
+           go to     let-arc-dcf-520.
+       let-arc-dcf-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-dcf-rag      .
+       let-arc-dcf-520.
+           move      spaces               to   w-let-arc-dcf-via      .
+           move      spaces               to   w-let-arc-dcf-loc      .
+           move      spaces               to   w-let-arc-dcf-vlt      .
+           move      spaces               to   w-let-arc-dcf-lng      .
+       let-arc-dcf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione se documento gia' esistente oppure no      *
+      *    *-----------------------------------------------------------*
+       det-doc-ges-000.
+      *              *-------------------------------------------------*
+      *              * Tipo movimento trovato per il caso che la de-   *
+      *              * terminazione dia esito pari a 'X' : a spaces    *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-det-doc-ges-tmt      .
+      *              *-------------------------------------------------*
+      *              * Start su file [oft]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      w-tes-dat-doc        to   rf-oft-dat-doc         .
+           move      w-tes-cod-dpz        to   rf-oft-cod-dpz         .
+           move      w-tes-num-doc        to   rf-oft-num-doc         .
+           move      spaces               to   rf-oft-tmo-orf         .
+           move      zero                 to   rf-oft-num-prt         .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *              *-------------------------------------------------*
+      *              * Se Start errata : a documento non esistente     *
+      *              *-------------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to det-doc-ges-900.
+       det-doc-ges-100.
+      *              *-------------------------------------------------*
+      *              * Next su [oft]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *              *-------------------------------------------------*
+      *              * Se 'at end' : a determinazione finale           *
+      *              *-------------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to det-doc-ges-800.
+      *              *-------------------------------------------------*
+      *              * Max su [oft], se non superato : a determinazio- *
+      *              * ne finale                                       *
+      *              *-------------------------------------------------*
+           if        rf-oft-dat-doc       not  = w-tes-dat-doc or
+                     rf-oft-cod-dpz       not  = w-tes-cod-dpz or
+                     rf-oft-num-doc       not  = w-tes-num-doc
+                     go to det-doc-ges-800.
+       det-doc-ges-200.
+      *              *-------------------------------------------------*
+      *              * Deviazione a seconda del tipo movimento letto   *
+      *              *-------------------------------------------------*
+           if        rf-oft-tmo-orf       =    w-tes-tmo-orf
+                     go to det-doc-ges-300
+           else      go to det-doc-ges-400.
+       det-doc-ges-300.
+      *              *-------------------------------------------------*
+      *              * Se tipo movimento letto pari al tipo movimento  *
+      *              * da cercare                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Segnale di documento esistente e trovato    *
+      *                  *---------------------------------------------*
+           move      "S"                  to   w-det-doc-ges-snx      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-doc-ges-999.
+       det-doc-ges-400.
+      *              *-------------------------------------------------*
+      *              * Se tipo movimento letto diverso dal tipo movi-  *
+      *              * mento da cercare                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se sigla numerazione per il tipo movimento  *
+      *                  * letto diversa da sigla numerazione del ti-  *
+      *                  * po movimento cercato : si ignora il docu-   *
+      *                  * mento e si passa ad esaminare il documento  *
+      *                  * successivo                                  *
+      *                  *---------------------------------------------*
+           if        rf-oft-sgl-num       not  = w-tes-tmo-orf-sgl
+                     go to det-doc-ges-100.
+      *                  *---------------------------------------------*
+      *                  * Se invece la sigla numerazione e' la stessa *
+      *                  * si memorizza il codice tipo movimento letto *
+      *                  * per il caso in cui la determinazione doves- *
+      *                  * se dare esito pari a 'X'                    *
+      *                  *---------------------------------------------*
+           move      rf-oft-tmo-orf       to   w-det-doc-ges-tmt      .
+      *                  *---------------------------------------------*
+      *                  * Quindi si ricicla per esaminare eventuali   *
+      *                  * documenti successivi                        *
+      *                  *---------------------------------------------*
+           go to     det-doc-ges-100.
+       det-doc-ges-800.
+      *              *-------------------------------------------------*
+      *              * Determinazioni finali per il caso in cui il do- *
+      *              * cumento non sia stato sicuramente trovato       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se durante la ricerca e' stato trovato un   *
+      *                  * documento con la data cercata, il numero    *
+      *                  * cercato, e la sigla numerazione cercata :   *
+      *                  * si esce con 'X', e con il codice del tipo   *
+      *                  * movimento trovato gia' preparato; altri-    *
+      *                  * menti si esce per documento non trovato     *
+      *                  *---------------------------------------------*
+           if        w-det-doc-ges-tmt    not  = spaces
+                     move  "X"            to   w-det-doc-ges-snx
+                     go to det-doc-ges-999
+           else      go to det-doc-ges-900.
+       det-doc-ges-900.
+      *              *-------------------------------------------------*
+      *              * Uscita per documento non trovato                *
+      *              *-------------------------------------------------*
+           move      "N"                  to   w-det-doc-ges-snx      .
+       det-doc-ges-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione tipo movimento per ordini  *
+      *    * fornitori                                                 *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/orf/prg/cpy/acdeyof0.acs"                   .
+
+      *    *===========================================================*
+      *    * Subroutines per determinazione stato ordine fornitore     *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/orf/prg/cpy/dstsorf0.dts"                   .
+
+      *    *===========================================================*
+      *    * Subroutines per allineamenti a destra o a sinistra oppure *
+      *    * al centro di campi alfanumerici di varia lunghezza, fi-   *
+      *    * no ad un massimo di 240 caratteri, oppure per il conca-   *
+      *    * tenamento, con o senza separazione, di max 10 substrin-   *
+      *    * ghe in una unica substringa                               *
+      *    *-----------------------------------------------------------*
+           copy      "swd/std/prg/cpy/wallstr0.cps"                   .
+

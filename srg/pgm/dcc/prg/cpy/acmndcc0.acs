@@ -1,0 +1,214 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del cliente commerciale    *
+      *    *-----------------------------------------------------------*
+       cod-mne-dcc-opn-000.
+      *              *-------------------------------------------------*
+      *              * Open                                            *
+      *              *-------------------------------------------------*
+           move      "pgm/dcc/prg/obj/acmndcc0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-dcc-pth      .
+           move      "OP"                 to   w-cod-mne-dcc-ope      .
+           perform   cod-mne-dcc-cll-000  thru cod-mne-dcc-cll-999    .
+       cod-mne-dcc-opn-999.
+           exit.
+       cod-mne-dcc-cls-000.
+      *              *-------------------------------------------------*
+      *              * Close                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   w-cod-mne-dcc-ope      .
+           perform   cod-mne-dcc-cll-000  thru cod-mne-dcc-cll-999    .
+           move      "C?"                 to   w-cod-mne-dcc-ope      .
+           perform   cod-mne-dcc-cll-000  thru cod-mne-dcc-cll-999    .
+           if        w-cod-mne-dcc-ope    not  = spaces
+                     go to cod-mne-dcc-cls-999.
+           cancel    w-cod-mne-dcc-pth                                .
+       cod-mne-dcc-cls-999.
+           exit.
+       cod-mne-dcc-foi-000.
+      *              *-------------------------------------------------*
+      *              * Find o Insr                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se Find o Insr                         *
+      *                  *---------------------------------------------*
+           if        v-key                not  = "INSR"
+                     go to cod-mne-dcc-foi-500.
+      *                  *---------------------------------------------*
+      *                  * Se Insr                                     *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Overlay per Insr                        *
+      *                      *-----------------------------------------*
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc4000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                =    zero
+                     move  "pgm/dcc/prg/obj/pdcc4000"
+                                          to   s-pat
+                     go to cod-mne-dcc-foi-250.
+           move      "IG"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-pro                not  = "pdcc4000"
+                     go to cod-mne-dcc-foi-999.
+      *                      *-----------------------------------------*
+      *                      * Overlay per Insr anagrafica contabile   *
+      *                      *-----------------------------------------*
+           move      "P?"                 to   s-ope                  .
+           move      "pcge4000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                =    zero
+                     move  "pgm/cge/prg/obj/pcge4000"
+                                          to   s-pat
+                     go to cod-mne-dcc-foi-250.
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     cod-mne-dcc-foi-999.
+       cod-mne-dcc-foi-250.
+      *                      *-----------------------------------------*
+      *                      * Chiamata modulo                         *
+      *                      *-----------------------------------------*
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-dcc-ope      .
+           go to     cod-mne-dcc-foi-999.
+       cod-mne-dcc-foi-500.
+      *                  *---------------------------------------------*
+      *                  * Se Find                                     *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test                                    *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "FIND"
+                     go to cod-mne-dcc-foi-750.
+      *                      *-----------------------------------------*
+      *                      * Overlay per Find                        *
+      *                      *-----------------------------------------*
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc4010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-dcc-foi-999.
+      *                      *-----------------------------------------*
+      *                      * Preparazione variabile                  *
+      *                      *-----------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                      *-----------------------------------------*
+      *                      * Chiamata modulo                         *
+      *                      *-----------------------------------------*
+           move      "pgm/dcc/prg/obj/pdcc4010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-dcc-ope      .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     cod-mne-dcc-foi-999.
+       cod-mne-dcc-foi-750.
+      *                  *---------------------------------------------*
+      *                  * Se Pf2                                      *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test                                    *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "[2] "
+                     go to cod-mne-dcc-foi-999.
+           if        w-cod-mne-dcc-cod    =    zero
+                     go to cod-mne-dcc-foi-999.
+      *                      *-----------------------------------------*
+      *                      * Preparazione variabili                  *
+      *                      *-----------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "snx-slc"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      01                   to   s-car                  .
+           move      "N"                  to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *
+           move      "PV"                 to   s-ope                  .
+           move      "tip-int"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      10                   to   s-car                  .
+           move      "ESPCLI    "         to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *
+      
+           move      "PV"                 to   s-ope                  .
+           move      "cod-dbt"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      13                   to   s-car                  .
+           move      "01"                 to   s-alf (01 : 02)        .
+           move      w-cod-mne-dcc-cod    to   s-alf (03 : 07)        .
+           move      spaces               to   s-alf (10 : 04)        .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                      *-----------------------------------------*
+      *                      * Chiamata modulo                         *
+      *                      *-----------------------------------------*
+           move      "pgm/gep/prg/obj/pgep6000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-dcc-ope      .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     cod-mne-dcc-foi-999.
+       cod-mne-dcc-foi-999.
+           exit.
+       cod-mne-dcc-not-000.
+      *              *-------------------------------------------------*
+      *              * Richiesta note                                  *
+      *              *-------------------------------------------------*
+           move      "NT"                 to   w-cod-mne-dcc-ope      .
+           move      i-ide-pro            to   w-cod-mne-dcc-prg      .
+           perform   cod-mne-dcc-cll-000  thru cod-mne-dcc-cll-999    .
+           go to     cod-mne-dcc-not-999.
+       cod-mne-dcc-not-999.
+           exit.
+       cod-mne-dcc-nno-000.
+      *              *-------------------------------------------------*
+      *              * Richiesta normalizzazione note                  *
+      *              *-------------------------------------------------*
+           move      "NN"                 to   w-cod-mne-dcc-ope      .
+           move      spaces               to   w-cod-mne-dcc-prg      .
+           perform   cod-mne-dcc-cll-000  thru cod-mne-dcc-cll-999    .
+           go to     cod-mne-dcc-nno-999.
+       cod-mne-dcc-nno-999.
+           exit.
+       cod-mne-dcc-cll-000.
+      *              *-------------------------------------------------*
+      *              * Chiamata                                        *
+      *              *-------------------------------------------------*
+           call      w-cod-mne-dcc-pth   using w-cod-mne-dcc
+                                               v
+                                               s                      .
+       cod-mne-dcc-cll-999.
+           exit.
+

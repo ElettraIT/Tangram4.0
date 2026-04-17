@@ -1,0 +1,78 @@
+      *    *===========================================================*
+      *    * Routine di determinazione quantita' secondaria            *
+      *    *-----------------------------------------------------------*
+       det-qta-a02-000.
+      *              *-------------------------------------------------*
+      *              * Se trasformazione per l'unita' di misura solo   *
+      *              * per il prezzo                                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Quantita' impostata in work di lavoro       *
+      *                  *---------------------------------------------*
+           move      w-det-qta-a02-qim    to   w-det-qta-a02-wpq      .
+      *                  *---------------------------------------------*
+      *                  * Moltiplicazione per coefficiente di divi-   *
+      *                  * sione                                       *
+      *                  *---------------------------------------------*
+           multiply  w-det-qta-a02-cdu    by   w-det-qta-a02-wpq      .
+       det-qta-a02-420.
+      *                  *---------------------------------------------*
+      *                  * Divisione per coefficiente di moltiplica-   *
+      *                  * zione                                       *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Deviazione a seconda del numero decima- *
+      *                      * li secondo il fornitore                 *
+      *                      *-----------------------------------------*
+           go to     det-qta-a02-430
+                     det-qta-a02-435
+                     det-qta-a02-440
+                     depending            on   w-det-qta-a02-ndu      .
+       det-qta-a02-425.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : zero                  *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-a02-cmu    into w-det-qta-a02-wpq
+                                        giving w-det-qta-a02-wq0
+                                                         rounded      .
+           move      w-det-qta-a02-wq0    to   w-det-qta-a02-wpq      .
+           go to     det-qta-a02-450.
+       det-qta-a02-430.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 1                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-a02-cmu    into w-det-qta-a02-wpq
+                                        giving w-det-qta-a02-wq1
+                                                         rounded      .
+           move      w-det-qta-a02-wq1    to   w-det-qta-a02-wpq      .
+           go to     det-qta-a02-450.
+       det-qta-a02-435.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 2                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-a02-cmu    into w-det-qta-a02-wpq
+                                        giving w-det-qta-a02-wq2
+                                                         rounded      .
+           move      w-det-qta-a02-wq2    to   w-det-qta-a02-wpq      .
+           go to     det-qta-a02-450.
+       det-qta-a02-440.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 3                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-a02-cmu    into w-det-qta-a02-wpq
+                                        giving w-det-qta-a02-wq3
+                                                         rounded      .
+           move      w-det-qta-a02-wq3    to   w-det-qta-a02-wpq      .
+           go to     det-qta-a02-450.
+       det-qta-a02-450.
+      *                  *---------------------------------------------*
+      *                  * Valore in output                            *
+      *                  *---------------------------------------------*
+           move      w-det-qta-a02-wpq    to   w-det-qta-a02-qts      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-qta-a02-999.
+       det-qta-a02-999.
+           exit.
+

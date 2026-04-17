@@ -1,0 +1,54 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione codice Comune 'geo'        *
+      *    *-----------------------------------------------------------*
+       cod-com-geo-opn-000.
+           move      "pgm/geo/prg/obj/acomgeo0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-com-geo-pth      .
+           move      "OP"                 to   w-cod-com-geo-ope      .
+           perform   cod-com-geo-cll-000  thru cod-com-geo-cll-999    .
+       cod-com-geo-opn-999.
+           exit.
+       cod-com-geo-cls-000.
+           move      "CL"                 to   w-cod-com-geo-ope      .
+           perform   cod-com-geo-cll-000  thru cod-com-geo-cll-999    .
+           move      "C?"                 to   w-cod-com-geo-ope      .
+           perform   cod-com-geo-cll-000  thru cod-com-geo-cll-999    .
+           if        w-cod-com-geo-ope    not  = spaces
+                     go to cod-com-geo-cls-999.
+           cancel    w-cod-com-geo-pth                                .
+       cod-com-geo-cls-999.
+           exit.
+       cod-com-geo-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-com-geo-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pgeo4000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-com-geo-foi-999.
+           move      "pgm/geo/prg/obj/pgeo4000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-com-geo-ope      .
+           go to     cod-com-geo-foi-999.
+       cod-com-geo-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-com-geo-foi-999.
+           move      "F+"                 to   w-cod-com-geo-ope      .
+           go to     cod-com-geo-foi-999.
+       cod-com-geo-foi-999.
+           exit.
+       cod-com-geo-cll-000.
+           call      w-cod-com-geo-pth   using w-cod-com-geo
+                                               v
+                                               s                      .
+       cod-com-geo-cll-999.
+           exit.
+

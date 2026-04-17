@@ -1,0 +1,220 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione voce di bilancio           *
+      *    *-----------------------------------------------------------*
+       cod-mne-vdb-opn-000.
+           move      "pgm/bil/prg/obj/acmnvdb0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-vdb-pth      .
+           move      "OP"                 to   w-cod-mne-vdb-ope      .
+           perform   cod-mne-vdb-cll-000  thru cod-mne-vdb-cll-999    .
+       cod-mne-vdb-opn-999.
+           exit.
+       cod-mne-vdb-cls-000.
+           move      "CL"                 to   w-cod-mne-vdb-ope      .
+           perform   cod-mne-vdb-cll-000  thru cod-mne-vdb-cll-999    .
+           move      "C?"                 to   w-cod-mne-vdb-ope      .
+           perform   cod-mne-vdb-cll-000  thru cod-mne-vdb-cll-999    .
+           if        w-cod-mne-vdb-ope    not  = spaces
+                     go to cod-mne-vdb-cls-999.
+           cancel    w-cod-mne-vdb-pth                                .
+       cod-mne-vdb-cls-999.
+           exit.
+       cod-mne-vdb-foi-000.
+      *              *-------------------------------------------------*
+      *              * Se Insr                                         *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "INSR"
+                     go to cod-mne-vdb-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pbil2000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-vdb-foi-999.
+           move      "pgm/bil/prg/obj/pbil2000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-vdb-ope      .
+           go to     cod-mne-vdb-foi-999.
+       cod-mne-vdb-foi-500.
+      *              *-------------------------------------------------*
+      *              * Se Find                                         *
+      *              *-------------------------------------------------*
+           if        v-key                not  = "FIND"
+                     go to cod-mne-vdb-foi-999.
+      *                  *---------------------------------------------*
+      *                  * Test se programma di interrogazione gia'    *
+      *                  * attivo                                      *
+      *                  *---------------------------------------------*
+           move      "P?"                 to   s-ope                  .
+           move      "pbil2011"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-vdb-foi-999.
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per pos-   *
+      *                  * sibilita' di function-key "SLCT" durante    *
+      *                  * l'interrogazione                            *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per il ti- *
+      *                  * po bilancio                                 *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "tip-bil"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      w-cod-mne-vdb-tpb    to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per il li- *
+      *                  * vello interrogazione                        *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "liv-int"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      02                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-vdb-liv    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Se livello 1 : oltre                        *
+      *                  *---------------------------------------------*
+           if        w-cod-mne-vdb-liv    =    1
+                     go to cod-mne-vdb-foi-580.
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per voce   *
+      *                  * di bilancio di livello 1                    *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "vdb-lv1"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-vdb-lv1    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Se livello 2 : oltre                        *
+      *                  *---------------------------------------------*
+           if        w-cod-mne-vdb-liv    =    2
+                     go to cod-mne-vdb-foi-580.
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per voce   *
+      *                  * di bilancio di livello 2                    *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "vdb-lv2"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-vdb-lv2    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Se livello 3 : oltre                        *
+      *                  *---------------------------------------------*
+           if        w-cod-mne-vdb-liv    =    3
+                     go to cod-mne-vdb-foi-580.
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per voce   *
+      *                  * di bilancio di livello 3                    *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "vdb-lv3"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-vdb-lv3    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Se livello 4 : oltre                        *
+      *                  *---------------------------------------------*
+           if        w-cod-mne-vdb-liv    =    4
+                     go to cod-mne-vdb-foi-580.
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per voce   *
+      *                  * di bilancio di livello 4                    *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "vdb-lv4"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-vdb-lv4    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Se livello 5 : oltre                        *
+      *                  *---------------------------------------------*
+           if        w-cod-mne-vdb-liv    =    5
+                     go to cod-mne-vdb-foi-580.
+      *                  *---------------------------------------------*
+      *                  * Preparazione variabile di i.p.c. per voce   *
+      *                  * di bilancio di livello 5                    *
+      *                  *---------------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "vdb-lv5"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-vdb-lv5    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+       cod-mne-vdb-foi-580.
+      *              *-------------------------------------------------*
+      *              * Richiamo programma di interrogazione            *
+      *              *-------------------------------------------------*
+           move      "pgm/bil/prg/obj/pbil2011"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+      *              *-------------------------------------------------*
+      *              * Cancellazione programma di interrogazione       *
+      *              *-------------------------------------------------*
+           cancel    s-pat                                            .
+      *              *-------------------------------------------------*
+      *              * Tipo operazione in uscita : 'F+'                *
+      *              *-------------------------------------------------*
+           move      "F+"                 to   w-cod-mne-vdb-ope      .
+           go to     cod-mne-vdb-foi-999.
+       cod-mne-vdb-foi-999.
+           exit.
+       cod-mne-vdb-cll-000.
+           call      w-cod-mne-vdb-pth   using w-cod-mne-vdb
+                                               v
+                                               s                      .
+       cod-mne-vdb-cll-999.
+           exit.
+

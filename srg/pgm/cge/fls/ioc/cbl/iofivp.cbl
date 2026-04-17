@@ -1,0 +1,469 @@
+       Identification Division.
+       Program-Id.                                 iofivp             .
+      *================================================================*
+      *                                                                *
+      *                  Input-Output File ivp                         *
+      *                                                                *
+      *================================================================*
+
+      ******************************************************************
+       Environment Division.
+      ******************************************************************
+
+      *================================================================*
+       Configuration Section.
+      *================================================================*
+
+       Source-Computer.     d-K-b-Snc-PD .
+       Object-Computer.     d-K-b-Snc-PD .
+
+       Special-Names.       Decimal-Point is comma .
+
+      *================================================================*
+       Input-Output Section.
+      *================================================================*
+
+       File-Control.
+
+      *    *===========================================================*
+      *    * File Control [fil]                                        *
+      *    *-----------------------------------------------------------*
+           select  optional  fil   assign to disk           f-fil-pat
+                             organization is indexed
+                             access mode  is dynamic
+                             record key   is fil-k01
+                             file status  is                f-fil-sts .
+
+      *    *===========================================================*
+      *    * File Control [pul]                                        *
+      *    *-----------------------------------------------------------*
+           select  optional  pul   assign to disk           f-pul-pat
+                             organization is indexed
+                             access mode  is dynamic
+                             record key   is pul-k01
+                             file status  is                f-pul-sts .
+
+      ******************************************************************
+       Data Division.
+      ******************************************************************
+
+      *================================================================*
+       File Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * File Description [fil]                                    *
+      *    *-----------------------------------------------------------*
+       fd  fil       label record standard                            .
+
+      *    *===========================================================*
+      *    * Record fisico                                             *
+      *    *-----------------------------------------------------------*
+       01  fil-rec.
+      *        *-------------------------------------------------------*
+      *        * Chiavi                                                *
+      *        *-------------------------------------------------------*
+           05  fil-key.
+      *            *---------------------------------------------------*
+      *            * Chiave numero 01 : "ANNMESALI"                    *
+      *            *---------------------------------------------------*
+               10  fil-k01.
+                   15  fil-ann-ivp        pic  9(03)       comp-3     .
+                   15  fil-mes-ivp        pic  9(02)                  .
+                   15  fil-cod-iva        pic  9(05)       comp-3     .
+      *        *-------------------------------------------------------*
+      *        * Dati                                                  *
+      *        *-------------------------------------------------------*
+           05  fil-dat.
+               10  fil-ibl-acq            pic s9(13)       comp-3     .
+               10  fil-imp-acq            pic s9(13)       comp-3     .
+               10  fil-ibl-ven            pic s9(13)       comp-3     .
+               10  fil-imp-ven            pic s9(13)       comp-3     .
+               10  fil-ibl-cor            pic s9(13)       comp-3     .
+               10  fil-imp-cor            pic s9(13)       comp-3     .
+               10  fil-alx-exp.
+                   15  filler  occurs 80  pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * File Description [pul]                                    *
+      *    *-----------------------------------------------------------*
+       fd  pul       label record standard                            .
+
+      *    *===========================================================*
+      *    * Record fisico                                             *
+      *    *-----------------------------------------------------------*
+       01  pul-rec.
+      *        *-------------------------------------------------------*
+      *        * Chiavi                                                *
+      *        *-------------------------------------------------------*
+           05  pul-key.
+      *            *---------------------------------------------------*
+      *            * Chiave numero 01 : "ANNMESALI"                    *
+      *            *---------------------------------------------------*
+               10  pul-k01.
+                   15  pul-ann-ivp        pic  9(03)       comp-3     .
+                   15  pul-mes-ivp        pic  9(02)                  .
+                   15  pul-cod-iva        pic  9(05)       comp-3     .
+      *        *-------------------------------------------------------*
+      *        * Dati                                                  *
+      *        *-------------------------------------------------------*
+           05  pul-dat.
+               10  pul-ibl-acq            pic s9(13)       comp-3     .
+               10  pul-imp-acq            pic s9(13)       comp-3     .
+               10  pul-ibl-ven            pic s9(13)       comp-3     .
+               10  pul-imp-ven            pic s9(13)       comp-3     .
+               10  pul-ibl-cor            pic s9(13)       comp-3     .
+               10  pul-imp-cor            pic s9(13)       comp-3     .
+               10  pul-alx-exp.
+                   15  filler  occurs 80  pic  x(01)                  .
+
+      *================================================================*
+       Working-Storage Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di identificazione                                   *
+      *    *-----------------------------------------------------------*
+       01  i-ide.
+      *        *-------------------------------------------------------*
+      *        * Sigla del File                                        *
+      *        *-------------------------------------------------------*
+           02  i-ide-sdf                  pic  x(04) value
+                     "ivp "                                           .
+      *        *-------------------------------------------------------*
+      *        * Pathname completo del modulo oggetto                  *
+      *        *-------------------------------------------------------*
+           02  i-ide-pmo                  pic  x(40) value
+                     "pgm/cge/fls/ioc/obj/iofivp              "       .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                "msegrt"  *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/s"                                  .
+
+      *    *===========================================================*
+      *    * Area per definizione codici di errore di i-o              *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/e"                                  .
+
+           copy      "swd/ske/iof/iofcp30"                            .
+
+      *    *===========================================================*
+      *    * Area Lunghezza record in bytes ed Elenco chiavi previste  *
+      *    *-----------------------------------------------------------*
+       01  k.
+      *        *-------------------------------------------------------*
+      *        * Numero chiavi di accesso                              *
+      *        *-------------------------------------------------------*
+           05  k-ctr                      pic  9(02) value   1        .
+      *        *-------------------------------------------------------*
+      *        * Nomi chiavi di accesso                                *
+      *        *-------------------------------------------------------*
+           05  k-elx.
+      *            *---------------------------------------------------*
+      *            * Nome chiave numero 1                              *
+      *            *---------------------------------------------------*
+               10  filler                 pic  x(10) value
+                            "ANNMESALI"                              .
+      *        *-------------------------------------------------------*
+      *        * Ridefinizione nomi chiavi di accesso                  *
+      *        *-------------------------------------------------------*
+           05  k-ely redefines
+               k-elx.
+               10  k-ele occurs    1      pic  x(10)                  .
+
+      *================================================================*
+       Linkage Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di comunicazione per moduli di input-output          *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/f"                                  .
+
+      *    *===========================================================*
+      *    * Record logico file [ivp]                                  *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/cge/fls/rec/rfivp"                          .
+
+      ******************************************************************
+       Procedure Division                using f rf-ivp               .
+      ******************************************************************
+
+           copy      "swd/ske/iof/iofcp50"                            .
+
+      *----------------------------------------------------------------*
+      *    Start su chiave                                             *
+      *----------------------------------------------------------------*
+       str-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      "00"                 to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Selezione indice sequenza di accesso            *
+      *              *-------------------------------------------------*
+           if        f-cfr                =    "NG"
+                     move   3             to   z-tco
+           else if   f-cfr                =    "GT"
+                     move   2             to   z-tco
+           else      move   1             to   z-tco                  .
+      *              *-------------------------------------------------*
+      *              * Composizione chiave fisica                      *
+      *              *-------------------------------------------------*
+           perform   cmp-key-fis-000      thru cmp-key-fis-999        .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione dell'indice z-key        *
+      *              *-------------------------------------------------*
+           go to     str-100
+                     depending            on   z-key                  .
+       str-100.
+      *              *-------------------------------------------------*
+      *              * Start per chiave indice 1                       *
+      *              *-------------------------------------------------*
+           go to     str-110
+                     str-120
+                     str-130
+                     depending            on   z-tco                  .
+       str-110.
+      *                     *------------------------------------------*
+      *                     * Start not less chiave indice 1           *
+      *                     *------------------------------------------*
+           start     fil    key not less
+                            fil-k01
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-120.
+      *                     *------------------------------------------*
+      *                     * Start greater  chiave indice 1           *
+      *                     *------------------------------------------*
+           start     fil    key greater
+                            fil-k01
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-130.
+      *                     *------------------------------------------*
+      *                     * Start not >    chiave indice 1           *
+      *                     *------------------------------------------*
+           start     fil    key not greater
+                            fil-k01
+                            invalid key
+                            go to   str-990.
+           go to     str-980.
+       str-980.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-sts                to   f-sts                  .
+      *                  *---------------------------------------------*
+      *                  * Ogni i-o error e' considerato fatal error   *
+      *                  *---------------------------------------------*
+           if        e-sts                =    "00"
+                     go to str-999
+           else      perform fte-000      thru fte-999                .
+       str-990.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-end-fil            to   f-sts                  .
+       str-999.
+           exit.
+
+      *----------------------------------------------------------------*
+      *    Read record generica su chiave                              *
+      *----------------------------------------------------------------*
+       rea-000.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave fisica                      *
+      *              *-------------------------------------------------*
+           perform   cmp-key-fis-000      thru cmp-key-fis-999        .
+       rea-010.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status                          *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   e-sts                  .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione dell'indice z-key        *
+      *              *-------------------------------------------------*
+           go to     rea-100
+                     depending            on   z-key                  .
+       rea-100.
+      *              *-------------------------------------------------*
+      *              * Read per chiave indice 1                        *
+      *              *-------------------------------------------------*
+           if        z-lok                =    1
+                     go to rea-110.
+      *                     *------------------------------------------*
+      *                     * Read no lock                             *
+      *                     *------------------------------------------*
+           read      fil    with no lock
+                            key  is fil-k01
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-110.
+      *                     *------------------------------------------*
+      *                     * Read with lock                           *
+      *                     *------------------------------------------*
+           read      fil    key  is fil-k01
+                            invalid key
+                            go to   rea-990.
+           go to     rea-980.
+       rea-980.
+      *              *-------------------------------------------------*
+      *              * Non invalid key                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-sts                to   f-sts                  .
+      *                  *---------------------------------------------*
+      *                  * Se record locked si esegue una pausa di un  *
+      *                  * secondo e poi si ritorna a rileggere        *
+      *                  *---------------------------------------------*
+           if        e-sts                =    e-use-err
+                     perform wai-000      thru wai-999
+                     go to   rea-010.
+      *                  *---------------------------------------------*
+      *                  * Ogni altro i-o error viene considerato un   *
+      *                  * fatal error                                 *
+      *                  *---------------------------------------------*
+           if        e-sts                not  = "00"
+                     perform fte-000      thru fte-999                .
+      *                  *---------------------------------------------*
+      *                  * Se richiesta la decomposizione da record    *
+      *                  * fisico a record logico la si esegue         *
+      *                  *---------------------------------------------*
+           if        z-dec                =    1
+                     perform dec-fis-log-000
+                        thru dec-fis-log-999.
+           go to     rea-999.
+       rea-990.
+      *              *-------------------------------------------------*
+      *              * Invalid key                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Status in uscita                            *
+      *                  *---------------------------------------------*
+           move      e-not-fnd            to   f-sts                 .
+       rea-999.
+           exit.
+
+      *----------------------------------------------------------------*
+      *    Normalizzazione record logico                               *
+      *----------------------------------------------------------------*
+       nor-rec-log-000.
+           move      spaces               to   rf-ivp                 .
+           move      zero                 to   rf-ivp-ann-ivp         .
+           move      zero                 to   rf-ivp-mes-ivp         .
+           move      zero                 to   rf-ivp-cod-iva         .
+           move      zero                 to   rf-ivp-ibl-acq         .
+           move      zero                 to   rf-ivp-imp-acq         .
+           move      zero                 to   rf-ivp-ibl-ven         .
+           move      zero                 to   rf-ivp-imp-ven         .
+           move      zero                 to   rf-ivp-ibl-cor         .
+           move      zero                 to   rf-ivp-imp-cor         .
+           move      spaces               to   rf-ivp-alx-exp         .
+       nor-rec-log-999.
+           exit.
+
+      *----------------------------------------------------------------*
+      *    Composizione record da logico a fisico                      *
+      *----------------------------------------------------------------*
+       cmp-log-fis-000.
+           move      spaces               to   fil-rec                .
+      *              *-------------------------------------------------*
+      *              * Composizione area chiavi                        *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-key                  .
+       cmp-log-fis-100.
+           if        z-key                <    k-ctr
+                     add     1            to   z-key
+                     perform cmp-key-fis-000
+                        thru cmp-key-fis-999
+                     go to   cmp-log-fis-100.
+      *              *-------------------------------------------------*
+      *              * Composizione area dati                          *
+      *              *-------------------------------------------------*
+           move      rf-ivp-ibl-acq       to   fil-ibl-acq            .
+           move      rf-ivp-imp-acq       to   fil-imp-acq            .
+           move      rf-ivp-ibl-ven       to   fil-ibl-ven            .
+           move      rf-ivp-imp-ven       to   fil-imp-ven            .
+           move      rf-ivp-ibl-cor       to   fil-ibl-cor            .
+           move      rf-ivp-imp-cor       to   fil-imp-cor            .
+           move      rf-ivp-alx-exp       to   fil-alx-exp            .
+       cmp-log-fis-999.
+           exit.
+           
+      *----------------------------------------------------------------*
+      *    Composizione chiave da logica a fisica secondo z-key        *
+      *----------------------------------------------------------------*
+       cmp-key-fis-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione dell'indice z-key        *
+      *              *-------------------------------------------------*
+           go to     cmp-key-fis-100
+                     depending            on   z-key                  .
+       cmp-key-fis-100.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave indice 1                    *
+      *              *-------------------------------------------------*
+           move      spaces               to   fil-k01                .
+           move      "NS"                 to   s-ope                  .
+           move      rf-ivp-ann-ivp       to   s-saa                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      s-saa                to   fil-ann-ivp            .
+           move      rf-ivp-mes-ivp       to   fil-mes-ivp            .
+           move      rf-ivp-cod-iva       to   fil-cod-iva            .
+           go to     cmp-key-fis-999.
+       cmp-key-fis-999.
+           exit.
+
+      *----------------------------------------------------------------*
+      *    Decomposizione record da fisico a logico                    *
+      *----------------------------------------------------------------*
+       dec-fis-log-000.
+           move      spaces               to   rf-ivp                 .
+           move      fil-ann-ivp          to   rf-ivp-ann-ivp         .
+           move      fil-mes-ivp          to   rf-ivp-mes-ivp         .
+           move      fil-cod-iva          to   rf-ivp-cod-iva         .
+           move      fil-ibl-acq          to   rf-ivp-ibl-acq         .
+           move      fil-imp-acq          to   rf-ivp-imp-acq         .
+           move      fil-ibl-ven          to   rf-ivp-ibl-ven         .
+           move      fil-imp-ven          to   rf-ivp-imp-ven         .
+           move      fil-ibl-cor          to   rf-ivp-ibl-cor         .
+           move      fil-imp-cor          to   rf-ivp-imp-cor         .
+           move      fil-alx-exp          to   rf-ivp-alx-exp         .
+       dec-fis-log-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Unstring record logico in porzioni da 80 caratteri in     *
+      *    * s-alf, per la funzione di sequenzializzazione             *
+      *    *-----------------------------------------------------------*
+       uns-rec-log-000.
+           unstring  rf-ivp               into s-alf
+                                  with pointer z-inx                  .
+       uns-rec-log-999.
+           exit.
+
+      *    *===========================================================*
+      *    * String record logico in porzioni da 80 caratteri da s-alf *
+      *    * per la funzione di indicizzazione                         *
+      *    *-----------------------------------------------------------*
+       stg-rec-log-000.
+           string    s-alf      delimited by   size
+                                          into rf-ivp
+                                  with pointer z-inx                  .
+       stg-rec-log-999.
+           exit.
+

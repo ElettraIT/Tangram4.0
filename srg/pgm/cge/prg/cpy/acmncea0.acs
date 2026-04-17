@@ -1,0 +1,77 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice cespite         *
+      *    *-----------------------------------------------------------*
+       cod-mne-cea-opn-000.
+           move      "pgm/cge/prg/obj/acmncea0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-cea-pth      .
+           move      "OP"                 to   w-cod-mne-cea-ope      .
+           perform   cod-mne-cea-cll-000  thru cod-mne-cea-cll-999    .
+       cod-mne-cea-opn-999.
+           exit.
+       cod-mne-cea-cls-000.
+           move      "CL"                 to   w-cod-mne-cea-ope      .
+           perform   cod-mne-cea-cll-000  thru cod-mne-cea-cll-999    .
+           move      "C?"                 to   w-cod-mne-cea-ope      .
+           perform   cod-mne-cea-cll-000  thru cod-mne-cea-cll-999    .
+           if        w-cod-mne-cea-ope    not  = spaces
+                     go to cod-mne-cea-cls-999.
+           cancel    w-cod-mne-cea-pth                                .
+       cod-mne-cea-cls-999.
+           exit.
+       cod-mne-cea-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-cea-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge6000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-cea-foi-999.
+           move      "pgm/cge/prg/obj/pcge6000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-cea-ope      .
+           go to     cod-mne-cea-foi-999.
+       cod-mne-cea-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-cea-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge6010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-cea-foi-999.
+      *
+           move      "PV"                 to   s-ope                  .
+           move      "snx-slc"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      01                   to   s-car                  .
+           move      "S"                  to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *
+           move      "pgm/cge/prg/obj/pcge6010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+      *
+           move      "F+"                 to   w-cod-mne-cea-ope      .
+           go to     cod-mne-cea-foi-999.
+       cod-mne-cea-foi-999.
+           exit.
+       cod-mne-cea-cll-000.
+           call      w-cod-mne-cea-pth   using w-cod-mne-cea
+                                               v
+                                               s                      .
+       cod-mne-cea-cll-999.
+           exit.
+

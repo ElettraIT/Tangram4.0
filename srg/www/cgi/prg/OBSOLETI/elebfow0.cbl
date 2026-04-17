@@ -1,0 +1,2199 @@
+       Identification Division.
+       Program-Id.                                 elebfow0           .
+      *================================================================*
+      *                                                                *
+      * Catalogo:          Sistema applicativo:    cnv                 *
+      *                        Area gestionale:    cgi                 *
+      *                                Settore:                        *
+      *                                   Fase:    elebfo              *
+      *                    ------------------------------------------- *
+      *                     Versione originale:    001 del 23/02/23    *
+      *                       Ultima revisione:    NdK del 31/12/23    *
+      *                    ------------------------------------------- *
+      *                                 Autore:    Nicola de Kunovich  *
+      *================================================================*
+      *                                                                *
+      * Descrizione pgm:   Operazioni di scrittura [bfo]               *
+      *                                                                *
+      *                    ELETTRA                                     *
+      *                                                                *
+      *                    ___ NON UTILIZZATO ___                      *
+      *                                                                *
+      *================================================================*
+
+      ******************************************************************
+       Environment Division.
+      ******************************************************************
+
+      *================================================================*
+       Configuration Section.
+      *================================================================*
+
+       Source-Computer.     w-i-p-NdK-PD .
+       Object-Computer.     w-i-p-NdK-PD .
+
+       Special-Names.       Decimal-Point is comma .
+
+      ******************************************************************
+       Data Division.
+      ******************************************************************
+
+      *================================================================*
+       Working-Storage Section.
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                "msegrt"  *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/s"                                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                "mprint"  *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/p"                                  .
+
+      *    *===========================================================*
+      *    * Area per definizione codici di errore di i-o              *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/e"                                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per moduli di input-output          *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/f"                                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                "mopsys"  *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/o"                                  .
+
+      *    *===========================================================*
+      *    * Record files                                              *
+      *    *-----------------------------------------------------------*
+      *        *-------------------------------------------------------*
+      *        * [bfr]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/bfo/fls/rec/rfbfr"                          .
+      *        *-------------------------------------------------------*
+      *        * [bfk]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/bfo/fls/rec/rfbfk"                          .
+      *        *-------------------------------------------------------*
+      *        * [bfs]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/bfo/fls/rec/rfbfs"                          .
+      *        *-------------------------------------------------------*
+      *        * [dcp]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/dcp/fls/rec/rfdcp"                          .
+      *        *-------------------------------------------------------*
+      *        * [mau]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/mag/fls/rec/rfmau"                          .
+      *        *-------------------------------------------------------*
+      *        * [zub]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/mag/fls/rec/rfzub"                          .
+
+      *    *===========================================================*
+      *    * Area di comodo                                            *
+      *    *-----------------------------------------------------------*
+       01  w-exe.
+      *        *-------------------------------------------------------*
+      *        * Data di esecuzione                                    *
+      *        *-------------------------------------------------------*
+           05  w-exe-dat-exe              pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Stringa di comodo per display                         *
+      *        *-------------------------------------------------------*
+           05  w-exe-str-dsp              pic  x(512)                 .
+      *        *-------------------------------------------------------*
+      *        * Parametri in input estratti                           *
+      *        *-------------------------------------------------------*
+           05  w-exe-tip-ope              pic  x(02)                  .
+           05  w-exe-cod-rsm              pic  x(03)                  .
+           05  w-exe-des-rsm              pic  x(30)                  .
+           05  w-exe-prt-bfo              pic  x(11)                  .
+           05  w-exe-prg-bfo              pic  x(05)                  .
+           05  w-exe-pri-bfo              pic  x(03)                  .
+           05  w-exe-col-bfo              pic  x(05)                  .
+           05  w-exe-qta-bfo              pic  x(12)                  .
+           05  w-exe-qtv-bfo              pic  x(12)                  .
+           05  w-exe-alf-pro              pic  x(20)                  .
+           05  w-exe-klb-pro              pic  x(20)                  .
+           05  w-exe-num-pro              pic  x(07)                  .
+           05  w-exe-ubi-er1              pic  x(07)                  .
+           05  w-exe-ubi-er2              pic  x(07)                  .
+           05  w-exe-ubi-er3              pic  x(07)                  .
+           05  w-exe-ubi-er4              pic  x(07)                  .
+           05  w-exe-ubi-erm              pic  x(60)                  .
+           05  w-exe-ub1-rig              pic  x(07)                  .
+           05  w-exe-ub2-rig              pic  x(07)                  .
+           05  w-exe-ub3-rig              pic  x(07)                  .
+           05  w-exe-ub4-rig              pic  x(07)                  .
+           05  w-exe-ann-ncf              pic  x(80)                  .
+           05  w-exe-flg-spn              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Comodi per parametri in input                         *
+      *        *-------------------------------------------------------*
+           05  w-exe-prm-fld  occurs 20   pic  x(90)                  .
+           05  w-exe-prm-ctr              pic  9(02)                  .
+           05  w-exe-prm-max              pic  9(02) value 20         .
+      *        *-------------------------------------------------------*
+      *        * Comodi per messaggi di output                         *
+      *        *-------------------------------------------------------*
+           05  w-exe-prm-msg              pic  x(80)                  .
+      *        *-------------------------------------------------------*
+      *        * Comodi generici                                       *
+      *        *-------------------------------------------------------*
+           05  w-exe-qta-cnv              pic  9(10)v9(03)            .
+           05  w-exe-qtv-cnv              pic  9(10)v9(03)            .
+           05  w-exe-pro-cnv              pic  9(07)                  .
+           05  w-exe-rsm-cnv              pic  9(03)                  .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Select                            *
+      *    *-----------------------------------------------------------*
+       01  w-slc.
+      *        *-------------------------------------------------------*
+      *        * Work per Select numero documento                      *
+      *        *-------------------------------------------------------*
+           05  w-slc-num-bft.
+      *            *---------------------------------------------------*
+      *            * Valori in entrata                                 *
+      *            *---------------------------------------------------*
+               10  w-slc-num-bft-nds      pic  9(11)                  .
+               10  w-slc-num-bft-nds-r redefines
+                   w-slc-num-bft-nds.
+                   15  w-slc-num-bft-nsa  pic  9(03)                  .
+                   15  w-slc-num-bft-ndp  pic  9(02)                  .
+                   15  w-slc-num-bft-npg  pic  9(06)                  .
+      *            *---------------------------------------------------*
+      *            * Valori in input                                   *
+      *            *---------------------------------------------------*
+               10  w-slc-num-bft-prt      pic  9(11)                  .
+               10  w-slc-num-bft-prg      pic  9(05)                  .
+               10  w-slc-num-bft-col      pic  9(03)                  .
+
+      *    *===========================================================*
+      *    * Work area per Determinazioni                              *
+      *    *-----------------------------------------------------------*
+       01  w-det.
+      *        *-------------------------------------------------------*
+      *        * Per determinazione codice numerico prodotto           *
+      *        *-------------------------------------------------------*
+           05  w-det-num-pro.
+      *            *---------------------------------------------------*
+      *            * Codice alfanumerico prodotto                      *
+      *            *---------------------------------------------------*
+               10  w-det-num-pro-alf      pic  x(14)                  .
+      *            *---------------------------------------------------*
+      *            * Codice numerico prodotto                          *
+      *            *---------------------------------------------------*
+               10  w-det-num-pro-num      pic  9(07)                  .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Let                               *
+      *    *-----------------------------------------------------------*
+       01  w-let.
+      *        *-------------------------------------------------------*
+      *        * Work per Let su archivio [zub]                        *
+      *        *-------------------------------------------------------*
+           05  w-let-arc-zub.
+               10  w-let-arc-zub-flg      pic  x(01)                  .
+               10  w-let-arc-zub-dpz      pic  9(02)                  .
+               10  w-let-arc-zub-cod      pic  x(07)                  .
+               10  w-let-arc-zub-des      pic  x(30)                  .
+               10  w-let-arc-zub-inx      pic  9(07)                  .
+
+      *    *===========================================================*
+      *    * Work-area routine di trattamento variabile POST           *
+      *    *-----------------------------------------------------------*
+       01  w-cgi-str.
+      *        *-------------------------------------------------------*
+      *        * Variabile POST da trattare                            *
+      *        *-------------------------------------------------------*
+           05  w-cgi-str-var.
+               10  filler    occurs 1800  pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Delimitatore                                          *
+      *        *-------------------------------------------------------*
+           05  w-cgi-str-del              pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore delle stringhe da estrarre                     *
+      *        *-------------------------------------------------------*
+           05  w-cgi-str-fld  occurs 20   pic  x(90)                  .
+      *        *-------------------------------------------------------*
+      *        * Contatori                                             *
+      *        *-------------------------------------------------------*
+           05  w-cgi-str-ctr              pic  9(02)                  .
+           05  w-cgi-str-num              pic  9(02)                  .
+           05  w-cgi-str-max              pic  9(02) value 20         .
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione                                       *
+      *        *-------------------------------------------------------*
+           05  w-cgi-tip-ope              pic  x(02)                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per movimento di magazzino          *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/mag/prg/cpy/pmag300z.pgl"                   .
+
+      *    *===========================================================*
+      *    * Work-area per allineamenti a destra o a sinistra oppure   *
+      *    * al centro di campi alfanumerici di varia lunghezza, fi-   *
+      *    * no ad un massimo di 240 caratteri, oppure per il conca-   *
+      *    * tenamento, con o senza separazione, di max 10 substrin-   *
+      *    * ghe in una unica substringa                               *
+      *    *-----------------------------------------------------------*
+           copy      "swd/std/prg/cpy/wallstr0.cpw"                   .
+
+      ******************************************************************
+       Procedure Division                                             .
+      ******************************************************************
+
+      *================================================================*
+      * Main                                                           *
+      *================================================================*
+       main-000.
+      *              *-------------------------------------------------*
+      *              * Estrazione parametri                            *
+      *              *-------------------------------------------------*
+           perform   ext-prm-000          thru ext-prm-999            .
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+           perform   opn-fls-000          thru opn-fls-999            .
+       main-100.
+      *              *-------------------------------------------------*
+      *              * Ciclo di lettura e preparazione html            *
+      *              *-------------------------------------------------*
+           perform   exe-cph-000          thru exe-cph-999            .
+       main-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+           perform   cls-fls-000          thru cls-fls-999            .
+       main-999.
+           exit      program.
+
+      *================================================================*
+      *       Routines                                                 *
+      *================================================================*
+
+      *    *===========================================================*
+      *    * Estrazione parametri                                      *
+      *    *-----------------------------------------------------------*
+       ext-prm-000.
+      *              *-------------------------------------------------*
+      *              * Data di sistema                                 *
+      *              *-------------------------------------------------*
+           move      "DT"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      s-dat                to   w-exe-dat-exe          .
+      *              *-------------------------------------------------*
+      *              * CORRETTIVO PROVVISORIO                          *
+      *              *-------------------------------------------------*
+           if        w-exe-dat-exe        <    999999
+                     add  1000000         to   w-exe-dat-exe          .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione parametri                       *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   w-cgi-tip-ope          .
+           move      20                   to   w-cgi-str-num          .
+           perform   ope-prm-inp-000      thru ope-prm-inp-999        .
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni preliminari                     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-exe-tip-ope          .
+           move      spaces               to   w-exe-cod-rsm          .
+           move      spaces               to   w-exe-prt-bfo          .
+           move      spaces               to   w-exe-prg-bfo          .
+           move      spaces               to   w-exe-col-bfo          .
+           move      spaces               to   w-exe-pri-bfo          .
+           move      spaces               to   w-exe-qta-bfo          .
+           move      spaces               to   w-exe-qtv-bfo          .
+           move      spaces               to   w-exe-ubi-er1          .
+           move      spaces               to   w-exe-ubi-er2          .
+           move      spaces               to   w-exe-ubi-er3          .
+           move      spaces               to   w-exe-ubi-er4          .
+           move      spaces               to   w-exe-ub1-rig          .
+           move      spaces               to   w-exe-ub2-rig          .
+           move      spaces               to   w-exe-ub3-rig          .
+           move      spaces               to   w-exe-ub4-rig          .
+           move      spaces               to   w-exe-ann-ncf          .
+           move      spaces               to   w-exe-flg-spn          .
+      *              *-------------------------------------------------*
+      *              * Lettura della variabile di environment          *
+      *              *-------------------------------------------------*
+           move      "I2"                 to   o-ope                  .
+           move      "POST"               to   o-com                  .
+           call      "swd/mod/prg/obj/mopsys"
+                                         using o                      .
+      *              *-------------------------------------------------*
+      *              * Estrazione parametri                            *
+      *              *-------------------------------------------------*
+           move      o-pst                to   w-cgi-str-var          .
+           perform   cgi-str-ext-000      thru cgi-str-ext-999        .
+      *              *-------------------------------------------------*
+      *              * Estrazione elementi                             *
+      *              *-------------------------------------------------*
+           move      "EX"                 to   w-cgi-tip-ope          .
+           move      w-cgi-str-num        to   w-cgi-str-num          .
+           perform   ope-prm-inp-000      thru ope-prm-inp-999        .
+       ext-prm-300.
+      *              *-------------------------------------------------*
+      *              * Regolarizzazioni                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Responsabile documento                      *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   p-ope                  .
+           move      03                   to   p-car                  .
+           move      w-exe-cod-rsm        to   p-alf                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-num                to   w-exe-rsm-cnv          .
+      *                  *---------------------------------------------*
+      *                  * Protocollo documento                        *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   p-ope                  .
+           move      11                   to   p-car                  .
+           move      w-exe-prt-bfo        to   p-alf                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-num                to   w-slc-num-bft-prt      .
+      *                  *---------------------------------------------*
+      *                  * Progressivo riga                            *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   p-ope                  .
+           move      05                   to   p-car                  .
+           move      w-exe-prg-bfo        to   p-alf                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-num                to   w-slc-num-bft-prg      .
+      *                  *---------------------------------------------*
+      *                  * Progressivo collo                           *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   p-ope                  .
+           move      03                   to   p-car                  .
+           move      w-exe-col-bfo        to   p-alf                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-num                to   w-slc-num-bft-col      .
+      *                  *---------------------------------------------*
+      *                  * Quantita'                                   *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   p-ope                  .
+           move      12                   to   p-car                  .
+           move      w-exe-qta-bfo        to   p-alf                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-num                to   w-exe-qta-cnv          .
+      *                  *---------------------------------------------*
+      *                  * Quantita' verificata                        *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   p-ope                  .
+           move      12                   to   p-car                  .
+           move      w-exe-qtv-bfo        to   p-alf                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-num                to   w-exe-qtv-cnv          .
+      *                  *---------------------------------------------*
+      *                  * Ubicazione 1                                *
+      *                  *---------------------------------------------*
+           move      w-exe-ub1-rig        to   w-all-str-alf          .
+           move      07                   to   w-all-str-lun          .
+           perform   all-str-upp-000      thru all-str-upp-999        .
+           move      w-all-str-alf        to   w-exe-ub1-rig          .
+      *                  *---------------------------------------------*
+      *                  * Ubicazione 2                                *
+      *                  *---------------------------------------------*
+           move      w-exe-ub2-rig        to   w-all-str-alf          .
+           move      07                   to   w-all-str-lun          .
+           perform   all-str-upp-000      thru all-str-upp-999        .
+           move      w-all-str-alf        to   w-exe-ub2-rig          .
+      *                  *---------------------------------------------*
+      *                  * Ubicazione 3                                *
+      *                  *---------------------------------------------*
+           move      w-exe-ub3-rig        to   w-all-str-alf          .
+           move      07                   to   w-all-str-lun          .
+           perform   all-str-upp-000      thru all-str-upp-999        .
+           move      w-all-str-alf        to   w-exe-ub3-rig          .
+      *                  *---------------------------------------------*
+      *                  * Ubicazione 4                                *
+      *                  *---------------------------------------------*
+           move      w-exe-ub4-rig        to   w-all-str-alf          .
+           move      07                   to   w-all-str-lun          .
+           perform   all-str-upp-000      thru all-str-upp-999        .
+           move      w-all-str-alf        to   w-exe-ub4-rig          .
+      *                  *---------------------------------------------*
+      *                  * Codice alfanumerico prodotto                *
+      *                  *---------------------------------------------*
+           move      w-exe-alf-pro        to   w-all-str-alf          .
+           move      20                   to   w-all-str-lun          .
+           perform   all-str-upp-000      thru all-str-upp-999        .
+           move      w-all-str-alf        to   w-exe-alf-pro          .
+      *                  *---------------------------------------------*
+      *                  * Codice numerico prodotto                    *
+      *                  *---------------------------------------------*
+           move      "CV"                 to   p-ope                  .
+           move      07                   to   p-car                  .
+           move      w-exe-num-pro        to   p-alf                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-num                to   w-exe-pro-cnv          .
+       ext-prm-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     ext-prm-999.
+       ext-prm-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Open files                                                *
+      *    *-----------------------------------------------------------*
+       opn-fls-000.
+      *              *-------------------------------------------------*
+      *              * [bfr]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfr                 .
+      *              *-------------------------------------------------*
+      *              * [bfk]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfk"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfk                 .
+      *              *-------------------------------------------------*
+      *              * [bfs]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *              *-------------------------------------------------*
+      *              * [mau]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/mag/fls/ioc/obj/iofmau"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-mau                 .
+      *              *-------------------------------------------------*
+      *              * [zub]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/mag/fls/ioc/obj/iofzub"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zub                 .
+      *              *-------------------------------------------------*
+      *              * Open modulo gestione movimenti di MAG           *
+      *              *-------------------------------------------------*
+           perform   mdl-agg-mag-opn-000  thru mdl-agg-mag-opn-999    .
+       opn-fls-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Close files                                               *
+      *    *-----------------------------------------------------------*
+       cls-fls-000.
+      *              *-------------------------------------------------*
+      *              * [bfr]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfr                 .
+      *              *-------------------------------------------------*
+      *              * [bfk]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfk"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfk                 .
+      *              *-------------------------------------------------*
+      *              * [bfs]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *              *-------------------------------------------------*
+      *              * [mau]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/mag/fls/ioc/obj/iofmau"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-mau                 .
+      *              *-------------------------------------------------*
+      *              * [zub]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/mag/fls/ioc/obj/iofzub"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zub                 .
+      *              *-------------------------------------------------*
+      *              * Close modulo gestione movimenti di MAG          *
+      *              *-------------------------------------------------*
+           perform   mdl-agg-mag-cls-000  thru mdl-agg-mag-cls-999    .
+       cls-fls-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *-----------------------------------------------------------*
+       exe-cph-000.
+      *              *-------------------------------------------------*
+      *              * Operazioni preliminari                          *
+      *              *-------------------------------------------------*
+       exe-cph-100.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del tipo operazione      *
+      *              *-------------------------------------------------*
+           if        w-exe-tip-ope        =    "WN"
+                     perform exe-cph-wnc-000
+                                          thru exe-cph-wnc-999
+           else if   w-exe-tip-ope        =    "WC"
+                     perform exe-cph-wcr-000
+                                          thru exe-cph-wcr-999
+           else if   w-exe-tip-ope        =    "WU"
+                     perform exe-cph-wub-000
+                                          thru exe-cph-wub-999
+           else if   w-exe-tip-ope        =    "WB"
+                     perform exe-cph-wbc-000
+                                          thru exe-cph-wbc-999
+           else      perform exe-cph-err-000
+                                          thru exe-cph-err-999        .
+       exe-cph-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-999.
+       exe-cph-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di scrittura Non conformita'                   *
+      *    *-----------------------------------------------------------*
+       exe-cph-wnc-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del numero collo         *
+      *              *-------------------------------------------------*
+           if        w-slc-num-bft-col    =    zero
+                     perform exe-cph-wnc-bfr-000
+                                          thru exe-cph-wnc-bfr-999
+           else      perform exe-cph-wnc-bfk-000
+                                          thru exe-cph-wnc-bfk-999    .
+       exe-cph-wnc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wnc-999.
+       exe-cph-wnc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di scrittura riga relativa a Non conformita'   *
+      *    *-----------------------------------------------------------*
+       exe-cph-wnc-bfr-000.
+      *              *-------------------------------------------------*
+      *              * Lettura preliminare [bfr]                       *
+      *              *-------------------------------------------------*
+           perform   rea-rec-bfr-000      thru rea-rec-bfr-999        .
+       exe-cph-wnc-bfr-100.
+      *              *-------------------------------------------------*
+      *              * Ottenimento record [bfs]                        *
+      *              *-------------------------------------------------*
+           move      "GK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfs-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfs-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfs-num-prr         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *                  *---------------------------------------------*
+      *                  * Se record non trovato: a scrittura          *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-cph-wnc-bfr-600.
+       exe-cph-wnc-bfr-200.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento                                   *
+      *              *-------------------------------------------------*
+           move      w-exe-dat-exe        to   rf-bfs-ide-dat         .
+           move      w-exe-rsm-cnv        to   rf-bfs-cod-rsm         .
+           move      w-exe-ann-ncf        to   rf-bfs-ann-spn         .
+       exe-cph-wnc-bfr-300.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento record [bfs]                      *
+      *              *-------------------------------------------------*
+           perform   upd-rec-bfs-000      thru upd-rec-bfs-999        .
+       exe-cph-wnc-bfr-400.
+      *              *-------------------------------------------------*
+      *              * Esito dell'aggiornamento                        *
+      *              *-------------------------------------------------*
+           perform   exe-cph-agg-000      thru exe-cph-agg-999        .
+      *              *-------------------------------------------------*
+      *              * Ad uscita                                       *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wnc-bfr-900.
+       exe-cph-wnc-bfr-600.
+      *              *-------------------------------------------------*
+      *              * Se record [bfs] non trovato                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Scrittura record [bfs] normalizzato         *
+      *                  *---------------------------------------------*
+           perform   nor-rec-bfs-000      thru nor-rec-bfs-999        .
+      *                  *---------------------------------------------*
+      *                  * Ritorno a scrittura                         *
+      *                  *---------------------------------------------*
+           go to     exe-cph-wnc-bfr-100.
+       exe-cph-wnc-bfr-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wnc-bfr-999.
+       exe-cph-wnc-bfr-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di conferma riga relativa a [bfk]              *
+      *    *-----------------------------------------------------------*
+       exe-cph-wnc-bfk-000.
+      *              *-------------------------------------------------*
+      *              * Letture preliminari                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Record [bfr]                                *
+      *                  *---------------------------------------------*
+           perform   rea-rec-bfr-000      thru rea-rec-bfr-999        .
+      *                  *---------------------------------------------*
+      *                  * Record [bfk]                                *
+      *                  *---------------------------------------------*
+           perform   rea-rec-bfk-000      thru rea-rec-bfk-999        .
+       exe-cph-wnc-bfk-100.
+      *              *-------------------------------------------------*
+      *              * Ottenimento record [bfs]                        *
+      *              *-------------------------------------------------*
+           move      "GK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfs-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfs-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfs-num-prr         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *                  *---------------------------------------------*
+      *                  * Se record non trovato: a scrittura          *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-cph-wnc-bfk-600.
+       exe-cph-wnc-bfk-200.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento                                   *
+      *              *-------------------------------------------------*
+           move      w-exe-dat-exe        to   rf-bfs-ide-dat         .
+           move      w-exe-rsm-cnv        to   rf-bfs-cod-rsm         .
+           move      w-exe-ann-ncf        to   rf-bfs-ann-spn         .
+       exe-cph-wnc-bfk-300.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento record [bfs]                      *
+      *              *-------------------------------------------------*
+           perform   upd-rec-bfs-000      thru upd-rec-bfs-999        .
+       exe-cph-wnc-bfk-400.
+      *              *-------------------------------------------------*
+      *              * Esito dell'aggiornamento                        *
+      *              *-------------------------------------------------*
+           perform   exe-cph-agg-000      thru exe-cph-agg-999        .
+      *              *-------------------------------------------------*
+      *              * Ad uscita                                       *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wnc-bfk-900.
+       exe-cph-wnc-bfk-600.
+      *              *-------------------------------------------------*
+      *              * Se record [bfs] non trovato                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Scrittura record [bfs] normalizzato         *
+      *                  *---------------------------------------------*
+           perform   nor-rec-bfs-000      thru nor-rec-bfs-999        .
+      *                  *---------------------------------------------*
+      *                  * Ritorno a scrittura                         *
+      *                  *---------------------------------------------*
+           go to     exe-cph-wnc-bfk-100.
+       exe-cph-wnc-bfk-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wnc-bfk-999.
+       exe-cph-wnc-bfk-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di scrittura Barcode                           *
+      *    *-----------------------------------------------------------*
+       exe-cph-wbc-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del numero collo         *
+      *              *-------------------------------------------------*
+           if        w-slc-num-bft-col    =    zero
+                     perform exe-cph-wbc-bfr-000
+                                          thru exe-cph-wbc-bfr-999
+           else      perform exe-cph-wbc-bfk-000
+                                          thru exe-cph-wbc-bfk-999    .
+       exe-cph-wbc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wbc-999.
+       exe-cph-wbc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di scrittura riga relativa a Barcode           *
+      *    *-----------------------------------------------------------*
+       exe-cph-wbc-bfr-000.
+      *              *-------------------------------------------------*
+      *              * Lettura preliminare [bfr]                       *
+      *              *-------------------------------------------------*
+           perform   rea-rec-bfr-000      thru rea-rec-bfr-999        .
+       exe-cph-wbc-bfr-100.
+      *              *-------------------------------------------------*
+      *              * Ottenimento record [bfs]                        *
+      *              *-------------------------------------------------*
+           move      "GK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfs-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfs-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfs-num-prr         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *                  *---------------------------------------------*
+      *                  * Se record non trovato: a scrittura          *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-cph-wbc-bfr-600.
+       exe-cph-wbc-bfr-200.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento                                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Assemblaggio annotazioni                    *
+      *                  *---------------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      02                   to   w-all-str-num          .
+           move      "Rilevato Barcode :" to   w-all-str-cat (1)      .
+           move      w-exe-klb-pro        to   w-all-str-cat (2)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+      *                  *---------------------------------------------*
+      *                  * Data di sistema                             *
+      *                  *---------------------------------------------*
+           move      w-exe-dat-exe        to   rf-bfs-ide-dat         .
+           move      w-exe-rsm-cnv        to   rf-bfs-cod-rsm         .
+           move      w-all-str-alf        to   rf-bfs-ann-spn         .
+       exe-cph-wbc-bfr-300.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento record [bfs]                      *
+      *              *-------------------------------------------------*
+           perform   upd-rec-bfs-000      thru upd-rec-bfs-999        .
+       exe-cph-wbc-bfr-400.
+      *              *-------------------------------------------------*
+      *              * Esito dell'aggiornamento                        *
+      *              *-------------------------------------------------*
+           perform   exe-cph-agg-000      thru exe-cph-agg-999        .
+      *              *-------------------------------------------------*
+      *              * Ad uscita                                       *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wbc-bfr-900.
+       exe-cph-wbc-bfr-600.
+      *              *-------------------------------------------------*
+      *              * Se record [bfs] non trovato                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Scrittura record [bfs] normalizzato         *
+      *                  *---------------------------------------------*
+           perform   nor-rec-bfs-000      thru nor-rec-bfs-999        .
+      *                  *---------------------------------------------*
+      *                  * Ritorno a scrittura                         *
+      *                  *---------------------------------------------*
+           go to     exe-cph-wbc-bfr-100.
+       exe-cph-wbc-bfr-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wbc-bfr-999.
+       exe-cph-wbc-bfr-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di conferma riga relativa a [bfk]              *
+      *    *-----------------------------------------------------------*
+       exe-cph-wbc-bfk-000.
+      *              *-------------------------------------------------*
+      *              * Letture preliminari                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Record [bfr]                                *
+      *                  *---------------------------------------------*
+           perform   rea-rec-bfr-000      thru rea-rec-bfr-999        .
+      *                  *---------------------------------------------*
+      *                  * Record [bfk]                                *
+      *                  *---------------------------------------------*
+           perform   rea-rec-bfk-000      thru rea-rec-bfk-999        .
+       exe-cph-wbc-bfk-100.
+      *              *-------------------------------------------------*
+      *              * Ottenimento record [bfs]                        *
+      *              *-------------------------------------------------*
+           move      "GK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfs-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfs-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfs-num-prr         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *                  *---------------------------------------------*
+      *                  * Se record non trovato: a scrittura          *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-cph-wbc-bfk-600.
+       exe-cph-wbc-bfk-200.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento                                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Assemblaggio annotazioni                    *
+      *                  *---------------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      02                   to   w-all-str-num          .
+           move      "Rilevato Barcode :" to   w-all-str-cat (1)      .
+           move      w-exe-klb-pro        to   w-all-str-cat (2)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+      *                  *---------------------------------------------*
+      *                  * Data di sistema                             *
+      *                  *---------------------------------------------*
+           move      w-exe-dat-exe        to   rf-bfs-ide-dat         .
+           move      w-exe-rsm-cnv        to   rf-bfs-cod-rsm         .
+           move      w-all-str-alf        to   rf-bfs-ann-spn         .
+       exe-cph-wbc-bfk-300.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento record [bfs]                      *
+      *              *-------------------------------------------------*
+           perform   upd-rec-bfs-000      thru upd-rec-bfs-999        .
+       exe-cph-wbc-bfk-400.
+      *              *-------------------------------------------------*
+      *              * Esito dell'aggiornamento                        *
+      *              *-------------------------------------------------*
+           perform   exe-cph-agg-000      thru exe-cph-agg-999        .
+      *              *-------------------------------------------------*
+      *              * Ad uscita                                       *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wbc-bfk-900.
+       exe-cph-wbc-bfk-600.
+      *              *-------------------------------------------------*
+      *              * Se record [bfs] non trovato                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Scrittura record [bfs] normalizzato         *
+      *                  *---------------------------------------------*
+           perform   nor-rec-bfs-000      thru nor-rec-bfs-999        .
+      *                  *---------------------------------------------*
+      *                  * Ritorno a scrittura                         *
+      *                  *---------------------------------------------*
+           go to     exe-cph-wbc-bfk-100.
+       exe-cph-wbc-bfk-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wbc-bfk-999.
+       exe-cph-wbc-bfk-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di conferma riga                               *
+      *    *-----------------------------------------------------------*
+       exe-cph-wcr-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del numero collo         *
+      *              *-------------------------------------------------*
+           if        w-slc-num-bft-col    =    zero
+                     perform exe-cph-wcr-bfr-000
+                                          thru exe-cph-wcr-bfr-999
+           else      perform exe-cph-wcr-bfk-000
+                                          thru exe-cph-wcr-bfk-999    .
+       exe-cph-wcr-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wcr-999.
+       exe-cph-wcr-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di conferma riga relativa a [bfr]              *
+      *    *-----------------------------------------------------------*
+       exe-cph-wcr-bfr-000.
+      *              *-------------------------------------------------*
+      *              * Lettura preliminare [bfr]                       *
+      *              *-------------------------------------------------*
+           perform   rea-rec-bfr-000      thru rea-rec-bfr-999        .
+       exe-cph-wcr-bfr-100.
+      *              *-------------------------------------------------*
+      *              * Ottenimento record [bfs]                        *
+      *              *-------------------------------------------------*
+           move      "GK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfs-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfs-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfs-num-prr         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *                  *---------------------------------------------*
+      *                  * Se record non trovato: a scrittura          *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-cph-wcr-bfr-600.
+       exe-cph-wcr-bfr-200.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento                                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Data di sistema                             *
+      *                  *---------------------------------------------*
+           move      w-exe-dat-exe        to   rf-bfs-ide-dat         .
+      *                  *---------------------------------------------*
+      *                  * Quantita' rilevata                          *
+      *                  *---------------------------------------------*
+           move      w-exe-qtv-cnv        to   rf-bfs-qta-ril         .
+      *                  *---------------------------------------------*
+      *                  * Flag di spunta                              *
+      *                  *---------------------------------------------*
+           move      w-exe-flg-spn        to   rf-bfs-flg-spn         .
+      *                  *---------------------------------------------*
+      *                  * Codice responsabile                         *
+      *                  *---------------------------------------------*
+           move      w-exe-rsm-cnv        to   rf-bfs-cod-rsm         .
+      *                  *---------------------------------------------*
+      *                  * Eventuale annotazione relativa alla diffe-  *
+      *                  * renza di quantita'                          *
+      *                  * ___ QUI ___                                 *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test su quantita'                       *
+      *                      *-----------------------------------------*
+           if        w-exe-qtv-cnv        =    rf-bfr-qta-acq
+                     go to exe-cph-wcr-bfr-300.
+      *                      *-----------------------------------------*
+      *                      * Test su flag di spunta                  *
+      *                      *-----------------------------------------*
+           if        w-exe-flg-spn        not  = "S"
+                     go to exe-cph-wcr-bfr-300.
+      *                      *-----------------------------------------*
+      *                      * Aggiornamento note                      *
+      *                      *-----------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      03                   to   w-all-str-num          .
+           move      rf-bfs-ann-spn       to   w-all-str-cat (1)      .
+      *
+           if        rf-bfs-ann-spn       =    spaces
+                     move  spaces         to   w-all-str-cat (2)
+           else      move  "-"            to   w-all-str-cat (2)      .
+      *
+           if        w-exe-qtv-cnv        <    rf-bfr-qta-acq
+                     move  "quantita' inferiore"
+                                          to   w-all-str-cat (3)
+           else      move  "quantita' maggiore "
+                                          to   w-all-str-cat (3)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   rf-bfs-ann-spn         .
+       exe-cph-wcr-bfr-300.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento record [bfs]                      *
+      *              *-------------------------------------------------*
+           perform   upd-rec-bfs-000      thru upd-rec-bfs-999        .
+       exe-cph-wcr-bfr-400.
+      *              *-------------------------------------------------*
+      *              * Esito dell'aggiornamento                        *
+      *              *-------------------------------------------------*
+           perform   exe-cph-agg-000      thru exe-cph-agg-999        .
+      *              *-------------------------------------------------*
+      *              * Ad uscita                                       *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wcr-bfr-900.
+       exe-cph-wcr-bfr-600.
+      *              *-------------------------------------------------*
+      *              * Se record [bfs] non trovato                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Scrittura record [bfs] normalizzato         *
+      *                  *---------------------------------------------*
+           perform   nor-rec-bfs-000      thru nor-rec-bfs-999        .
+      *                  *---------------------------------------------*
+      *                  * Ritorno a scrittura                         *
+      *                  *---------------------------------------------*
+           go to     exe-cph-wcr-bfr-100.
+       exe-cph-wcr-bfr-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wcr-bfr-999.
+       exe-cph-wcr-bfr-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di conferma riga relativa a [bfk]              *
+      *    *-----------------------------------------------------------*
+       exe-cph-wcr-bfk-000.
+      *              *-------------------------------------------------*
+      *              * Letture preliminari                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Record [bfr]                                *
+      *                  *---------------------------------------------*
+           perform   rea-rec-bfr-000      thru rea-rec-bfr-999        .
+      *                  *---------------------------------------------*
+      *                  * Record [bfk]                                *
+      *                  *---------------------------------------------*
+           perform   rea-rec-bfk-000      thru rea-rec-bfk-999        .
+       exe-cph-wcr-bfk-100.
+      *              *-------------------------------------------------*
+      *              * Ottenimento record [bfs]                        *
+      *              *-------------------------------------------------*
+           move      "GK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfs-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfs-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfs-num-prr         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *                  *---------------------------------------------*
+      *                  * Se record non trovato: a scrittura          *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-cph-wcr-bfk-600.
+       exe-cph-wcr-bfk-200.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento                                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Data di sistema                             *
+      *                  *---------------------------------------------*
+           move      w-exe-dat-exe        to   rf-bfs-ide-dat         .
+      *                  *---------------------------------------------*
+      *                  * Quantita' rilevata                          *
+      *                  *---------------------------------------------*
+           move      w-exe-qtv-cnv        to   rf-bfs-qta-ril         .
+      *                  *---------------------------------------------*
+      *                  * Flag di spunta                              *
+      *                  *---------------------------------------------*
+           move      w-exe-flg-spn        to   rf-bfs-flg-spn         .
+      *                  *---------------------------------------------*
+      *                  * Codice responsabile                         *
+      *                  *---------------------------------------------*
+           move      w-exe-rsm-cnv        to   rf-bfs-cod-rsm         .
+      *                  *---------------------------------------------*
+      *                  * Eventuale annotazione relativa alla diffe-  *
+      *                  * renza di quantita'                          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test su quantita'                       *
+      *                      *-----------------------------------------*
+           if        w-exe-qtv-cnv        =    rf-bfk-qta-prc
+                     go to exe-cph-wcr-bfk-300.
+      *                      *-----------------------------------------*
+      *                      * Test su flag di spunta                  *
+      *                      *-----------------------------------------*
+           if        w-exe-flg-spn        not  = "S"
+                     go to exe-cph-wcr-bfk-300.
+      *                      *-----------------------------------------*
+      *                      * Aggiornamento note                      *
+      *                      *-----------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      03                   to   w-all-str-num          .
+           move      rf-bfs-ann-spn       to   w-all-str-cat (1)      .
+      *
+           if        rf-bfs-ann-spn       =    spaces
+                     move  spaces         to   w-all-str-cat (2)
+           else      move  "-"            to   w-all-str-cat (2)      .
+      *
+           if        w-exe-qtv-cnv        <    rf-bfk-qta-prc
+                     move  "quantita' inferiore"
+                                          to   w-all-str-cat (3)
+           else      move  "quantita' maggiore "
+                                          to   w-all-str-cat (3)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   rf-bfs-ann-spn         .
+       exe-cph-wcr-bfk-300.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento record [bfs]                      *
+      *              *-------------------------------------------------*
+           perform   upd-rec-bfs-000      thru upd-rec-bfs-999        .
+       exe-cph-wcr-bfk-400.
+      *              *-------------------------------------------------*
+      *              * Esito dell'aggiornamento                        *
+      *              *-------------------------------------------------*
+           perform   exe-cph-agg-000      thru exe-cph-agg-999        .
+      *              *-------------------------------------------------*
+      *              * Ad uscita                                       *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wcr-bfk-900.
+       exe-cph-wcr-bfk-600.
+      *              *-------------------------------------------------*
+      *              * Se record [bfs] non trovato                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Scrittura record [bfs] normalizzato         *
+      *                  *---------------------------------------------*
+           perform   nor-rec-bfs-000      thru nor-rec-bfs-999        .
+      *                  *---------------------------------------------*
+      *                  * Ritorno a scrittura                         *
+      *                  *---------------------------------------------*
+           go to     exe-cph-wcr-bfk-100.
+       exe-cph-wcr-bfk-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wcr-bfk-999.
+       exe-cph-wcr-bfk-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di scrittura riga                              *
+      *    *-----------------------------------------------------------*
+       exe-cph-wub-000.
+      *              *-------------------------------------------------*
+      *              * Test preliminari                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su codice numerico prodotto            *
+      *                  *---------------------------------------------*
+           if        w-exe-pro-cnv        =    zero
+                     go to exe-cph-wub-900.
+      *                  *---------------------------------------------*
+      *                  * Controllo esistenza parametri di ubicazione *
+      *                  *---------------------------------------------*
+           if        w-exe-ub1-rig        =    spaces
+                     go to exe-cph-wub-200.
+      *                  *---------------------------------------------*
+      *                  * Parametro 1                                 *
+      *                  *---------------------------------------------*
+           move      01                   to   w-let-arc-zub-dpz      .
+           move      w-exe-ub1-rig        to   w-let-arc-zub-cod      .
+           perform   let-arc-zub-000      thru let-arc-zub-999        .
+           if        w-let-arc-zub-flg    not  = spaces
+                     move  w-exe-ub1-rig  to   w-exe-ubi-er1
+                     move  spaces         to   w-exe-ub1-rig          .
+       exe-cph-wub-200.
+      *                  *---------------------------------------------*
+      *                  * Parametro 2                                 *
+      *                  *---------------------------------------------*
+           if        w-exe-ub2-rig        =    spaces
+                     go to exe-cph-wub-300.
+      *
+           move      01                   to   w-let-arc-zub-dpz      .
+           move      w-exe-ub2-rig        to   w-let-arc-zub-cod      .
+           perform   let-arc-zub-000      thru let-arc-zub-999        .
+           if        w-let-arc-zub-flg    not  = spaces
+                     move  w-exe-ub2-rig  to   w-exe-ubi-er2
+                     move  spaces         to   w-exe-ub2-rig          .
+       exe-cph-wub-300.
+      *                  *---------------------------------------------*
+      *                  * Parametro 3                                 *
+      *                  *---------------------------------------------*
+           if        w-exe-ub3-rig        =    spaces
+                     go to exe-cph-wub-400.
+      *
+           move      01                   to   w-let-arc-zub-dpz      .
+           move      w-exe-ub3-rig        to   w-let-arc-zub-cod      .
+           perform   let-arc-zub-000      thru let-arc-zub-999        .
+           if        w-let-arc-zub-flg    not  = spaces
+                     move  w-exe-ub3-rig  to   w-exe-ubi-er3
+                     move  spaces         to   w-exe-ub3-rig          .
+       exe-cph-wub-400.
+      *                  *---------------------------------------------*
+      *                  * Parametro 4                                 *
+      *                  *---------------------------------------------*
+           if        w-exe-ub4-rig        =    spaces
+                     go to exe-cph-wub-450.
+      *
+           move      01                   to   w-let-arc-zub-dpz      .
+           move      w-exe-ub4-rig        to   w-let-arc-zub-cod      .
+           perform   let-arc-zub-000      thru let-arc-zub-999        .
+           if        w-let-arc-zub-flg    not  = spaces
+                     move  w-exe-ub4-rig  to   w-exe-ubi-er4
+                     move  spaces         to   w-exe-ub4-rig          .
+       exe-cph-wub-450.
+      *                  *---------------------------------------------*
+      *                  * Test se riscontrato qualche errore          *
+      *                  *---------------------------------------------*
+           if        w-exe-ubi-er1        =    spaces and
+                     w-exe-ubi-er2        =    spaces and
+                     w-exe-ubi-er3        =    spaces and
+                     w-exe-ubi-er4        =    spaces
+                     go to exe-cph-wub-600.
+       exe-cph-wub-500.
+      *              *-------------------------------------------------*
+      *              * Messaggio di errore                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Messaggio                                   *
+      *                  *---------------------------------------------*
+           perform   exe-ubi-err-000      thru exe-ubi-err-999        .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     exe-cph-wub-900.
+       exe-cph-wub-600.
+      *              *-------------------------------------------------*
+      *              * Messaggio di modifica eseguita                  *
+      *              *-------------------------------------------------*
+           display   "Variazione ubicazioni eseguita"                 .
+       exe-cph-wub-800.
+      *              *-------------------------------------------------*
+      *              * Rewrite record [mau]                            *
+      *              *-------------------------------------------------*
+           perform   rew-rec-mau-000      thru rew-rec-mau-999        .
+       exe-cph-wub-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-wub-999.
+       exe-cph-wub-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Composizione record [mau]                                 *
+      *    *-----------------------------------------------------------*
+       cmp-rec-mau-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione record                          *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/mag/fls/ioc/obj/iofmau"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-mau                 .
+       cmp-rec-mau-100.
+      *              *-------------------------------------------------*
+      *              * Composizione campi chiave                       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Codice dipendenza                           *
+      *                  *---------------------------------------------*
+           move      01                   to   rf-mau-cod-dpz         .
+      *                  *---------------------------------------------*
+      *                  * Tipo prodotto                               *
+      *                  *---------------------------------------------*
+           move      01                   to   rf-mau-tip-mag         .
+      *                  *---------------------------------------------*
+      *                  * Codice numerico prodotto                    *
+      *                  *---------------------------------------------*
+           move      w-exe-pro-cnv        to   rf-mau-num-mag         .
+      *                  *---------------------------------------------*
+      *                  * Variante di magazzino                       *
+      *                  *---------------------------------------------*
+           move      spaces               to   rf-mau-var-mag         .
+       cmp-rec-mau-200.
+      *              *-------------------------------------------------*
+      *              * Composizione campi dati                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Codice magazzino                            *
+      *                  *---------------------------------------------*
+           move      "M"                  to   rf-mau-tip-ubi         .
+      *                  *---------------------------------------------*
+      *                  * Parametri di ubicazione                     *
+      *                  *---------------------------------------------*
+           move      w-exe-ub1-rig        to   rf-mau-prm-ubi (1)     .
+           move      w-exe-ub2-rig        to   rf-mau-prm-ubi (2)     .
+           move      w-exe-ub3-rig        to   rf-mau-prm-ubi (3)     .
+           move      w-exe-ub4-rig        to   rf-mau-prm-ubi (4)     .
+      *                  *---------------------------------------------*
+      *                  * Eventuale shift                             *
+      *                  *---------------------------------------------*
+           if        w-exe-ub1-rig        =    spaces
+                     move  w-exe-ub2-rig  to   w-exe-ub1-rig
+                     move  w-exe-ub3-rig  to   w-exe-ub2-rig
+                     move  w-exe-ub4-rig  to   w-exe-ub3-rig
+                     move  spaces         to   w-exe-ub4-rig          .
+      *
+           if        w-exe-ub2-rig        =    spaces
+                     move  w-exe-ub3-rig  to   w-exe-ub2-rig
+                     move  w-exe-ub4-rig  to   w-exe-ub3-rig
+                     move  spaces         to   w-exe-ub4-rig          .
+      *
+           if        w-exe-ub3-rig        =    spaces
+                     move  w-exe-ub4-rig  to   w-exe-ub3-rig
+                     move  spaces         to   w-exe-ub4-rig          .
+      *                  *---------------------------------------------*
+      *                  * Note ubicazione                             *
+      *                  *---------------------------------------------*
+           perform   cmp-rec-mau-not-000  thru cmp-rec-mau-not-999    .
+           move      w-all-str-alf        to   rf-mau-not-ubi         .
+      *                  *---------------------------------------------*
+      *                  * Indice di percorso                          *
+      *                  *                                             *
+      *                  * N.B.: non gestito in [mau] ma in [zub]      *
+      *                  *---------------------------------------------*
+           move      zero                 to   rf-mau-inx-per         .
+           move      spaces               to   rf-mau-alx-exp         .
+       cmp-rec-mau-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Composizione record [mau]                                 *
+      *    *                                                           *
+      *    * Subroutine per annotazione ubicazioni                     *
+      *    *-----------------------------------------------------------*
+       cmp-rec-mau-not-000.
+      *              *-------------------------------------------------*
+      *              * Editing data di sistema                         *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "D"                  to   p-tip                  .
+           move      w-exe-dat-exe        to   p-dat                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+      *              *-------------------------------------------------*
+      *              * Assemblaggio                                    *
+      *              *-------------------------------------------------*
+           move      20                   to   w-all-str-lun          .
+           move      03                   to   w-all-str-num          .
+           move      p-edt                to   w-all-str-cat (1)      .
+           move      "-"                  to   w-all-str-cat (2)      .
+           move      w-exe-des-rsm        to   w-all-str-cat (3)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+       cmp-rec-mau-not-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Riscrittura record [mau]                                  *
+      *    *-----------------------------------------------------------*
+       rew-rec-mau-000.
+      *              *-------------------------------------------------*
+      *              * Composizione record                             *
+      *              *-------------------------------------------------*
+           perform   cmp-rec-mau-000      thru cmp-rec-mau-999        .
+      *              *-------------------------------------------------*
+      *              * Forced put record                               *
+      *              *-------------------------------------------------*
+           move      "FP"                 to   f-ope                  .
+           move      "pgm/mag/fls/ioc/obj/iofmau"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-mau                 .
+       rew-rec-mau-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine per messaggio di aggiornamento                 *
+      *    *-----------------------------------------------------------*
+       exe-cph-agg-000.
+      *              *-------------------------------------------------*
+      *              * ATTUALMENTE INIBITO                             *
+      *              *-------------------------------------------------*
+           go to     exe-cph-agg-900.
+      *              *-------------------------------------------------*
+      *              * Formattazione output                            *
+      *              *-------------------------------------------------*
+           display   "Content-type: text/html"
+                                          with no advancing           .
+           display   ""                                               .
+      *              *-------------------------------------------------*
+      *              * Editing progressivo riga                        *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      03                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "<B"                 to   p-edm                  .
+           move      w-exe-pri-bfo        to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-edt                to   w-all-str-cat (2)      .
+      *              *-------------------------------------------------*
+      *              * Editing progressivo collo                       *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      03                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "<B"                 to   p-edm                  .
+           move      w-slc-num-bft-col    to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-edt                to   w-all-str-cat (4)      .
+      *              *-------------------------------------------------*
+      *              * Assemblaggio                                    *
+      *              *-------------------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      05                   to   w-all-str-num          .
+           move      "<h1> AGGIORNAMENTO RIGA"
+                                          to   w-all-str-cat (1)      .
+      *
+           if        w-slc-num-bft-col    =    zero
+                     move  spaces         to   w-all-str-cat (3)
+                     move  spaces         to   w-all-str-cat (4)
+           else      move  "-"            to   w-all-str-cat (3)      .
+      *
+           move      "</h1>"              to   w-all-str-cat (5)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   w-exe-prm-msg          .
+      *              *-------------------------------------------------*
+      *              * Messaggio in uscita                             *
+      *              *-------------------------------------------------*
+           display   "<div id='msg' class='sel'>"                     .
+           display   w-exe-prm-msg                                    .
+           display   "</div>"                                         .
+       exe-cph-agg-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-agg-999.
+       exe-cph-agg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di uscita per errore                           *
+      *    *-----------------------------------------------------------*
+       exe-cph-err-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione messaggio                          *
+      *              *-------------------------------------------------*
+           display   "Content-type: text/html"
+                                          with no advancing           .
+           display   ""                                               .
+      *              *-------------------------------------------------*
+      *              * Assemblaggio                                    *
+      *              *-------------------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      03                   to   w-all-str-num          .
+           move      "<h1> Tipo operazione :"
+                                          to   w-all-str-cat (1)      .
+           move      w-exe-tip-ope        to   w-all-str-cat (2)      .
+           move      "non riconosciuto </h1>"
+                                          to   w-all-str-cat (3)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   w-exe-prm-msg          .
+      *              *-------------------------------------------------*
+      *              * Messaggio in uscita                             *
+      *              *-------------------------------------------------*
+           display   "<div id='msg' class='sel'>"                     .
+           display   w-exe-prm-msg                                    .
+           display   "</div>"                                         .
+       exe-cph-err-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cph-err-999.
+       exe-cph-err-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo di lettura e preparazione html                      *
+      *    *                                                           *
+      *    * Subroutine di uscita per errore da lettura ubicazioni     *
+      *    *-----------------------------------------------------------*
+       exe-ubi-err-000.
+      *              *-------------------------------------------------*
+      *              * Assemblaggio                                    *
+      *              *-------------------------------------------------*
+           move      80                   to   w-all-str-lun          .
+           move      08                   to   w-all-str-num          .
+           move      "Codici ubicazione non trovati :"
+                                          to   w-all-str-cat (1)      .
+           move      w-exe-ubi-er1        to   w-all-str-cat (2)      .
+      *
+           if        w-exe-ubi-er2        =    spaces
+                     move  spaces         to   w-all-str-cat (3)
+                     move  spaces         to   w-all-str-cat (4)
+           else      move  "-"            to   w-all-str-cat (3)
+                     move  w-exe-ubi-er2  to   w-all-str-cat (4)      .
+      *
+           if        w-exe-ubi-er3        =    spaces
+                     move  spaces         to   w-all-str-cat (5)
+                     move  spaces         to   w-all-str-cat (6)
+           else      move  "-"            to   w-all-str-cat (5)
+                     move  w-exe-ubi-er3  to   w-all-str-cat (6)      .
+      *
+           if        w-exe-ubi-er4        =    spaces
+                     move  spaces         to   w-all-str-cat (7)
+                     move  spaces         to   w-all-str-cat (8)
+           else      move  "-"            to   w-all-str-cat (7)
+                     move  w-exe-ubi-er4  to   w-all-str-cat (8)      .
+      *
+           perform   all-str-csb-000      thru all-str-csb-999        .
+           move      w-all-str-alf        to   w-exe-prm-msg          .
+           display   w-exe-prm-msg                                    .
+       exe-ubi-err-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-ubi-err-999.
+       exe-ubi-err-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Operazioni su parametri in input                          *
+      *    *-----------------------------------------------------------*
+       ope-prm-inp-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del tipo operazione      *
+      *              *-------------------------------------------------*
+           if        w-cgi-tip-ope        =    "NO"
+                     go to ope-prm-inp-100
+           else if   w-cgi-tip-ope        =    "EX"
+                     go to ope-prm-inp-500.
+       ope-prm-inp-100.
+      *              *=================================================*
+      *              * Normalizzazione                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ciclo di normalizzazione                    *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-cgi-str-ctr          .
+       ope-prm-inp-120.
+           add       1                    to   w-cgi-str-ctr          .
+           if        w-cgi-str-ctr        >    w-cgi-str-num
+                     go to ope-prm-inp-900.
+           if        w-cgi-str-ctr        >    w-cgi-str-max
+                     go to ope-prm-inp-900.
+           move      spaces               to   w-cgi-str-fld
+                                              (w-cgi-str-ctr)         .
+      *                  *---------------------------------------------*
+      *                  * A riciclo                                   *
+      *                  *---------------------------------------------*
+           go to     ope-prm-inp-120.
+       ope-prm-inp-500.
+      *              *=================================================*
+      *              * Estrazione coppie                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ciclo di estrazione                         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-cgi-str-ctr          .
+       ope-prm-inp-520.
+           add       1                    to   w-cgi-str-ctr          .
+           if        w-cgi-str-ctr        >    w-cgi-str-num
+                     go to ope-prm-inp-900.
+           if        w-cgi-str-ctr        >    w-cgi-str-max
+                     go to ope-prm-inp-900.
+      *                  *---------------------------------------------*
+      *                  * Estrazione                                  *
+      *                  *---------------------------------------------*
+           move      w-cgi-str-fld
+                    (w-cgi-str-ctr)       to   w-all-str-alf          .
+           move      "="                  to   w-all-str-del          .
+           perform   all-str-ext-000      thru all-str-ext-999        .
+           perform   ext-prm-ass-000      thru ext-prm-ass-999        .
+      *                  *---------------------------------------------*
+      *                  * A riciclo                                   *
+      *                  *---------------------------------------------*
+           go to     ope-prm-inp-520.
+       ope-prm-inp-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     ope-prm-inp-999.
+       ope-prm-inp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Estrazione parametri                                      *
+      *    *                                                           *
+      *    * Subroutine di assegnazione del valore in base al nome del *
+      *    * campo in input                                            *
+      *    *                                                           *
+      *    * Campi previsti                                            *
+      *    * --------------                                            *
+      *    * 'tip_ope' = Tipo operazione                               *
+      *    * 'rsp_doc' = Responsabile di magazzino                     *
+      *    * 'rsp_des' = Responsabile di magazzino - descrizione       *
+      *    * 'prt_bfo' = Protocollo                                    *
+      *    * 'prg_bfo' = Progressivo riga bfo                          *
+      *    * 'pri_bfo' = Progressivo riga interno di comodo            *
+      *    * 'col_bfo' = Progressivo collo                             *
+      *    * 'qta_bfo' = Quantita' in riga                             *
+      *    * 'qtv_bfo' = Quantita' in riga verificata                  *
+      *    * 'ub1_rig' = Ubicazione principale                         *
+      *    * 'ub2_rig' = Ubicazione 2                                  *
+      *    * 'ub3_rig' = Ubicazione 3                                  *
+      *    * 'ub4_rig' = Ubicazione 4                                  *
+      *    * 'alf_pro' = Codice prodotto alfanumerico                  *
+      *    * 'num_pro' = Codice prodotto numerico                      *
+      *    * 'ann_ncf' = Note di Non conformita'                       *
+      *    * 'flg_spn' = Flag di spunta                                *
+      *    * 'klb_pro' = Codice a barre prodotto                       *
+      *    *-----------------------------------------------------------*
+       ext-prm-ass-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del nome elemento        *
+      *              *-------------------------------------------------*
+           if        w-all-str-cat (1)    =    "tip_ope"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-tip-ope
+      *              *-------------------------------------------------*
+      *              * Responsabile                                    *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "rsp_doc"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-cod-rsm
+      *              *-------------------------------------------------*
+      *              * Responsabile - descrizione                      *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "rsp_des"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-des-rsm
+      *              *-------------------------------------------------*
+      *              * Protocollo                                      *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "prt_bfo"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-prt-bfo
+      *              *-------------------------------------------------*
+      *              * Progressivo riga bfo                            *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "prg_bfo"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-prg-bfo
+      *              *-------------------------------------------------*
+      *              * Progressivo riga interno di comodo              *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "pri_bfo"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-pri-bfo
+      *              *-------------------------------------------------*
+      *              * Progressivo collo                               *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "col_bfo"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-col-bfo
+      *              *-------------------------------------------------*
+      *              * Quantita' in riga                               *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "qta_bfo"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-qta-bfo
+      *              *-------------------------------------------------*
+      *              * Quantita' in riga verificata                    *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "qtv_bfo"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-qtv-bfo
+      *              *-------------------------------------------------*
+      *              * Ubicazioni                                      *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "ub1_rig"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-ub1-rig
+           else if   w-all-str-cat (1)    =    "ub2_rig"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-ub2-rig
+           else if   w-all-str-cat (1)    =    "ub3_rig"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-ub3-rig
+           else if   w-all-str-cat (1)    =    "ub4_rig"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-ub4-rig
+      *              *-------------------------------------------------*
+      *              * Annotazioni                                     *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "ann_spn"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-ann-ncf
+      *              *-------------------------------------------------*
+      *              * Codice prodotto alfanumerico                    *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "alf_pro"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-alf-pro
+      *              *-------------------------------------------------*
+      *              * Codice prodotto numerico                        *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "num_pro"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-num-pro
+      *              *-------------------------------------------------*
+      *              * Flag di spunta                                  *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "ann_ncf"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-ann-ncf
+      *              *-------------------------------------------------*
+      *              * Flag di spunta                                  *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "flg_spn"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-flg-spn
+      *              *-------------------------------------------------*
+      *              * Flag di spunta                                  *
+      *              *-------------------------------------------------*
+           else if   w-all-str-cat (1)    =    "klb_pro"
+                     move  w-all-str-cat (2)
+                                          to   w-exe-klb-pro          .
+       ext-prm-ass-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     ext-prm-ass-999.
+       ext-prm-ass-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine per l'estrazione di max 20 coppie campi/valori da *
+      *    * variabile POST letta                                      *
+      *    *---------------------------------------------------------- *
+      *    *                                                           *
+      *    * Input  : w-cgi-str-var     = Variabile POST letta         *
+      *    *                                                           *
+      *    *          w-cgi-str-del     = Delimitatore (&)             *
+      *    *                                                           *
+      *    * Output : w-cgi-str-fld (i) = coppie estratte              *
+      *    *                                                           *
+      *    *          w-cgi-str-num     = Numero coppie estratte       *
+      *    *-----------------------------------------------------------*
+       cgi-str-ext-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni preliminari                     *
+      *              *-------------------------------------------------*
+           move      "&"                  to   w-cgi-str-del          .
+           move      zero                 to   w-cgi-str-num          .
+           move      zero                 to   w-cgi-str-ctr          .
+       cgi-str-ext-200.
+           add       1                    to   w-cgi-str-ctr          .
+           if        w-cgi-str-ctr        >    w-cgi-str-max
+                     go to cgi-str-ext-300.
+           move      spaces               to   w-cgi-str-fld
+                                              (w-cgi-str-ctr)         .
+           go to     cgi-str-ext-200.
+       cgi-str-ext-300.
+      *              *-------------------------------------------------*
+      *              * Test preliminare se il campo e' vuoto           *
+      *              *-------------------------------------------------*
+           if        w-cgi-str-var        =    spaces
+                     go to cgi-str-ext-900.
+       cgi-str-ext-400.
+      *              *-------------------------------------------------*
+      *              * Estrazione                                      *
+      *              *-------------------------------------------------*
+           unstring  w-cgi-str-var
+                                delimited by   w-cgi-str-del
+                                          into w-cgi-str-fld (01)
+                                               w-cgi-str-fld (02)
+                                               w-cgi-str-fld (03)
+                                               w-cgi-str-fld (04)
+                                               w-cgi-str-fld (05)
+                                               w-cgi-str-fld (06)
+                                               w-cgi-str-fld (07)
+                                               w-cgi-str-fld (08)
+                                               w-cgi-str-fld (09)
+                                               w-cgi-str-fld (10)
+                                               w-cgi-str-fld (11)
+                                               w-cgi-str-fld (12)
+                                               w-cgi-str-fld (13)
+                                               w-cgi-str-fld (14)
+                                               w-cgi-str-fld (15)
+                                               w-cgi-str-fld (16)
+                                               w-cgi-str-fld (17)
+                                               w-cgi-str-fld (18)
+                                               w-cgi-str-fld (19)
+                                               w-cgi-str-fld (20)     .
+       cgi-str-ext-500.
+      *              *-------------------------------------------------*
+      *              * Ciclo di verifica numero stringhe estratte      *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-cgi-str-ctr          .
+       cgi-str-ext-600.
+           add       1                    to   w-cgi-str-ctr          .
+           if        w-cgi-str-ctr        >    w-cgi-str-max
+                     go to cgi-str-ext-900.
+           if        w-cgi-str-fld
+                    (w-cgi-str-ctr)       =    spaces
+                     go to cgi-str-ext-900.
+           add       1                    to   w-cgi-str-num          .
+       cgi-str-ext-800.
+      *              *-------------------------------------------------*
+      *              * Riciclo                                         *
+      *              *-------------------------------------------------*
+           go to     cgi-str-ext-600.
+       cgi-str-ext-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     cgi-str-ext-999.
+       cgi-str-ext-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione del codice numerico prodotto               *
+      *    *-----------------------------------------------------------*
+       det-num-pro-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione valore di uscita                *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-det-num-pro-num      .
+       det-num-pro-050.
+      *              *-------------------------------------------------*
+      *              * Test su valore in input                         *
+      *              *-------------------------------------------------*
+           if        w-det-num-pro-alf    =    spaces
+                     go to det-num-pro-950.
+       det-num-pro-050.
+      *              *-------------------------------------------------*
+      *              * [dcp]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+       det-num-pro-100.
+      *              *-------------------------------------------------*
+      *              * Start su archivio [dcp] per codice alfanumerico *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "ALFPRO    "         to   f-key                  .
+           move      w-det-num-pro-alf    to   rf-dcp-alf-pro         .
+           move      zero                 to   rf-dcp-num-pro         .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata                             *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to det-num-pro-900.
+       det-num-pro-200.
+      *              *-------------------------------------------------*
+      *              * Read-next su archivio [dcp]                     *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                  *---------------------------------------------*
+      *                  * Test se fine file                           *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to det-num-pro-900.
+       det-num-pro-300.
+      *              *-------------------------------------------------*
+      *              * Test max su archivio [dcp]                      *
+      *              *-------------------------------------------------*
+           if        rf-dcp-alf-pro       not  = w-det-num-pro-alf
+                     go to det-num-pro-900.
+       det-num-pro-400.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione codice numerico                 *
+      *              *-------------------------------------------------*
+           move      rf-dcp-num-pro       to   w-det-num-pro-num      .
+       det-num-pro-800.
+      *              *-------------------------------------------------*
+      *              * Riciclo                                         *
+      *              *-------------------------------------------------*
+           go to     det-num-pro-200.
+       det-num-pro-900.
+      *              *-------------------------------------------------*
+      *              * [dcp]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+       det-num-pro-950.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     det-num-pro-999.
+       det-num-pro-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Lettura record [bfr]                                      *
+      *    *-----------------------------------------------------------*
+       rea-rec-bfr-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione record [bfr]                    *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfr                 .
+      *              *-------------------------------------------------*
+      *              * Lettura record [bfr]                            *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfr-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfr-num-prg         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfr                 .
+       rea-rec-bfr-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Lettura record [bfk]                                      *
+      *    *-----------------------------------------------------------*
+       rea-rec-bfk-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione record [bfk]                    *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfk"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfk                 .
+      *              *-------------------------------------------------*
+      *              * Lettura record [bfk]                            *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-slc-num-bft-prt    to   rf-bfk-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfk-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfk-num-prc         .
+           move      "pgm/bfo/fls/ioc/obj/iofbfk"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfk                 .
+       rea-rec-bfk-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di scrittura record [bfs] normalizzato            *
+      *    *-----------------------------------------------------------*
+       nor-rec-bfs-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione record                          *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *              *-------------------------------------------------*
+      *              * Campi chiave                                    *
+      *              *-------------------------------------------------*
+           move      w-slc-num-bft-prt    to   rf-bfs-num-prt         .
+           move      w-slc-num-bft-prg    to   rf-bfs-num-prg         .
+           move      w-slc-num-bft-col    to   rf-bfs-num-prr         .
+      *              *-------------------------------------------------*
+      *              * Put record                                      *
+      *              *-------------------------------------------------*
+           move      "PT"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+       nor-rec-bfs-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di update record [bfs]                            *
+      *    *-----------------------------------------------------------*
+       upd-rec-bfs-000.
+      *              *-------------------------------------------------*
+      *              * Update record                                   *
+      *              *-------------------------------------------------*
+           move      "UP"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+      *              *-------------------------------------------------*
+      *              * Rilascio record [bfs]                           *
+      *              *-------------------------------------------------*
+           move      "RL"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbfs"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bfs                 .
+       upd-rec-bfs-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine di lettura archivio [zub]                         *
+      *    *-----------------------------------------------------------*
+       let-arc-zub-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zub-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice ubicazione a spaces              *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zub-cod    =    spaces
+                     go to let-arc-zub-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODUBI    "         to   f-key                  .
+           move      w-let-arc-zub-dpz    to   rf-zub-cod-dpz         .
+           move      w-let-arc-zub-cod    to   rf-zub-cod-ubi         .
+           move      "pgm/mag/fls/ioc/obj/iofzub"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zub                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zub-400.
+       let-arc-zub-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zub-des-ubi       to   w-let-arc-zub-des      .
+           move      rf-zub-inx-per       to   w-let-arc-zub-inx      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zub-999.
+       let-arc-zub-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zub-flg      .
+           move      all   "."            to   w-let-arc-zub-des      .
+           go to     let-arc-zub-600.
+       let-arc-zub-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zub-des      .
+       let-arc-zub-600.
+           move      zero                 to   w-let-arc-zub-inx      .
+       let-arc-zub-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Subroutines per modulo di aggiornamento del magazzino     *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/mag/prg/cpy/pmag300z.pgs"                   .
+
+      *    *===========================================================*
+      *    * Subroutines per allineamenti a destra o a sinistra oppure *
+      *    * al centro di campi alfanumerici di varia lunghezza, fi-   *
+      *    * no ad un massimo di 240 caratteri, oppure per il conca-   *
+      *    * tenamento, con o senza separazione, di max 10 substrin-   *
+      *    * ghe in una unica substringa                               *
+      *    *-----------------------------------------------------------*
+           copy      "swd/std/prg/cpy/wallstr0.cps"                   .

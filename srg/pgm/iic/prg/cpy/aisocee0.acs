@@ -1,0 +1,37 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice ISO stato CEE   *
+      *    *-----------------------------------------------------------*
+       cde-iso-cee-opn-000.
+           move      "pgm/iic/prg/obj/aisocee0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cde-iso-cee-pth      .
+           move      "OP"                 to   w-cde-iso-cee-ope      .
+           perform   cde-iso-cee-cll-000  thru cde-iso-cee-cll-999    .
+       cde-iso-cee-opn-999.
+           exit.
+       cde-iso-cee-cls-000.
+           move      "CL"                 to   w-cde-iso-cee-ope      .
+           perform   cde-iso-cee-cll-000  thru cde-iso-cee-cll-999    .
+           move      "C?"                 to   w-cde-iso-cee-ope      .
+           perform   cde-iso-cee-cll-000  thru cde-iso-cee-cll-999    .
+           if        w-cde-iso-cee-ope    not  = spaces
+                     go to cde-iso-cee-cls-999.
+           cancel    w-cde-iso-cee-pth                                .
+       cde-iso-cee-cls-999.
+           exit.
+       cde-iso-cee-foi-000.
+           if        v-key                not  = "FIND"
+                     go to cde-iso-cee-foi-999.
+           move      "F+"                 to   w-cde-iso-cee-ope      .
+           go to     cde-iso-cee-foi-999.
+       cde-iso-cee-foi-999.
+           exit.
+       cde-iso-cee-cll-000.
+           call      w-cde-iso-cee-pth   using w-cde-iso-cee
+                                               v
+                                               s                      .
+       cde-iso-cee-cll-999.
+           exit.
+

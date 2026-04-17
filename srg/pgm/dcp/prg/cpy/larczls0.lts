@@ -1,0 +1,70 @@
+      *    *===========================================================*
+      *    * Routine di lettura archivio [zls]                         *
+      *    *-----------------------------------------------------------*
+       let-arc-zls-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zls-flg      .
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODLST    "         to   f-key                  .
+           move      w-let-arc-zls-cod    to   rf-zls-cod-lst         .
+           move      "pgm/dcp/fls/ioc/obj/iofzls"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zls                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zls-400.
+       let-arc-zls-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zls-des-lst       to   w-let-arc-zls-des      .
+           move      rf-zls-cod-vlt       to   w-let-arc-zls-vlt      .
+           move      rf-zls-wrk-lst       to   w-let-arc-zls-wrk      .
+           move      rf-zls-drg-lst       to   w-let-arc-zls-drg      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zls-999.
+       let-arc-zls-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su codice listino                      *
+      *                  *---------------------------------------------*
+           if        w-let-arc-zls-cod    not  = spaces
+                     go to let-arc-zls-420.
+      *                  *---------------------------------------------*
+      *                  * Forzature per Listino Base                  *
+      *                  *---------------------------------------------*
+           move      "Listino Base"       to   w-let-arc-zls-des      .
+           move      c-sgl                to   w-let-arc-zls-vlt      .
+           move      spaces               to   w-let-arc-zls-wrk      .
+           move      spaces               to   w-let-arc-zls-drg      .
+           go to     let-arc-zls-999.
+       let-arc-zls-420.
+      *                  *---------------------------------------------*
+      *                  * Se codice listino non a spazi               *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-let-arc-zls-flg      .
+           move      all   "."            to   w-let-arc-zls-des      .
+           go to     let-arc-zls-520.
+       let-arc-zls-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zls-des      .
+       let-arc-zls-520.
+           move      spaces               to   w-let-arc-zls-vlt      .
+           move      spaces               to   w-let-arc-zls-wrk      .
+           move      spaces               to   w-let-arc-zls-drg      .
+       let-arc-zls-999.
+           exit.
+

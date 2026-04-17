@@ -1,0 +1,61 @@
+      *    *===========================================================*
+      *    * Editing del codice sottoconto con appoggio a sinistra     *
+      *    *-----------------------------------------------------------*
+       edt-pdc-asx-000.
+      *              *-------------------------------------------------*
+      *              * Determinazione se clausola blank when zero      *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-edt-cod-pdc-c01      .
+           inspect   w-edt-cod-pdc-edm
+                                      tallying w-edt-cod-pdc-c01
+                     for   all "B"                                    .
+           if        w-edt-cod-pdc-c01    >    zero
+                     move  "B"            to   w-edt-cod-pdc-bwz
+           else      move  spaces         to   w-edt-cod-pdc-bwz      .
+      *              *-------------------------------------------------*
+      *              * Editing vero e proprio                          *
+      *              *-------------------------------------------------*
+           if        w-edt-cod-pdc-cod    =    zero  and
+                     w-edt-cod-pdc-bwz    =    "B"
+                     move  spaces         to   w-edt-cod-pdc-edt
+           else      move  spaces         to   w-edt-cod-pdc-edt
+                     if    w-edt-cod-pdc-liv
+                                          =    2
+                           move  w-edt-cod-pdc-cod
+                                          to   w-edt-cod-pdc-s2l
+                     else  move  w-edt-cod-pdc-cod
+                                          to   w-edt-cod-pdc-s3l      .
+       edt-pdc-asx-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Editing del codice sottoconto con appoggio a destra       *
+      *    *-----------------------------------------------------------*
+       edt-pdc-adx-000.
+      *              *-------------------------------------------------*
+      *              * Determinazione se clausola blank when zero      *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-edt-cod-pdc-c01      .
+           inspect   w-edt-cod-pdc-edm
+                                      tallying w-edt-cod-pdc-c01
+                     for   all "B"                                    .
+           if        w-edt-cod-pdc-c01    >    zero
+                     move  "B"            to   w-edt-cod-pdc-bwz
+           else      move  spaces         to   w-edt-cod-pdc-bwz      .
+      *              *-------------------------------------------------*
+      *              * Editing vero e proprio                          *
+      *              *-------------------------------------------------*
+           if        w-edt-cod-pdc-cod    =    zero  and
+                     w-edt-cod-pdc-bwz    =    "B"
+                     move  spaces         to   w-edt-cod-pdc-edt
+           else      move  spaces         to   w-edt-cod-pdc-edt
+                     if    w-edt-cod-pdc-liv
+                                          =    2
+                           move  w-edt-cod-pdc-cod
+                                          to   w-edt-cod-pdc-d2l
+                     else  move  w-edt-cod-pdc-cod
+                                          to   w-edt-cod-pdc-d3l      .
+       edt-pdc-adx-999.
+           exit.
+
+

@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione ubicazione cespite         *
+      *    *-----------------------------------------------------------*
+       cod-mne-zuc-opn-000.
+           move      "pgm/cge/prg/obj/acmnzuc0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zuc-pth      .
+           move      "OP"                 to   w-cod-mne-zuc-ope      .
+           perform   cod-mne-zuc-cll-000  thru cod-mne-zuc-cll-999    .
+       cod-mne-zuc-opn-999.
+           exit.
+       cod-mne-zuc-cls-000.
+           move      "CL"                 to   w-cod-mne-zuc-ope      .
+           perform   cod-mne-zuc-cll-000  thru cod-mne-zuc-cll-999    .
+           move      "C?"                 to   w-cod-mne-zuc-ope      .
+           perform   cod-mne-zuc-cll-000  thru cod-mne-zuc-cll-999    .
+           if        w-cod-mne-zuc-ope    not  = spaces
+                     go to cod-mne-zuc-cls-999.
+           cancel    w-cod-mne-zuc-pth                                .
+       cod-mne-zuc-cls-999.
+           exit.
+       cod-mne-zuc-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zuc-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0700"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zuc-foi-999.
+           move      "pgm/cge/prg/obj/pcge0700"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zuc-ope      .
+           go to     cod-mne-zuc-foi-999.
+       cod-mne-zuc-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zuc-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0710"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zuc-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/cge/prg/obj/pcge0710"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zuc-ope      .
+           go to     cod-mne-zuc-foi-999.
+       cod-mne-zuc-foi-999.
+           exit.
+       cod-mne-zuc-cll-000.
+           call      w-cod-mne-zuc-pth   using w-cod-mne-zuc
+                                               v
+                                               s                      .
+       cod-mne-zuc-cll-999.
+           exit.
+

@@ -1,0 +1,164 @@
+      *    *===========================================================*
+      *    * Work-area per la ridefinizione della variabile di i.p.c.  *
+      *    * in input  "inp-mst"                                       *
+      *    *-----------------------------------------------------------*
+       01  w-inp-mst.
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione                                       *
+      *        *                                                       *
+      *        * - OP : Open modulo di stampa documento                *
+      *        * - ST : Stampa documento                               *
+      *        * - CL : Close modulo di stampa documento               *
+      *        *-------------------------------------------------------*
+           05  w-inp-mst-ope              pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati in input relativi ai tipi operazione             *
+      *        *-------------------------------------------------------*
+           05  w-inp-mst-dat.
+      *            *---------------------------------------------------*
+      *            * Dati in input relativi al tipo operazione "OP"    *
+      *            *---------------------------------------------------*
+               10  w-inp-mst-xop.
+      *                *-----------------------------------------------*
+      *                * Tipo selezione stampante                      *
+      *                *                                               *
+      *                * - F    : Facoltativa                          *
+      *                * - O    : Obbligatoria                         *
+      *                * - R, r : Ciclo di stampa ripetitivo           *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-sel      pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Codice azienda                                *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-azi      pic  x(04)                  .
+      *                *-----------------------------------------------*
+      *                * Codice terminale                              *
+      *                *                                               *
+      *                * N.B.: ospita l'eventuale codice modulo legato *
+      *                *       al tipo documento                       *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-ter      pic  x(08)                  .
+      *                *-----------------------------------------------*
+      *                * Codice utente                                 *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-ute      pic  x(08)                  .
+      *                *-----------------------------------------------*
+      *                * Sigla sistema applicativo                     *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-sap      pic  x(03)                  .
+      *                *-----------------------------------------------*
+      *                * Sigla area gestionale                         *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-arg      pic  x(03)                  .
+      *                *-----------------------------------------------*
+      *                * Sigla settore gestionale                      *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-set      pic  x(03)                  .
+      *                *-----------------------------------------------*
+      *                * Sigla fase gestionale                         *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-fas      pic  x(06)                  .
+      *                *-----------------------------------------------*
+      *                * Descrizione del programma                     *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-dep      pic  x(40)                  .
+      *                *-----------------------------------------------*
+      *                * Filler                                        *
+      *                *-----------------------------------------------*
+                   15  filler             pic  x(02)                  .
+      *            *---------------------------------------------------*
+      *            * Dati in input relativi al tipo operazione "ST"    *
+      *            *---------------------------------------------------*
+               10  w-inp-mst-xst redefines
+                   w-inp-mst-xop.
+      *                *-----------------------------------------------*
+      *                * Identificazione del documento                 *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-prt      pic  9(09)                  .
+      *                *-----------------------------------------------*
+      *                * Si/No Eject a fine documento                  *
+      *                *  - S : Si                                     *
+      *                *  - N : No                                     *
+      *                *-----------------------------------------------*
+                   15  w-inp-mst-ejc      pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Filler                                        *
+      *                *-----------------------------------------------*
+                   15  filler             pic  x(68)                  .
+      *            *---------------------------------------------------*
+      *            * Dati in input relativi al tipo operazione "CL"    *
+      *            *---------------------------------------------------*
+               10  w-inp-mst-xcl redefines
+                   w-inp-mst-xop.
+      *                *-----------------------------------------------*
+      *                * Nessun dato ulteriore                         *
+      *                *-----------------------------------------------*
+                   15  filler             pic  x(78)                  .
+
+      *    *===========================================================*
+      *    * Work-area per la ridefinizione della variabile di i.p.c.  *
+      *    * in output "out-mst"                                       *
+      *    *-----------------------------------------------------------*
+       01  w-out-mst.
+      *        *-------------------------------------------------------*
+      *        * Dati in output relativi ai tipi operazione            *
+      *        *-------------------------------------------------------*
+           05  w-out-mst-dat.
+      *            *---------------------------------------------------*
+      *            * Dati in output relativi al tipo operazione "OP"   *
+      *            *---------------------------------------------------*
+               10  w-out-mst-xop.
+      *                *-----------------------------------------------*
+      *                * Esito della funzione Open                     *
+      *                *                                               *
+      *                * - Spaces : Operazione correttamente eseguita  *
+      *                *            con selezione stampante effettua-  *
+      *                *            ta correttamente                   *
+      *                * - N      : Operazione correttamente eseguita  *
+      *                *            e senza selezione stampante facol- *
+      *                *            tativa non effettuata              *
+      *                * - X      : Operazione non eseguita in quanto  *
+      *                *            selezione stampante obbligatoria   *
+      *                *            non effettuata                     *
+      *                * - E      : Errore grave avvenuto in esecuzio- *
+      *                *            ne della funzione                  *
+      *                *-----------------------------------------------*
+                   15  w-out-mst-opn      pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Filler                                        *
+      *                *-----------------------------------------------*
+                   15  filler             pic  x(79)                  .
+      *            *---------------------------------------------------*
+      *            * Dati in output relativi al tipo operazione "ST"   *
+      *            *---------------------------------------------------*
+               10  w-out-mst-xst redefines
+                   w-out-mst-xop.
+      *                *-----------------------------------------------*
+      *                * Esito della funzione Stampa                   *
+      *                * - Spaces : Operazione correttamente eseguita  *
+      *                * - N      : Documento non trovato              *
+      *                * - E      : Errore grave avvenuto in esecuzio- *
+      *                *            ne della funzione                  *
+      *                *-----------------------------------------------*
+                   15  w-out-mst-stp      pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Filler                                        *
+      *                *-----------------------------------------------*
+                   15  filler             pic  x(79)                  .
+      *            *---------------------------------------------------*
+      *            * Dati in output relativi al tipo operazione "CL"   *
+      *            *---------------------------------------------------*
+               10  w-out-mst-xcl redefines
+                   w-out-mst-xop.
+      *                *-----------------------------------------------*
+      *                * Esito della funzione Close                    *
+      *                * - Spaces : Operazione correttamente eseguita  *
+      *                * - E      : Errore grave avvenuto in esecuzio- *
+      *                *            ne della funzione                  *
+      *                *-----------------------------------------------*
+                   15  w-out-mst-cls      pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Filler                                        *
+      *                *-----------------------------------------------*
+                   15  filler             pic  x(79)                  .
+

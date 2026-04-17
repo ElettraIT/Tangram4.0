@@ -1,0 +1,1279 @@
+      *    *===========================================================*
+      *    * Calcolo tabella scadenze                                  *
+      *    *-----------------------------------------------------------*
+       clc-tbl-scd-000.
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero totale scadenze calco-  *
+      *              * late                                            *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-nts      .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione preliminare castelletto        *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-ntw      .
+       clc-tbl-scd-020.
+           add       1                    to   w-clc-tbl-scd-ntw      .
+           if        w-clc-tbl-scd-ntw    >    96
+                     go to clc-tbl-scd-050.
+           move      zero                 to   w-clc-tbl-scd-tds
+                                              (w-clc-tbl-scd-ntw)     .
+           move      zero                 to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-ntw)     .
+           move      zero                 to   w-clc-tbl-scd-ccs
+                                              (w-clc-tbl-scd-ntw)     .
+           move      zero                 to   w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-ntw)     .
+           go to     clc-tbl-scd-020.
+       clc-tbl-scd-050.
+      *              *-------------------------------------------------*
+      *              * Se la forma di pagamento passata in input come  *
+      *              * parametro e' a zero : uscita                    *
+      *              *-------------------------------------------------*
+           if        w-clc-tbl-scd-fdp    =    zero
+                     go to clc-tbl-scd-999.
+      *              *-------------------------------------------------*
+      *              * Se tutti e tre i codici di pagamento passati in *
+      *              * input come parametri sono a zero : uscita       *
+      *              *-------------------------------------------------*
+           if        w-clc-tbl-scd-cdp (1)
+                                          =    zero and
+                     w-clc-tbl-scd-cdp (2)
+                                          =    zero and
+                     w-clc-tbl-scd-cdp (3)
+                                          =    zero
+                     go to clc-tbl-scd-999.
+       clc-tbl-scd-100.
+      *              *-------------------------------------------------*
+      *              * Determinazione delle scadenze per ogni codice   *
+      *              * di pagamento                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione progressivo ammontari uti- *
+      *                  * lizzati                                     *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wau      .
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione progressivo imponibile uti-*
+      *                  * lizzato                                     *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wiu      .
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione indice 1..3 sui codici di  *
+      *                  * pagamento associati alla forma di pagamento *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wip      .
+       clc-tbl-scd-110.
+      *                  *---------------------------------------------*
+      *                  * Incremento indice 1..3 sui codici di paga-  *
+      *                  * mento associati alla forma di pagamento     *
+      *                  *---------------------------------------------*
+           add       1                    to   w-clc-tbl-scd-wip      .
+      *                  *---------------------------------------------*
+      *                  * Se oltre il terzo codice di pagamento : a   *
+      *                  * compattamento della tabella calcolata       *
+      *                  *---------------------------------------------*
+           if        w-clc-tbl-scd-wip    >    3
+                     go to clc-tbl-scd-600.
+      *                  *---------------------------------------------*
+      *                  * Se codice di pagamento a zero : riciclo su  *
+      *                  * codice di pagamento successivo              *
+      *                  *---------------------------------------------*
+           if        w-clc-tbl-scd-cdp
+                    (w-clc-tbl-scd-wip)   =    zero
+                     go to clc-tbl-scd-110.
+       clc-tbl-scd-120.
+      *                  *---------------------------------------------*
+      *                  * Determinazione del totale ammontare su cui  *
+      *                  * agisce il codice di pagamento               *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Deviazione in funzione del tipo di am-  *
+      *                      * montare                                 *
+      *                      *-----------------------------------------*
+           if        w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    01
+                     go to clc-tbl-scd-130
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    02
+                     go to clc-tbl-scd-140
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    03
+                     go to clc-tbl-scd-150
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    04
+                     go to clc-tbl-scd-160
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    05
+                     go to clc-tbl-scd-170
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    06
+                     go to clc-tbl-scd-180
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    07
+                     go to clc-tbl-scd-190
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    08
+                     go to clc-tbl-scd-200
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    09
+                     go to clc-tbl-scd-210
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    10
+                     go to clc-tbl-scd-220
+           else if   w-clc-tbl-scd-tam
+                    (w-clc-tbl-scd-wip)   =    11
+                     go to clc-tbl-scd-230.
+       clc-tbl-scd-130.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 01 : Il totale documento *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+           add       w-clc-tbl-scd-iva    to   w-clc-tbl-scd-wap      .
+      *
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-140.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 02 : Il totale imponibi- *
+      *                      *                     le                  *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+      *
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-150.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 03 : Una % del totale    *
+      *                      *                     documento           *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+           add       w-clc-tbl-scd-iva    to   w-clc-tbl-scd-wap      .
+           multiply  w-clc-tbl-scd-pti
+                    (w-clc-tbl-scd-wip)   by   w-clc-tbl-scd-wap      .
+           divide    100                  into w-clc-tbl-scd-wap
+                                                         rounded      .
+      *
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wix      .
+           multiply  w-clc-tbl-scd-pti
+                    (w-clc-tbl-scd-wip)   by   w-clc-tbl-scd-wix      .
+           divide    100                  into w-clc-tbl-scd-wix
+                                                         rounded      .
+           add       w-clc-tbl-scd-wix    to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-160.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 04 : Una % del totale    *
+      *                      *                     imponibile          *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+           multiply  w-clc-tbl-scd-pti
+                    (w-clc-tbl-scd-wip)   by   w-clc-tbl-scd-wap      .
+           divide    100                  into w-clc-tbl-scd-wap
+                                                         rounded      .
+      *
+           add       w-clc-tbl-scd-wap    to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-170.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 05 : Il totale iva       *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-iva    to   w-clc-tbl-scd-wap      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-180.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 06 : Solo la quota a     *
+      *                      *                     forfait             *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-qaf    to   w-clc-tbl-scd-wap      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-190.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 07 : Il totale iva piu'  *
+      *                      *                     la quota a forfait  *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-iva    to   w-clc-tbl-scd-wap      .
+           add       w-clc-tbl-scd-qaf    to   w-clc-tbl-scd-wap      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-200.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 08 : Il totale documento *
+      *                      *                     meno la quota a     *
+      *                      *                     forfait             *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+           add       w-clc-tbl-scd-iva    to   w-clc-tbl-scd-wap      .
+           subtract  w-clc-tbl-scd-qaf    from w-clc-tbl-scd-wap      .
+      *
+           if        w-clc-tbl-scd-wap    <    w-clc-tbl-scd-ibl
+                     add  w-clc-tbl-scd-wap
+                                          to   w-clc-tbl-scd-wiu
+           else      add  w-clc-tbl-scd-ibl
+                                          to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-210.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 09 : Il totale imponibi- *
+      *                      *                     le meno la quota a  *
+      *                      *                     forfait             *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+           subtract  w-clc-tbl-scd-qaf    from w-clc-tbl-scd-wap      .
+      *
+           add       w-clc-tbl-scd-wap    to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-220.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 10 : Il residuo per il   *
+      *                      *                     totale documento    *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+           add       w-clc-tbl-scd-iva    to   w-clc-tbl-scd-wap      .
+           subtract  w-clc-tbl-scd-wau    from w-clc-tbl-scd-wap      .
+      *
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-230.
+      *                      *-----------------------------------------*
+      *                      * Tipo ammontare 11 : Il residuo per il   *
+      *                      *                     totale imponibile   *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wap      .
+           subtract  w-clc-tbl-scd-wiu    from w-clc-tbl-scd-wap      .
+      *
+           move      w-clc-tbl-scd-ibl    to   w-clc-tbl-scd-wiu      .
+           go to     clc-tbl-scd-250.
+       clc-tbl-scd-250.
+      *                      *-----------------------------------------*
+      *                      * Aggiornamento progressivo ammontari u-  *
+      *                      * tilizzati                               *
+      *                      *-----------------------------------------*
+           add       w-clc-tbl-scd-wap    to   w-clc-tbl-scd-wau      .
+       clc-tbl-scd-260.
+      *                      *-----------------------------------------*
+      *                      * Eventuale diminuzione dell'acconto      *
+      *                      *-----------------------------------------*
+           if        w-clc-tbl-scd-dda
+                    (w-clc-tbl-scd-wip)   not  = 02
+                     go to clc-tbl-scd-270.
+           subtract  w-clc-tbl-scd-acc    from w-clc-tbl-scd-wap      .
+       clc-tbl-scd-270.
+      *                      *-----------------------------------------*
+      *                      * Test se l'ammontare cosi' determinato   *
+      *                      * risulta uguale o minore di zero         *
+      *                      *-----------------------------------------*
+           if        w-clc-tbl-scd-wap    >    zero
+                     go to clc-tbl-scd-280.
+      *                          *-------------------------------------*
+      *                          * Se si' : si ignora il codice di pa- *
+      *                          * gamento in esame e si passa a trat- *
+      *                          * tare il codice pagamento successivo *
+      *                          * senza alcuna segnalazione           *
+      *                          *-------------------------------------*
+           go to     clc-tbl-scd-590.
+       clc-tbl-scd-280.
+      *                  *---------------------------------------------*
+      *                  * Determinazione delle scadenze relative al   *
+      *                  * codice di pagamento in esame sul totale am- *
+      *                  * montare appena determinato                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Numero scadenze che devono essere cal-  *
+      *                      * colate per il codice pagamento in esa-  *
+      *                      * me in area di comodo                    *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-nsp
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-wnd      .
+      *                      *-----------------------------------------*
+      *                      * Inizializzazione numero di scadenze gia'*
+      *                      * calcolate per il codice pagamento in e- *
+      *                      * same                                    *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wnc      .
+      *                      *-----------------------------------------*
+      *                      * Inizializzazione parte dell'ammontare   *
+      *                      * gia' distribuito tra le scadenze per    *
+      *                      * il singolo codice di pagamento          *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wad      .
+      *                      *-----------------------------------------*
+      *                      * Determinazione importo di ogni scadenza *
+      *                      * tranne l'ultima                         *
+      *                      *-----------------------------------------*
+           divide    w-clc-tbl-scd-wnd    into w-clc-tbl-scd-wap
+                                        giving w-clc-tbl-scd-wis      .
+      *                      *-----------------------------------------*
+      *                      * Eventuale ridefinizione di giorno e me- *
+      *                      * se prefissati, se utilizzati successi-  *
+      *                      * vamente                                 *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-dpm
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-nnm      .
+           move      w-clc-tbl-scd-dpg
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-nng      .
+      *                      *-----------------------------------------*
+      *                      * Inizializzazione decorrenza prima sca-  *
+      *                      * denza in termini di giorni dalla data   *
+      *                      * documento                               *
+      *                      *-----------------------------------------*
+           if        w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    01 or
+                     w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    02 or
+                     w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    03
+                     move  0000           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    04
+                     move  0015           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    05
+                     move  0030           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    06
+                     move  0045           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    07
+                     move  0060           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    08
+                     move  0090           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    09
+                     move  0120           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    10
+                     move  0150           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    11
+                     move  0180           to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    12
+                     move  w-clc-tbl-scd-nnn
+                                          to   w-clc-tbl-scd-wpd
+           else      move  0030           to   w-clc-tbl-scd-wpd      .
+       clc-tbl-scd-290.
+      *                      *-----------------------------------------*
+      *                      * Ciclo per le scadenze                   *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Incremento numero di scadenze gia'  *
+      *                          * calcolate per il codice di paga-    *
+      *                          * mento in esame                      *
+      *                          *-------------------------------------*
+           add       1                    to   w-clc-tbl-scd-wnc      .
+      *                          *-------------------------------------*
+      *                          * Se oltre numero di scadenze che de- *
+      *                          * vono essere calcolate per il codice *
+      *                          * pagamento in esame : riciclo su co- *
+      *                          * dice di pagamento successivo        *
+      *                          *-------------------------------------*
+           if        w-clc-tbl-scd-wnc    >    w-clc-tbl-scd-wnd
+                     go to clc-tbl-scd-590.
+      *                          *-------------------------------------*
+      *                          * Incremento numero totale scadenze   *
+      *                          * calcolate                           *
+      *                          *-------------------------------------*
+           add       1                    to   w-clc-tbl-scd-nts      .
+       clc-tbl-scd-300.
+      *                          *-------------------------------------*
+      *                          * Bufferizzazione in tabella scadenze *
+      *                          * calcolate                           *
+      *                          *-------------------------------------*
+       clc-tbl-scd-310.
+      *                              *---------------------------------*
+      *                              * Tipo di scadenza                *
+      *                              *---------------------------------*
+      *                                  *-----------------------------*
+      *                                  * Da codice di pagamento      *
+      *                                  *-----------------------------*
+           move      w-clc-tbl-scd-tpg
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-tds
+                                              (w-clc-tbl-scd-nts)     .
+       clc-tbl-scd-320.
+      *                              *---------------------------------*
+      *                              * Data di scadenza                *
+      *                              *---------------------------------*
+      *                                  *-----------------------------*
+      *                                  * Deviazione in funzione del  *
+      *                                  * numero giorni di decorrenza *
+      *                                  *-----------------------------*
+           if        w-clc-tbl-scd-wpd    =    0000
+                     go to clc-tbl-scd-330
+           else      go to clc-tbl-scd-380.
+       clc-tbl-scd-330.
+      *                                  *-----------------------------*
+      *                                  * Se numero giorni di decor-  *
+      *                                  * renza pari a 0000 : signi-  *
+      *                                  * fica che il numero di sca-  *
+      *                                  * denze per il codice di pa-  *
+      *                                  * gamento in esame e' pari a  *
+      *                                  * 1, e che la decorrenza puo' *
+      *                                  * essere solo tra le seguen-  *
+      *                                  * ti :                        *
+      *                                  * - manuale                   *
+      *                                  * - ad una data prefissata    *
+      *                                  * - a vista                   *
+      *                                  *-----------------------------*
+      *                                      *-------------------------*
+      *                                      * Deviazione a seconda    *
+      *                                      * del caso                *
+      *                                      *-------------------------*
+           if        w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    01
+                     go to clc-tbl-scd-340
+           else if   w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)   =    02
+                     go to clc-tbl-scd-350
+           else      go to clc-tbl-scd-360.
+       clc-tbl-scd-340.
+      *                                      *-------------------------*
+      *                                      * Se decorrenza manuale   *
+      *                                      *-------------------------*
+      *                                          *---------------------*
+      *                                          * Dalla data scadenza *
+      *                                          * manuale passata in  *
+      *                                          * input come parame-  *
+      *                                          * tro                 *
+      *                                          *---------------------*
+           move      w-clc-tbl-scd-ddp    to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-nts)     .
+           go to     clc-tbl-scd-370.
+       clc-tbl-scd-350.
+      *                                      *-------------------------*
+      *                                      * Se decorrenza ad una    *
+      *                                      * data prefissata gg.mm   *   
+      *                                      *-------------------------*
+      *                                          *---------------------*
+      *                                          * Si prende la data   *
+      *                                          * del documento       *
+      *                                          *---------------------*
+           move      w-clc-tbl-scd-ddo    to   w-clc-tbl-scd-wdt      .
+      *                                          *---------------------*
+      *                                          * A questa si sosti-  *
+      *                                          * tuiscono il mese ed *
+      *                                          * il giorno con quel- *
+      *                                          * li prefissati       *
+      *                                          *---------------------*
+           move      w-clc-tbl-scd-dpm
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-wdm      .
+           move      w-clc-tbl-scd-dpg
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-wdg      .
+      *                                          *---------------------*
+      *                                          * Se la data ottenuta *
+      *                                          * in tal modo risulta *
+      *                                          * anteriore alla data *
+      *                                          * del documento, la   *
+      *                                          * si sposta in avanti *
+      *                                          * di un anno          *
+      *                                          *---------------------*
+           if        w-clc-tbl-scd-wdt    <    w-clc-tbl-scd-ddo
+                     add   1              to   w-clc-tbl-scd-wds      .
+           move      w-clc-tbl-scd-wdt    to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-nts)     .
+           go to     clc-tbl-scd-370.
+       clc-tbl-scd-360.
+      *                                      *-------------------------*
+      *                                      * Se decorrenza a vista   *
+      *                                      *-------------------------*
+      *                                          *---------------------*
+      *                                          * Data scadenza a ze- *
+      *                                          * ro                  *
+      *                                          *---------------------*
+           move      zero                 to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-nts)     .
+       clc-tbl-scd-370.
+      *                                      *-------------------------*
+      *                                      * A determinazione della  *
+      *                                      * causale contabile senza *
+      *                                      * tenere conto di eventu- *
+      *                                      * ali mesi esclusi        *
+      *                                      *-------------------------*
+           go to     clc-tbl-scd-505.
+       clc-tbl-scd-380.
+      *                                  *-----------------------------*
+      *                                  * Se numero giorni di decor-  *
+      *                                  * renza diverso da 0000: si-  *
+      *                                  * gnifica che il calcolo del- *
+      *                                  * la data scadenza deve esse- *
+      *                                  * re eseguito, e che inoltre  *
+      *                                  * si deve tenere conto di e-  *
+      *                                  * ventuali mesi esclusi       *
+      *                                  *-----------------------------*
+      *                                      *-------------------------*
+      *                                      * Calcolo data scadenza   *
+      *                                      *-------------------------*
+      *                                          *---------------------*
+      *                                          * Data documento in   *
+      *                                          * area di comodo ri-  *
+      *                                          * definita            *
+      *                                          *---------------------*
+           move      w-clc-tbl-scd-ddo    to   w-clc-tbl-scd-wdt      .
+      *                                          *---------------------*
+      *                                          * Nel caso specifico  *
+      *                                          * di decorrenza sca-  *
+      *                                          * denza a 'n' giorni, *
+      *                                          * si ricorre al cal-  *
+      *                                          * colo matematico di  *
+      *                                          * somma dei giorni    *
+      *                                          * alla data in input  *
+      *                                          *---------------------*
+           if        w-clc-tbl-scd-dps
+                    (w-clc-tbl-scd-wip)    not  = 12
+                     go to clc-tbl-scd-385.
+      *                                              *-----------------*
+      *                                              * Incremento del- *
+      *                                              * la data di 'n'  *
+      *                                              * giorni          *
+      *                                              *-----------------*
+           move      w-clc-tbl-scd-wdt    to   w-clc-tbl-scd-dtb      .
+           move      w-clc-tbl-scd-wpd    to   w-clc-tbl-scd-ngi      .
+           perform   clc-tbl-scd-nrg-000  thru clc-tbl-scd-nrg-999    .
+           move      w-clc-tbl-scd-dti    to   w-clc-tbl-scd-wdt      .
+      *                                              *-----------------*
+      *                                              * Proseguimento   *
+      *                                              *-----------------*
+           go to     clc-tbl-scd-430.
+       clc-tbl-scd-385.
+      *                                          *---------------------*
+      *                                          * Determinazione del  *
+      *                                          * numero di mesi in-  *
+      *                                          * teri e del numero   *
+      *                                          * di giorni residui   *
+      *                                          * rispetto al numero  *
+      *                                          * di mesi interi, in  *
+      *                                          * corrispondono alla  *
+      *                                          * decorrenza per la   *
+      *                                          * scadenza in corso   *
+      *                                          * di trattamento e-   *
+      *                                          * spressa in termini  *
+      *                                          * di giorni.          *
+      *                                          * Nota : Secondo la   *
+      *                                          * struttura del codi- *
+      *                                          * ce di pagamento, il *
+      *                                          * numero di giorni    *
+      *                                          * residui puo' essere *
+      *                                          * solo pari a zero o  *
+      *                                          * a 15.               *
+      *                                          *---------------------*
+           divide    30                   into w-clc-tbl-scd-wpd
+                                        giving w-clc-tbl-scd-wpm
+                                     remainder w-clc-tbl-scd-wpg      .
+       clc-tbl-scd-390.
+      *                                          *---------------------*
+      *                                          * Incremento su data  *
+      *                                          * documento in area   *
+      *                                          * di comodo ridefini- *
+      *                                          * ta per il numero di *
+      *                                          * mesi interi deter-  *
+      *                                          * minato              *
+      *                                          *---------------------*
+           if        w-clc-tbl-scd-wpm    =    zero
+                     go to clc-tbl-scd-400.
+           add       1                    to   w-clc-tbl-scd-wdm      .
+           if        w-clc-tbl-scd-wdm    >    12
+                     add   1              to   w-clc-tbl-scd-wds
+                     move  1              to   w-clc-tbl-scd-wdm      .
+           subtract  1                    from w-clc-tbl-scd-wpm      .
+           go to     clc-tbl-scd-390.
+       clc-tbl-scd-400.
+      *                                          *---------------------*
+      *                                          * Trattamento degli   *
+      *                                          * eventuali giorni    *
+      *                                          * residui rispetto al *
+      *                                          * al numero di mesi   *
+      *                                          * interi              *
+      *                                          *---------------------*
+      *                                              *-----------------*
+      *                                              * Test se esisto- *
+      *                                              * no giorni resi- *
+      *                                              * dui             *
+      *                                              *-----------------*
+           if        w-clc-tbl-scd-wpg    =    zero
+                     go to clc-tbl-scd-430.
+      *                                              *-----------------*
+      *                                              * Deviazione in   *
+      *                                              * funzione del    *
+      *                                              * giorno espres-  *
+      *                                              * so nella data   *
+      *                                              * documento in a- *
+      *                                              * rea di comodo   *
+      *                                              * ridefinita      *
+      *                                              *-----------------*
+           if        w-clc-tbl-scd-wdg    >    15
+                     go to clc-tbl-scd-420.
+       clc-tbl-scd-410.
+      *                                              *-----------------*
+      *                                              * Se il giorno e' *
+      *                                              * compreso tra 1  *
+      *                                              * e 15, si incre- *
+      *                                              * menta il giorno *
+      *                                              * di 15, lascian- *
+      *                                              * do inalterato   *
+      *                                              * il mese         *
+      *                                              *-----------------*
+           add       15                   to   w-clc-tbl-scd-wdg      .
+           go to     clc-tbl-scd-430.
+       clc-tbl-scd-420.
+      *                                              *-----------------*
+      *                                              * Se il giorno e' *
+      *                                              * maggiore di 15, *
+      *                                              * si decrementa   *
+      *                                              * il giorno di 15 *
+      *                                              * incrementando   *
+      *                                              * il mese di 1    *
+      *                                              *-----------------*
+           subtract  15                   from w-clc-tbl-scd-wdg      .
+           add       1                    to   w-clc-tbl-scd-wdm      .
+           if        w-clc-tbl-scd-wdm    >    12
+                     add   1              to   w-clc-tbl-scd-wds
+                     move  1              to   w-clc-tbl-scd-wdm      .
+       clc-tbl-scd-430.
+      *                                          *---------------------*
+      *                                          * Rifinizione del va- *
+      *                                          * lore per il giorno  *
+      *                                          * di scadenza         *
+      *                                          *---------------------*
+       clc-tbl-scd-440.
+      *                                              *-----------------*
+      *                                              * Determinazione  *
+      *                                              * numero giorni   *
+      *                                              * di febbraio se  *
+      *                                              * mese pari a 02  *
+      *                                              *-----------------*
+           if        w-clc-tbl-scd-wdm    not  = 02
+                     go to clc-tbl-scd-450.
+           move      w-clc-tbl-scd-wds    to   w-clc-tbl-scd-wt5      .
+           add       1900                 to   w-clc-tbl-scd-wt5      .
+           divide    4                    into w-clc-tbl-scd-wt5
+                                        giving w-clc-tbl-scd-wt6
+                                     remainder w-clc-tbl-scd-wt7      .
+           if        w-clc-tbl-scd-wt7    not  = zero
+                     move  28             to   w-clc-tbl-scd-wt2 (2)
+                     go to clc-tbl-scd-450.
+           divide    400                  into w-clc-tbl-scd-wt5
+                                        giving w-clc-tbl-scd-wt6
+                                     remainder w-clc-tbl-scd-wt7      .
+           if        w-clc-tbl-scd-wt7    =    zero
+                     move  29             to   w-clc-tbl-scd-wt2 (2)
+                     go to clc-tbl-scd-450.
+           divide    100                  into w-clc-tbl-scd-wt5
+                                        giving w-clc-tbl-scd-wt6
+                                     remainder w-clc-tbl-scd-wt7      .
+           if        w-clc-tbl-scd-wt7    =    zero
+                     move  28             to   w-clc-tbl-scd-wt2 (2)
+           else      move  29             to   w-clc-tbl-scd-wt2 (2)  .
+       clc-tbl-scd-450.
+      *                                              *-----------------*
+      *                                              * Deviazione in   *
+      *                                              * funzione del    *
+      *                                              * tipo di scaden- *
+      *                                              * za nel mese     *
+      *                                              *-----------------*
+           if        w-clc-tbl-scd-tsm
+                    (w-clc-tbl-scd-wip)   =    01
+                     go to clc-tbl-scd-460
+           else if   w-clc-tbl-scd-tsm
+                    (w-clc-tbl-scd-wip)   =    02 or
+                     w-clc-tbl-scd-tsm
+                    (w-clc-tbl-scd-wip)   =    04
+                     go to clc-tbl-scd-470
+           else if   w-clc-tbl-scd-tsm
+                    (w-clc-tbl-scd-wip)   =    03
+                     go to clc-tbl-scd-480.
+       clc-tbl-scd-460.
+      *                                              *-----------------*
+      *                                              * Se il tipo di   *
+      *                                              * scadenza  nel   *
+      *                                              * mese e' : data  *
+      *                                              * documento       *
+      *                                              *-----------------*
+      *                                                  *-------------*
+      *                                                  * Se il gior- *
+      *                                                  * no calcola- *
+      *                                                  * to supera   *
+      *                                                  * l'ultimo    *
+      *                                                  * giorno del  *
+      *                                                  * mese, lo si *
+      *                                                  * riporta al- *
+      *                                                  * l'ultimo    *
+      *                                                  * giorno del  *
+      *                                                  * mese        *
+      *                                                  *-------------*
+           if        w-clc-tbl-scd-wdg    not  > w-clc-tbl-scd-wt2
+                                                (w-clc-tbl-scd-wdm)
+                     go to clc-tbl-scd-462.
+           move      w-clc-tbl-scd-wt2
+                    (w-clc-tbl-scd-wdm)   to   w-clc-tbl-scd-wdg      .
+       clc-tbl-scd-462.
+      *                                                  *-------------*
+      *                                                  * A tratta-   *
+      *                                                  * mento mesi  *
+      *                                                  * sclusi      *
+      *                                                  *-------------*
+           go to     clc-tbl-scd-490.
+       clc-tbl-scd-470.
+      *                                              *-----------------*
+      *                                              * Se il tipo di   *
+      *                                              * scadenza  nel   *
+      *                                              * mese e' : fine  *
+      *                                              * mese            *
+      *                                              *-----------------*
+      *                                                  *-------------*
+      *                                                  * Forzatura   *
+      *                                                  * del giorno  *
+      *                                                  * di fine me- *
+      *                                                  * se          *
+      *                                                  *-------------*
+           move      w-clc-tbl-scd-wt2
+                    (w-clc-tbl-scd-wdm)   to   w-clc-tbl-scd-wdg      .
+      *                                                  *-------------*
+      *                                                  * Se il tipo  *
+      *                                                  * scadenza    *
+      *                                                  * nel mese    *
+      *                                                  * prevede     *
+      *                                                  * anche il    *
+      *                                                  * giorno fis- *
+      *                                                  * so, si pro- *
+      *                                                  * segue       *
+      *                                                  *-------------*
+           if        w-clc-tbl-scd-tsm
+                    (w-clc-tbl-scd-wip)   =    04
+                     go to clc-tbl-scd-480.
+       clc-tbl-scd-474.
+      *                                                  *-------------*
+      *                                                  * A tratta-   *
+      *                                                  * mento mesi  *
+      *                                                  * sclusi      *
+      *                                                  *-------------*
+           go to     clc-tbl-scd-490.
+       clc-tbl-scd-480.
+      *                                              *-----------------*
+      *                                              * Se il tipo di   *
+      *                                              * scadenza  nel   *
+      *                                              * mese e' : gior- *
+      *                                              * no fisso nel    *
+      *                                              * mese            *
+      *                                              *-----------------*
+      *                                                  *-------------*
+      *                                                  * Deviazione  *
+      *                                                  * secondo il  *
+      *                                                  * giorno di   *
+      *                                                  * scadenza    *
+      *                                                  * sino a qui  *
+      *                                                  * calcolato   *
+      *                                                  *-------------*
+           if        w-clc-tbl-scd-wdg    >    w-clc-tbl-scd-gfs
+                                              (w-clc-tbl-scd-wip)
+                     go to clc-tbl-scd-484.
+       clc-tbl-scd-482.
+      *                                                  *-------------*
+      *                                                  * Se il gior- *
+      *                                                  * no di sca-  *
+      *                                                  * denza sin   *
+      *                                                  * qui calco-  *
+      *                                                  * lato non e' *
+      *                                                  * superiore   *
+      *                                                  * al giorno   *
+      *                                                  * fisso di    *
+      *                                                  * scadenza :  *
+      *                                                  * si forza il *
+      *                                                  * giorno fis- *
+      *                                                  * so di sca-  *
+      *                                                  * denza e si  *
+      *                                                  * passa al    *
+      *                                                  * trattamento *
+      *                                                  * mesi esclu- *
+      *                                                  * si          *
+      *                                                  *-------------*
+           move      w-clc-tbl-scd-gfs
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-wdg      .
+           go to     clc-tbl-scd-490.
+       clc-tbl-scd-484.
+      *                                                  *-------------*
+      *                                                  * Se il gior- *
+      *                                                  * no di sca-  *
+      *                                                  * denza sin   *
+      *                                                  * qui calco-  *
+      *                                                  * lato e' su- *
+      *                                                  * periore al  *
+      *                                                  * giorno fis- *
+      *                                                  * so di sca-  *
+      *                                                  * denza :     *
+      *                                                  * se c'e' un  *
+      *                                                  * eccesso di  *
+      *                                                  * giorni da 1 *
+      *                                                  * a 7 si re-  *
+      *                                                  * gredisce al *
+      *                                                  * giorno fis- *
+      *                                                  * so di sca-  *
+      *                                                  * denza dello *
+      *                                                  * stesso mese *
+      *                                                  * altrimenti  *
+      *                                                  * si forza il *
+      *                                                  * giorno fis- *
+      *                                                  * so di sca-  *
+      *                                                  * denza del   *
+      *                                                  * mese suc-   *
+      *                                                  * cessivo.    *
+      *                                                  * Poi si pas- *
+      *                                                  * sa al trat- *
+      *                                                  * tamento me- *
+      *                                                  * si esclusi  *
+      *                                                  *-------------*
+           move      w-clc-tbl-scd-wdg    to   w-clc-tbl-scd-wc4      .
+           subtract  w-clc-tbl-scd-gfs
+                    (w-clc-tbl-scd-wip)   from w-clc-tbl-scd-wc4      .
+           move      w-clc-tbl-scd-gfs
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-wdg      .
+           if        w-clc-tbl-scd-wc4    not  > 7
+                     go to clc-tbl-scd-490.
+           add       1                    to   w-clc-tbl-scd-wdm      .
+           if        w-clc-tbl-scd-wdm    >    12
+                     add   1              to   w-clc-tbl-scd-wds
+                     move  1              to   w-clc-tbl-scd-wdm      .
+       clc-tbl-scd-490.
+      *                                      *-------------------------*
+      *                                      * Trattamento eventuali   *
+      *                                      * mesi esclusi            *
+      *                                      *-------------------------*
+      *                                          *---------------------*
+      *                                          * Se nessun mese e-   *
+      *                                          * scluso : oltre      *
+      *                                          *---------------------*
+           if        w-clc-tbl-scd-esm    =    01
+                     go to clc-tbl-scd-494.
+      *                                          *---------------------*
+      *                                          * Test se il mese del-*
+      *                                          * la scadenza fin qui *
+      *                                          * calcolato corrispon-*
+      *                                          * de ad uno fra quelli*
+      *                                          * esclusi             *
+      *                                          *---------------------*
+           if        w-clc-tbl-scd-wdm    =    w-clc-tbl-scd-e01
+                     go to clc-tbl-scd-492.
+           if        w-clc-tbl-scd-wdm    =    w-clc-tbl-scd-e02
+                     go to clc-tbl-scd-492.
+           go to     clc-tbl-scd-494.
+       clc-tbl-scd-492.
+      *                                          *---------------------*
+      *                                          * Spostamento della   *
+      *                                          * scadenza di un mese *
+      *                                          * un mese             *
+      *                                          *---------------------*
+           add       1                    to   w-clc-tbl-scd-wdm      .
+           if        w-clc-tbl-scd-wdm    >    12
+                     add   1              to   w-clc-tbl-scd-wds
+                     move  1              to   w-clc-tbl-scd-wdm      .
+      *                                          *---------------------*
+      *                                          * Se la scadenza deve *
+      *                                          * essere spostata ad  *
+      *                                          * un giorno fisso del *
+      *                                          * mese successivo     *
+      *                                          *---------------------*
+           if        w-clc-tbl-scd-esm    =    03
+                     move  w-clc-tbl-scd-alt
+                                          to   w-clc-tbl-scd-wdg      .
+      *                                          *---------------------*
+      *                                          * Se il giorno calco- *
+      *                                          * lato supera l'ultimo*
+      *                                          * giorno del mese, lo *
+      *                                          * si riporta all'ulti-*
+      *                                          * mo giorno del mese  *
+      *                                          *---------------------*
+           if        w-clc-tbl-scd-wdg    not  > w-clc-tbl-scd-wt2
+                                                (w-clc-tbl-scd-wdm)
+                     go to clc-tbl-scd-494.
+           move      w-clc-tbl-scd-wt2
+                    (w-clc-tbl-scd-wdm)   to   w-clc-tbl-scd-wdg      .
+       clc-tbl-scd-494.
+      *                                      *-------------------------*
+      *                                      * Aggiornamento decorren- *
+      *                                      * za per scadenza succes- *
+      *                                      * siva                    *
+      *                                      *                         *
+      *                                      * N.B.: Zona in cui       *
+      *                                      *       implementare      *
+      *                                      *       intervalli di gg  *
+      *                                      *       manuali           *
+      *                                      *-------------------------*
+           if        w-clc-tbl-scd-gdi
+                    (w-clc-tbl-scd-wip)   =    01
+                     add  30              to   w-clc-tbl-scd-wpd
+           else if   w-clc-tbl-scd-gdi
+                    (w-clc-tbl-scd-wip)   =    02
+                     add  15              to   w-clc-tbl-scd-wpd      .
+       clc-tbl-scd-500.
+      *                              *---------------------------------*
+      *                              * Data scadenza calcolata         *
+      *                              *---------------------------------*
+           move      w-clc-tbl-scd-wdt    to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-nts)     .
+       clc-tbl-scd-505.
+      *                              *---------------------------------*
+      *                              * Codice della causale contabile  *
+      *                              * per l'aggiornamento             *
+      *                              *---------------------------------*
+           move      w-clc-tbl-scd-ccp
+                    (w-clc-tbl-scd-wip)   to   w-clc-tbl-scd-ccs
+                                              (w-clc-tbl-scd-nts)     .
+       clc-tbl-scd-510.
+      *                              *---------------------------------*
+      *                              * Importo della scadenza          *
+      *                              *---------------------------------*
+      *                                  *-----------------------------*
+      *                                  * Deviazione a seconda se si  *
+      *                                  * e' sull'ultima scadenza da  *
+      *                                  * calcolare per il codice pa- *
+      *                                  * gamento in esame oppure no  *
+      *                                  *-----------------------------*
+           if        w-clc-tbl-scd-wnc    =    w-clc-tbl-scd-wnd
+                     go to clc-tbl-scd-512
+           else      go to clc-tbl-scd-514.
+       clc-tbl-scd-512.
+      *                                  *-----------------------------*
+      *                                  * Se si e' sull'ultima        *
+      *                                  *-----------------------------*
+           move      w-clc-tbl-scd-wap    to   w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-nts)     .
+           subtract  w-clc-tbl-scd-wad    from w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-nts)     .
+           go to     clc-tbl-scd-520.
+       clc-tbl-scd-514.
+      *                                  *-----------------------------*
+      *                                  * Se non si e' sull'ultima    *
+      *                                  *-----------------------------*
+           move      w-clc-tbl-scd-wis    to   w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-nts)     .
+       clc-tbl-scd-520.
+      *                          *-------------------------------------*
+      *                          * Incremento ammontare gia' distri-   *
+      *                          * buito                               *
+      *                          *-------------------------------------*
+           add       w-clc-tbl-scd-ids
+                    (w-clc-tbl-scd-nts)    to   w-clc-tbl-scd-wad     .
+       clc-tbl-scd-530.
+      *                          *-------------------------------------*
+      *                          * Se la scadenza appena memorizzata   *
+      *                          * e' perfettamente uguale ad una sca- *
+      *                          * denza gia' memorizzata, facendo e-  *
+      *                          * sclusione dell'importo scadenza, si *
+      *                          * elimina la scadenza appena memoriz- *
+      *                          * zata e se ne cumula l'importo sulla *
+      *                          * scadenza gia' memorizzata con gli   *
+      *                          * stessi attributi                    *
+      *                          *-------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-ntw      .
+       clc-tbl-scd-532.
+           add       1                    to   w-clc-tbl-scd-ntw      .
+           if        w-clc-tbl-scd-ntw    <    w-clc-tbl-scd-nts
+                     go to clc-tbl-scd-534
+           else      go to clc-tbl-scd-540.
+       clc-tbl-scd-534.
+           if        w-clc-tbl-scd-tds
+                    (w-clc-tbl-scd-ntw)   =    w-clc-tbl-scd-tds
+                                              (w-clc-tbl-scd-nts) and
+                     w-clc-tbl-scd-dds
+                    (w-clc-tbl-scd-ntw)   =    w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-nts) and
+                     w-clc-tbl-scd-ccs
+                    (w-clc-tbl-scd-ntw)   =    w-clc-tbl-scd-ccs
+                                              (w-clc-tbl-scd-nts)
+                     go to clc-tbl-scd-536
+           else      go to clc-tbl-scd-532.
+       clc-tbl-scd-536.
+           add       w-clc-tbl-scd-ids
+                    (w-clc-tbl-scd-nts)   to   w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-ntw)     .
+           move      zero                 to   w-clc-tbl-scd-tds
+                                              (w-clc-tbl-scd-nts)     .
+           move      zero                 to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-nts)     .
+           move      zero                 to   w-clc-tbl-scd-ccs
+                                              (w-clc-tbl-scd-nts)     .
+           move      zero                 to   w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-nts)     .
+           subtract  1                    from w-clc-tbl-scd-nts      .
+       clc-tbl-scd-540.
+      *                          *-------------------------------------*
+      *                          * Riciclo su prossima scadenza        *
+      *                          *-------------------------------------*
+           go to     clc-tbl-scd-290.
+       clc-tbl-scd-590.
+      *                  *---------------------------------------------*
+      *                  * Riciclo su codice di pagamento successivo   *
+      *                  *---------------------------------------------*
+           go to     clc-tbl-scd-110.
+       clc-tbl-scd-600.
+      *              *-------------------------------------------------*
+      *              * Compattamento della tabella calcolata           *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se numero scadenze calcolate non superiore a*
+      *                  * uno : nessun compattamento                  *
+      *                  *---------------------------------------------*
+           if        w-clc-tbl-scd-nts    not  > 1
+                     go to clc-tbl-scd-999.
+      *                  *---------------------------------------------*
+      *                  * Ordinamento scadenze                        *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wo1      .
+       clc-tbl-scd-610.
+           add       1                    to   w-clc-tbl-scd-wo1      .
+           if        w-clc-tbl-scd-wo1    =    w-clc-tbl-scd-nts
+                     go to clc-tbl-scd-700.
+           if        w-clc-tbl-scd-wo1    >    96
+                     go to clc-tbl-scd-700.
+           move      w-clc-tbl-scd-wo1    to   w-clc-tbl-scd-wo2
+                                               w-clc-tbl-scd-wo3      .
+           move      w-clc-tbl-scd-ets
+                    (w-clc-tbl-scd-wo1)   to   w-clc-tbl-scd-wet      .
+       clc-tbl-scd-620.
+           add       1                    to   w-clc-tbl-scd-wo2      .
+           if        w-clc-tbl-scd-wo2    >    w-clc-tbl-scd-nts
+                     go to clc-tbl-scd-630.
+           if        w-clc-tbl-scd-wo2    >    96
+                     go to clc-tbl-scd-630.
+           if        w-clc-tbl-scd-ets
+                    (w-clc-tbl-scd-wo2)   >    w-clc-tbl-scd-wet
+                     go to clc-tbl-scd-620.
+           move      w-clc-tbl-scd-wo2    to   w-clc-tbl-scd-wo3      .
+           move      w-clc-tbl-scd-ets
+                    (w-clc-tbl-scd-wo2)   to   w-clc-tbl-scd-wet      .
+           go to     clc-tbl-scd-620.
+       clc-tbl-scd-630.
+           move      w-clc-tbl-scd-wo2    to   w-clc-tbl-scd-wo4      .
+           if        w-clc-tbl-scd-wet    >    w-clc-tbl-scd-ets
+                                              (w-clc-tbl-scd-wo4)
+                     go to clc-tbl-scd-610.
+           move      w-clc-tbl-scd-ets
+                    (w-clc-tbl-scd-wo3)   to   w-clc-tbl-scd-wet      .
+           move      w-clc-tbl-scd-ets
+                    (w-clc-tbl-scd-wo4)   to   w-clc-tbl-scd-ets
+                                              (w-clc-tbl-scd-wo3)     .
+           move      w-clc-tbl-scd-wet    to   w-clc-tbl-scd-ets
+                                              (w-clc-tbl-scd-wo4)     .
+           go to     clc-tbl-scd-610.
+       clc-tbl-scd-700.
+      *                  *---------------------------------------------*
+      *                  * Compattamento vero e proprio                *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Azzeramento work per rottura            *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wct      .
+           move      zero                 to   w-clc-tbl-scd-wcd      .
+           move      zero                 to   w-clc-tbl-scd-wcc      .
+      *                      *-----------------------------------------*
+      *                      * Azzeramento contatori                   *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wo1      .
+           move      zero                 to   w-clc-tbl-scd-wo2      .
+       clc-tbl-scd-710.
+           add       1                    to   w-clc-tbl-scd-wo1      .
+           if        w-clc-tbl-scd-wo1    >    w-clc-tbl-scd-nts
+                     go to clc-tbl-scd-750.
+           if        w-clc-tbl-scd-wo1    >    96
+                     go to clc-tbl-scd-750.
+      *                      *-----------------------------------------*
+      *                      * Test se rottura                         *
+      *                      *-----------------------------------------*
+           if        w-clc-tbl-scd-tds
+                    (w-clc-tbl-scd-wo1)   =    w-clc-tbl-scd-wct and
+                     w-clc-tbl-scd-dds
+                    (w-clc-tbl-scd-wo1)   =    w-clc-tbl-scd-wcd and
+                     w-clc-tbl-scd-ccs
+                    (w-clc-tbl-scd-wo1)   =    w-clc-tbl-scd-wcc
+                     go to clc-tbl-scd-730.
+      *                      *-----------------------------------------*
+      *                      * Se rottura                              *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Fine rottura precedente             *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Se prima rottura : oltre        *
+      *                              *---------------------------------*
+           if        w-clc-tbl-scd-wct    =    zero and
+                     w-clc-tbl-scd-wcd    =    zero and
+                     w-clc-tbl-scd-wcc    =    zero
+                     go to clc-tbl-scd-720.
+      *                              *---------------------------------*
+      *                              * Incremento contatore elementi   *
+      *                              *---------------------------------*
+           add       1                    to   w-clc-tbl-scd-wo2      .
+      *                              *---------------------------------*
+      *                              * Bufferizzazione in tabella      *
+      *                              *---------------------------------*
+           move      w-clc-tbl-scd-wct    to   w-clc-tbl-scd-tds
+                                              (w-clc-tbl-scd-wo2)     .
+           move      w-clc-tbl-scd-wcd    to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-wo2)     .
+           move      w-clc-tbl-scd-wcc    to   w-clc-tbl-scd-ccs
+                                              (w-clc-tbl-scd-wo2)     .
+           move      w-clc-tbl-scd-wci    to   w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-wo2)     .
+       clc-tbl-scd-720.
+      *                          *-------------------------------------*
+      *                          * Inizio nuova rottura                *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Aggiornamento area rottura      *
+      *                              *---------------------------------*
+           move      w-clc-tbl-scd-tds
+                    (w-clc-tbl-scd-wo1)   to   w-clc-tbl-scd-wct      .
+           move      w-clc-tbl-scd-dds
+                    (w-clc-tbl-scd-wo1)   to   w-clc-tbl-scd-wcd      .
+           move      w-clc-tbl-scd-ccs
+                    (w-clc-tbl-scd-wo1)   to   w-clc-tbl-scd-wcc      .
+      *                              *---------------------------------*
+      *                              * Normalizzazione importo scadenza*
+      *                              *---------------------------------*
+           move      zero                 to   w-clc-tbl-scd-wci      .
+       clc-tbl-scd-730.
+      *                      *-----------------------------------------*
+      *                      * Se non rottura                          *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Aggiornamento importo scadenza      *
+      *                          *-------------------------------------*
+           add       w-clc-tbl-scd-ids
+                    (w-clc-tbl-scd-wo1)   to   w-clc-tbl-scd-wci      .
+      *                      *-----------------------------------------*
+      *                      * Riciclo su scansione tabella            *
+      *                      *-----------------------------------------*
+           go to     clc-tbl-scd-710.
+       clc-tbl-scd-750.
+      *                      *-----------------------------------------*
+      *                      * Fine ultima rottura                     *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Incremento contatore elementi       *
+      *                          *-------------------------------------*
+           add       1                    to   w-clc-tbl-scd-wo2      .
+      *                          *-------------------------------------*
+      *                          * Bufferizzazione in tabella          *
+      *                          *-------------------------------------*
+           move      w-clc-tbl-scd-wct    to   w-clc-tbl-scd-tds
+                                              (w-clc-tbl-scd-wo2)     .
+           move      w-clc-tbl-scd-wcd    to   w-clc-tbl-scd-dds
+                                              (w-clc-tbl-scd-wo2)     .
+           move      w-clc-tbl-scd-wcc    to   w-clc-tbl-scd-ccs
+                                              (w-clc-tbl-scd-wo2)     .
+           move      w-clc-tbl-scd-wci    to   w-clc-tbl-scd-ids
+                                              (w-clc-tbl-scd-wo2)     .
+      *                      *-----------------------------------------*
+      *                      * Aggiornamento numero elementi in tabella*
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-wo2    to   w-clc-tbl-scd-nts      .
+       clc-tbl-scd-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Calcolo tabella scadenze                                  *
+      *    *                                                           *
+      *    * Sub-routine di incremento data + giorni                   *
+      *    *-----------------------------------------------------------*
+       clc-tbl-scd-nrg-000.
+      *              *-------------------------------------------------*
+      *              * Data base in data in output                     *
+      *              *-------------------------------------------------*
+           move      w-clc-tbl-scd-dtb    to   w-clc-tbl-scd-dti      .
+      *              *-------------------------------------------------*
+      *              * Se numero giorni di incremento a zero : uscita  *
+      *              *-------------------------------------------------*
+           if        w-clc-tbl-scd-ngi    =    zero
+                     go to clc-tbl-scd-nrg-999.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di primo passaggio         *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-clc-tbl-scd-fpp      .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione progressivo giorni utilizzati  *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-clc-tbl-scd-pgu      .
+       clc-tbl-scd-nrg-100.
+      *              *-------------------------------------------------*
+      *              * Ciclo di determinazione                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Determinazione data di fine mese            *
+      *                  *---------------------------------------------*
+           move      w-clc-tbl-scd-dti    to   s-dat                  .
+           move      31                   to   s-gio                  .
+       clc-tbl-scd-nrg-110.
+           move      "CD"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-sts                not  = spaces
+                     subtract 1           from s-gio
+                     go to clc-tbl-scd-nrg-110.
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento data incrementata             *
+      *                  *---------------------------------------------*
+           move      s-dat                to   w-clc-tbl-scd-dti      .
+      *                  *---------------------------------------------*
+      *                  * Determinazione numero giorni utilizzati     *
+      *                  *---------------------------------------------*
+       clc-tbl-scd-nrg-120.
+      *                      *-----------------------------------------*
+      *                      * Deviazione a seconda che sia il primo   *
+      *                      * passaggio o no                          *
+      *                      *-----------------------------------------*
+           if        w-clc-tbl-scd-fpp    =    spaces
+                     go to clc-tbl-scd-nrg-122
+           else      go to clc-tbl-scd-nrg-124.
+       clc-tbl-scd-nrg-122.
+      *                      *-----------------------------------------*
+      *                      * Primo passaggio                         *
+      *                      *-----------------------------------------*
+           move      "#"                  to   w-clc-tbl-scd-fpp      .
+           subtract  w-clc-tbl-scd-dbg    from w-clc-tbl-scd-dig
+                                        giving w-clc-tbl-scd-ngu      .
+           go to     clc-tbl-scd-nrg-130.
+       clc-tbl-scd-nrg-124.
+      *                      *-----------------------------------------*
+      *                      * Passaggio successivo al primo           *
+      *                      *-----------------------------------------*
+           move      w-clc-tbl-scd-dig    to   w-clc-tbl-scd-ngu      .
+           go to     clc-tbl-scd-nrg-130.
+       clc-tbl-scd-nrg-130.
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento progressivo giorni utilizzati *
+      *                  *---------------------------------------------*
+           add       w-clc-tbl-scd-ngu    to   w-clc-tbl-scd-pgu      .
+      *                  *---------------------------------------------*
+      *                  * Se progressivo giorni utilizzati superiore  *
+      *                  * al numero giorni di incremento richiesti :  *
+      *                  * a fine ciclo                                *
+      *                  *---------------------------------------------*
+           if        w-clc-tbl-scd-pgu    not  < w-clc-tbl-scd-ngi
+                     go to clc-tbl-scd-nrg-150.
+      *                  *---------------------------------------------*
+      *                  * Incremento mese/anno                        *
+      *                  *---------------------------------------------*
+           add       1                    to   w-clc-tbl-scd-dim      .
+           if        w-clc-tbl-scd-dim    >    12
+                     move  1              to   w-clc-tbl-scd-dim
+                     add   1              to   w-clc-tbl-scd-dia      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     clc-tbl-scd-nrg-100.
+       clc-tbl-scd-nrg-150.
+      *              *-------------------------------------------------*
+      *              * Fine ciclo                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Determinazione numero giorni in esubero ri- *
+      *                  * spetto a quelli richiesti                   *
+      *                  *---------------------------------------------*
+           subtract  w-clc-tbl-scd-ngi    from w-clc-tbl-scd-pgu
+                                        giving w-clc-tbl-scd-ngu      .
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento giorno della data incrementa- *
+      *                  * ta                                          *
+      *                  *---------------------------------------------*
+           subtract  w-clc-tbl-scd-ngu    from w-clc-tbl-scd-dig      .
+       clc-tbl-scd-nrg-999.
+           exit.
+

@@ -1,0 +1,1793 @@
+      *    *===========================================================*
+      *    * Input procedure per sort                                  *
+      *    *-----------------------------------------------------------*
+       stp-srt-inp-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione del tipo ordinamento anagrafica    *
+      *              * fornitori e dei selettori per la scansione del- *
+      *              * anagrafica fornitori                            *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-srt-ord-fnt          .
+           move      zero                 to   w-srt-cof-min          .
+           move      zero                 to   w-srt-cof-max          .
+           move      spaces               to   w-srt-rsf-min          .
+           move      spaces               to   w-srt-rsf-max          .
+           move      spaces               to   w-srt-mnf-min          .
+           move      spaces               to   w-srt-mnf-max          .
+      *              *-------------------------------------------------*
+      *              * Test sul tipo ordinamento stampa                *
+      *              *-------------------------------------------------*
+           if        rr-tip-ors           =    01
+                     go to stp-srt-inp-020.
+       stp-srt-inp-010.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento stampa per altra anagrafica      *
+      *              *-------------------------------------------------*
+           move      rr-tip-ocp           to   w-srt-ord-fnt          .
+           move      zero                 to   w-srt-cof-min          .
+           move      9999999              to   w-srt-cof-max          .
+           move      spaces               to   w-srt-rsf-min          .
+           move      all "z"              to   w-srt-rsf-max          .
+           move      spaces               to   w-srt-mnf-min          .
+           move      all "z"              to   w-srt-mnf-max          .
+      *                  *---------------------------------------------*
+      *                  * A inizio ciclo di scansione                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-100.
+       stp-srt-inp-020.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento stampa per fornitore             *
+      *              *-------------------------------------------------*
+           move      rr-ord-ana-fnt       to   w-srt-ord-fnt          .
+           move      rr-sel-fnt-coi       to   w-srt-cof-min          .
+           move      rr-sel-fnt-cof       to   w-srt-cof-max          .
+           move      rr-sel-fnt-rsi       to   w-srt-rsf-min          .
+           move      rr-sel-fnt-rsf       to   w-srt-rsf-max          .
+           move      rr-sel-fnt-mni       to   w-srt-mnf-min          .
+           move      rr-sel-fnt-mnf       to   w-srt-mnf-max          .
+      *                  *---------------------------------------------*
+      *                  * A inizio ciclo di scansione                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-100.
+       stp-srt-inp-100.
+      *              *-------------------------------------------------*
+      *              * Inizio ciclo di scansione archivio fornitori    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del tipo ordinamento *
+      *                  * fornitori                                   *
+      *                  *---------------------------------------------*
+           if        w-srt-ord-fnt        =    01
+                     go to stp-srt-inp-110
+           else if   w-srt-ord-fnt        =    02
+                     go to stp-srt-inp-120
+           else if   w-srt-ord-fnt        =    03
+                     go to stp-srt-inp-130.
+       stp-srt-inp-110.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per ragione sociale    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Start per ragione sociale in uppercase      *
+      *                  *---------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "RAGKEY    "         to   f-key                  .
+           move      w-srt-rsf-min        to   rf-dcf-rag-key         .
+           move      zero                 to   rf-dcf-cod-fnt         .
+           move      spaces               to   rf-dcf-dpz-fnt         .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *                      *-----------------------------------------*
+      *                      * Se Start errata : ad uscita             *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A read-next                                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-200.
+       stp-srt-inp-120.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per codice             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Start per codice                            *
+      *                  *---------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "CODFNT    "         to   f-key                  .
+           move      w-srt-cof-min        to   rf-dcf-cod-fnt         .
+           move      spaces               to   rf-dcf-dpz-fnt         .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *                      *-----------------------------------------*
+      *                      * Se Start errata : ad uscita             *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A read-next                                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-200.
+       stp-srt-inp-130.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per mnemonico          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Start per mnemonico su archivio [fnt]       *
+      *                  *---------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "CODMNE    "         to   f-key                  .
+           move      w-srt-mnf-min        to   rf-fnt-cod-mne         .
+           move      zero                 to   rf-fnt-cod-fnt         .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+      *                      *-----------------------------------------*
+      *                      * Se Start errata : ad uscita             *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A read-next                                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-200.
+       stp-srt-inp-200.
+      *              *-------------------------------------------------*
+      *              * Read-next su anagrafica fornitori               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Indicatore di programma in esecuzione       *
+      *                  *---------------------------------------------*
+           move      "IE"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del tipo ordinamento *
+      *                  * fornitori                                   *
+      *                  *---------------------------------------------*
+           if        w-srt-ord-fnt        =    01
+                     go to stp-srt-inp-210
+           else if   w-srt-ord-fnt        =    02
+                     go to stp-srt-inp-210
+           else if   w-srt-ord-fnt        =    03
+                     go to stp-srt-inp-230.
+       stp-srt-inp-210.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per ragione sociale o  *
+      *              * codice                                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Lettura sequenziale archivio [dcf]          *
+      *                  *---------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *                      *-----------------------------------------*
+      *                      * Se lettura errata : ad uscita           *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A test-max                                  *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-300.
+       stp-srt-inp-230.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per mnemonico          *
+      *              * codice                                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Lettura sequenziale archivio [fnt]          *
+      *                  *---------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+      *                      *-----------------------------------------*
+      *                      * Se lettura errata : ad uscita           *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A test-max                                  *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-300.
+       stp-srt-inp-300.
+      *              *-------------------------------------------------*
+      *              * Test-max su anagrafica fornitori                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del tipo ordinamento *
+      *                  * fornitori                                   *
+      *                  *---------------------------------------------*
+           if        w-srt-ord-fnt        =    01
+                     go to stp-srt-inp-310
+           else if   w-srt-ord-fnt        =    02
+                     go to stp-srt-inp-320
+           else if   w-srt-ord-fnt        =    03
+                     go to stp-srt-inp-330.
+       stp-srt-inp-310.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per ragione sociale    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su ragione sociale in chiave           *
+      *                  *---------------------------------------------*
+           if        rf-dcf-rag-key       >    w-srt-rsf-max
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A selezioni                                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-400.
+       stp-srt-inp-320.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per codice             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su codice                              *
+      *                  *---------------------------------------------*
+           if        rf-dcf-cod-fnt       >    w-srt-cof-max
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A selezioni                                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-400.
+       stp-srt-inp-330.
+      *              *-------------------------------------------------*
+      *              * Se ordinamento fornitori per mnemonico          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su mnemonico                           *
+      *                  *---------------------------------------------*
+           if        rf-fnt-cod-mne       >    w-srt-mnf-max
+                     go to stp-srt-inp-900.
+      *                  *---------------------------------------------*
+      *                  * A selezioni                                 *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-400.
+       stp-srt-inp-400.
+      *              *-------------------------------------------------*
+      *              * Selezioni su anagrafica fornitori               *
+      *              *-------------------------------------------------*
+           perform   stp-srt-inp-sel-000  thru stp-srt-inp-sel-999    .
+      *                  *---------------------------------------------*
+      *                  * Test sul flag di uscita dalla routine di    *
+      *                  * selezione                                   *
+      *                  *---------------------------------------------*
+           if        w-srt-sel-rec        not  = spaces
+                     go to stp-srt-inp-200.
+       stp-srt-inp-500.
+      *              *-------------------------------------------------*
+      *              * Selezioni supplementari su anagrafica fornitori *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Eventuale normalizzazione status            *
+      *                  *---------------------------------------------*
+           if        rf-dcf-sta-tus       not  numeric
+                     move  01             to   rf-dcf-sta-tus         .
+      *                  *---------------------------------------------*
+      *                  * Subroutine                                  *
+      *                  *---------------------------------------------*
+           perform   stp-srt-inp-ssu-000  thru stp-srt-inp-ssu-999    .
+      *                  *---------------------------------------------*
+      *                  * Test sul flag di uscita dalla routine di    *
+      *                  * selezione                                   *
+      *                  *---------------------------------------------*
+           if        w-srt-sel-rec        not  = spaces
+                     go to stp-srt-inp-200.
+       stp-srt-inp-600.
+      *              *-------------------------------------------------*
+      *              * Composizione area di sort                       *
+      *              *-------------------------------------------------*
+           perform   stp-srt-inp-cms-000  thru stp-srt-inp-cms-999    .
+       stp-srt-inp-800.
+      *              *-------------------------------------------------*
+      *              * Rilascio del record al sort                     *
+      *              *-------------------------------------------------*
+           release   srt-rec                                          .
+       stp-srt-inp-820.
+      *              *-------------------------------------------------*
+      *              * Composizione area di sort supplementare per le  *
+      *              * dipendenze, solo in caso di ordinamento per co- *
+      *              * dice mnemonico fornitori                        *
+      *              *-------------------------------------------------*
+           perform   stp-srt-inp-csu-000  thru stp-srt-inp-csu-999    .
+       stp-srt-inp-880.
+      *              *-------------------------------------------------*
+      *              * Riciclo ad anagrafica fornitore successiva      *
+      *              *-------------------------------------------------*
+           go to     stp-srt-inp-200.
+       stp-srt-inp-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     stp-srt-inp-999.
+       stp-srt-inp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Input procedure per sort                                  *
+      *    *                                                           *
+      *    * Selezioni su anagrafica fornitori                         *
+      *    *-----------------------------------------------------------*
+       stp-srt-inp-sel-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-srt-sel-rec          .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione chiavi di sort per anagrafiche  *
+      *              * generiche                                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-srt-key-num          .
+           move      spaces               to   w-srt-key-alf          .
+           move      spaces               to   w-srt-key-al2          .
+       stp-srt-inp-sel-010.
+      *              *-------------------------------------------------*
+      *              * In caso di ordinamento fornitori per mnemonico  *
+      *              * si legge la relativa anagrafica [dcf]           *
+      *              *-------------------------------------------------*
+           if        w-srt-ord-fnt        not  = 03
+                     go to stp-srt-inp-sel-050.
+      *                  *---------------------------------------------*
+      *                  * Lettura per codice record [dcf]             *
+      *                  *---------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFNT"             to   f-key                  .
+           move      rf-fnt-cod-fnt       to   rf-dcf-cod-fnt         .
+           move      spaces               to   rf-dcf-dpz-fnt         .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *                      *-----------------------------------------*
+      *                      * Se record [dcf] non trovato : uscita    *
+      *                      * per selezione non superata              *
+      *                      *-----------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-050.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del Tipo ordinamento     *
+      *              * stampa                                          *
+      *              *-------------------------------------------------*
+           if        rr-tip-ors           =    01
+                     go to stp-srt-inp-sel-100
+           else if   rr-tip-ors           =    03
+                     go to stp-srt-inp-sel-300
+           else if   rr-tip-ors           =    04
+                     go to stp-srt-inp-sel-400
+           else if   rr-tip-ors           =    05
+                     go to stp-srt-inp-sel-500
+           else if   rr-tip-ors           =    07
+                     go to stp-srt-inp-sel-a00
+           else if   rr-tip-ors           =    11
+                     go to stp-srt-inp-sel-610
+           else if   rr-tip-ors           =    12
+                     go to stp-srt-inp-sel-620
+           else if   rr-tip-ors           =    13
+                     go to stp-srt-inp-sel-630
+           else if   rr-tip-ors           =    14
+                     go to stp-srt-inp-sel-640
+           else if   rr-tip-ors           =    21   or
+                     rr-tip-ors           =    22
+                     go to stp-srt-inp-sel-710
+           else      go to stp-srt-inp-sel-800.
+       stp-srt-inp-sel-100.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per fornitore                *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-300.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per zona                     *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice zona a zero : uscita per      *
+      *                      * elemento non selezionato                *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-zon       =    zero
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare anagrafica zona     *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCLS    "         to   f-key                  .
+           move      01                   to   rf-yst-tip-cls         .
+           move      rf-dcf-cod-zon       to   rf-yst-cod-cls         .
+           move      "pgm/dcf/fls/ioc/obj/iofyst"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yst                 .
+      *                          *-------------------------------------*
+      *                          * Se record trovato : a selezioni     *
+      *                          *-------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to stp-srt-inp-sel-310.
+      *                          *-------------------------------------*
+      *                          * Se record non trovato               *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Normalizzazione record          *
+      *                              *---------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofyst"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yst                 .
+      *                              *---------------------------------*
+      *                              * Normalizzazione descrizione     *
+      *                              *---------------------------------*
+           move      all "."              to   rf-yst-des-cls         .
+      *                              *---------------------------------*
+      *                              * Se ordinamento per codice : a   *
+      *                              * selezione su solo codice        *
+      *                              *---------------------------------*
+           if        rr-ord-ana-zon       =    01
+                     go to stp-srt-inp-sel-312.
+      *                              *---------------------------------*
+      *                              * Altrimenti                      *
+      *                              *  - Se selezione totale : Ok     *
+      *                              *  - In caso contrario   : Ko     *
+      *                              *---------------------------------*
+           if        rr-ord-ana-zon       =    02
+                     if    rr-sel-zon-dei =    all " " and
+                           rr-sel-zon-def =    all "z"
+                           go to stp-srt-inp-sel-314
+                     else  go to stp-srt-inp-sel-900
+           else if   rr-ord-ana-zon       =    03
+                     if    rr-sel-zon-mni =    all " " and
+                           rr-sel-zon-mnf =    all "z"
+                           go to stp-srt-inp-sel-314
+                     else  go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-310.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica zona            *
+      *                      *-----------------------------------------*
+           if        rf-yst-des-cls       >    rr-sel-zon-def or
+                     rf-yst-des-cls       <    rr-sel-zon-dei
+                     go to stp-srt-inp-sel-900.
+           if        rf-yst-mne-cls       >    rr-sel-zon-mnf or
+                     rf-yst-mne-cls       <    rr-sel-zon-mni
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-312.
+           if        rf-yst-cod-cls       >    rr-sel-zon-cof or
+                     rf-yst-cod-cls       <    rr-sel-zon-coi
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-314.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      rf-yst-cod-cls       to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica                 *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-zon       =    01
+                     move  spaces         to   w-srt-key-alf
+           else if   rr-ord-ana-zon       =    02
+                     move  rf-yst-des-cls to   w-srt-key-alf
+           else if   rr-ord-ana-zon       =    03
+                     move  rf-yst-mne-cls to   w-srt-key-alf          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica 2               *
+      *                          *-------------------------------------*
+           move      spaces               to   w-srt-key-al2          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-400.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per categoria                *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice categoria a zero : uscita per *
+      *                      * elemento non selezionato                *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-cat       =    zero
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare anagrafica catego-  *
+      *                      * ria                                     *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCLS    "         to   f-key                  .
+           move      02                   to   rf-yst-tip-cls         .
+           move      rf-dcf-cod-cat       to   rf-yst-cod-cls         .
+           move      "pgm/dcf/fls/ioc/obj/iofyst"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yst                 .
+      *                          *-------------------------------------*
+      *                          * Se record trovato : a selezioni     *
+      *                          *-------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to stp-srt-inp-sel-410.
+      *                          *-------------------------------------*
+      *                          * Se record non trovato               *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Normalizzazione record          *
+      *                              *---------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofyst"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yst                 .
+      *                              *---------------------------------*
+      *                              * Normalizzazione descrizione     *
+      *                              *---------------------------------*
+           move      all "."              to   rf-yst-des-cls         .
+      *                              *---------------------------------*
+      *                              * Se ordinamento per codice : a   *
+      *                              * selezione su solo codice        *
+      *                              *---------------------------------*
+           if        rr-ord-ana-cat       =    01
+                     go to stp-srt-inp-sel-412.
+      *                              *---------------------------------*
+      *                              * Altrimenti                      *
+      *                              *  - Se selezione totale : Ok     *
+      *                              *  - In caso contrario   : Ko     *
+      *                              *---------------------------------*
+           if        rr-ord-ana-cat       =    02
+                     if    rr-sel-cat-dei =    all " " and
+                           rr-sel-cat-def =    all "z"
+                           go to stp-srt-inp-sel-414
+                     else  go to stp-srt-inp-sel-900
+           else if   rr-ord-ana-cat       =    03
+                     if    rr-sel-cat-mni =    all " " and
+                           rr-sel-cat-mnf =    all "z"
+                           go to stp-srt-inp-sel-414
+                     else  go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-410.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica categoria       *
+      *                      *-----------------------------------------*
+           if        rf-yst-des-cls       >    rr-sel-cat-def or
+                     rf-yst-des-cls       <    rr-sel-cat-dei
+                     go to stp-srt-inp-sel-900.
+           if        rf-yst-mne-cls       >    rr-sel-cat-mnf or
+                     rf-yst-mne-cls       <    rr-sel-cat-mni
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-412.
+           if        rf-yst-cod-cls       >    rr-sel-cat-cof or
+                     rf-yst-cod-cls       <    rr-sel-cat-coi
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-414.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      rf-yst-cod-cls       to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica                 *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-cat       =    01
+                     move  spaces         to   w-srt-key-alf
+           else if   rr-ord-ana-cat       =    02
+                     move  rf-yst-des-cls to   w-srt-key-alf
+           else if   rr-ord-ana-cat       =    03
+                     move  rf-yst-mne-cls to   w-srt-key-alf          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica 2               *
+      *                          *-------------------------------------*
+           move      spaces               to   w-srt-key-al2          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-500.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per codice statistico        *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice statistico a zero : uscita    *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-stt       =    zero
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare anagrafica codice   *
+      *                      * statistico                              *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCLS    "         to   f-key                  .
+           move      03                   to   rf-yst-tip-cls         .
+           move      rf-dcf-cod-stt       to   rf-yst-cod-cls         .
+           move      "pgm/dcf/fls/ioc/obj/iofyst"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yst                 .
+      *                          *-------------------------------------*
+      *                          * Se record trovato : a selezioni     *
+      *                          *-------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to stp-srt-inp-sel-510.
+      *                          *-------------------------------------*
+      *                          * Se record non trovato               *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Normalizzazione record          *
+      *                              *---------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofyst"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yst                 .
+      *                              *---------------------------------*
+      *                              * Normalizzazione descrizione     *
+      *                              *---------------------------------*
+           move      all "."              to   rf-yst-des-cls         .
+      *                              *---------------------------------*
+      *                              * Se ordinamento per codice : a   *
+      *                              * selezione su solo codice        *
+      *                              *---------------------------------*
+           if        rr-ord-ana-stt       =    01
+                     go to stp-srt-inp-sel-512.
+      *                              *---------------------------------*
+      *                              * Altrimenti                      *
+      *                              *  - Se selezione totale : Ok     *
+      *                              *  - In caso contrario   : Ko     *
+      *                              *---------------------------------*
+           if        rr-ord-ana-stt       =    02
+                     if    rr-sel-stt-dei =    all " " and
+                           rr-sel-stt-def =    all "z"
+                           go to stp-srt-inp-sel-514
+                     else  go to stp-srt-inp-sel-900
+           else if   rr-ord-ana-stt       =    03
+                     if    rr-sel-stt-mni =    all " " and
+                           rr-sel-stt-mnf =    all "z"
+                           go to stp-srt-inp-sel-514
+                     else  go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-510.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica codici stati-   *
+      *                      * stici                                   *
+      *                      *-----------------------------------------*
+           if        rf-yst-des-cls       >    rr-sel-stt-def or
+                     rf-yst-des-cls       <    rr-sel-stt-dei
+                     go to stp-srt-inp-sel-900.
+           if        rf-yst-mne-cls       >    rr-sel-stt-mnf or
+                     rf-yst-mne-cls       <    rr-sel-stt-mni
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-512.
+           if        rf-yst-cod-cls       >    rr-sel-stt-cof or
+                     rf-yst-cod-cls       <    rr-sel-stt-coi
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-514.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      rf-yst-cod-cls       to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica                 *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-stt       =    01
+                     move  spaces         to   w-srt-key-alf
+           else if   rr-ord-ana-stt       =    02
+                     move  rf-yst-des-cls to   w-srt-key-alf
+           else if   rr-ord-ana-stt       =    03
+                     move  rf-yst-mne-cls to   w-srt-key-alf          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica 2               *
+      *                          *-------------------------------------*
+           move      spaces               to   w-srt-key-al2          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-a00.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per forma di pagamento       *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se forma di pagamento a zero : uscita   *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-fop       =    zero
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare anagrafica forma di *
+      *                      * pagamento                               *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFOP    "         to   f-key                  .
+           move      rf-dcf-cod-fop       to   rf-yfp-cod-fop         .
+           move      "pgm/dcf/fls/ioc/obj/iofyfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yfp                 .
+      *                          *-------------------------------------*
+      *                          * Se record trovato : a selezioni     *
+      *                          *-------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to stp-srt-inp-sel-a02.
+      *                          *-------------------------------------*
+      *                          * Se record non trovato               *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Normalizzazione record          *
+      *                              *---------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofyfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-yfp                 .
+      *                              *---------------------------------*
+      *                              * Normalizzazione descrizione     *
+      *                              *---------------------------------*
+           move      all "."              to   rf-yfp-des-fop         .
+      *                              *---------------------------------*
+      *                              * Se ordinamento per codice : a   *
+      *                              * selezione su solo codice        *
+      *                              *---------------------------------*
+           if        rr-ord-ana-fop       =    01
+                     go to stp-srt-inp-sel-a04.
+      *                              *---------------------------------*
+      *                              * Altrimenti                      *
+      *                              *  - Se selezione totale : Ok     *
+      *                              *  - In caso contrario   : Ko     *
+      *                              *---------------------------------*
+           if        rr-ord-ana-fop       =    02
+                     if    rr-sel-fop-dei =    all " " and
+                           rr-sel-fop-def =    all "z"
+                           go to stp-srt-inp-sel-a06
+                     else  go to stp-srt-inp-sel-900
+           else if   rr-ord-ana-fop       =    03
+                     if    rr-sel-fop-mni =    all " " and
+                           rr-sel-fop-mnf =    all "z"
+                           go to stp-srt-inp-sel-a06
+                     else  go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-a02.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica forme di paga-  *
+      *                      * mento                                   *
+      *                      *-----------------------------------------*
+           if        rf-yfp-des-key       >    rr-sel-fop-def or
+                     rf-yfp-des-key       <    rr-sel-fop-dei
+                     go to stp-srt-inp-sel-900.
+           if        rf-yfp-cod-mne       >    rr-sel-fop-mnf or
+                     rf-yfp-cod-mne       <    rr-sel-fop-mni
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-a04.
+           if        rf-yfp-cod-fop       >    rr-sel-fop-cof or
+                     rf-yfp-cod-fop       <    rr-sel-fop-coi
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-a06.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      rf-yfp-cod-fop       to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica                 *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-fop       =    01
+                     move  spaces         to   w-srt-key-alf
+           else if   rr-ord-ana-fop       =    02
+                     move  rf-yfp-des-fop to   w-srt-key-alf
+           else if   rr-ord-ana-fop       =    03
+                     move  rf-yfp-cod-mne to   w-srt-key-alf          .
+      *                          *-------------------------------------*
+      *                          * Chiave alfanumerica 2               *
+      *                          *-------------------------------------*
+           move      spaces               to   w-srt-key-al2          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-610.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per codice nazione           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice nazione a spaces : uscita per *
+      *                      * elemento non selezionato                *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-naz       =    spaces
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare anagrafica nazione  *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODNAZ    "         to   f-key                  .
+           move      rf-dcf-cod-naz       to   rf-gxn-cod-naz         .
+           move      "pgm/geo/fls/ioc/obj/iofgxn"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxn                 .
+      *                          *-------------------------------------*
+      *                          * Se record trovato : a selezioni     *
+      *                          *-------------------------------------*
+           if        f-sts                =    e-not-err
+                     go to stp-srt-inp-sel-612.
+      *                          *-------------------------------------*
+      *                          * Se record non trovato               *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Normalizzazione record          *
+      *                              *---------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/geo/fls/ioc/obj/iofgxn"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxn                 .
+      *                              *---------------------------------*
+      *                              * Normalizzazione descrizione     *
+      *                              *---------------------------------*
+           move      all "."              to   rf-gxn-des-naz         .
+      *                              *---------------------------------*
+      *                              * Se ordinamento per codice : a   *
+      *                              * selezione su solo codice        *
+      *                              *---------------------------------*
+           if        rr-ord-ana-naz       =    01
+                     go to stp-srt-inp-sel-614.
+      *                              *---------------------------------*
+      *                              * Altrimenti                      *
+      *                              *  - Se selezione totale : Ok     *
+      *                              *  - In caso contrario   : Ko     *
+      *                              *---------------------------------*
+           if        rr-ord-ana-naz       =    02
+                     if    rr-sel-naz-dei =    all " " and
+                           rr-sel-naz-def =    all "z"
+                           go to stp-srt-inp-sel-616
+                     else  go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-612.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica nazioni         *
+      *                      *-----------------------------------------*
+           if        rf-gxn-des-naz       >    rr-sel-naz-def or
+                     rf-gxn-des-naz       <    rr-sel-naz-dei
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-614.
+           if        rf-gxn-cod-naz       >    rr-sel-naz-cof or
+                     rf-gxn-cod-naz       <    rr-sel-naz-coi
+                     go to stp-srt-inp-sel-900.
+       stp-srt-inp-sel-616.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      zero                 to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiavi alfanumeriche 1 e 2          *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-naz       =    01
+                     move  rf-gxn-cod-naz to   w-srt-key-al2
+                     move  spaces         to   w-srt-key-alf
+           else if   rr-ord-ana-naz       =    02
+                     move  rf-gxn-cod-naz to   w-srt-key-al2
+                     move  rf-gxn-des-naz to   w-srt-key-alf          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-620.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per codice regione           *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice nazione non e' 'IT' : uscita  *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-naz       not  = "IT "
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Se codice comune a zero : uscita per    *
+      *                      * elemento non selezionato                *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-cmn       =    zero
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare del codice comune   *
+      *                      * per rilevamento del codice provincia    *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCFL    "         to   f-key                  .
+           move      rf-dcf-cod-cmn       to   rf-gxc-cod-cmn         .
+           move      zero                 to   rf-gxc-cod-fzn         .
+           move      zero                 to   rf-gxc-cod-lct         .
+           move      "pgm/geo/fls/ioc/obj/iofgxc"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxc                 .
+      *                          *-------------------------------------*
+      *                          * Se record non trovato : uscita per  *
+      *                          * elemento non selezionato            *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Se codice provincia a spaces : uscita   *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-gxc-cod-prv       =    spaces
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare del codice provin-  *
+      *                      * cia per rilevamento del codice regione  *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODPRV    "         to   f-key                  .
+           move      rf-gxc-cod-prv       to   rf-gxp-cod-prv         .
+           move      "pgm/geo/fls/ioc/obj/iofgxp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxp                 .
+      *                          *-------------------------------------*
+      *                          * Se record non trovato : uscita per  *
+      *                          * elemento non selezionato            *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Se codice regione a spaces : uscita per *
+      *                      * elemento non selezionato                *
+      *                      *-----------------------------------------*
+           if        rf-gxp-cod-rgn       =    spaces
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare anagrafica regione  *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODRGN    "         to   f-key                  .
+           move      rf-gxp-cod-rgn       to   rf-gxr-cod-rgn         .
+           move      "pgm/geo/fls/ioc/obj/iofgxr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxr                 .
+      *                          *-------------------------------------*
+      *                          * Se record non trovato : uscita per  *
+      *                          * elemento non selezionato            *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica regioni         *
+      *                      *-----------------------------------------*
+           if        rf-gxr-des-rgn       >    rr-sel-rgn-def or
+                     rf-gxr-des-rgn       <    rr-sel-rgn-dei
+                     go to stp-srt-inp-sel-900.
+           if        rf-gxr-cod-rgn       >    rr-sel-rgn-cof or
+                     rf-gxr-cod-rgn       <    rr-sel-rgn-coi
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      zero                 to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiavi alfanumeriche 1 e 2          *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-rgn       =    01
+                     move  rf-gxr-cod-rgn to   w-srt-key-al2
+                     move  spaces         to   w-srt-key-alf
+           else if   rr-ord-ana-rgn       =    02
+                     move  rf-gxr-cod-rgn to   w-srt-key-al2
+                     move  rf-gxr-des-rgn to   w-srt-key-alf          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-630.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per codice provincia         *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice nazione non e' 'IT' : uscita  *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-naz       not  = "IT "
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Se codice comune a zero : uscita per    *
+      *                      * elemento non selezionato                *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-cmn       =    zero
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare del codice comune   *
+      *                      * per rilevamento del codice provincia    *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCFL    "         to   f-key                  .
+           move      rf-dcf-cod-cmn       to   rf-gxc-cod-cmn         .
+           move      zero                 to   rf-gxc-cod-fzn         .
+           move      zero                 to   rf-gxc-cod-lct         .
+           move      "pgm/geo/fls/ioc/obj/iofgxc"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxc                 .
+      *                          *-------------------------------------*
+      *                          * Se record non trovato : uscita per  *
+      *                          * elemento non selezionato            *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Se codice provincia a spaces : uscita   *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-gxc-cod-prv       =    spaces
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare del codice provin-  *
+      *                      * cia                                     *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODPRV    "         to   f-key                  .
+           move      rf-gxc-cod-prv       to   rf-gxp-cod-prv         .
+           move      "pgm/geo/fls/ioc/obj/iofgxp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxp                 .
+      *                          *-------------------------------------*
+      *                          * Se record non trovato : uscita per  *
+      *                          * elemento non selezionato            *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica provincie       *
+      *                      *-----------------------------------------*
+           if        rf-gxp-des-prv       >    rr-sel-prv-def or
+                     rf-gxp-des-prv       <    rr-sel-prv-dei
+                     go to stp-srt-inp-sel-900.
+           if        rf-gxp-cod-prv       >    rr-sel-prv-cof or
+                     rf-gxp-cod-prv       <    rr-sel-prv-coi
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      zero                 to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiavi alfanumeriche 1 e 2          *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-prv       =    01
+                     move  rf-gxp-cod-prv to   w-srt-key-al2
+                     move  spaces         to   w-srt-key-alf
+           else if   rr-ord-ana-prv       =    02
+                     move  rf-gxp-cod-prv to   w-srt-key-al2
+                     move  rf-gxp-des-prv to   w-srt-key-alf          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-640.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per codice comune            *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice nazione non e' 'IT' : uscita  *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-naz       not  = "IT "
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Se codice comune a zero : uscita per    *
+      *                      * elemento non selezionato                *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-cmn       =    zero
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Lettura preliminare del codice comune   *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCFL    "         to   f-key                  .
+           move      rf-dcf-cod-cmn       to   rf-gxc-cod-cmn         .
+           move      zero                 to   rf-gxc-cod-fzn         .
+           move      zero                 to   rf-gxc-cod-lct         .
+           move      "pgm/geo/fls/ioc/obj/iofgxc"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-gxc                 .
+      *                          *-------------------------------------*
+      *                          * Se record non trovato : uscita per  *
+      *                          * elemento non selezionato            *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Selezioni su anagrafica comuni          *
+      *                      *-----------------------------------------*
+           if        rf-gxc-des-cfl       >    rr-sel-cmn-def or
+                     rf-gxc-des-cfl       <    rr-sel-cmn-dei
+                     go to stp-srt-inp-sel-900.
+           if        rf-gxc-cap-avp       >    rr-sel-cmn-cpf or
+                     rf-gxc-cap-avp       <    rr-sel-cmn-cpi
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      zero                 to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiavi alfanumeriche 1 e 2          *
+      *                          *-------------------------------------*
+           if        rr-ord-ana-cmn       =    01
+                     move  rf-gxc-cap-avp to   w-srt-key-al2
+                     move  rf-gxc-des-cfl to   w-srt-key-alf
+           else if   rr-ord-ana-cmn       =    02
+                     move  rf-gxc-cap-avp to   w-srt-key-al2
+                     move  spaces         to   w-srt-key-alf          .
+      *                      *-----------------------------------------*
+      *                      * Preparazione CAP per le selezioni sup-  *
+      *                      * plementari                              *
+      *                      *-----------------------------------------*
+           move      rf-gxc-cap-avp       to   w-srt-cap-avp          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-710.
+      *                  *---------------------------------------------*
+      *                  * Se ordinamento per codice avviamento posta- *
+      *                  * le                                          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice nazione non e' 'IT' : uscita  *
+      *                      * per elemento non selezionato            *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-naz       not  = "IT "
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Se il campo localita' e' a spaces :     *
+      *                      * uscita per elemento non selezionato     *
+      *                      *-----------------------------------------*
+           if        rf-dcf-loc-dcf       =    spaces
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Rilevamento del codice avviamento pos-  *
+      *                      * tale dal campo localita'                *
+      *                      *-----------------------------------------*
+           move      rf-dcf-loc-dcf       to   w-srt-cap-avp          .
+      *                      *-----------------------------------------*
+      *                      * Se il CAP non e' un valore numerico :   *
+      *                      * uscita per elemento non selezionato     *
+      *                      *-----------------------------------------*
+           if        w-srt-cap-avp-num    not  numeric
+                     go to stp-srt-inp-sel-900.
+      *                      *-----------------------------------------*
+      *                      * Determinazione del CAP del comune se    *
+      *                      * CAP stradario                           *
+      *                      *-----------------------------------------*
+           if        rr-tip-ors           =    22
+                     go to stp-srt-inp-sel-712.
+      *                          *-------------------------------------*
+      *                          * Subroutine di determinazione        *
+      *                          *-------------------------------------*
+           move      w-srt-cap-avp        to   w-det-std-gxs-cap      .
+           perform   det-std-gxs-000      thru det-std-gxs-999        .
+      *                          *-------------------------------------*
+      *                          * Test su esito determinazione        *
+      *                          *-------------------------------------*
+           if        w-det-std-gxs-flg    not  = spaces
+                     go to stp-srt-inp-sel-712.
+           if        w-det-std-gxs-ccm    =    spaces
+                     go to stp-srt-inp-sel-712.
+           move      w-det-std-gxs-ccm    to   w-srt-cap-avp          .
+       stp-srt-inp-sel-712.
+      *                      *-----------------------------------------*
+      *                      * Preparazione chiavi per il sort         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Chiave numerica                     *
+      *                          *-------------------------------------*
+           move      zero                 to   w-srt-key-num          .
+      *                          *-------------------------------------*
+      *                          * Chiavi alfanumeriche 1 e 2          *
+      *                          *-------------------------------------*
+           move      spaces               to   w-srt-key-alf          .
+           move      w-srt-cap-avp        to   w-srt-key-al2          .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     stp-srt-inp-sel-800.
+       stp-srt-inp-sel-800.
+      *              *-------------------------------------------------*
+      *              * Uscita per selezioni superate                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-sel-999.
+       stp-srt-inp-sel-900.
+      *              *-------------------------------------------------*
+      *              * Uscita per selezioni non superate               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Flag di uscita                              *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-srt-sel-rec          .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-sel-999.
+       stp-srt-inp-sel-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Input procedure per sort                                  *
+      *    *                                                           *
+      *    * Selezioni supplementari su anagrafica fornitori           *
+      *    *-----------------------------------------------------------*
+       stp-srt-inp-ssu-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di uscita                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-srt-sel-rec          .
+       stp-srt-inp-ssu-050.
+      *              *-------------------------------------------------*
+      *              * Se si tratta di una dipendenza e la selezione   *
+      *              * implica fornitori con status diverso da normale *
+      *              * selezione non superata, a meno che non sia una  *
+      *              * richiesta di stampa di singola scheda           *
+      *              *-------------------------------------------------*
+           if        rr-sel-fnt-dpz       not  = spaces
+                     go to stp-srt-inp-ssu-800.
+           if        rf-dcf-dpz-fnt       not  = spaces      and
+                     rr-ssu-sta-tus       not  = "X        "
+                     go to stp-srt-inp-ssu-900.
+      *              *-------------------------------------------------*
+      *              * Se si tratta di una dipendenza e la selezione   *
+      *              * implica solo fornitori con status pari a nor-   *
+      *              * male: non si seleziona sullo status commerciale *
+      *              *-------------------------------------------------*
+           if        rf-dcf-dpz-fnt       not  = spaces
+                     go to stp-srt-inp-ssu-100.
+      *              *-------------------------------------------------*
+      *              * Selezione su status commerciale del cliente     *
+      *              *-------------------------------------------------*
+           if        rf-dcf-sta-tus       =    01 and
+                     rr-ssu-sta-tus (01 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    11 and
+                     rr-ssu-sta-tus (02 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    21 and
+                     rr-ssu-sta-tus (03 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    51 and
+                     rr-ssu-sta-tus (04 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    52 and
+                     rr-ssu-sta-tus (05 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    61 and
+                     rr-ssu-sta-tus (06 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    62 and
+                     rr-ssu-sta-tus (07 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    71 and
+                     rr-ssu-sta-tus (08 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+           if        rf-dcf-sta-tus       =    72 and
+                     rr-ssu-sta-tus (09 : 01)
+                                          =    spaces
+                     go to stp-srt-inp-ssu-900.
+       stp-srt-inp-ssu-100.
+      *              *-------------------------------------------------*
+      *              * Codice nostra banca                             *
+      *              *-------------------------------------------------*
+           if        rr-ssu-cod-cbp       =    spaces
+                     go to stp-srt-inp-ssu-200.
+           if        rf-dcf-nos-ban       not  = rr-ssu-cod-cbp
+                     go to stp-srt-inp-ssu-900.
+       stp-srt-inp-ssu-200.
+      *              *-------------------------------------------------*
+      *              * Codice zona                                     *
+      *              *-------------------------------------------------*
+           if        rr-ssu-cod-zon       =    zero
+                     go to stp-srt-inp-ssu-300.
+           if        rf-dcf-cod-zon       not  = rr-ssu-cod-zon
+                     go to stp-srt-inp-ssu-900.
+       stp-srt-inp-ssu-300.
+      *              *-------------------------------------------------*
+      *              * Codice categoria                                *
+      *              *-------------------------------------------------*
+           if        rr-ssu-cod-cat       =    zero
+                     go to stp-srt-inp-ssu-400.
+           if        rf-dcf-cod-cat       not  = rr-ssu-cod-cat
+                     go to stp-srt-inp-ssu-900.
+       stp-srt-inp-ssu-400.
+      *              *-------------------------------------------------*
+      *              * Codice statistico                               *
+      *              *-------------------------------------------------*
+           if        rr-ssu-cod-stt       =    zero
+                     go to stp-srt-inp-ssu-500.
+           if        rf-dcf-cod-stt       not  = rr-ssu-cod-stt
+                     go to stp-srt-inp-ssu-900.
+       stp-srt-inp-ssu-500.
+      *              *-------------------------------------------------*
+      *              * Codici di avviamento postale                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se tutti i CAP a spaces : a selezione  *
+      *                  * superata                                    *
+      *                  *---------------------------------------------*
+           if        rr-ssu-cod-cap (1)   =    spaces and
+                     rr-ssu-cod-cap (2)   =    spaces and
+                     rr-ssu-cod-cap (3)   =    spaces and
+                     rr-ssu-cod-cap (4)   =    spaces and
+                     rr-ssu-cod-cap (5)   =    spaces and
+                     rr-ssu-cod-cap (6)   =    spaces
+                     go to stp-srt-inp-ssu-800.
+      *                  *---------------------------------------------*
+      *                  * Se codice nazione non e' 'IT' : uscita per  *
+      *                  * elemento non selezionato                    *
+      *                  *---------------------------------------------*
+           if        rf-dcf-cod-naz       not  = "IT "
+                     go to stp-srt-inp-ssu-900.
+      *                  *---------------------------------------------*
+      *                  * Se il tipo ordinamento stampa e' per comune *
+      *                  * si utilizza il CAP gia' rilevato dal comune *
+      *                  * stesso                                      *
+      *                  *---------------------------------------------*
+           if        rr-tip-ors           =    14
+                     go to stp-srt-inp-ssu-540.
+       stp-srt-inp-ssu-520.
+      *                  *---------------------------------------------*
+      *                  * Rilevamento del codice avviamento postale   *
+      *                  * dal campo localita'                         *
+      *                  *---------------------------------------------*
+           move      rf-dcf-loc-dcf       to   w-srt-cap-avp          .
+      *                  *---------------------------------------------*
+      *                  * Se il CAP non e' un valore numerico : usci- *
+      *                  * ta per elemento non selezionato             *
+      *                  *---------------------------------------------*
+           if        w-srt-cap-avp-num    not  numeric
+                     go to stp-srt-inp-ssu-900.
+       stp-srt-inp-ssu-540.
+      *                  *---------------------------------------------*
+      *                  * Regolarizzazione dei CAP richiesti          *
+      *                  *---------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Regolarizzazione dei CAP richiesti          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * CAP richiesto '1'                       *
+      *                      *-----------------------------------------*
+           move      rr-ssu-cod-cap (1)   to   w-srt-cap-in1          .
+           inspect   w-srt-cap-in1   replacing all " "
+                                          by       "0"                .
+           move      rr-ssu-cod-cap (1)   to   w-srt-cap-fi1          .
+           inspect   w-srt-cap-fi1   replacing all " "
+                                          by       "9"                .
+      *                      *-----------------------------------------*
+      *                      * CAP richiesto '2'                       *
+      *                      *-----------------------------------------*
+           move      rr-ssu-cod-cap (2)   to   w-srt-cap-in2          .
+           inspect   w-srt-cap-in2   replacing all " "
+                                          by       "0"                .
+           move      rr-ssu-cod-cap (2)   to   w-srt-cap-fi2          .
+           inspect   w-srt-cap-fi2   replacing all " "
+                                          by       "9"                .
+      *                      *-----------------------------------------*
+      *                      * CAP richiesto '3'                       *
+      *                      *-----------------------------------------*
+           move      rr-ssu-cod-cap (3)   to   w-srt-cap-in3          .
+           inspect   w-srt-cap-in3   replacing all " "
+                                          by       "0"                .
+           move      rr-ssu-cod-cap (3)   to   w-srt-cap-fi3          .
+           inspect   w-srt-cap-fi3   replacing all " "
+                                          by       "9"                .
+      *                      *-----------------------------------------*
+      *                      * CAP richiesto '4'                       *
+      *                      *-----------------------------------------*
+           move      rr-ssu-cod-cap (4)   to   w-srt-cap-in4          .
+           inspect   w-srt-cap-in4   replacing all " "
+                                          by       "0"                .
+           move      rr-ssu-cod-cap (4)   to   w-srt-cap-fi4          .
+           inspect   w-srt-cap-fi4   replacing all " "
+                                          by       "9"                .
+      *                      *-----------------------------------------*
+      *                      * CAP richiesto '5'                       *
+      *                      *-----------------------------------------*
+           move      rr-ssu-cod-cap (5)   to   w-srt-cap-in5          .
+           inspect   w-srt-cap-in5   replacing all " "
+                                          by       "0"                .
+           move      rr-ssu-cod-cap (5)   to   w-srt-cap-fi5          .
+           inspect   w-srt-cap-fi5   replacing all " "
+                                          by       "9"                .
+      *                      *-----------------------------------------*
+      *                      * CAP richiesto '6'                       *
+      *                      *-----------------------------------------*
+           move      rr-ssu-cod-cap (6)   to   w-srt-cap-in6          .
+           inspect   w-srt-cap-in6   replacing all " "
+                                          by       "0"                .
+           move      rr-ssu-cod-cap (6)   to   w-srt-cap-fi6          .
+           inspect   w-srt-cap-fi6   replacing all " "
+                                          by       "9"                .
+      *                  *---------------------------------------------*
+      *                  * Test per la selezione                       *
+      *                  *---------------------------------------------*
+           if        w-srt-cap-avp        >    w-srt-cap-fi1  or
+                     w-srt-cap-avp        <    w-srt-cap-in1
+                     go to stp-srt-inp-ssu-900.
+           if        w-srt-cap-avp        >    w-srt-cap-fi2  or
+                     w-srt-cap-avp        <    w-srt-cap-in2
+                     go to stp-srt-inp-ssu-900.
+           if        w-srt-cap-avp        >    w-srt-cap-fi3  or
+                     w-srt-cap-avp        <    w-srt-cap-in3
+                     go to stp-srt-inp-ssu-900.
+           if        w-srt-cap-avp        >    w-srt-cap-fi4  or
+                     w-srt-cap-avp        <    w-srt-cap-in4
+                     go to stp-srt-inp-ssu-900.
+           if        w-srt-cap-avp        >    w-srt-cap-fi5  or
+                     w-srt-cap-avp        <    w-srt-cap-in5
+                     go to stp-srt-inp-ssu-900.
+           if        w-srt-cap-avp        >    w-srt-cap-fi6  or
+                     w-srt-cap-avp        <    w-srt-cap-in6
+                     go to stp-srt-inp-ssu-900.
+       stp-srt-inp-ssu-800.
+      *              *-------------------------------------------------*
+      *              * Uscita per selezioni supplementari superate     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-ssu-999.
+       stp-srt-inp-ssu-900.
+      *              *-------------------------------------------------*
+      *              * Uscita per selezioni non superate               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Flag di uscita                              *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-srt-sel-rec          .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-ssu-999.
+       stp-srt-inp-ssu-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Input procedure per sort                                  *
+      *    *                                                           *
+      *    * Composizione area di sort                                 *
+      *    *-----------------------------------------------------------*
+       stp-srt-inp-cms-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           move      spaces               to   srt-rec                .
+       stp-srt-inp-cms-100.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave di sort per i fornitori     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funazione del tipo ordinamen- *
+      *                  * to per fornitore                            *
+      *                  *---------------------------------------------*
+           if        w-srt-ord-fnt        =    01
+                     go to stp-srt-inp-cms-110
+           else if   w-srt-ord-fnt        =    02
+                     go to stp-srt-inp-cms-120
+           else if   w-srt-ord-fnt        =    03
+                     go to stp-srt-inp-cms-130.
+       stp-srt-inp-cms-110.
+      *                      *-----------------------------------------*
+      *                      * Se ordinamento per ragione sociale      *
+      *                      *-----------------------------------------*
+           move      zero                 to   srt-key-num            .
+           move      spaces               to   srt-key-alf            .
+           move      spaces               to   srt-key-al2            .
+           move      zero                 to   srt-key-ncl            .
+           move      rf-dcf-rag-key       to   srt-key-acl            .
+           move      spaces               to   srt-key-adp            .
+      *                          *-------------------------------------*
+      *                          * A composizione chiave di sort       *
+      *                          *-------------------------------------*
+           go to     stp-srt-inp-cms-200.
+       stp-srt-inp-cms-120.
+      *                      *-----------------------------------------*
+      *                      * Se ordinamento per codice               *
+      *                      *-----------------------------------------*
+           move      zero                 to   srt-key-num            .
+           move      spaces               to   srt-key-alf            .
+           move      spaces               to   srt-key-al2            .
+           move      rf-dcf-cod-fnt       to   srt-key-ncl            .
+           move      spaces               to   srt-key-acl            .
+           move      rf-dcf-dpz-fnt       to   srt-key-adp            .
+      *                          *-------------------------------------*
+      *                          * A composizione chiave di sort       *
+      *                          *-------------------------------------*
+           go to     stp-srt-inp-cms-200.
+       stp-srt-inp-cms-130.
+      *                      *-----------------------------------------*
+      *                      * Se ordinamento per mnemonico            *
+      *                      *-----------------------------------------*
+           move      zero                 to   srt-key-num            .
+           move      spaces               to   srt-key-alf            .
+           move      spaces               to   srt-key-al2            .
+           move      zero                 to   srt-key-ncl            .
+           move      rf-fnt-cod-mne       to   srt-key-acl            .
+           move      rf-dcf-dpz-fnt       to   srt-key-adp            .
+      *                          *-------------------------------------*
+      *                          * A composizione chiave di sort       *
+      *                          *-------------------------------------*
+           go to     stp-srt-inp-cms-200.
+       stp-srt-inp-cms-200.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave di sort generica            *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiave di ordinamento numerica generica     *
+      *                  *---------------------------------------------*
+           move      w-srt-key-num        to   srt-key-num            .
+      *                  *---------------------------------------------*
+      *                  * Chiave di ordinamento alfanumerica generica *
+      *                  *---------------------------------------------*
+           move      w-srt-key-alf        to   srt-key-alf            .
+      *                  *---------------------------------------------*
+      *                  * Chiave di ordinamento alfanumerica generica *
+      *                  * numero 2                                    *
+      *                  *---------------------------------------------*
+           move      w-srt-key-al2        to   srt-key-al2            .
+       stp-srt-inp-cms-600.
+      *              *-------------------------------------------------*
+      *              * Composizione dati di sort                       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Per ospitare un intero 'rf-dcf'             *
+      *                  *---------------------------------------------*
+           move      rf-dcf               to   srt-dat-rec-dcf        .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     stp-srt-inp-cms-900.
+       stp-srt-inp-cms-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     stp-srt-inp-cms-999.
+       stp-srt-inp-cms-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Input procedure per sort                                  *
+      *    *                                                           *
+      *    * Composizione area di sort supplementare in caso di ordi-  *
+      *    * namento fornitori per mnemonico                           *
+      *    *-----------------------------------------------------------*
+       stp-srt-inp-csu-000.
+      *              *-------------------------------------------------*
+      *              * Test preliminare                                *
+      *              *-------------------------------------------------*
+           if        w-srt-ord-fnt        not  = 03
+                     go to stp-srt-inp-csu-900.
+      *              *-------------------------------------------------*
+      *              * Preparazione preliminare del codice fornitore   *
+      *              * per la scansione                                *
+      *              *-------------------------------------------------*
+           move      rf-dcf-cod-fnt       to   w-srt-cod-fnt          .
+      *              *-------------------------------------------------*
+      *              * Preparazione preliminare delle chiavi di sort   *
+      *              *-------------------------------------------------*
+           move      srt-key-ncl          to   w-srt-key-ncl          .
+           move      srt-key-acl          to   w-srt-key-acl          .
+       stp-srt-inp-csu-100.
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione eventuali dipendenze per il  *
+      *              * fornitore in corso di trattamento               *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "CODFNT    "         to   f-key                  .
+           move      w-srt-cod-fnt        to   rf-dcf-cod-fnt         .
+           move      spaces               to   rf-dcf-dpz-fnt         .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : ad uscita                 *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-csu-900.
+       stp-srt-inp-csu-200.
+      *              *-------------------------------------------------*
+      *              * Lettura sequenziale archivio [dcf]              *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcf/fls/ioc/obj/iofdcf"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcf                 .
+      *                  *---------------------------------------------*
+      *                  * Se lettura errata : ad uscita               *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-csu-900.
+       stp-srt-inp-csu-300.
+      *              *-------------------------------------------------*
+      *              * Test max                                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su codice                              *
+      *                  *---------------------------------------------*
+           if        rf-dcf-cod-fnt       >    w-srt-cod-fnt
+                     go to stp-srt-inp-csu-900.
+       stp-srt-inp-csu-400.
+      *              *-------------------------------------------------*
+      *              * Selezioni per le dipendenze                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se codice dipendenza a spaces : riciclo     *
+      *                  *---------------------------------------------*
+           if        rf-dcf-dpz-fnt       =    spaces
+                     go to stp-srt-inp-csu-200.
+      *                  *---------------------------------------------*
+      *                  * Selettori supplementari                     *
+      *                  *---------------------------------------------*
+       stp-srt-inp-csu-420.
+      *                      *-----------------------------------------*
+      *                      * Codice zona                             *
+      *                      *-----------------------------------------*
+           if        rr-ssu-cod-zon       =    zero
+                     go to stp-srt-inp-csu-600.
+           if        rf-dcf-cod-zon       not  = rr-ssu-cod-zon
+                     go to stp-srt-inp-csu-200.
+       stp-srt-inp-csu-430.
+      *                      *-----------------------------------------*
+      *                      * Codici di avviamento postale            *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Rilevamento del codice avviamento   *
+      *                          * postale dal campo localita'         *
+      *                          *-------------------------------------*
+           move      rf-dcf-loc-dcf       to   w-srt-cap-avp          .
+      *                          *-------------------------------------*
+      *                          * Test sui CAP                        *
+      *                          *-------------------------------------*
+           if        w-srt-cap-avp        >    w-srt-cap-fi1  or
+                     w-srt-cap-avp        <    w-srt-cap-in1
+                     go to stp-srt-inp-csu-200.
+           if        w-srt-cap-avp        >    w-srt-cap-fi2  or
+                     w-srt-cap-avp        <    w-srt-cap-in2
+                     go to stp-srt-inp-csu-200.
+           if        w-srt-cap-avp        >    w-srt-cap-fi3  or
+                     w-srt-cap-avp        <    w-srt-cap-in3
+                     go to stp-srt-inp-csu-200.
+           if        w-srt-cap-avp        >    w-srt-cap-fi4  or
+                     w-srt-cap-avp        <    w-srt-cap-in4
+                     go to stp-srt-inp-csu-200.
+           if        w-srt-cap-avp        >    w-srt-cap-fi5  or
+                     w-srt-cap-avp        <    w-srt-cap-in5
+                     go to stp-srt-inp-csu-200.
+           if        w-srt-cap-avp        >    w-srt-cap-fi6  or
+                     w-srt-cap-avp        <    w-srt-cap-in6
+                     go to stp-srt-inp-csu-200.
+       stp-srt-inp-csu-600.
+      *              *-------------------------------------------------*
+      *              * Composizione area di sort                       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   srt-rec                .
+      *                  *---------------------------------------------*
+      *                  * Composizione chiavi di sort                 *
+      *                  *---------------------------------------------*
+           move      w-srt-key-num        to   srt-key-num            .
+           move      w-srt-key-alf        to   srt-key-alf            .
+           move      w-srt-key-al2        to   srt-key-al2            .
+           move      w-srt-key-ncl        to   srt-key-ncl            .
+           move      w-srt-key-acl        to   srt-key-acl            .
+           move      rf-dcf-dpz-fnt       to   srt-key-adp            .
+      *                  *---------------------------------------------*
+      *                  * Composizione dati di sort                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Per ospitare un intero 'rf-dcf'         *
+      *                      *-----------------------------------------*
+           move      rf-dcf               to   srt-dat-rec-dcf        .
+       stp-srt-inp-csu-800.
+      *              *-------------------------------------------------*
+      *              * Rilascio del record al sort                     *
+      *              *-------------------------------------------------*
+           release   srt-rec                                          .
+       stp-srt-inp-csu-850.
+      *              *-------------------------------------------------*
+      *              * Riciclo a record successivo                     *
+      *              *-------------------------------------------------*
+           go to     stp-srt-inp-csu-200.
+       stp-srt-inp-csu-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     stp-srt-inp-csu-999.
+       stp-srt-inp-csu-999.
+           exit.
+

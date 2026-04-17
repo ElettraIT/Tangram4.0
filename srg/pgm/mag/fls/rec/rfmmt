@@ -1,0 +1,270 @@
+      *    *===========================================================*
+      *    * Record file [mmt] Movimenti per gestione magazzino : te-  *
+      *    *                   state                                   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "DATREG    " = rf-mmt-dat-reg                    *
+      *    *                         rf-mmt-num-prt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-mmt-ide-dat                    *
+      *    *                         rf-mmt-dat-reg                    *
+      *    *                         rf-mmt-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZDAT    " = rf-mmt-cod-dpz                    *
+      *    *                         rf-mmt-dat-reg                    *
+      *    *                         rf-mmt-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZARC    " = rf-mmt-cod-dpz                    *
+      *    *                         rf-mmt-tip-arc                    *
+      *    *                         rf-mmt-cod-arc                    *
+      *    *                         rf-mmt-dpz-arc                    *
+      *    *                         rf-mmt-dat-reg                    *
+      *    *                         rf-mmt-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-mmt.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di registrazione movimento di gest. mag.         *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-dat-reg             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di gest. mag. : s.aa.dd.nnnnnn      *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza                                     *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice causale per gestione magazzino                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-cod-cau             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di trattamento per il valore per la causale      *
+      *        *                                                       *
+      *        *   - N : Nessun trattamento del valore                 *
+      *        *   - I : Trattamento del valore per impostazione       *
+      *        *   - S : Trattamento del valore, ma senza impostazione *
+      *        *         in quanto valorizzazione al costo standard    *
+      *        *   - C : Trattamento del solo valore, senza quantita'  *
+      *        *         come costo aggiuntivo                         *
+      *        *   - X : Trattamento del solo valore, senza quantita'  *
+      *        *         come costo aggiuntivo riferito alla fine e-   *
+      *        *         sercizio precedente                           *
+      *        *   - R : Trattamento del solo valore, senza quantita'  *
+      *        *         come rettifica ad un costo                    *
+      *        *   - Y : Trattamento del solo valore, senza quantita'  *
+      *        *         come rettifica ad un costo riferito alla fi-  *
+      *        *         ne esercizio precedente                       *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-trt-val             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimentazione di magazzino                      *
+      *        *                                                       *
+      *        * - 01 : Carico                                         *
+      *        * - 02 : Scarico                                        *
+      *        * - 03 : Movimentazione interna                         *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-tip-mdm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Trattamento conto merce per la causale                *
+      *        *                                                       *
+      *        * - 01 : Puo' riferirsi ad un altro documento il quale  *
+      *        *        era un documento di movimentazione di merce in *
+      *        *        conto                                          *
+      *        * - 02 : Non puo' riferirsi ad un altro documento       *
+      *        * - 03 : Il documento stesso e' una movimentazione di   *
+      *        *        merce in conto                                 *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-trt-mic             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo conto merce per la causale                       *
+      *        *                                                       *
+      *        * - Spaces : Non significativo                          *
+      *        * - N      : Merce presso terzi ma non di loro pro-     *
+      *        *            prieta'                                    *
+      *        * - T      : Merce presso di noi ma non di nostra pro-  *
+      *        *            prieta'                                    *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-tip-mic             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice c/merce di gestione magazzino automaticamente  *
+      *        * proposto come default per la causale                  *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-cod-mic             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No possibilita' di variare il c/merce di gestione  *
+      *        * magazzino automaticamente proposto come default per   *
+      *        * la causale                                            *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-snv-mic             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio automaticamente proposto come default   *
+      *        * per la causale                                        *
+      *        *                                                       *
+      *        * - Spaces : Nessun tipo archivio proposto              *
+      *        * - N      : No tipo archivio                           *
+      *        * - C      : Cliente                                    *
+      *        * - F      : Fornitore                                  *
+      *        * - D      : Dipendenza                                 *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-def-tar             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No possibilita' di variare il tipo archivio propo- *
+      *        * sto come default per la causale                       *
+      *        *                                                       *
+      *        * - S : Si, e'possibile variare il tipo archivio propo- *
+      *        *           sto automaticamente come default; in questo *
+      *        *           caso il default puo' anche essere a Spaces, *
+      *        *           pero' e' necessario che esista un elemento  *
+      *        *           nella lista dei tipi archivio ammessi per   *
+      *        *           la causale corrispondente al tipo archivio  *
+      *        *           impostato                                   *
+      *        * - N : No, non e'possibile variare il tipo archivio    *
+      *        *           proposto automaticamente come default; in   *
+      *        *           questo caso il default deve essere diverso  *
+      *        *           da Spaces, e non e' necessario che esso sia *
+      *        *           presente nella lista dei tipi archivio am-  *
+      *        *           messi per la causale                        *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-snv-tar             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Lista dei tipi archivio ammessi per la causale; se    *
+      *        * vuota sono ammessi tutti i tipi archivio              *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-lst-tar             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione automaticamente proposto come     *
+      *        * default per la causale                                *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-def-dsl             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione di destinazione automaticamente   *
+      *        * proposto come default per la causale                  *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-def-dsd             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No possibilita' di variare il codice dislocazione  *
+      *        * automaticamente proposto come default per la causale  *
+      *        *                                                       *
+      *        * N.B. Riportato dalla causale di magazzino             *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-snv-dsl             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto merce effettivo                          *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-cod-ctm             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento                                      *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-num-doc             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione                                   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-cod-dsl             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione di destinazione                   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-cod-dsd             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio effettivo                               *
+      *        *                                                       *
+      *        * - Spaces : No tipo archivio                           *
+      *        * - N      : No tipo archivio                           *
+      *        * - C      : Cliente                                    *
+      *        * - F      : Fornitore                                  *
+      *        * - D      : Nostra dipendenza                          *
+      *        * - A      : Agente (Incaricato alla vendita)           *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza relativo al codice archivio         *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *                                                   *
+      *            * Nota : I flags 01..05 sono riservati per imple-   *
+      *            *        mentazioni standard                        *
+      *            *        I flags 06..07 sono riservati per imple-   *
+      *            *        mentazioni su misura                       *
+      *            *---------------------------------------------------*
+               10  rf-mmt-flg-blo.
+                   15  rf-mmt-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            * Nota : I flags 01..02 sono riservati per imple-   *
+      *            *        mentazioni standard                        *
+      *            *        Il flag 03 e' riservato per implementa-    *
+      *            *        zioni su misura                            *
+      *            *---------------------------------------------------*
+               10  rf-mmt-flg-nbl.
+                   15  rf-mmt-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmt-alx-exp.
+               10  filler     occurs 30   pic  x(01)                  .

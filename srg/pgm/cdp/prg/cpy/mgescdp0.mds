@@ -1,0 +1,51 @@
+      *    *===========================================================*
+      *    * Subroutines per gestione commesse di produzione           *
+      *    *-----------------------------------------------------------*
+       det-ges-cdp-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   m-ges-cdp-tip-ope      .
+           perform   det-ges-cdp-cll-000  thru det-ges-cdp-cll-999    .
+       det-ges-cdp-opn-999.
+           exit.
+
+       det-ges-cdp-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   m-ges-cdp-tip-ope      .
+           perform   det-ges-cdp-cll-000  thru det-ges-cdp-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   m-ges-cdp-tip-ope      .
+           perform   det-ges-cdp-cll-000  thru det-ges-cdp-cll-999    .
+           if        m-ges-cdp-exi-sts    not  = spaces
+                     go to det-ges-cdp-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/cdp/prg/obj/mgescdp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-ges-cdp-cls-999.
+           exit.
+
+       det-ges-cdp-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/cdp/prg/obj/mgescdp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using m-ges-cdp              .
+       det-ges-cdp-cll-999.
+           exit.
+

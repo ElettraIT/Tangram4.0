@@ -1,0 +1,175 @@
+      *    *===========================================================*
+      *    * Routine di determinazione quantita' secondaria            *
+      *    *-----------------------------------------------------------*
+       det-qta-sec-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione a seconda del tipo di trasformazione *
+      *              * per l'unita' di misura                          *
+      *              *-------------------------------------------------*
+           if        w-det-qta-sec-snu    =    "N"
+                     go to det-qta-sec-100
+           else if   w-det-qta-sec-snu    =    "S"
+                     go to det-qta-sec-200
+           else if   w-det-qta-sec-snu    =    "P"
+                     go to det-qta-sec-400.
+       det-qta-sec-100.
+      *              *-------------------------------------------------*
+      *              * Se nessuna trasformazione per l'unita' di misu- *
+      *              * ra                                              *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Quantita' secondaria in output pari alla    *
+      *                  * quantita' primaria in input                 *
+      *                  *---------------------------------------------*
+           move      w-det-qta-sec-qim    to   w-det-qta-sec-qts      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-qta-sec-999.
+       det-qta-sec-200.
+      *              *-------------------------------------------------*
+      *              * Se trasformazione per l'unita' di misura totale *
+      *              *-------------------------------------------------*
+       det-qta-sec-210.
+      *                  *---------------------------------------------*
+      *                  * Quantita' impostata in work di lavoro       *
+      *                  *---------------------------------------------*
+           move      w-det-qta-sec-qim    to   w-det-qta-sec-wpq      .
+      *                  *---------------------------------------------*
+      *                  * Moltiplicazione per coefficiente di molti-  *
+      *                  * plicazione                                  *
+      *                  *---------------------------------------------*
+           multiply  w-det-qta-sec-cmu    by   w-det-qta-sec-wpq      .
+       det-qta-sec-220.
+      *                  *---------------------------------------------*
+      *                  * Divisione per coefficiente di divisione     *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Deviazione a seconda del numero decima- *
+      *                      * li per gestione magazzino               *
+      *                      *-----------------------------------------*
+           go to     det-qta-sec-230
+                     det-qta-sec-235
+                     det-qta-sec-240
+                     depending            on   w-det-qta-sec-dgm      .
+       det-qta-sec-225.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : zero                  *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cdu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq0
+                                                         rounded      .
+           move      w-det-qta-sec-wq0    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-250.
+       det-qta-sec-230.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 1                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cdu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq1
+                                                         rounded      .
+           move      w-det-qta-sec-wq1    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-250.
+       det-qta-sec-235.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 2                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cdu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq2
+                                                         rounded      .
+           move      w-det-qta-sec-wq2    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-250.
+       det-qta-sec-240.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 3                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cdu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq3
+                                                         rounded      .
+           move      w-det-qta-sec-wq3    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-250.
+       det-qta-sec-250.
+      *                  *---------------------------------------------*
+      *                  * Valore in output                            *
+      *                  *---------------------------------------------*
+           move      w-det-qta-sec-wpq    to   w-det-qta-sec-qts      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-qta-sec-999.
+       det-qta-sec-400.
+      *              *-------------------------------------------------*
+      *              * Se trasformazione per l'unita' di misura solo   *
+      *              * per il prezzo                                   *
+      *              *-------------------------------------------------*
+       det-qta-sec-410.
+      *                  *---------------------------------------------*
+      *                  * Quantita' impostata in work di lavoro       *
+      *                  *---------------------------------------------*
+           move      w-det-qta-sec-qim    to   w-det-qta-sec-wpq      .
+      *                  *---------------------------------------------*
+      *                  * Moltiplicazione per coefficiente di divi-   *
+      *                  * sione                                       *
+      *                  *---------------------------------------------*
+           multiply  w-det-qta-sec-cdu    by   w-det-qta-sec-wpq      .
+       det-qta-sec-420.
+      *                  *---------------------------------------------*
+      *                  * Divisione per coefficiente di moltiplica-   *
+      *                  * zione                                       *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Deviazione a seconda del numero decima- *
+      *                      * li secondo il fornitore                 *
+      *                      *-----------------------------------------*
+           go to     det-qta-sec-430
+                     det-qta-sec-435
+                     det-qta-sec-440
+                     depending            on   w-det-qta-sec-ndu      .
+       det-qta-sec-425.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : zero                  *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cmu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq0
+                                                         rounded      .
+           move      w-det-qta-sec-wq0    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-450.
+       det-qta-sec-430.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 1                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cmu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq1
+                                                         rounded      .
+           move      w-det-qta-sec-wq1    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-450.
+       det-qta-sec-435.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 2                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cmu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq2
+                                                         rounded      .
+           move      w-det-qta-sec-wq2    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-450.
+       det-qta-sec-440.
+      *                      *-----------------------------------------*
+      *                      * Numero decimali : 3                     *
+      *                      *-----------------------------------------*
+           divide    w-det-qta-sec-cmu    into w-det-qta-sec-wpq
+                                        giving w-det-qta-sec-wq3
+                                                         rounded      .
+           move      w-det-qta-sec-wq3    to   w-det-qta-sec-wpq      .
+           go to     det-qta-sec-450.
+       det-qta-sec-450.
+      *                  *---------------------------------------------*
+      *                  * Valore in output                            *
+      *                  *---------------------------------------------*
+           move      w-det-qta-sec-wpq    to   w-det-qta-sec-qts      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     det-qta-sec-999.
+       det-qta-sec-999.
+           exit.
+

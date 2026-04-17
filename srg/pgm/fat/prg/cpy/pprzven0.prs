@@ -1,0 +1,245 @@
+      *    *===========================================================*
+      *    * Lettura personalizzazione : Controllo prezzo              *
+      *    *                                                           *
+      *    * Condivisa da 'orc300', 'ods300', 'bol300' e 'fat300'      *
+      *    *-----------------------------------------------------------*
+       prs-cnt-prz-000.
+      *              *-------------------------------------------------*
+      *              * Lettura personalizzazione                       *
+      *              *-------------------------------------------------*
+           move      "P:"                 to   s-ope                  .
+           move      "pgm/fat/mov/fat300[cnt-prz]"
+                                          to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Se lettura errata : a normalizzazione           *
+      *              *-------------------------------------------------*
+           if        s-ves                not  = spaces
+                     go to prs-cnt-prz-900.
+      *              *-------------------------------------------------*
+      *              * Valore letto in comodo ridefinito               *
+      *              *-------------------------------------------------*
+           move      s-alf                to   w-prs-cnt-prz-str      .
+       prs-cnt-prz-100.
+      *              *-------------------------------------------------*
+      *              * [A] - Si/No controllo esistenza prezzo lordo    *
+      *              *       standard                                  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-aaa    not  = "N" and
+                     w-prs-cnt-prz-aaa    not  = "S" and
+                     w-prs-cnt-prz-aaa    not  = "M" and
+                     w-prs-cnt-prz-aaa    not  = "I" and
+                     w-prs-cnt-prz-aaa    not  = "J"
+                     move  "N"            to   w-prs-cnt-prz-lrs
+                     go to prs-cnt-prz-200.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-aaa    to   w-prs-cnt-prz-lrs      .
+       prs-cnt-prz-200.
+      *              *-------------------------------------------------*
+      *              * [B] - Si/No controllo esistenza prezzo lordo    *
+      *              *       praticato                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-bbb    not  = "S" and
+                     w-prs-cnt-prz-bbb    not  = "N" and
+                     w-prs-cnt-prz-bbb    not  = "M"
+                     move  "N"            to   w-prs-cnt-prz-ven
+                     go to prs-cnt-prz-300.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-bbb    to   w-prs-cnt-prz-ven      .
+       prs-cnt-prz-300.
+      *              *-------------------------------------------------*
+      *              * [C] - Si/No controllo su congruenza prezzo      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-ccc    not  = "S" and
+                     w-prs-cnt-prz-ccc    not  = "N" and
+                     w-prs-cnt-prz-ccc    not  = "M"
+                     move  "N"            to   w-prs-cnt-cng-prz
+                     go to prs-cnt-prz-370.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-ccc    to   w-prs-cnt-cng-prz      .
+      *                  *---------------------------------------------*
+      *                  * Se No controllo su congruenza prezzo : a u- *
+      *                  * scita                                       *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-cng-prz    =    "N"
+                     go to prs-cnt-prz-370.
+       prs-cnt-prz-310.
+      *              *-------------------------------------------------*
+      *              * [D] - Primo prezzo per il confronto             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-ddd    not  = "N" and
+                     w-prs-cnt-prz-ddd    not  = "L"
+                     move  "N"            to   w-prs-cnt-cng-prz
+                     go to prs-cnt-prz-370.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-ddd    to   w-prs-cnt-prz-001      .
+       prs-cnt-prz-320.
+      *              *-------------------------------------------------*
+      *              * [E] - Secondo prezzo per il confronto           *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-eee    not  = "N" and
+                     w-prs-cnt-prz-eee    not  = "L"
+                     move  "N"            to   w-prs-cnt-cng-prz
+                     go to prs-cnt-prz-370.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-eee    to   w-prs-cnt-prz-002      .
+       prs-cnt-prz-330.
+      *              *-------------------------------------------------*
+      *              * [FF] - Tipo di test per scost. in diminuzione   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if       (w-prs-cnt-prz-fff    not  numeric ) or
+                    (w-prs-cnt-prz-fff    not  = 00  and
+                     w-prs-cnt-prz-fff    not  = 01    )
+                     move  00             to   w-prs-cnt-prz-fff      .
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-fff    to   w-prs-cnt-tdt-dim      .
+       prs-cnt-prz-340.
+      *              *-------------------------------------------------*
+      *              * [GG] - % di confronto per scost. in diminuzione *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se da effettuare                       *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-tdt-dim    =    00
+                     move  zero           to   w-prs-cnt-per-dim
+                     go to prs-cnt-prz-350.
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-ggg    not  numeric or
+                     w-prs-cnt-prz-ggg    =    zero
+                     move  00             to   w-prs-cnt-tdt-dim
+                     move  zero           to   w-prs-cnt-per-dim
+                     go to prs-cnt-prz-350.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-ggg    to   w-prs-cnt-per-dim      .
+       prs-cnt-prz-350.
+      *              *-------------------------------------------------*
+      *              * [HH] - Tipo di test per scostamento in aumento  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if       (w-prs-cnt-prz-hhh    not  numeric ) or
+                    (w-prs-cnt-prz-hhh    not  = 00  and
+                     w-prs-cnt-prz-hhh    not  = 01    )
+                     move  00             to   w-prs-cnt-prz-hhh      .
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-hhh    to   w-prs-cnt-tdt-aum      .
+       prs-cnt-prz-360.
+      *              *-------------------------------------------------*
+      *              * [III] - % di confronto per scost. in aumento    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se da effettuare                       *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-tdt-aum    =    00
+                     move  zero           to   w-prs-cnt-per-aum
+                     go to prs-cnt-prz-370.
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-iii    not  numeric or
+                     w-prs-cnt-prz-iii    =    zero
+                     move  00             to   w-prs-cnt-tdt-aum
+                     move  zero           to   w-prs-cnt-per-aum
+                     go to prs-cnt-prz-370.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-iii    to   w-prs-cnt-per-aum      .
+       prs-cnt-prz-370.
+      *              *-------------------------------------------------*
+      *              * [L] - Prezzo lordo standard                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-lll    not  = "N" and
+                     w-prs-cnt-prz-lll    not  = "B"
+                     move  "N"            to   w-prs-cnt-prz-lsu
+                     go to prs-cnt-prz-380.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-lll    to   w-prs-cnt-prz-lsu      .
+       prs-cnt-prz-380.
+      *              *-------------------------------------------------*
+      *              * [M] - Data di riferimento per la determinazione *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Controllo formale                           *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-prz-mmm    not  = "N" and
+                     w-prs-cnt-prz-mmm    not  = "P"
+                     move  "N"            to   w-prs-cnt-dat-rif
+                     go to prs-cnt-prz-600.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione                             *
+      *                  *---------------------------------------------*
+           move      w-prs-cnt-prz-mmm    to   w-prs-cnt-dat-rif      .
+       prs-cnt-prz-600.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione valori letti per controllo con- *
+      *              * gruenza prezzi                                  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se nessun test per scostamento in diminu-   *
+      *                  * zione e nessun test per scostamento in au-  *
+      *                  * mento : No controllo congruenza prezzo      *
+      *                  *---------------------------------------------*
+           if        w-prs-cnt-tdt-dim    =    zero and
+                     w-prs-cnt-tdt-aum    =    zero
+                     move  "N"            to   w-prs-cnt-cng-prz
+                     go to prs-cnt-prz-800.
+       prs-cnt-prz-800.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     prs-cnt-prz-999.
+       prs-cnt-prz-900.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione personalizzazione               *
+      *              *-------------------------------------------------*
+           move      "N"                  to   w-prs-cnt-prz-lrs      .
+           move      "N"                  to   w-prs-cnt-prz-ven      .
+           move      "N"                  to   w-prs-cnt-cng-prz      .
+           move      "N"                  to   w-prs-cnt-prz-lsu      .
+       prs-cnt-prz-999.
+           exit.
+

@@ -1,0 +1,117 @@
+      *    *===========================================================*
+      *    * Area di comunicazione per determinazione valore unitario  *
+      *    * di magazzino                                              *
+      *    *-----------------------------------------------------------*
+       01  d-vun-mag.
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione                                       *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-tip-ope          pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Return status code                                    *
+      *        *                                                       *
+      *        *  - Spaces : Operazione eseguita                       *
+      *        *  - #      : Errore di esecuzione                      *
+      *        *                                                       *
+      *        *  Solo se determinazione L.i.f.o.                      *
+      *        *                                                       *
+      *        *  - N      : Determinazione non eseguibile per rima-   *
+      *        *             nenze finali negative                     *
+      *        *  - Z      : Determinazione eseguita, ma rimanenza     *
+      *        *             finale a zero                             *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-exi-sts          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Messaggio di errore                                   *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-msg-exi          pic  x(76)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di valorizzazione di magazzino richiesta         *
+      *        *                                                       *
+      *        *  - 0001 : Costo medio ponderato dell'anno             *
+      *        *  - 0002 : Costo ultimo                                *
+      *        *  - 0003 : Costo standard                              *
+      *        *  - 0004 : Costo Lifo                                  *
+      *        *  - 0005 : Costo Medio Continuo                        *
+      *        *  - 0014 : Costo Lifo da scaglioni annuali             *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-tip-val          pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di valorizzazione; se pari a zero si intende il  *
+      *        * valore riferito alla data attuale                     *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-dat-val          pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino cui deve riferirsi il saldo  *
+      *        *                                                       *
+      *        *  - 01 : Prodotti finiti                               *
+      *        *  - 02 : Semilavorati                                  *
+      *        *  - 03 : Materie prime                                 *
+      *        *  - 04 : Materiali vari                                *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-tip-mag          pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico di magazzino cui deve riferirsi il    *
+      *        * saldo                                                 *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-num-mag          pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero mesi                                           *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-num-mes          pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Giacenza di proprieta' alla data di valorizzazione,   *
+      *        * solo in caso di valorizzazione 0004, Lifo             *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-gia-prp          pic s9(08)v9(03)            .
+      *        *-------------------------------------------------------*
+      *        * Valore unitario determinato                           *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-val-uni          pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore addizionali per L.i.f.o.                       *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-lif.
+      *            *---------------------------------------------------*
+      *            * Valore totale L.i.f.o.                            *
+      *            *---------------------------------------------------*
+               10  d-vun-mag-lif-val      pic s9(13)                  .
+      *            *---------------------------------------------------*
+      *            * Numero di scaglioni che concorrono a formare il   *
+      *            * valore della rimanenza                            *
+      *            *---------------------------------------------------*
+               10  d-vun-mag-lif-nsc      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Dati relativi agli 11 esercizi che contribuiscono *
+      *            * a formare il valore della rimanenza               *
+      *            *---------------------------------------------------*
+               10  d-vun-mag-lif-scg occurs 11.
+      *                *-----------------------------------------------*
+      *                * Quantita'                                     *
+      *                *-----------------------------------------------*
+                   15  d-vun-mag-lif-qta  pic s9(08)v9(03)            .
+      *                *-----------------------------------------------*
+      *                * Valore unitario                               *
+      *                *-----------------------------------------------*
+                   15  d-vun-mag-lif-vun  pic  9(11)                  .
+      *                *-----------------------------------------------*
+      *                * Tipo di valore unitario                       *
+      *                *                                               *
+      *                *  - P : Costo medio ponderato                  *
+      *                *  - N : Valore normale del bene nell'ultimo    *
+      *                *        trimestre                              *
+      *                *-----------------------------------------------*
+                   15  d-vun-mag-lif-tvu  pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Anno, di quattro cifre                        *
+      *                *-----------------------------------------------*
+                   15  d-vun-mag-lif-ann  pic  9(04)                  .
+      *                *-----------------------------------------------*
+      *                * Flag di rivalutazione                         *
+      *                *-----------------------------------------------*
+                   15  d-vun-mag-lif-riv  pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni future                     *
+      *        *-------------------------------------------------------*
+           05  d-vun-mag-alx-exp.
+               10  filler occurs 99       pic  x(01)                  .

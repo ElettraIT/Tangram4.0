@@ -1,0 +1,180 @@
+      *    *===========================================================*
+      *    * Record tabella tipi movimento fatture fornitori [yff]     *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODTMF    " = rf-yff-cod-tmf                    *
+      *    *                         rf-yff-cod-dpz                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-yff-des-key                    *
+      *    *                         rf-yff-cod-tmf                    *
+      *    *                         rf-yff-cod-dpz                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-yff.
+      *        *-------------------------------------------------------*
+      *        * Codice tipo movimento per fatturazione                *
+      *        *-------------------------------------------------------*
+           05  rf-yff-cod-tmf             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza                                     *
+      *        *                                                       *
+      *        * N.B.: per valore zero vengono gestite le informazioni *
+      *        *       generali per il tipo movimento                  *
+      *        *-------------------------------------------------------*
+           05  rf-yff-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati generali                                         *
+      *        *-------------------------------------------------------*
+           05  rf-yff-dti-gen.
+      *            *---------------------------------------------------*
+      *            * Descrizione tipo movimento per uso interno in up- *
+      *            * percase                                           *
+      *            *---------------------------------------------------*
+               10  rf-yff-des-key         pic  x(30)                  .
+      *            *---------------------------------------------------*
+      *            * Descrizione tipo movimento per uso interno        *
+      *            *---------------------------------------------------*
+               10  rf-yff-des-tmf         pic  x(30)                  .
+      *            *---------------------------------------------------*
+      *            * Password per il tipo movimento                    *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-yff-pwd-tmf         pic  x(08)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo documento associato al tipo movimento        *
+      *            *                                                   *
+      *            * - 01 : Fattura                                    *
+      *            * - 02 : Nota di addebito                           *
+      *            * - 03 : Nota di accredito                          *
+      *            *---------------------------------------------------*
+               10  rf-yff-tip-doc         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo provenienza del documento                    *
+      *            *                                                   *
+      *            * - 01 : Nazionale                                  *
+      *            * - 02 : CEE                                        *
+      *            * - 03 : Estero                                     *
+      *            * - 04 : Dogana                                     *
+      *            *---------------------------------------------------*
+               10  rf-yff-tpv-doc         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Si/No impostazione righe del documento            *
+      *            *---------------------------------------------------*
+               10  rf-yff-snx-ird         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Numero di giornale iva per il documento associato *
+      *            * al tipo movimento                                 *
+      *            *---------------------------------------------------*
+               10  rf-yff-num-giv         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice causale per movimento di contabilita'      *
+      *            *                                                   *
+      *            * N.B. : Se a zero non si esegue movimentazione di  *
+      *            *        contabilita' a fronte di questo documento  *
+      *            *---------------------------------------------------*
+               10  rf-yff-cau-cge         pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice causale per movimento di magazzino         *
+      *            *                                                   *
+      *            * N.B. : Se a zero non si esegue movimentazione di  *
+      *            *        magazzino a fronte di questo documento     *
+      *            *---------------------------------------------------*
+               10  rf-yff-cau-mag         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Movimento a fronte di :                           *
+      *            * - 01 : Niente                                     *
+      *            * - 02 : Bolla di consegna fornitore                *
+      *            *---------------------------------------------------*
+               10  rf-yff-mov-afd         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento di default se movimento a fronte   *
+      *            *                                                   *
+      *            * N.B.: Significativo solo se campo precedente di   *
+      *            *       verso da zero                               *
+      *            *---------------------------------------------------*
+               10  rf-yff-def-tmf         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Validita' per le dipendenze                       *
+      *            *                                                   *
+      *            *  - spaces : Valido per tutte le dipendenze        *
+      *            *  - 'S'    : Valido solo per la Sede               *
+      *            *  - 'D'    : Valido solo per le dipendenze         *
+      *            *  - 'X'    : Valido solo per le dipendenze indica- *
+      *            *             te                                    *
+      *            *---------------------------------------------------*
+               10  rf-yff-vld-dpz         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Default per accettazione tipo riga corpo          *
+      *            *---------------------------------------------------*
+               10  rf-yff-def-tpr         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Status per il tipo movimento                      *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-yff-sta-tus         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Data di determinazione dello status               *
+      *            *                                                   *
+      *            * Solo se status diverso da 01                      *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-yff-sta-tud         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice tipo movimento di riferimento              *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-yff-sta-tuc         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di trattamento nelle statistiche per i  *
+      *            * documenti precedenti il cambiamento di status     *
+      *            *                                                   *
+      *            * N.B. : Campo attualmente non gestito              *
+      *            *---------------------------------------------------*
+               10  rf-yff-sta-tux         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo provenienza del documento                    *
+      *            *                                                   *
+      *            * Flag di Merce o Servizi                           *
+      *            *                                                   *
+      *            * - M          : Merce                              *
+      *            * - S          : Servizi                            *
+      *            *                                                   *
+      *            * N.B. : Solo se 'tpv-doc' 02 o 03                  *
+      *            *---------------------------------------------------*
+               10  rf-yff-flg-mos         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flag di regime fiscale particolare                *
+      *            *                                                   *
+      *            * - Spaces o N : Normale regime fiscale             *
+      *            * - R          : Regime di Reverse Charge           *
+      *            *                                                   *
+      *            * N.B. : Solo se 'tpv-doc' 01                       *
+      *            *---------------------------------------------------*
+               10  rf-yff-flg-rfp         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  rf-yff-alx-gen.
+                   15  filler   occurs 38 pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati relativi alla dipendenza                         *
+      *        *-------------------------------------------------------*
+           05  rf-yff-dti-dpz.
+      *            *---------------------------------------------------*
+      *            * Codice dislocazione di origine per il documento   *
+      *            *                                                   *
+      *            * N.B. : Se esiste un valore nel record 'zero' vale *
+      *            *        come default per le dipendenze per le      *
+      *            *        quali e' stata indicata la validita'       *
+      *            *---------------------------------------------------*
+               10  rf-yff-cod-dsl         pic  x(07)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  rf-yff-alx-dpz.
+                   15  filler   occurs 40 pic  x(01)                  .
+

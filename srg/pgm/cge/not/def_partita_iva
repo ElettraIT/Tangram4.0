@@ -1,0 +1,145 @@
+La Partiva IVA
+--------------
+E' costituita da undici cifre. Le prime sette sono il numero
+progressivo attribuito dall'ufficio IVA, le cifre dall'ottava alla
+decima sono il codice della provincia dove ha sede l'ufficio IVA
+competente, l'undicesima cifra e' un carattere di controllo.
+Prime sette cifre: sono attribuite dall'ufficio IVA e sono
+progressive. 8, 9 e 10a cifra: codice provinciale: necessario database
+contente i codici per tutte le provincie italiane.
+
+Carattere di controllo: si prendono le cinque cifre di posizione
+dispari e si sommano.
+Poi si raddoppia ogni singola cifra di posizione
+pari, e se il risultato è superiore o uguale a 10 si riduce sommando
+la cifra delle decine a quella delle unità. Si sommano tutti questi
+risultati. Poi si determina il totale delle due somme di cui sopra
+(cifre di posizione pari e cifre di posizione dispari). Si prende la
+cifra delle unita' di questo totale e la si sottrae da 10.
+La cifra delle unita' di questo risultato e' il codice di controllo.
+
+Esempio:
+
+Ditta di Torino.
+L'ufficio IVA assegna il numero progressivo 0123581.
+Il codice di Torino e' 001.
+Fin qui : 0123581001
+Calcolo cifra di controllo:
+Cifre di posizione dispari: 0+2+5+1+0=8
+Cifre di posizione pari: 1+3+8+0+1, che si raddoppiano diventando
+2+6+16+2. 16 diventa 1+6=7 In definitiva, cifre di posizione pari:
+2+6+7+2=17
+Gruppo pari + gruppo dispari (8+17)=25 La cifra delle unita' e' 5,
+10-5=5.
+Dunque il numero di controllo e' 5, e la partita IVA e': 01235810015.
+
+
+
+
+Algoritmi
+Ecco la spiegazione degli algoritmi che si usano per la verifica del
+codice fiscale e della partita iva.
+
+Codice fiscale. E' composto da 16 caratteri alfanumerici.
+L'ultimo carattere e' il codice di controllo che vogliamo verificare:
+
+1. s=0
+2. si considerano i caratteri di posto dispari dal primo al
+   quindicesimo e si convertono in numeri secondo questa tabella:
+
+    0 -> 1
+    1 -> 0
+    2 -> 5
+    3 -> 7
+    4 -> 9
+    5 -> 13
+    6 -> 15
+    7 -> 17
+    8 -> 19
+    9 -> 21
+    A -> 1
+    B -> 0
+    C -> 5
+    D -> 7
+    E -> 9
+    F -> 13
+    G -> 15
+    H -> 17
+    I -> 19
+    J -> 21
+    K -> 2
+    L -> 4
+    M -> 18
+    N -> 20
+    O -> 11
+    P -> 3
+    Q -> 6
+    R -> 8
+    S -> 12
+    T -> 14
+    U -> 16
+    V -> 10
+    W -> 22
+    X -> 25
+    Y -> 24
+    Z -> 23
+
+I numeri corrispondenti a ciascun carattere vanno sommati ad s.
+
+3. si considerano i caratteri di posto pari dal secondo al
+   quattordicesimo e si convertono in numeri secondo questa
+   tabella:
+
+    0 -> 0
+    1 -> 1
+    2 -> 2
+    ...
+    9 -> 9
+    A -> 0
+    B -> 1
+    C -> 2
+    ...
+    Z -> 25
+
+I numeri corrispondenti a ciascun carattere vanno sommati ad s.
+
+4. si calcola il resto della divisione di s per 26:
+   r=s%26 cioe' r=s-26*int(s/26); risulta un numero tra 0 e 25;
+5. si converte r in una lettera associando a 0 la A, a 1 la B, ...,
+   a 25 la Z
+6. la lettera ottenuta al punto 5 deve corrispondere all'ultimo
+   carattere del cod.fiscale (che e' sempre una lettera).
+
+Esempio: ABCDEF12B23P432P
+
+1. s=0
+2. s=1+5+9+0+0+7+9+5
+3. s=s+1+3+5+2+2+15+3=67
+4. r=67%26=15
+5. al 15 corrisponde la lettera "P"
+6. OK.
+
+Partita I.V.A. E' composta da 11 cifre. L'ultima cifra è il carattere di controllo che vogliamo verificare:
+
+1. s=0
+2. sommare ad s le cifre dispari (dalla prima alla nona)
+3. per ogni cifra di posto pari (dalla seconda alla decima),
+   moltiplicare la cifra per due e, se risulta piu' di 9,
+   sottrarre 9, quindi aggiungere il risultato a s;
+4. si calcola il resto della divisione di s per 10:
+   r=s%10 cioe' r=s-10*int(s/10); risulta un numero tra 0 e 9;
+5. se r=0 si pone c=0, altrimenti si pone c=10-r
+6. l'ultima cifra del cod. fisc. deve valere c.
+
+Esempio: 12345678903
+
+1. s=0
+2. s=1+3+5+7+9=25
+3. s=s+4+8+3+7=47
+4. r=7
+5. c=3
+6. OK.
+
+Bibliografia
+
+www.finanze.it - Il sito del Ministero delle Finanze è la fonte ufficiale delle info su 'ste cose. 

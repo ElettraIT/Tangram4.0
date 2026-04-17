@@ -1,0 +1,110 @@
+      *    *===========================================================*
+      *    * Record tabella forme di pagamento [zfp]                   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODFOP    " = rf-zfp-cod-fop                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-zfp-ide-dat                    *
+      *    *                         rf-zfp-cod-fop                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zfp-des-key                    *
+      *    *                         rf-zfp-cod-fop                    *
+      *    *                                                           *
+      *    *          "CODMNE    " = rf-zfp-cod-mne                    *
+      *    *                         rf-zfp-cod-fop                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zfp.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice forma di pagamento                             *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-cod-fop             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice mnemonico                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-cod-mne             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione in uppercase                              *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-des-key             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione forma di pagamento                        *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-des-fop             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sconto in fatturazione associato al pagamento         *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-sco-fat             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codici di pagamento associati alla forma di pagamento *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-cpg-ass occurs 3.
+      *            *---------------------------------------------------*
+      *            * Codice di pagamento                               *
+      *            *---------------------------------------------------*
+               10  rf-zfp-cod-pag         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di ammontare su cui agisce il codice di pa-  *
+      *            * gamento                                           *
+      *            * - 01 : Il totale documento                        *
+      *            * - 02 : Il totale imponibile                       *
+      *            * - 03 : Una percentuale del totale documento       *
+      *            * - 04 : Una percentuale del totale imponibile      *
+      *            * - 05 : Il totale Iva                              *
+      *            * - 06 : Solo una quota a forfait                   *
+      *            * - 07 : Totale Iva piu' quota a forfait            *
+      *            * - 08 : Totale documento  meno quota a forfait     *
+      *            * - 09 : Totale imponibile meno quota a forfait     *
+      *            * - 10 : Il residuo per il totale documento         *
+      *            * - 11 : Il residuo per il totale imponibile        *
+      *            *---------------------------------------------------*
+               10  rf-zfp-tip-amm         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale del totale documento o dell'imponibi- *
+      *            * le, obbligatoria se tipo ammontare su percentuale *
+      *            *---------------------------------------------------*
+               10  rf-zfp-per-toi         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Segnale di diminuzione dell'ammontare per l'im-   *
+      *            * porto dell'acconto                                *
+      *            * - 01 : No, nessuna diminuzione dell'ammontare     *
+      *            * - 02 : Si, l'ammontare viene diminuito dell'ac-   *
+      *            *        conto                                      *
+      *            *---------------------------------------------------*
+               10  rf-zfp-dim-act         pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no possibilita' di intervento manuale sulle sca-   *
+      *        * denze in fase di emissione da fattura                 *
+      *        *                                                       *
+      *        * (10/09/03)                                            *
+      *        *                                                       *
+      *        * - ' ' o 'N' : No                                      *
+      *        * - 'S'       : Si                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-snx-ims             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/no forma di pagamento di tipo contrassegno         *
+      *        *                                                       *
+      *        * (10/09/03)                                            *
+      *        *                                                       *
+      *        * - ' ' o 'N' : No                                      *
+      *        * - 'S'       : Si                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-snx-cts             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zfp-alx-exp.
+               10  filler     occurs 78   pic  x(01)                  .

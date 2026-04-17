@@ -1,0 +1,33 @@
+      *    *===========================================================*
+      *    * Subroutines per richiamo modulo per la determinazione del *
+      *    * valore della voce 'Note' da esporre sulle statistiche di  *
+      *    * acquisto sul fatturato                                    *
+      *    *-----------------------------------------------------------*
+       mod-not-saf-opn-000.
+           move      "pgm/saf/prg/obj/mnotsaf0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-mod-not-saf-pth      .
+           move      "OP"                 to   w-mod-not-saf-ope      .
+           perform   mod-not-saf-cll-000  thru mod-not-saf-cll-999    .
+       mod-not-saf-opn-999.
+           exit.
+       mod-not-saf-cls-000.
+           move      "CL"                 to   w-mod-not-saf-ope      .
+           perform   mod-not-saf-cll-000  thru mod-not-saf-cll-999    .
+           cancel    w-mod-not-saf-pth                                .
+       mod-not-saf-cls-999.
+           exit.
+       mod-not-saf-dvn-000.
+           move      "VN"                 to   w-mod-not-saf-ope      .
+           perform   mod-not-saf-cll-000  thru mod-not-saf-cll-999    .
+       mod-not-saf-dvn-999.
+           exit.
+       mod-not-saf-cll-000.
+           call      w-mod-not-saf-pth   using w-mod-not-saf
+                                               rf-fft
+                                               rf-ffr                 .
+       mod-not-saf-cll-999.
+           exit.
+

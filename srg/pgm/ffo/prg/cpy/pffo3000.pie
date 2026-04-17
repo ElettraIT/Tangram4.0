@@ -1,0 +1,128 @@
+      *    *===========================================================*
+      *    * Routine pre-trattamento piede registrazione               *
+      *    *-----------------------------------------------------------*
+       pre-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pre-pie-reg      .
+      *              *-------------------------------------------------*
+      *              * Aggiustamento status impostazioni piede         *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-cnt-sts-imp-pie      .
+       pre-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione numero pagine che compongono il piede      *
+      *    *-----------------------------------------------------------*
+       dmp-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Il piede e' composto di nr. 0 pagine            *
+      *              *-------------------------------------------------*
+           move      0                    to   w-cnt-sts-imp-mpp      .
+       dmp-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione si/no pagina w-cnt-sts-imp-npp da trattare *
+      *    *-----------------------------------------------------------*
+       snp-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Flag di uscita comunque a No                    *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-cnt-sts-imp-snp      .
+       snp-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione piede registrazione                          *
+      *    *-----------------------------------------------------------*
+       acc-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione tipo uscita                     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-tus-acc-pie      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione func-key di impostazione        *
+      *              *-------------------------------------------------*
+           move      spaces               to   v-key                  .
+      *              *-------------------------------------------------*
+      *              * Tipo impostazione : piede                       *
+      *              *-------------------------------------------------*
+           move      "P"                  to   w-cnt-mfu-tip-imp      .
+      *              *-------------------------------------------------*
+      *              * Accettazioni                                    *
+      *              *-------------------------------------------------*
+       acc-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione piede registrazione                       *
+      *    *-----------------------------------------------------------*
+       vis-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Visualizzazioni                                 *
+      *              *-------------------------------------------------*
+       vis-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts piede                             *
+      *    *-----------------------------------------------------------*
+       pmt-pie-reg-000.
+       pmt-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo piede : Presa visione per pagina piede *
+      *    *-----------------------------------------------------------*
+       acc-pre-vpp-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+       acc-pre-vpp-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "MX"                 to   v-ope                  .
+           move      "U"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      spaces               to   v-msk                  .
+           move      spaces               to   v-alf                  .
+           move      spaces               to   v-not                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-co2    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-pre-vpp-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-pre-vpp-999.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-pre-vpp-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-pre-vpp-000.
+       acc-pre-vpp-999.
+           exit.
+

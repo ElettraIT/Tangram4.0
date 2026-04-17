@@ -1,0 +1,266 @@
+      *    *===========================================================*
+      *    * Record file [cbp] Cassa, banche, c/c postali              *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODCBP    " = rf-cbp-tip-cbp                    *
+      *    *                       = rf-cbp-cod-cbp                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-cbp-ide-dat                    *
+      *    *                         rf-cbp-tip-cbp                    *
+      *    *                         rf-cbp-cod-cbp                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-cbp-tip-cbp                    *
+      *    *                         rf-cbp-des-key                    *
+      *    *                         rf-cbp-cod-cbp                    *
+      *    *                                                           *
+      *    *          "ABICAB    " = rf-cbp-tip-cbp                    *
+      *    *                         rf-cbp-abi-ban                    *
+      *    *                         rf-cbp-cab-ban                    *
+      *    *                         rf-cbp-cod-cbp                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-cbp.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        *                                                       *
+      *        * - 01 : Nostra cassa                                   *
+      *        * - 02 : Nostra banca                                   *
+      *        * - 03 : Nostro conto corrente postale                  *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-tip-cbp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cassa, o banca, o c/c postale                  *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-cod-cbp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione interna per la cassa, o banca, o c/c po-  *
+      *        * stale                                                 *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-des-cbp             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione in uppercase per l'ordinamento            *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-des-key             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per il tipo record 01 : cassa            *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-inf-001.
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per la cassa contanti        *
+      *            *                                                   *
+      *            * Nota: Per quanto riguarda la cassa viene sempre   *
+      *            *       utilizzato questo sottoconto.               *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-csc         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per la cassa assegni         *
+      *            *                                                   *
+      *            * Nota: Questo sottoconto non viene mai utilizzato. *
+      *            *                                                   *
+      *            *       Anche l'operazione di riscossione per as-   *
+      *            *       segno, della gestione portafoglio, utiliz-  *
+      *            *       zera' il sottoconto precedente.             *
+      *            *                                                   *
+      *            *       L'utente che volesse tenere una cassa as-   *
+      *            *       segni separata dalla cassa contanti non     *
+      *            *       dovra' far altro che istituire due anagra-  *
+      *            *       fiche cassa.                                *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-csa         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per oneri su pagamenti per   *
+      *            * cassa                                             *
+      *            *                                                   *
+      *            * Nota: Per quanto riguarda la cassa viene sempre   *
+      *            *       utilizzato questo sottoconto.               *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-opc         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali relative al-  *
+      *            * le informazioni sulla cassa                       *
+      *            *---------------------------------------------------*
+               10  rf-cbp-alx-001.
+                   15  filler   occurs 33 pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per il tipo record 02 : banca            *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-inf-002.
+      *            *---------------------------------------------------*
+      *            * Codice ABI istituto di credito                    *
+      *            *---------------------------------------------------*
+               10  rf-cbp-abi-ban         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CAB sportello istituto di credito          *
+      *            *---------------------------------------------------*
+               10  rf-cbp-cab-ban         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Sigla del conto corrente bancario                 *
+      *            *---------------------------------------------------*
+               10  rf-cbp-sgl-ccb         pic  x(12)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per il conto corrente        *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-cco         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per bonifici bancari attivi  *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-bba         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per bonifici bancari passivi *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-bbp         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per presentazione distinte   *
+      *            * al S.B.F. a maturazione di valuta                 *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-psm         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per presentazione distinte   *
+      *            * al S.B.F. ad accredito immediato                  *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-psi         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per presentazione distinte   *
+      *            * al dopo incasso                                   *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-pdi         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per presentazione distinte   *
+      *            * allo sconto                                       *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-psc         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per anticipazioni in valuta  *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-anv         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per differenze cambio passi- *
+      *            * ve                                                *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-dfp         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per differenze cambio attive *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-dfa         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per oneri bancari            *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-onb         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per interessi bancari        *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-inb         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CIN italiano                               *
+      *            *---------------------------------------------------*
+               10  rf-cbp-cin-ita         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CIN europeo                                *
+      *            *---------------------------------------------------*
+               10  rf-cbp-cin-eur         pic  x(02)                  .
+      *            *---------------------------------------------------*
+      *            * Identificatore numerico univoco per il codice     *
+      *            * banca, assegnato automaticamente                  *
+      *            *                                                   *
+      *            * Nota: per consentire di accedere alla gestione    *
+      *            *       dei contatti telefonici                     *
+      *            *---------------------------------------------------*
+               10  rf-cbp-ide-cbp         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice SIA, assegnato dalla Banca di allineamento *
+      *            *                                                   *
+      *            * Nota : Il codice Sia dovrebbe essere univoco ed   *
+      *            *        essere letto in 'gep001'. In futuro potra' *
+      *            *        essere assegnato alla Banca di presenta-   *
+      *            *        zione ...                                  *
+      *            *                                                   *
+      *            * N.B. : campo da implementare                      *
+      *            *---------------------------------------------------*
+______*        10  rf-cbp-cod-sia         pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Status per il codice banca                        *
+      *            *                                                   *
+      *            *  - 01 : Normale                                   *
+      *            *  - 11 : Esauriti i rapporti commerciali           *
+      *            *                                                   *
+      *            *  - 21 : Sostituito da ns. nuovo codice banca      *
+      *            *                                                   *
+      *            * N.B. : campo da implementare                      *
+      *            *---------------------------------------------------*
+______*        10  rf-cbp-sta-tus         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Data di determinazione dello status               *
+      *            *                                                   *
+      *            * Solo se status diverso da 01                      *
+      *            *                                                   *
+      *            * N.B. : campo da implementare                      *
+      *            *---------------------------------------------------*
+______*        10  rf-cbp-sta-tud         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice banca di riferimento                       *
+      *            *                                                   *
+      *            * Solo se status a 21                               *
+      *            *                                                   *
+      *            * N.B. : campo da implementare                      *
+      *            *---------------------------------------------------*
+______*        10  rf-cbp-sta-tuc         pic  x(10)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di trattamento nelle statistiche per i  *
+      *            * documenti precedenti il cambiamento di status     *
+      *            *                                                   *
+      *            * Solo se codice banca di riferimento diverso da    *
+      *            * spazi                                             *
+      *            *                                                   *
+      *            *  - 00 : Non significativo                         *
+      *            *  - 01 : Statistiche distinte                      *
+      *            *  - 02 : Statistiche girate sulla banca di rife-   *
+      *            *         rimento                                   *
+      *            *                                                   *
+      *            * N.B. : campo da implementare                      *
+      *            *---------------------------------------------------*
+______*        10  rf-cbp-sta-tux         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali relative al-  *
+      *            * le informazioni sulla banca                       *
+      *            *---------------------------------------------------*
+               10  rf-cbp-alx-002.
+                   15  filler   occurs 30 pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni per il tipo record 03 : c/c postale      *
+      *        *-------------------------------------------------------*
+           05  rf-cbp-inf-003.
+      *            *---------------------------------------------------*
+      *            * Sigla del conto corrente postale                  *
+      *            *---------------------------------------------------*
+               10  rf-cbp-sgl-ccp         pic  x(12)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per bonifici postali attivi  *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-bpa         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per bonifici postali passivi *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-bpp         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Sottoconto contabile per oneri postali            *
+      *            *---------------------------------------------------*
+               10  rf-cbp-stc-onp         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali relative al-  *
+      *            * le informazioni sul c/c postale                   *
+      *            *---------------------------------------------------*
+               10  rf-cbp-alx-003.
+                   15  filler   occurs 33 pic  x(01)                  .

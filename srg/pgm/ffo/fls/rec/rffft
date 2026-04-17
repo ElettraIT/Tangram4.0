@@ -1,0 +1,692 @@
+      *    *===========================================================*
+      *    * Record file [fft] Fatture fornitori testate               *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-fft-num-prt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-fft-ide-dat                    *
+      *    *                         rf-fft-dat-reg                    *
+      *    *                         rf-fft-num-prt                    *
+      *    *                                                           *
+      *    *          "IDEDOC    " = rf-fft-dat-reg                    *
+      *    *                         rf-fft-cod-dpz                    *
+      *    *                         rf-fft-cod-tmf                    *
+      *    *                         rf-fft-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZARCDAT " = rf-fft-cod-dpz                    *
+      *    *                         rf-fft-tip-arc                    *
+      *    *                         rf-fft-cod-arc                    *
+      *    *                         rf-fft-dat-reg                    *
+      *    *                         rf-fft-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZTMFDAT " = rf-fft-cod-dpz                    *
+      *    *                         rf-fft-cod-tmf                    *
+      *    *                         rf-fft-dat-reg                    *
+      *    *                         rf-fft-num-prt                    *
+      *    *                                                           *
+      *    *          "IDEDOCDDO " = rf-fft-dat-doc                    *
+      *    *                         rf-fft-cod-dpz                    *
+      *    *                         rf-fft-num-doc                    *
+      *    *                         rf-fft-cod-tmf                    *
+      *    *                         rf-fft-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-fft.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.dd.nnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento per la fattura fornitore               *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-tmf             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento associato al tipo movimento            *
+      *        *                                                       *
+      *        * - 01 : Fattura                                        *
+      *        * - 02 : Nota di addebito                               *
+      *        * - 03 : Nota di accredito                              *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tip-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo provenienza del documento                        *
+      *        *                                                       *
+      *        * - 01 : Nazionale                                      *
+      *        * - 02 : CEE                                            *
+      *        * - 03 : Estero                                         *
+      *        * - 04 : Dogana                                         *
+      *        *                                                       *
+      *        * N.B. : vedi anche 'flg-mos'                           *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tpv-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No impostazione righe del documento                *
+      *        *-------------------------------------------------------*
+           05  rf-fft-snx-ird             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha ricevuto il documento        *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione                                    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-dat-reg             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio per il movimento                        *
+      *        *                                                       *
+      *        * - F : Fornitore                                       *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio                       *
+      *        *-------------------------------------------------------*
+           05  rf-fft-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio per la fatturazione                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-arc-plf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio per la fatturazione   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-dpz-plf             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento del fornitore                          *
+      *        *-------------------------------------------------------*
+           05  rf-fft-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento del fornitore                        *
+      *        *-------------------------------------------------------*
+           05  rf-fft-num-doc             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *-------------------------------------------------------*
+           05  rf-fft-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-fft-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-fft-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-fft-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-fft-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Assoggettamento iva per il documento                  *
+      *        * - 00000 : Soggetto iva                                *
+      *        * - nnnnn : Titolo di esenzione                         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ass-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Conto di contabilita' generale usato come contropar-  *
+      *        * tita acquisti per l'intero documento                  *
+      *        * - 0000000 : A seconda delle righe fatturate           *
+      *        * - nnnnnnn : Conto di contropartita acquisti           *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ctp-acq             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro pagamenti al fornitore                        *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-inl-pgt             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice listino applicato dal fornitore                *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-lst             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in riga associata al fornitore       *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-fft-csr-aaf             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in riga associate al fornitore               *
+      *        *-------------------------------------------------------*
+           05  rf-fft-psr-aaf occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in chiusura associato al fornitore   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-fft-csc-aaf             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto chiusura associato al fornitore              *
+      *        *-------------------------------------------------------*
+           05  rf-fft-psc-aaf             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Voci descrittive in bolla fornitore                   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-fft-voc-des occurs 06   pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo documento in valuta                           *
+      *        *-------------------------------------------------------*
+           05  rf-fft-iiv-doc             pic s9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo documento, in valuta base                     *
+      *        *-------------------------------------------------------*
+           05  rf-fft-imp-doc             pic s9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice forma di pagamento per il documento            *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-fop             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sconto pagamento associato alla forma di pagamento    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-scp-aap             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca di appoggio per pagamenti da ef-  *
+      *        * fettuarsi al fornitore a mezzo circuiti bancari       *
+      *        *-------------------------------------------------------*
+           05  rf-fft-nos-ban             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI dell'istituto di credito di appoggio per   *
+      *        * pagamenti da effettuarsi al fornitore a mezzo banca,  *
+      *        * tramite bonifico                                      *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-abi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice sportello CAB per l'istituto di credito di ap- *
+      *        * poggio per pagamenti da effettuarsi al fornitore a    *
+      *        * mezzo banca, tramite bonifico                         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-cab             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente nello sportello dell'istituto   *
+      *        * di credito di appoggio per pagamenti da effettuarsi   *
+      *        * al fornitore a mezzo banca, tramite bonifico          *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ccc-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente postale di appoggio per paga-   *
+      *        * menti da effettuarsi al fornitore a mezzo c/c posta-  *
+      *        * le, per bonifici postali al fornitore                 *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ccp-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice banca estera del fornitore                     *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-bef             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese incasso per il documento        *
+      *        *-------------------------------------------------------*
+           05  rf-fft-add-spi             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese bollo per il documento          *
+      *        *-------------------------------------------------------*
+           05  rf-fft-add-spb             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo incasso alternativo per incassi elettronici,     *
+      *        * normalmente destinati a risolversi in una dispo-      *
+      *        * sizione di pagamento                                  *
+      *        * - 01 : Nessuna preferenza                             *
+      *        * - 02 : Ri.Ba.                                         *
+      *        * - 03 : M.av.                                          *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ipr-iel             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza pagamento nel caso che la forma di pa-  *
+      *        * gamento preveda un codice di pagamento con data di    *
+      *        * decorrenza manuale                                    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-pag-dsm             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare della quota a forfait nel caso che la forma *
+      *        * di pagamento preveda un codice di pagamento relativa  *
+      *        * ad una quota a forfait, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-fft-pag-qaf             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare dell'acconto nel caso che la forma di paga- *
+      *        * mento preveda la deduzione dell'acconto relativamente *
+      *        * ad uno dei tre codici di pagamento previsti,          *
+      *        * in valuta                                             *
+      *        *-------------------------------------------------------*
+           05  rf-fft-pag-act             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice acquisitore per le provvigioni sul documento   *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-aqt             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'acquisitore, in valuta base                         *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-pvf-aqt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice intermediario per le provvigioni sul documento *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-cod-ime             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'intermediario, in valuta base                       *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-pvf-ime             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Totali di suddivisione per le righe, in valuta        *
+      *        * - 01 : Totale merce                                   *
+      *        * - 02 : Totale servizi                                 *
+      *        * - 03 : Totale imballi                                 *
+      *        * - 04 : Totale libero 4                                *
+      *        * - 05 : Totale libero 5                                *
+      *        * - 06 : Totale libero 6                                *
+      *        * - 07 : Totale libero 7                                *
+      *        * - 08 : Totale libero 8                                *
+      *        * - 09 : Totale extra                                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tot-rig occurs 09   pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto in chiusura, in valuta                 *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tot-scc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in chiusura                                  *
+      *        *-------------------------------------------------------*
+           05  rf-fft-per-scc             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto in chiusura           *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-civ-scc             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto in chiusura *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ccp-scc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto pagamento, in valuta                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tot-scp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto pagamento                                    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-per-scp             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto pagamento             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-civ-scp             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto pagamento   *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ccp-scp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No addebito spese e modalita' di addebito          *
+      *        *-------------------------------------------------------*
+           05  rf-fft-spe-add occurs 06.
+      *            *---------------------------------------------------*
+      *            * Si/No addebito spese                              *
+      *            * - 0 : No addebito                                 *
+      *            * - 1 : Si addebito                                 *
+      *            *---------------------------------------------------*
+               10  rf-fft-spe-snx         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di addebito spese                       *
+      *            * - 1 : Addebito a percentuale fissa                *
+      *            * - 2 : Addebito a percentuale variabile            *
+      *            * - 3 : Addebito ad importo fisso                   *
+      *            * - 4 : Addebito ad importo variabile               *
+      *            *---------------------------------------------------*
+               10  rf-fft-spe-mad         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale di addebito della spesa               *
+      *            *---------------------------------------------------*
+               10  rf-fft-spe-per         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di imponibile per la percentuale della spesa *
+      *            * - 00 : Non significativo                          *
+      *            * - 01 : Totale lordo                               *
+      *            * - 02 : Totale netto                               *
+      *            * - 03 : Su una combinazione delle voci seguenti    *
+      *            * - 11 : Totale merci                               *
+      *            * - 12 : Totale servizi                             *
+      *            * - 13 : Totale imballi                             *
+      *            * - 14 : Totale libero 4                            *
+      *            * - 15 : Totale libero 5                            *
+      *            * - 16 : Totale libero 6                            *
+      *            * - 17 : Totale libero 7                            *
+      *            * - 18 : Totale libero 8                            *
+      *            * - 19 : Totale extra                               *
+      *            *---------------------------------------------------*
+               10  rf-fft-spe-ibl         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Totalizzatori da considerarsi per la determina-   *
+      *            * zione dell'imponibile per la percentuale della    *
+      *            * spesa, in valuta                                  *
+      *            *                                                   *
+      *            * Solo se l'imponibile per la percentuale e' pari a *
+      *            * 03                                                *
+      *            *                                                   *
+      *            * Per ogni totalizzatore deve essere specificato un *
+      *            * valore di un carattere, dove :                    *
+      *            *                                                   *
+      *            * - N : Non concorre a formare l'imponibile         *
+      *            * - S : Concorre a formare l'imponibile             *
+      *            *                                                   *
+      *            * Il significato dei totalizzatori e' di tipo posi- *
+      *            * zionale, con la seguente codifica :               *
+      *            *                                                   *
+      *            * 1 : Totale merci                                  *
+      *            * 2 : Totale servizi                                *
+      *            * 3 : Totale imballi                                *
+      *            * 4 : Totale libero 4                               *
+      *            * 5 : Totale libero 5                               *
+      *            * 6 : Totale libero 6                               *
+      *            * 7 : Totale libero 7                               *
+      *            * 8 : Totale libero 8                               *
+      *            * 9 : Totale extra                                  *
+      *            *---------------------------------------------------*
+               10  rf-fft-ibt-spe.
+                   15  rf-fft-ibx-spe  occurs 09
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Importo di addebito della spesa, in valuta        *
+      *            *---------------------------------------------------*
+               10  rf-fft-spe-imp         pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Codice iva per la spesa                           *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non e'    *
+      *            *        soggetta ad un particolare codice iva, ma  *
+      *            *        che l'importo spesa va' sventagliato in    *
+      *            *        proporzione ai codici iva gia' presenti    *
+      *            *        nel documento                              *
+      *            *---------------------------------------------------*
+               10  rf-fft-spe-civ         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice contropartita per la spesa                 *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non si    *
+      *            *        riferisce ad una particolare contropartita,*
+      *            *        ma che l'importo spesa va' sventagliato in *
+      *            *        proporzione alle contropartite gia' pre-   *
+      *            *        senti nel documento                        *
+      *            *---------------------------------------------------*
+               10  rf-fft-spe-ccp         pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese incasso, in valuta                      *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tot-spi             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese incasso                       *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-civ-spi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese incasso             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ccp-spi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese bollo, in valuta                        *
+      *        *-------------------------------------------------------*
+           05  rf-fft-tot-spb             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese bollo                         *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-civ-spb             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese bollo               *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ccp-spb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione causale contabile                         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-des-cau.
+               10  rf-fft-rig-cau occurs 04
+                                          pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di giornale iva per il documento               *
+      *        *-------------------------------------------------------*
+           05  rf-fft-num-giv             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo iva                                 *
+      *        *-------------------------------------------------------*
+           05  rf-fft-npt-iva             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto iva                                       *
+      *        *-------------------------------------------------------*
+           05  rf-fft-iva-cst.
+      *            *---------------------------------------------------*
+      *            * Righe del castelletto iva                         *
+      *            *---------------------------------------------------*
+               10  rf-fft-iva-rig occurs 06.
+      *                *-----------------------------------------------*
+      *                * Codice iva                                    *
+      *                *-----------------------------------------------*
+                   15  rf-fft-iva-cod     pic  9(05)                  .
+      *                *-----------------------------------------------*
+      *                * Imponibile iva, in valuta                     *
+      *                *-----------------------------------------------*
+                   15  rf-fft-iva-ibv     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Imponibile iva, in valuta base                *
+      *                *-----------------------------------------------*
+                   15  rf-fft-iva-ibl     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Imposta, in valuta base                       *
+      *                *-----------------------------------------------*
+                   15  rf-fft-iva-imp     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Totale documento per castelletto iva, in valuta   *
+      *            * base                                              *
+      *            *---------------------------------------------------*
+               10  rf-fft-iva-tdo         pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione per movimento di contabilita' ge-  *
+      *        * nerale relativo al documento                          *
+      *        *                                                       *
+      *        * N.B. : La data di registrazione per il movimento di   *
+      *        *        contabilita' generale relativo al documento e' *
+      *        *        sempre pari alla data di registrazione         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-dat-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo per movimento di contabilita' gene- *
+      *        * rale relativo al documento                            *
+      *        *                                                       *
+      *        * N.B. : La data di registrazione per il movimento di   *
+      *        *        contabilita' generale relativo al documento e' *
+      *        *        sempre pari alla data di registrazione         *
+      *        *-------------------------------------------------------*
+           05  rf-fft-prt-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero registrazioni di contabilita' generale genera- *
+      *        * te per il documento                                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-nrg-mgd             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento per movimento di contabilita' ge- *
+      *        * nerale relativo al documento                          *
+      *        *                                                       *
+      *        * N.B.: Solo per tipi documento 02 e 03                 *
+      *        *-------------------------------------------------------*
+           05  rf-fft-dri-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento per movimento di contabilita'   *
+      *        * generale relativo al documento                        *
+      *        *                                                       *
+      *        * N.B.: Solo per tipi documento 02 e 03                 *
+      *        *-------------------------------------------------------*
+           05  rf-fft-nri-mgd             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di registrazione fattura  *
+      *        * fornitori in gestione scadenze fornitori              *
+      *        *-------------------------------------------------------*
+           05  rf-fft-prt-scf             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero scadenza della prima scadenza generata per la  *
+      *        * gestione delle scadenze fornitori                     *
+      *        *                                                       *
+      *        * N.B. : Le scadenze successive alla prima hanno un nu- *
+      *        *        mero scadenza in progressione di uno in uno    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-nps-scf             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di scadenze generate per la gestione scadenze  *
+      *        * fornitori : 00..96                                    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-ctr-scf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di magazzino a valore per *
+      *        * tipi documento Nota di addebito o Nota di Accredito   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-prt-mag             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-fft-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-fft-flg-blo.
+                   15  rf-fft-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-fft-flg-nbl.
+                   15  rf-fft-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di regime fiscale particolare                    *
+      *        *                                                       *
+      *        * - Spaces o N : Normale regime fiscale                 *
+      *        * - S          : Regime di Scissione Pagamenti          *
+      *        * - R          : Regime di Reverse Charge               *
+      *        * - E          : Esclusione da dichiarazione annuale    *
+      *        *-------------------------------------------------------*
+           05  rf-fft-flg-rfp             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di presenza documento in formato XML             *
+      *        *                                                       *
+      *        * - Spaces o N : No                                     *
+      *        * - S          : Si, documento elettronico presente     *
+      *        *-------------------------------------------------------*
+           05  rf-fft-flg-xml             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo provenienza del documento                        *
+      *        *                                                       *
+      *        * Flag di Merce o Servizi                               *
+      *        *                                                       *
+      *        * - M          : Merce                                  *
+      *        * - S          : Servizi                                *
+      *        *                                                       *
+      *        * N.B. : Solo se 'tpv-doc' 02 o 03                      *
+      *        *-------------------------------------------------------*
+           05  rf-fft-flg-mos             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-fft-alx-exp.
+               10  filler  occurs 17      pic  x(01)                  .

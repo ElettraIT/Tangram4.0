@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione determinazione esposizione *
+      *    * cliente                                                   *
+      *    *-----------------------------------------------------------*
+       det-esp-cec-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-esp-cec-tip-ope      .
+           perform   det-esp-cec-cll-000  thru det-esp-cec-cll-999    .
+       det-esp-cec-opn-999.
+           exit.
+
+       det-esp-cec-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-esp-cec-tip-ope      .
+           perform   det-esp-cec-cll-000  thru det-esp-cec-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-esp-cec-tip-ope      .
+           perform   det-esp-cec-cll-000  thru det-esp-cec-cll-999    .
+           if        d-esp-cec-exi-sts    not  = spaces
+                     go to det-esp-cec-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/gep/prg/obj/despcec0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-esp-cec-cls-999.
+           exit.
+
+       det-esp-cec-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/gep/prg/obj/despcec0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-esp-cec              .
+       det-esp-cec-cll-999.
+           exit.
+

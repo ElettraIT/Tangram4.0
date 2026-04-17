@@ -1,0 +1,50 @@
+      *    *===========================================================*
+      *    * Subroutines per modulo aggiornamento magazzino            *
+      *    *-----------------------------------------------------------*
+       mdl-agg-mag-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   l-mag-300-tip-ope      .
+           perform   mdl-agg-mag-cll-000  thru mdl-agg-mag-cll-999    .
+       mdl-agg-mag-opn-999.
+           exit.
+
+       mdl-agg-mag-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   l-mag-300-tip-ope      .
+           perform   mdl-agg-mag-cll-000  thru mdl-agg-mag-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   l-mag-300-tip-ope      .
+           perform   mdl-agg-mag-cll-000  thru mdl-agg-mag-cll-999    .
+           if        l-mag-300-exi-sts    not  = spaces
+                     go to mdl-agg-mag-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/mag/prg/obj/pmag300z"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+       mdl-agg-mag-cls-999.
+           exit.
+
+       mdl-agg-mag-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/mag/prg/obj/pmag300z"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using l-mag-300              .
+       mdl-agg-mag-cll-999.
+           exit.
+

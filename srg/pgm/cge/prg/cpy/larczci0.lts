@@ -1,0 +1,109 @@
+      *    *===========================================================*
+      *    * Lettura archivio [zci]                                    *
+      *    *-----------------------------------------------------------*
+       let-arc-zci-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zci-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice iva a zero                       *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zci-cod    =    zero
+                     go to let-arc-zci-500.
+      *              *-------------------------------------------------*
+      *              * Normazlizzazione                                *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/cge/fls/ioc/obj/iofzci"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zci                 .
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODIVA    "         to   f-key                  .
+           move      w-let-arc-zci-cod    to   rf-zci-cod-iva         .
+           move      "pgm/cge/fls/ioc/obj/iofzci"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zci                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zci-400.
+       let-arc-zci-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se aliquota imponibile, descrizione a spazi *
+      *                  *---------------------------------------------*
+           move      w-let-arc-zci-cod    to   w-edt-iva-cod          .
+      *
+           if        w-edt-iva-cod-003    =    0
+                     move  spaces         to   w-let-arc-zci-des
+           else      move  rf-zci-des-doc to   w-let-arc-zci-des      .
+      *                  *---------------------------------------------*
+      *                  * Mnemonico                                   *
+      *                  *---------------------------------------------*
+           move      rf-zci-cod-mne       to   w-let-arc-zci-mne      .
+      *                  *---------------------------------------------*
+      *                  * Decimali                                    *
+      *                  *---------------------------------------------*
+           move      rf-zci-dec-ali       to   w-let-arc-zci-dec      .
+      *                  *---------------------------------------------*
+      *                  * Posizione in elenchi                        *
+      *                  *---------------------------------------------*
+           move      rf-zci-flg-ecf       to   w-let-arc-zci-ecf      .
+      *                  *---------------------------------------------*
+      *                  * Si/no in liquidazione periodica             *
+      *                  *---------------------------------------------*
+           move      rf-zci-snx-lqp       to   w-let-arc-zci-lqp      .
+      *                  *---------------------------------------------*
+      *                  * Natura operazione                           *
+      *                  *---------------------------------------------*
+           move      rf-zci-cod-nop       to   w-let-arc-zci-nop      .
+      *                  *---------------------------------------------*
+      *                  * Aliquota                                    *
+      *                  *---------------------------------------------*
+           move      rf-zci-ali-iva       to   w-let-arc-zci-ali      .
+      *
+           if        rf-zci-ali-iva       =    zero  and
+                     w-let-arc-zci-cod    <    100
+                     move  w-let-arc-zci-cod
+                                          to   w-let-arc-zci-ali      .
+      *                  *---------------------------------------------*
+      *                  * Si/no imposta di bollo virtuale             *
+      *                  *---------------------------------------------*
+           move      rf-zci-flg-ecf       to   w-let-arc-zci-ibv      .
+       let-arc-zci-290.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zci-999.
+       let-arc-zci-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zci-flg      .
+           move      all   "."            to   w-let-arc-zci-des      .
+           go to     let-arc-zci-600.
+       let-arc-zci-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zci-des      .
+       let-arc-zci-600.
+           move      spaces               to   w-let-arc-zci-mne      .
+           move      zero                 to   w-let-arc-zci-dec      .
+           move      zero                 to   w-let-arc-zci-ali      .
+           move      spaces               to   w-let-arc-zci-ecf      .
+           move      spaces               to   w-let-arc-zci-nop      .
+           move      spaces               to   w-let-arc-zci-lqp      .
+           move      spaces               to   w-let-arc-zci-ibv      .
+       let-arc-zci-999.
+           exit.

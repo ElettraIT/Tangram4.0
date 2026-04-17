@@ -1,0 +1,58 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zcr]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zcr-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zcr-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zcr-cod    =    zero
+                     go to let-arc-zcr-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCAU    "         to   f-key                  .
+           move      w-let-arc-zcr-cod    to   rf-zcr-cod-cau         .
+           move      "pgm/rda/fls/ioc/obj/iofzcr"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zcr                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zcr-400.
+       let-arc-zcr-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zcr-des-cau       to   w-let-arc-zcr-des      .
+           move      rf-zcr-cod-mne       to   w-let-arc-zcr-mne      .
+           move      rf-zcr-per-cau       to   w-let-arc-zcr-per      .
+           move      rf-zcr-pim-cau       to   w-let-arc-zcr-pim      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zcr-999.
+       let-arc-zcr-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zcr-flg      .
+           move      all   "."            to   w-let-arc-zcr-des      .
+           go to     let-arc-zcr-600.
+       let-arc-zcr-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zcr-des      .
+       let-arc-zcr-600.
+           move      spaces               to   w-let-arc-zcr-mne      .
+           move      zero                 to   w-let-arc-zcr-per      .
+           move      zero                 to   w-let-arc-zcr-pim      .
+       let-arc-zcr-999.
+           exit.
+

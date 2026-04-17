@@ -1,0 +1,178 @@
+        
+        N.B.: Questa routine era nel gep860 e nel gep820: e' stata
+              eleminata per questioni di millennium bug
+
+
+
+      *    *===========================================================*
+      *    * Work area per calcoli ed operazioni su date               *
+      *    *-----------------------------------------------------------*
+       01  w-clc-dat.
+      *        *-------------------------------------------------------*
+      *        * Parametri in input ed output                          *
+      *        *-------------------------------------------------------*
+           05  w-clc-dat-ope              pic  x(02)                  .
+           05  w-clc-dat-min              pic  9(07)                  .
+           05  w-clc-dat-r01 redefines
+               w-clc-dat-min.
+               10  w-clc-sec-min          pic  9(01)                  .
+               10  w-clc-ann-min          pic  9(02)                  .
+               10  w-clc-mes-min          pic  9(02)                  .
+               10  w-clc-gio-min          pic  9(02)                  .
+           05  w-clc-dat-max              pic  9(07)                  .
+           05  w-clc-dat-r02 redefines
+               w-clc-dat-max.
+               10  w-clc-sec-max          pic  9(01)                  .
+               10  w-clc-ann-max          pic  9(02)                  .
+               10  w-clc-mes-max          pic  9(02)                  .
+               10  w-clc-gio-max          pic  9(02)                  .
+           05  w-clc-dat-nrg              pic s9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Work locale                                           *
+      *        *-------------------------------------------------------*
+           05  w-clc-dat-t01.
+               10  filler                 pic  9(06) value 036525     .
+               10  filler                 pic  9(06) value 073049     .
+               10  filler                 pic  9(06) value 109573     .
+               10  filler                 pic  9(06) value 146097     .
+               10  filler                 pic  9(06) value 182622     .
+               10  filler                 pic  9(06) value 219146     .
+               10  filler                 pic  9(06) value 255670     .
+               10  filler                 pic  9(06) value 292194     .
+               10  filler                 pic  9(06) value 328719     .
+           05  w-clc-dat-t02 redefines
+               w-clc-dat-t01.
+               10  w-clc-dat-tse occurs 9 pic  9(06)                  .
+           05  w-clc-dat-t03.
+               10  filler                 pic  9(03) value    000     .
+               10  filler                 pic  9(03) value    031     .
+               10  filler                 pic  9(03) value    059     .
+               10  filler                 pic  9(03) value    090     .
+               10  filler                 pic  9(03) value    120     .
+               10  filler                 pic  9(03) value    151     .
+               10  filler                 pic  9(03) value    181     .
+               10  filler                 pic  9(03) value    212     .
+               10  filler                 pic  9(03) value    243     .
+               10  filler                 pic  9(03) value    273     .
+               10  filler                 pic  9(03) value    304     .
+               10  filler                 pic  9(03) value    334     .
+           05  w-clc-dat-t04 redefines
+               w-clc-dat-t03.
+               10  w-clc-dat-tmn occurs 12
+                                          pic  9(03)                  .
+           05  w-clc-dat-t05.
+               10  filler                 pic  9(03) value    000     .
+               10  filler                 pic  9(03) value    031     .
+               10  filler                 pic  9(03) value    060     .
+               10  filler                 pic  9(03) value    091     .
+               10  filler                 pic  9(03) value    121     .
+               10  filler                 pic  9(03) value    152     .
+               10  filler                 pic  9(03) value    182     .
+               10  filler                 pic  9(03) value    213     .
+               10  filler                 pic  9(03) value    244     .
+               10  filler                 pic  9(03) value    274     .
+               10  filler                 pic  9(03) value    305     .
+               10  filler                 pic  9(03) value    335     .
+           05  w-clc-dat-t06 redefines
+               w-clc-dat-t05.
+               10  w-clc-dat-tmb occurs 12
+                                          pic  9(03)                  .
+           05  w-clc-dat-ng0              pic  9(07)                  .
+           05  w-clc-dat-ng9              pic  9(07)                  .
+           05  w-clc-dat-w01              pic  9(02)                  .
+           05  w-clc-dat-w02              pic  9(05)                  .
+
+
+
+
+
+
+      *    *===========================================================*
+      *    * Routine per calcoli ed operazioni su date                 *
+      *    *-----------------------------------------------------------*
+       clc-ope-dat-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del tipo operazione      *
+      *              *-------------------------------------------------*
+           if        w-clc-dat-ope        =    "DG"
+                     go to clc-ope-dat-100
+           else      go to clc-ope-dat-999.
+       clc-ope-dat-100.
+      *              *-------------------------------------------------*
+      *              * Differenza giorni tra due date                  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione risultato in uscita         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-clc-dat-nrg          .
+      *                  *---------------------------------------------*
+      *                  * Se anche una sola delle due date e' zero :  *
+      *                  * uscita con risultato a zero                 *
+      *                  *---------------------------------------------*
+           if        w-clc-dat-min        =    zero or
+                     w-clc-dat-max        =    zero
+                     go to clc-ope-dat-999.
+      *                  *---------------------------------------------*
+      *                  * Calcolo il numero giorni totali che inter-  *
+      *                  * corrono tra la data 0900101 e la data mi-   *
+      *                  * nima                                        *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-clc-dat-ng0          .
+           if        w-clc-sec-min        >    zero
+                     add   w-clc-dat-tse
+                          (w-clc-sec-min) to   w-clc-dat-ng0          .
+           subtract  1                    from w-clc-ann-min
+                                        giving w-clc-dat-w01          .
+           multiply  365                  by   w-clc-dat-w01
+                                        giving w-clc-dat-w02          .
+           add       w-clc-dat-w02        to   w-clc-dat-ng0          .
+           divide    4                    into w-clc-dat-w01          .
+           add       w-clc-dat-w01        to   w-clc-dat-ng0          .
+           divide    4                    into w-clc-ann-min
+                                        giving w-clc-dat-w01          .
+           multiply  4                    by   w-clc-dat-w01          .
+           if        w-clc-dat-w01        =    w-clc-ann-min
+                     add   w-clc-dat-tmb
+                          (w-clc-mes-min) to   w-clc-dat-ng0
+           else      add   w-clc-dat-tmn
+                          (w-clc-mes-min) to   w-clc-dat-ng0          .
+           add       w-clc-gio-min        to   w-clc-dat-ng0          .
+           subtract  1                    from w-clc-dat-ng0          .
+      *                  *---------------------------------------------*
+      *                  * Calcolo il numero giorni totali che inter-  *
+      *                  * corrono tra la data 0900101 e la data mas-  *
+      *                  * sima                                        *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-clc-dat-ng9          .
+           if        w-clc-sec-max        >    zero
+                     add   w-clc-dat-tse
+                          (w-clc-sec-max) to   w-clc-dat-ng9          .
+           subtract  1                    from w-clc-ann-max
+                                        giving w-clc-dat-w01          .
+           multiply  365                  by   w-clc-dat-w01
+                                        giving w-clc-dat-w02          .
+           add       w-clc-dat-w02        to   w-clc-dat-ng9          .
+           divide    4                    into w-clc-dat-w01          .
+           add       w-clc-dat-w01        to   w-clc-dat-ng9          .
+           divide    4                    into w-clc-ann-max
+                                        giving w-clc-dat-w01          .
+           multiply  4                    by   w-clc-dat-w01          .
+           if        w-clc-dat-w01        =    w-clc-ann-max
+                     add   w-clc-dat-tmb
+                          (w-clc-mes-max) to   w-clc-dat-ng9
+           else      add   w-clc-dat-tmn
+                          (w-clc-mes-max) to   w-clc-dat-ng9          .
+           add       w-clc-gio-max        to   w-clc-dat-ng9          .
+           subtract  1                    from w-clc-dat-ng9          .
+      *                  *---------------------------------------------*
+      *                  * Risultato finale                            *
+      *                  *---------------------------------------------*
+           subtract  w-clc-dat-ng0        from w-clc-dat-ng9
+                                        giving w-clc-dat-nrg          .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     clc-ope-dat-999.
+       clc-ope-dat-999.
+           exit.
+

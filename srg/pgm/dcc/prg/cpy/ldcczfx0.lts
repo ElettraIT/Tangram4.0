@@ -1,0 +1,191 @@
+      *    *===========================================================*
+      *    * Routine di lettura archivio [zfp]                         *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Parametri in input :                                      *
+      *    * --------------------                                      *
+      *    *                                                           *
+      *    *  - w-let-zfp-zfx-cod = codice forma di pagamento          *
+      *    *                                                           *
+      *    *  - w-let-zfp-zfx-lng = codice lingua                      *
+      *    *                                                           *
+      *    * Parametri in output :                                     *
+      *    * ---------------------                                     *
+      *    *                                                           *
+      *    *  - w-let-zfp-zfx-des = descrizione forma di pagamento     *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       let-zfp-zfx-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-zfp-zfx-flg      .
+       let-zfp-zfx-010.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare record [zfp]        *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcc/fls/ioc/obj/iofzfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zfp                 .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-zfp-zfx-cod    =    zero  
+                     go to let-zfp-zfx-900.
+       let-zfp-zfx-050.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione record [zfp]                    *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcc/fls/ioc/obj/iofzfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zfp                 .
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFOP"             to   f-key                  .
+           move      w-let-zfp-zfx-cod    to   rf-zfp-cod-fop         .
+           move      "pgm/dcc/fls/ioc/obj/iofzfp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zfp                 .
+           if        f-sts                not  = e-not-err
+                     go to let-zfp-zfx-800.
+       let-zfp-zfx-100.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori da anagrafica [zfp]      *
+      *              *-------------------------------------------------*
+           move      rf-zfp-des-fop       to   w-let-zfp-zfx-des      .
+       let-zfp-zfx-200.
+      *              *-------------------------------------------------*
+      *              * Trattamento della descrizione                   *
+      *              *-------------------------------------------------*
+       let-zfp-zfx-600.
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del codice lingua    *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se codice lingua 'I  '                  *
+      *                      *-----------------------------------------*
+           if        w-let-zfp-zfx-lng    not  = "I  "
+                     go to let-zfp-zfx-650.
+       let-zfp-zfx-610.
+      *                          *-------------------------------------*
+      *                          * Descrizione contenuta nel record    *
+      *                          *-------------------------------------*
+           move      rf-zfp-des-fop       to   w-let-zfp-zfx-des
+      *                          *-------------------------------------*
+      *                          * Oltre                               *
+      *                          *-------------------------------------*
+           go to     let-zfp-zfx-700.
+       let-zfp-zfx-650.
+      *                      *-----------------------------------------*
+      *                      * Se codice lingua diverso da 'I  '       *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Tentativo di lettura file [zfx] per *
+      *                          * descrizione in lingua estera        *
+      *                          *-------------------------------------*
+      *                              *---------------------------------*
+      *                              * Azzeramento records letti       *
+      *                              *---------------------------------*
+           move      zero                 to   w-let-zfp-zfx-ctr      .
+      *                              *---------------------------------*
+      *                              * Start su file [zfx]             *
+      *                              *---------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "TRCLNG"             to   f-key                  .
+           move      02                   to   rf-zfx-tip-rec         .
+           move      w-let-zfp-zfx-cod    to   rf-zfx-cod-fop         .
+           move      w-let-zfp-zfx-lng    to   rf-zfx-cod-lng         .
+           move      zero                 to   rf-zfx-num-prg         .
+           move      "pgm/dcc/fls/ioc/obj/iofzfx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zfx                 .
+      *                              *---------------------------------*
+      *                              * Test su esito operazione        *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-zfp-zfx-670.
+       let-zfp-zfx-660.
+      *                              *---------------------------------*
+      *                              * Read Next file [zfx]            *
+      *                              *---------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcc/fls/ioc/obj/iofzfx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zfx                 .
+      *                              *---------------------------------*
+      *                              * Test se 'At end'                *
+      *                              *---------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-zfp-zfx-670.
+      *                              *---------------------------------*
+      *                              * Test sul massimo                *
+      *                              *---------------------------------*
+           if        rf-zfx-tip-rec       not  = 02                or
+                     rf-zfx-cod-fop       not  = w-let-zfp-zfx-cod or
+                     rf-zfx-cod-lng       not  = w-let-zfp-zfx-lng
+                     go to let-zfp-zfx-670.
+      *                              *---------------------------------*
+      *                              * Aggiornamento numero records    *
+      *                              * letti                           *
+      *                              *---------------------------------*
+           if        w-let-zfp-zfx-ctr    <    10
+                     add   1              to   w-let-zfp-zfx-ctr
+           else      go to let-zfp-zfx-670.
+      *                              *---------------------------------*
+      *                              * Bufferizzazione descrizione     *
+      *                              *---------------------------------*
+           move      rf-zfx-des-alt       to   w-let-zfp-zfx-drg
+                                              (rf-zfx-num-prg)        .
+      *                              *---------------------------------*
+      *                              * Riciclo su Read Next [zfx]      *
+      *                              *---------------------------------*
+           go to     let-zfp-zfx-660.
+       let-zfp-zfx-670.
+      *                          *-------------------------------------*
+      *                          * Test su numero record letti: se ze- *
+      *                          * ro a lettura descrizione con codice *
+      *                          * lingua 'I  '                        *
+      *                          *-------------------------------------*
+           if        w-let-zfp-zfx-ctr    =    zero
+                     go to let-zfp-zfx-610.
+       let-zfp-zfx-700.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-zfp-zfx-999.
+       let-zfp-zfx-800.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-zfp-zfx-flg      .
+           move      spaces               to   w-let-zfp-zfx-des      .
+           move      all   "."            to   w-let-zfp-zfx-drg (1)  .
+           go to     let-zfp-zfx-920.
+       let-zfp-zfx-900.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-zfp-zfx-des      .
+       let-zfp-zfx-920.
+       let-zfp-zfx-999.
+           exit.

@@ -1,0 +1,113 @@
+      *    *===========================================================*
+      *    * Editing di una quantita' da incolonnare                   *
+      *    *-----------------------------------------------------------*
+       edt-qta-inc-000.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del tipo operazione      *
+      *              *-------------------------------------------------*
+           if        w-edt-qta-inc-ope    =    "NO"
+                     perform edt-qta-inc-nor-000
+                                          thru edt-qta-inc-nor-999
+           else if   w-edt-qta-inc-ope    =    "AG"
+                     perform edt-qta-inc-agg-000
+                                          thru edt-qta-inc-agg-999
+           else if   w-edt-qta-inc-ope    =    "ED"
+                     perform edt-qta-inc-edt-000
+                                          thru edt-qta-inc-edt-999    .
+       edt-qta-inc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Editing di una quantita' da incolonnare                   *
+      *    *                                                           *
+      *    * Subroutine di normalizzazione                             *
+      *    *-----------------------------------------------------------*
+       edt-qta-inc-nor-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione                                 *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-edt-qta-inc-din      .
+           move      zero                 to   w-edt-qta-inc-qmx      .
+       edt-qta-inc-nor-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Editing di una quantita' da incolonnare                   *
+      *    *                                                           *
+      *    * Subroutine di aggiornamento                               *
+      *    *-----------------------------------------------------------*
+       edt-qta-inc-agg-000.
+      *              *-------------------------------------------------*
+      *              * Eventuale aggiornamento della massima quantita' *
+      *              *-------------------------------------------------*
+           if        w-edt-qta-inc-qta    >    w-edt-qta-inc-qmx
+                     move  w-edt-qta-inc-qta
+                                          to   w-edt-qta-inc-qmx      .
+      *              *-------------------------------------------------*
+      *              * Determinazione del numero dei decimali massimo  *
+      *              *-------------------------------------------------*
+           if        w-edt-qta-inc-dec    >    w-edt-qta-inc-din
+                     move  w-edt-qta-inc-dec
+                                          to   w-edt-qta-inc-din      .
+      *              *-------------------------------------------------*
+      *              * Valutazione dei decimali significativi          *
+      *              *                                                 *
+      *              * N.B.: attualmente non implementato              *
+      *              *-------------------------------------------------*
+       edt-qta-inc-agg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Editing di una quantita' da incolonnare                   *
+      *    *                                                           *
+      *    * Subroutine di editing                                     *
+      *    *-----------------------------------------------------------*
+       edt-qta-inc-edt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione valore in uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-edt-qta-inc-edt      .
+      *              *-------------------------------------------------*
+      *              * Eventuale ritaratura dei decimali               *
+      *              *-------------------------------------------------*
+           if        w-edt-qta-inc-qmx    >    99999999 and
+                     w-edt-qta-inc-din    >    2
+                     move  2              to   w-edt-qta-inc-din      .
+      *              *-------------------------------------------------*
+      *              * Eventuale ritaratura editing                    *
+      *              *-------------------------------------------------*
+           move      "BG"                 to   v-edm                  .
+      *
+           if        w-edt-qta-inc-qta    >    999999 and
+                     w-edt-qta-inc-din    >    zero
+                     move  "B"            to   v-edm                  .
+      *              *-------------------------------------------------*
+      *              * Editing vero e proprio                          *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      10                   to   v-car                  .
+           move      w-edt-qta-inc-din    to   v-dec                  .
+           move      w-edt-qta-inc-sgn    to   v-sgn                  .
+           move      w-edt-qta-inc-qta    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Allineamento a sinistra                         *
+      *              *-------------------------------------------------*
+           move      18                   to   w-all-str-lun          .
+           move      v-edt                to   w-all-str-alf          .
+           perform   all-str-asx-000      thru all-str-asx-999        .
+      *              *-------------------------------------------------*
+      *              * Allineamento a destra                           *
+      *              *-------------------------------------------------*
+           move      w-edt-qta-inc-car    to   w-all-str-lun          .
+           perform   all-str-adx-000      thru all-str-adx-999        .
+      *              *-------------------------------------------------*
+      *              * Valore in uscita                                *
+      *              *-------------------------------------------------*
+           move      w-all-str-alf        to   w-edt-qta-inc-edt      .
+       edt-qta-inc-edt-999.
+           exit.
+
+      

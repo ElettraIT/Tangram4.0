@@ -1,0 +1,84 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione addebito o commento        *
+      *    *-----------------------------------------------------------*
+       cod-mne-zac-opn-000.
+           move      "pgm/fat/prg/obj/acmnzac0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zac-pth      .
+           move      "OP"                 to   w-cod-mne-zac-ope      .
+           perform   cod-mne-zac-cll-000  thru cod-mne-zac-cll-999    .
+       cod-mne-zac-opn-999.
+           exit.
+       cod-mne-zac-cls-000.
+           move      "CL"                 to   w-cod-mne-zac-ope      .
+           perform   cod-mne-zac-cll-000  thru cod-mne-zac-cll-999    .
+           move      "C?"                 to   w-cod-mne-zac-ope      .
+           perform   cod-mne-zac-cll-000  thru cod-mne-zac-cll-999    .
+           if        w-cod-mne-zac-ope    not  = spaces
+                     go to cod-mne-zac-cls-999.
+           cancel    w-cod-mne-zac-pth                                .
+       cod-mne-zac-cls-999.
+           exit.
+       cod-mne-zac-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zac-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pfat1100"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zac-foi-999.
+           move      "pgm/fat/prg/obj/pfat1100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zac-ope      .
+           go to     cod-mne-zac-foi-999.
+       cod-mne-zac-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zac-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pfat1110"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zac-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "PV"                 to   s-ope                  .
+           move      "tip-rec"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      02                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-zac-tip    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/fat/prg/obj/pfat1110"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zac-ope      .
+           go to     cod-mne-zac-foi-999.
+       cod-mne-zac-foi-999.
+           exit.
+       cod-mne-zac-cll-000.
+           call      w-cod-mne-zac-pth   using w-cod-mne-zac
+                                               v
+                                               s                      .
+       cod-mne-zac-cll-999.
+           exit.
+

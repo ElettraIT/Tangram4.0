@@ -1,0 +1,216 @@
+      *    *===========================================================*
+      *    * Record file [sfa] Addebiti pagamenti scadenze fornitori   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMADP    " = rf-sfa-num-adp                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-sfa-ide-dat                    *
+      *    *                         rf-sfa-num-adp                    *
+      *    *                                                           *
+      *    *          "CBPADP    " = rf-sfa-cbp-adp                    *
+      *    *                         rf-sfa-num-adp                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-sfa.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di addebito pagamento    *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-dtr-adp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di addebito pagamento                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-drc-adp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di addebito pagamento                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-npc-adp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero operazione di addebito : s.aa.nnnnnnnn         *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-num-adp             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di addebito                                 *
+      *        * - 13 : Di bonifico bancario                           *
+      *        * - 14 : Di C/C postale                                 *
+      *        * - 15 : Di incarico a Banca su Avviso di Scadenza      *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-mod-adp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo valuta per l'addebito                            *
+      *        * - 01 : Addebito in valuta base                        *
+      *        * - 02 : Addebito in valuta diversa da quella base      *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-tvl-adp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca per pagamento in caso di modali-  *
+      *        * ta' di addebito pari a :                              *
+      *        * - 13 : Bonifico bancario                              *
+      *        * - 15 : Incarico a Banca su Avviso di Scadenza         *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Codice nostro c/c postale per pagamento in caso di    *
+      *        * modalita' di addebito pari a :                        *
+      *        * - 14 : C/C postale                                    *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-cbp-adp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di pagamento eseguito                            *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Contro addebito nel c/c bancario o postale     *
+      *        * - 02 : Contro versamento in cassa                     *
+      *        *                                                       *
+      *        * N.B.: Significativo solo in caso di modalita' di pa-  *
+      *        *       gamento pari a :                                *
+      *        *       - 13 : Bonifico bancario                        *
+      *        *       - 14 : C/C postale                              *
+      *        *       - 15 : Incarico a Banca su Avviso di Scadenza   *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-tip-adp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra cassa per pagamento in caso di modali-  *
+      *        * ta' di addebito pari a :                              *
+      *        * - 13 : Bonifico bancario                              *
+      *        * - 14 : C/C postale                                    *
+      *        * - 15 : Incarico a Banca su Avviso di Scadenza         *
+      *        *                                                       *
+      *        *   purche' il tipo pagamento sia :                     *
+      *        *                                                       *
+      *        * - 02 : Contro versamento in cassa                     *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-cas-adp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla valuta per il pagamento                         *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la valuta del pagamento           *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-dec-vlt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di cambio : '/' o '*'                            *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-tdc-vlt             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Coefficiente di cambio per la valuta alla data del-   *
+      *        * l'addebito                                            *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-cdc-adp             pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Importo addebito, in valuta                           *
+      *        *                                                       *
+      *        * N.B. : Solamente se relativo a pagamenti in valuta    *
+      *        *        diversa dalla valuta base.                     *
+      *        *                                                       *
+      *        * N.B. : Rappresenta la somma degli importi pagamenti   *
+      *        *        in valuta coinvolti nell'addebito, non modi-   *
+      *        *        ficabile.                                      *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-iiv-adp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo addebito                                      *
+      *        *                                                       *
+      *        * N.B. : Se relativo a pagamenti in valuta diversa dal- *
+      *        *        la valuta base, rappresenta il controvalore in *
+      *        *        valuta base degli importi pagamenti in valuta  *
+      *        *        coinvolti nell'addebito, cosi' come comunicato *
+      *        *        dalla banca. Da questo si puo' dedurre il cam- *
+      *        *        bio applicato.                                 *
+      *        *                                                       *
+      *        * N.B. : Se relativo a pagamenti in valuta base, rap-   *
+      *        *        presenta la somma degli importi pagamenti in   *
+      *        *        valuta base coinvolti nell'addebito. Non puo'  *
+      *        *        essere modificato.                             *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-imp-adp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data documento per l'addebito                         *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-ddo-adp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento per l'addebito                       *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-ndo-adp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca per l'addebito   *
+      *        * in caso di modalita' di addebito pari a :             *
+      *        * - 13 : Bonifico bancario                              *
+      *        * - 15 : Incarico a Banca su Avviso di Scadenza         *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Importo spese addebitate dalla Posta per l'addebito   *
+      *        * in caso di modalita' di addebito pari a :             *
+      *        * - 14 : C/C postale                                    *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-spe-adp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 1                        *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-fcs-uno             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 2                        *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-fcs-due             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 3                        *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito                  *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-fcs-tre             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-sfa-flg-blo.
+                   15  rf-sfa-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-sfa-flg-nbl.
+                   15  rf-sfa-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfa-alx-exp.
+               10  filler    occurs 20    pic  x(01)                  .

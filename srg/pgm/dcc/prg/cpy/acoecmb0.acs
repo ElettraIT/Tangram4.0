@@ -1,0 +1,53 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del coefficiente di cambio *
+      *    *-----------------------------------------------------------*
+       coe-cmb-vlt-opn-000.
+           move      "pgm/dcc/prg/obj/acoecmb0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-coe-cmb-vlt-pth      .
+           move      "OP"                 to   w-coe-cmb-vlt-ope      .
+           perform   coe-cmb-vlt-cll-000  thru coe-cmb-vlt-cll-999    .
+       coe-cmb-vlt-opn-999.
+           exit.
+       coe-cmb-vlt-cls-000.
+           move      "CL"                 to   w-coe-cmb-vlt-ope      .
+           perform   coe-cmb-vlt-cll-000  thru coe-cmb-vlt-cll-999    .
+           move      "C?"                 to   w-coe-cmb-vlt-ope      .
+           perform   coe-cmb-vlt-cll-000  thru coe-cmb-vlt-cll-999    .
+           if        w-coe-cmb-vlt-ope    not  = spaces
+                     go to coe-cmb-vlt-cls-999.
+           cancel    w-coe-cmb-vlt-pth                                .
+       coe-cmb-vlt-cls-999.
+           exit.
+       coe-cmb-vlt-foi-000.
+           if        v-key                not  = "INSR"
+                     go to coe-cmb-vlt-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc0250"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to coe-cmb-vlt-foi-999.
+           move      "pgm/dcc/prg/obj/pdcc0250"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-coe-cmb-vlt-ope      .
+           go to     coe-cmb-vlt-foi-999.
+       coe-cmb-vlt-foi-500.
+           if        v-key                not  = "FIND"
+                     go to coe-cmb-vlt-foi-999.
+           move      "F+"                 to   w-coe-cmb-vlt-ope      .
+           go to     coe-cmb-vlt-foi-999.
+       coe-cmb-vlt-foi-999.
+           exit.
+       coe-cmb-vlt-cll-000.
+           call      w-coe-cmb-vlt-pth   using w-coe-cmb-vlt
+                                               v
+                                               s                      .
+       coe-cmb-vlt-cll-999.
+           exit.

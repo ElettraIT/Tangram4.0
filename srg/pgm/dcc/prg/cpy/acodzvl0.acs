@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice valuta          *
+      *    *-----------------------------------------------------------*
+       cod-cod-zvl-opn-000.
+           move      "pgm/dcc/prg/obj/acodzvl0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-cod-zvl-pth      .
+           move      "OP"                 to   w-cod-cod-zvl-ope      .
+           perform   cod-cod-zvl-cll-000  thru cod-cod-zvl-cll-999    .
+       cod-cod-zvl-opn-999.
+           exit.
+       cod-cod-zvl-cls-000.
+           move      "CL"                 to   w-cod-cod-zvl-ope      .
+           perform   cod-cod-zvl-cll-000  thru cod-cod-zvl-cll-999    .
+           move      "C?"                 to   w-cod-cod-zvl-ope      .
+           perform   cod-cod-zvl-cll-000  thru cod-cod-zvl-cll-999    .
+           if        w-cod-cod-zvl-ope    not  = spaces
+                     go to cod-cod-zvl-cls-999.
+           cancel    w-cod-cod-zvl-pth                                .
+       cod-cod-zvl-cls-999.
+           exit.
+       cod-cod-zvl-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-cod-zvl-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc0200"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-zvl-foi-999.
+           move      "pgm/dcc/prg/obj/pdcc0200"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-cod-zvl-ope      .
+           go to     cod-cod-zvl-foi-999.
+       cod-cod-zvl-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-cod-zvl-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc0210"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-zvl-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcc/prg/obj/pdcc0210"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-cod-zvl-ope      .
+           go to     cod-cod-zvl-foi-999.
+       cod-cod-zvl-foi-999.
+           exit.
+       cod-cod-zvl-cll-000.
+           call      w-cod-cod-zvl-pth   using w-cod-cod-zvl
+                                               v
+                                               s                      .
+       cod-cod-zvl-cll-999.
+           exit.
+

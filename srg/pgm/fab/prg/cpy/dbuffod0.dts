@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione determinazione buffer dei  *
+      *    * fabbisogni/disponibilita' per un prodotto                 *
+      *    *-----------------------------------------------------------*
+       det-buf-fod-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-buf-fod-tip-ope      .
+           perform   det-buf-fod-cll-000  thru det-buf-fod-cll-999    .
+       det-buf-fod-opn-999.
+           exit.
+
+       det-buf-fod-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-buf-fod-tip-ope      .
+           perform   det-buf-fod-cll-000  thru det-buf-fod-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-buf-fod-tip-ope      .
+           perform   det-buf-fod-cll-000  thru det-buf-fod-cll-999    .
+           if        d-buf-fod-exi-sts    not  = spaces
+                     go to det-buf-fod-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/fab/prg/obj/dbuffod0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-buf-fod-cls-999.
+           exit.
+
+       det-buf-fod-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/fab/prg/obj/dbuffod0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-buf-fod              .
+       det-buf-fod-cll-999.
+           exit.
+

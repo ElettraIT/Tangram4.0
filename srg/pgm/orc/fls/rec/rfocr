@@ -1,0 +1,962 @@
+      *    *===========================================================*
+      *    * Record file [ocr] Ordini clienti righe                    *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *          "MAGDAT    " = rf-ocr-cod-dpz                    *
+      *    *                         rf-ocr-tip-mag                    *
+      *    *                         rf-ocr-num-pro                    *
+      *    *                         rf-ocr-dat-doc                    *
+      *    *                         rf-ocr-num-doc                    *
+      *    *                         rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *          "RCHMAG    " = rf-ocr-cod-dpz                    *
+      *    *                         rf-ocr-flg-rch                    *
+      *    *                         rf-ocr-tip-mag                    *
+      *    *                         rf-ocr-num-pro                    *
+      *    *                         rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *          "RCHARC    " = rf-ocr-cod-dpz                    *
+      *    *                         rf-ocr-flg-rch                    *
+      *    *                         rf-ocr-tip-arc                    *
+      *    *                         rf-ocr-cod-arc                    *
+      *    *                         rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *          "ARCNDO    " = rf-ocr-cod-dpz                    *
+      *    *                         rf-ocr-tip-arc                    *
+      *    *                         rf-ocr-cod-arc                    *
+      *    *                         rf-ocr-num-doc                    *
+      *    *                         rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *          "ARCDCR    " = rf-ocr-cod-dpz                    *
+      *    *                         rf-ocr-tip-arc                    *
+      *    *                         rf-ocr-cod-arc                    *
+      *    *                         rf-ocr-dcn-ric                    *
+      *    *                         rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *          "ARCDEP    " = rf-ocr-cod-dpz                    *
+      *    *                         rf-ocr-tip-arc                    *
+      *    *                         rf-ocr-cod-arc                    *
+      *    *                         rf-ocr-des-rig                    *
+      *    *                         rf-ocr-dcn-ric                    *
+      *    *                         rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *          "ARCPRO    " = rf-ocr-tip-arc                    *
+      *    *                         rf-ocr-cod-arc                    *
+      *    *                         rf-ocr-tip-mag                    *
+      *    *                         rf-ocr-num-pro                    *
+      *    *                         rf-ocr-dat-doc                    *
+      *    *                         rf-ocr-cod-dpz                    *
+      *    *                         rf-ocr-num-prt                    *
+      *    *                         rf-ocr-num-prg                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-ocr.
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.dd.nnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo nel protocollo                     *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-num-prg             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento per ordini clienti                     *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-tmo-orc             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha emesso il documento          *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento : s.aa.gg.nnnnnn                     *
+      *        * - s      : secolo                                     *
+      *        * - aa     : anno                                       *
+      *        * - dd     : codice dipendenza                          *
+      *        * - nnnnnn : numero progressivo                         *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-num-doc             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio per il movimento                        *
+      *        *                                                       *
+      *        * - C : Cliente                                         *
+      *        * - D : Dipendenza                                      *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio                       *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Data ordine del cliente                               *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-ocl-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero ordine del cliente                             *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-ocl-num             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Priorita' di evasione                                 *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-pri-eva             pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *                                                       *
+      *        * N.B.: Da testata documento                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-ocr-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-ocr-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-ocr-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-ocr-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Flag blocco di documento                              *
+      *        *                                                       *
+      *        * - 0 : Riga all'esterno di ogni blocco                 *
+      *        * - 1 : Riga di inizio blocco                           *
+      *        * - 2 : Riga all'interno di un blocco                   *
+      *        * - 3 : Riga di fine blocco                             *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-bld-flb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo blocco di documento                              *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 0                       *
+      *        * - 0 : Valore fisso                                    *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 1 o 2 o 3               *
+      *        * - 1 : Blocco di tipo 1                                *
+      *        * - 2 : Blocco di tipo 2                                *
+      *        * - 3 : Blocco di tipo 3                                *
+      *        * - 4 : Blocco di tipo 4                                *
+      *        * - 5 : Blocco di tipo 5                                *
+      *        * - 6 : Blocco di tipo 6                                *
+      *        * - 7 : Blocco di tipo 7                                *
+      *        *                                                       *
+      *        * ----------------------------------------------------- *
+      *        *                                                       *
+      *        * N.B. : In un documento possono esistere blocchi di    *
+      *        *        tipo diverso, codificati numericamente :       *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 1. : Lista con valore totale automatico finale        *
+      *        *                                                       *
+      *        *      In questo caso esisteranno piu' righe reali se-  *
+      *        *      guite da una riga di tipo apparente. L'importo   *
+      *        *      in riga sara' impostato solamente per le righe   *
+      *        *      di tipo reale, mentre sara' determinato automa-  *
+      *        *      ticamente per la riga totale di tipo apparente.  *
+      *        *      La stampa comportera' tutte le righe reali, sen- *
+      *        *      za indicazione di prezzo ne' di importo, e alla  *
+      *        *      fine la riga apparente come riga di importo to-  *
+      *        *      tale per le voci precedenti.                     *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 2. : Lista con valore totale automatico iniziale      *
+      *        *                                                       *
+      *        *      In questo caso esistera' una riga di tipo appa-  *
+      *        *      rente seguita da piu' righe di tipo reale. L'im- *
+      *        *      porto in riga sara' impostato solamente per le   *
+      *        *      righe di tipo reale, mentre sara' determinato    *
+      *        *      automaticamente per la riga totale iniziale di   *
+      *        *      tipo apparente. La stampa comportera' all'inizio *
+      *        *      la riga totale apparente come riga di importo    *
+      *        *      totale delle voci successive, e poi tutte le ri- *
+      *        *      ghe reali senza indicazione di prezzo ne' di im- *
+      *        *      porto.                                           *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 3. : Lista con il solo valore totale automatico       *
+      *        *                                                       *
+      *        *      Funziona come il blocco di tipo 1, con la diffe- *
+      *        *      renza che viene stampata solamente la riga appa- *
+      *        *      rente di totale.                                 *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 4. : Lista con valore totale manuale finale           *
+      *        *                                                       *
+      *        *      In questo caso esisteranno piu' righe reali se-  *
+      *        *      guite da una riga di tipo apparente. Sia le ri-  *
+      *        *      ghe reali che quella apparente avranno un impor- *
+      *        *      to in riga. Alla fine l'importo della riga appa- *
+      *        *      rente sara' redistribuito ponderatamente sulle   *
+      *        *      righe reali. La stampa del documento comportera' *
+      *        *      tutte le righe reali, senza indicazione di prez- *
+      *        *      zo ne' di importo, e alla fine la riga apparente *
+      *        *      come riga di importo totale per le voci prece-   *
+      *        *      denti.                                           *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 5. : Lista con valore totale manuale iniziale         *
+      *        *                                                       *
+      *        *      In questo caso esistera' una riga di tipo appa-  *
+      *        *      rente seguita da piu' righe di tipo reale. L'im- *
+      *        *      porto in riga sara' impostato sia per la riga    *
+      *        *      apparente iniziale che per tutte le righe reali. *
+      *        *      L'importo della riga apparente sara' redistribu- *
+      *        *      ito ponderatamente sulle righe reali. La stampa  *
+      *        *      del documento comportera' all'inizio la riga to- *
+      *        *      tale apparente, e poi tutte le righe reali senza *
+      *        *      indicazione di prezzo ne' di importo.            *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 6. : Lista con il solo valore totale manuale          *
+      *        *                                                       *
+      *        *      Funziona come il blocco di tipo 4, con la diffe- *
+      *        *      renza che viene stampata solamente la riga appa- *
+      *        *      rente di totale.                                 *
+      *        *                                                       *
+      *        *                                                       *
+      *        * 7. : Lista con piu' valori totali manuali             *
+      *        *                                                       *
+      *        *      In questo caso esisteranno piu' righe reali se-  *
+      *        *      guite da piu' righe di tipo apparente. Sia le    *
+      *        *      righe reali che quelle apparenti avranno un im-  *
+      *        *      porto in riga. Alla fine la somma degli importi  *
+      *        *      delle righe apparenti sara' redistribuita ponde- *
+      *        *      ratamente sulle righe reali. La stampa del docu- *
+      *        *      mento comportera' solo le righe apparenti.       *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-bld-tpb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga nel blocco di documento                     *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 0                       *
+      *        * - 0 : Valore fisso                                    *
+      *        *                                                       *
+      *        * Se flag blocco di documento : 1 o 2 o 3               *
+      *        * - 1 : Tipo riga reale                                 *
+      *        * - 2 : Tipo riga apparente                             *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-bld-rgb             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo riga                                             *
+      *        *                                                       *
+      *        * P   : Prodotti di vendita                             *
+      *        * PN  : Prodotti di vendita non codificati              *
+      *        *                                                       *
+      *        * A   : Addebito o Accredito a forfait                  *
+      *        *                                                       *
+      *        * C   : Commento                                        *
+      *        *                                                       *
+      *        *                                                       *
+      *        * N.B.: In fase di bollettazione l'operatore puo' impo- *
+      *        *       stare anche altri tipi riga, ovvero             *
+      *        *       - L1 : Inizio blocco di tipo 1                  *
+      *        *       - L2 : Inizio blocco di tipo 2                  *
+      *        *       - L3 : Inizio blocco di tipo 3                  *
+      *        *       - L4 : Inizio blocco di tipo 4                  *
+      *        *       - L5 : Inizio blocco di tipo 5                  *
+      *        *       - L6 : Inizio blocco di tipo 6                  *
+      *        *       - L7 : Inizio blocco di tipo 7                  *
+      *        *       - FL : Fine blocco                              *
+      *        *      Tuttavia questi tipi riga non sono dei veri tipi *
+      *        *      riga, bensi' modalita' di funzionamento che si   *
+      *        *      ripercuotono sulla riga iniziale, quelle inter-  *
+      *        *      medie, e quella finale del blocco.               *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-tip-rig             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino                              *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Prodotti di vendita (se tipo riga P o PN)      *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto numerico                              *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Codice numerico su [dcp]                  *
+      *        *        - PN Codice numerico su [dcp] del similare     *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-num-pro             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto alfanumerico                          *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Codice alfanumerico su [dcp]              *
+      *        *        - PN Codice alfanumerico su [dcp] del similare *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-alf-pro             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della variante per il prodotto                  *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Solo se codice [dcp] gestito a variante   *
+      *        *        - PN Solo se codice [dcp] del similare gestito *
+      *        *             a variante                                *
+      *        *                                                       *
+      *        *        Questo valore non e' gestito direttamente dal  *
+      *        *        programma di bollettazione; il campo puo' as-  *
+      *        *        sumere un valore solo nel caso in cui il tipo  *
+      *        *        origine del documento non sia manuale.         *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-sgl-vrn             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice prodotto secondo il cliente                    *
+      *        *                                                       *
+      *        * N.B. : il campo puo' risultare insufficiente se per   *
+      *        *        il cliente e' previsto un codice prodotto di   *
+      *        *        lunghezza maggiore. In tal caso bisogna ricor- *
+      *        *        rere al record [pdk] per la chiave e a [pdx]   *
+      *        *        per la semplice lettura                        *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cop-scl             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Presenza della descrizione estesa di max 400 caratte- *
+      *        * ri in file di estensione                              *
+      *        *                                                       *
+      *        * ****************** NOTA IMPORTANTE ****************** *
+      *        * A partire dal 29/01/2010, il file di estensione viene *
+      *        * comunque riempito, in presenza di una descrizione, di *
+      *        * qualunque provenienza, che superi i 40 caratteri.     *
+      *        * Cio' significa che questo campo e' destinato a diven- *
+      *        * tare inutile                                          *
+      *        * ***************************************************** *
+      *        *                                                       *
+      *        * - 0 : No                                              *
+      *        *                                                       *
+      *        *       Cio' avviene nei seguenti casi                  *
+      *        *       - Il tipo riga e' P, e la descrizione, pari al- *
+      *        *         la descrizione originale in anagrafica [dcp], *
+      *        *         oppure variata rispetto ad essa, non supera   *
+      *        *         i 40 caratteri                                *
+      *        *       - Il tipo riga e' PN,A,C, e la descrizione di-  *
+      *        *         gitata non supera i 40 caratteri              *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 1 : Si, in file di estensione descrizione per ordi- *
+      *        *           ni clienti [ocx]                            *
+      *        *                                                       *
+      *        *       Cio' avviene nei seguenti casi                  *
+      *        *       - Il tipo riga e' P, e la descrizione, diversa  *
+      *        *         dalla descrizione originale in anagrafica     *
+      *        *         [dcp], supera i 40 caratteri                  *
+      *        *       - Il tipo riga e' PN,A,C, e la descrizione di-  *
+      *        *         gitata supera i 40 caratteri                  *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - 2 : Si, in file di estensione descrizione per pro-  *
+      *        *           dotti [pdx]                                 *
+      *        *       - Il tipo riga e' P, e la descrizione, uguale   *
+      *        *         alla descrizione originale in anagrafica      *
+      *        *         [dcp], supera i 40 caratteri                  *
+      *        *                                                       *
+      *        * N.B. : Se il valore e' pari a 1, la descrizione este- *
+      *        *        sa sostituisce completamente la descrizione di *
+      *        *        40 caratteri contenuta in questo record.       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-des-ext             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione per la riga ordine cliente                *
+      *        *                                                       *
+      *        * - Se tipo riga P                                      *
+      *        *                                                       *
+      *        *   - Se des-ext 0 : Descrizione originale o modifica-  *
+      *        *                    ta,  che comunque non supera glo-  *
+      *        *                    balmente i 40 caratteri            *
+      *        *                                                       *
+      *        *   - Se des-ext 1 : Descrizione originale dell'anagra- *
+      *        *                    fica [dcp] di 40 caratteri         *
+      *        *                                                       *
+      *        *   - Se des-ext 2 : Descrizione originale dell'anagra- *
+      *        *                    fica [dcp] di 40 caratteri         *
+      *        *                                                       *
+      *        *                                                       *
+      *        * - Se tipo riga PN,A,C                                 *
+      *        *                                                       *
+      *        *   - Se des-ext 0 : Descrizione impostata, la quale    *
+      *        *                    non supera globalmente i 40 ca-    *
+      *        *                    ratteri                            *
+      *        *                                                       *
+      *        *   - Se des-ext 1 : Primi 40 caratteri della descri-   *
+      *        *                    zione impostata, la quale supera   *
+      *        *                    globalmente i 40 caratteri         *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-des-rig             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo prodotto                                         *
+      *        *                                                       *
+      *        * - Se tipo riga P o PN                                 *
+      *        *                                                       *
+      *        *   - 01 : Merce                                        *
+      *        *   - 02 : Servizio                                     *
+      *        *   - 03 : Imballo                                      *
+      *        *   - 09 : Extra attivita' aziendale                    *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-tip-pro             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per la vendita                             *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cod-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per la vendita                   *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-ctp-ven             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Unita' di misura per la vendita                       *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Da anagrafica [dcp]                       *
+      *        *        - PN Da anagrafica [dcp] del similare          *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-umi-ven             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali quantita' per la vendita : 0..3       *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga                           *
+      *        *        - P  Da anagrafica [dcp]                       *
+      *        *        - PN Da anagrafica [dcp] del similare          *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dec-qta             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' ordinata                                    *
+      *        *                                                       *
+      *        * N.B. : Solo per i tipi riga P, PN                     *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-qta-ord             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di riga comunque considerata saldata          *
+      *        *                                                       *
+      *        * - Spaces : Non considerata saldata                    *
+      *        * - #      : Considerata saldata                        *
+      *        *                                                       *
+      *        * Nota : Questo flag viene manipolato durante la fase   *
+      *        *        di evasione ordini clienti, nella ratifica     *
+      *        *        definitiva della fase di evasione, oppure ma-  *
+      *        *        nualmente dal programma di gestione ordini     *
+      *        *        clienti.                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-sdr-ccs             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione effettivo                         *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cod-dsl             pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione della seconda quantita' nella     *
+      *        * fatturazione                                          *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-snx-2qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la seconda quantita'              *
+      *        *                                                       *
+      *        * N.B. : Significativi solo se 'si' gestione seconda    *
+      *        *        quantita'                                      *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dec-2qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Seconda quantita'                                     *
+      *        *                                                       *
+      *        * N.B. : Significativa solo se 'si' gestione seconda    *
+      *        *        quantita'                                      *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-qta-a02             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione della terza quantita' nella       *
+      *        * fatturazione                                          *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-snx-3qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la terza quantita'                *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dec-3qt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Terza quantita'                                       *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-qta-a03             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per il prezzo di vendita : 0..3       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dec-prz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione dei prezzi standard          *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-vps.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-ocr-sgl-vps         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-ocr-dec-vps         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento ordine           *
+      *            *---------------------------------------------------*
+               10  rf-ocr-tdc-vps         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di fatturazione, non effettivo, ben-    *
+      *            * si' relativo alla data documento ordine           *
+      *            *---------------------------------------------------*
+               10  rf-ocr-cdc-vps         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo lordo standard, in valuta di espressione dei   *
+      *        * prezzi standard                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-prz-lrs             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Prezzo netto standard, in valuta di espressione dei   *
+      *        * prezzi standard : pari al prezzo lordo standard e-    *
+      *        * ventualmente abbattuto dagli sconti standard          *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-prz-nts             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del prezzo di vendita        *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-vpp.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-ocr-sgl-vpp         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-ocr-dec-vpp         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento ordine           *
+      *            *---------------------------------------------------*
+               10  rf-ocr-tdc-vpp         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di fatturazione, non effettivo, ben-    *
+      *            * si' relativo alla data documento ordine           *
+      *            *---------------------------------------------------*
+               10  rf-ocr-cdc-vpp         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo unitario di vendita, in valuta                 *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-prz-ven             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di gestione del secondo prezzo nella fattura- *
+      *        * zione                                                 *
+      *        * - 0 : No                                              *
+      *        * - 1 : Si                                              *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-snx-2pz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali del secondo prezzo                    *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dec-2pz             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Secondo prezzo, in valuta                             *
+      *        *                                                       *
+      *        * N.B. : Questo campo non e' gestito                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-prz-a02             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del legame valutario         *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-vpl.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-ocr-sgl-vpl         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-ocr-dec-vpl         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento ordine           *
+      *            *---------------------------------------------------*
+               10  rf-ocr-tdc-vpl         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Prezzo di riferimento per legame valutario, in    *
+      *            * valuta                                            *
+      *            *---------------------------------------------------*
+               10  rf-ocr-prz-vpl         pic  9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di espressione del prezzo di vendita,   *
+      *            * non effettivo, bensi' relativo alla data documen- *
+      *            * to ordine                                         *
+      *            *---------------------------------------------------*
+               10  rf-ocr-cdc-vpl         pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio di riferimento per la tra- *
+      *            * sformazione nella valuta di espressione del prez- *
+      *            * zo di vendita                                     *
+      *            *---------------------------------------------------*
+               10  rf-ocr-ccr-vpl         pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Percentuale di limitazione della trasformazione   *
+      *            * nella valuta di espressione del prezzo di vendita *
+      *            *---------------------------------------------------*
+               10  rf-ocr-plm-vpl         pic  9(01)v9(02)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di limitazione della trasformazione nella    *
+      *            * valuta di espressione del prezzo di vendita       *
+      *            * - T : Tolleranza                                  *
+      *            * - F : Franchigia                                  *
+      *            * - M : Massimo tetto                               *
+      *            *---------------------------------------------------*
+               10  rf-ocr-tlm-vpl         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Momento di applicazione della trasformazione re-  *
+      *            * lativa al legame valutario                        *
+      *            * - F : Al momento della fattura                    *
+      *            * - B : Al momento della bolla                      *
+      *            *---------------------------------------------------*
+               10  rf-ocr-map-vpl         pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di esposizione della riga di fattura             *
+      *        *                                                       *
+      *        * - Se tipo riga P o PN                                 *
+      *        *                                                       *
+      *        *    - 1 : Quantita', prezzo, sconti, importo           *
+      *        *    - 2 : Solo quantita' e importo                     *
+      *        *    - 3 : Solo importo                                 *
+      *        *    - 4 : Solo importo se quantita pari a 1,000,       *
+      *        *          altrimenti tutto come il tipo 1              *
+      *        *    - 5 : Solo importo se quantita pari a 1,000,       *
+      *        *          trimenti tutto come il tipo 2                *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-epz-rgf             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di sconto in riga associata al prodotto     *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-csr-aap             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Precentuali di sconto in riga associate al prodotto   *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-psr-aap occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di sconto in riga effettive               *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-per-scr occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Prezzo netto effettivo, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-prz-net             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di esposizione prezzi e sconti della riga di     *
+      *        * fattura                                               *
+      *        *                                                       *
+      *        * - Se tipo riga P o PN                                 *
+      *        *                                                       *
+      *        *    - 11 : Prezzo di vendita e sconti                  *
+      *        *    - 21 : Solo prezzo netto                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-epz-pes             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per l'espressione del costo di riferimento     *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-vpc.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-ocr-sgl-vpc         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-ocr-dec-vpc         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di coefficiente per la trasformazione nella  *
+      *            * valuta di contabilizzazione, non effettivo, ben-  *
+      *            * si' relativo alla data documento ordine           *
+      *            *---------------------------------------------------*
+               10  rf-ocr-tdc-vpc         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la trasformazione nel- *
+      *            * la valuta di fatturazione, non effettivo, ben-    *
+      *            * si' relativo alla data documento ordine           *
+      *            *---------------------------------------------------*
+               10  rf-ocr-cdc-vpc         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per il costo di riferimento : 0..2    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dec-cos             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Costo di riferimento, in valuta                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cos-rif             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo definitivo per la riga, in valuta             *
+      *        *                                                       *
+      *        * - Per le righe esterne ad ogni blocco, questo e' sem- *
+      *        *   pre pari all'impostazione effettuata dall'operatore *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 1,2,3   *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per la riga apparente sara' sempre pari alla som- *
+      *        *     ma degli importi impostati dall'operatore per le  *
+      *        *     righe reali del blocco                            *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 4,5,6,7 *
+      *        *   - Per le righe reali sara' sempre in funzione alla  *
+      *        *     redistribuzione eseguita in funzione della somma  *
+      *        *     dei valori impostati dall'operatore per le righe  *
+      *        *     apparenti del blocco, tenendo presente che per i  *
+      *        *     blocchi di tipo 4,5,6, puo' esistere al massimo   *
+      *        *     una riga apparente                                *
+      *        *   - Per le righe apparenti sara' sempre pari a quanto *
+      *        *     impostato dall'operatore                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-imp-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo ausiliario per gestione blocchi, in valuta    *
+      *        *                                                       *
+      *        * - Per le righe esterne ad ogni blocco, questo e' sem- *
+      *        *   pre pari all'impostazione effettuata dall'operatore *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 1,2,3   *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per la riga apparente sara' sempre pari alla som- *
+      *        *     ma degli importi impostati dall'operatore per le  *
+      *        *     righe reali del blocco                            *
+      *        *                                                       *
+      *        * - Per le righe appartenenti a blocchi di tipo 4,5,6,7 *
+      *        *   - Per le righe reali sara' sempre pari a quanto im- *
+      *        *     postato dall'operatore                            *
+      *        *   - Per le righe apparenti sara' sempre pari a quanto *
+      *        *     impostato dall'operatore                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-iau-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigione associata al prodotto        *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cpv-aap             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione associate al prodotto                *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-ppv-aap occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Flag di significativita' dati provvigionali in riga   *
+      *        *                                                       *
+      *        * - 01 : Si, calcolate automaticamente                  *
+      *        * - 02 : No provvigioni in riga                         *
+      *        * - 03 : Si, speciali                                   *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-fsp-rig             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigione in riga effettiva            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cpv-rig             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione in riga effettive                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-ppv-rig occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Importo provvigione a forfait in riga, in valuta base *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-pvf-rig             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data di consegna richiesta                            *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dcn-ric             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di consegna prevista                             *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dcn-prv             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di consegna confermata                           *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-dcn-cnf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di conferma a cliente                            *
+      *        * - Spaces : Riga ancora da confermare                  *
+      *        * - C      : Riga confermata a cliente                  *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-flg-cnf             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo documento nostra commissione al cliente          *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cmc-tip             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento nostra commissione al cliente     *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cmc-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento nostra commissione al cliente   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito in questa area   *
+      *        *        ma riutilizzato in quelle successive           *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-cmc-num             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di riga completamente chiusa                     *
+      *        * - Spaces : Non ancora completamente chiusa            *
+      *        * - #      : Completamente chiusa                       *
+      *        *                                                       *
+      *        * Nota : Questo flag viene manipolato da un apposito    *
+      *        *        programma batch di determinazione ordini       *
+      *        *        chiusi                                         *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-flg-rch             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-ocr-flg-blo.
+                   15  rf-ocr-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            *  - 01 : Flag di riga ordine in attesa di verifica *
+      *            *                                                   *
+      *            *         - Spaces : riga verificata                *
+      *            *         - '#'    : in attesa di verifica          *
+      *            *                                                   *
+      *            *         N.B.: Il flag puo' derivare dalla testata *
+      *            *               ordine oppure essere gestito sin-   *
+      *            *               golarmente, a seconda della perso-  *
+      *            *               nalizzazione [snx-oav]              *
+      *            *                                                   *
+      *            *  - 02 : Flag di riga ordine con data prevista     *
+      *            *         forzata (non entra nel ciclo di assegna-  *
+      *            *         zione)                                    *
+      *            *                                                   *
+      *            *         - Spaces : Normale                        *
+      *            *         - 'F'    : Forzata                        *
+      *            *                                                   *
+      *            * 03 : Flag di riga spuntata al controllo ordine    *
+      *            *       - Spaces : da spuntare                      *
+      *            *       - '#'    : spuntata                         *
+      *            *                                                   *
+      *            *         N.B.: solo per gestione web               *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-ocr-flg-nbl.
+                   15  rf-ocr-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di prezzo unitario relativo alla quantita'       *
+      *        *                                                       *
+      *        * - Spaces : prezzo unitario normale                    *
+      *        * - K      : prezzo riferito a 1000 unita'              *
+      *        * - C      : prezzo riferito a 100 unita'               *
+      *        * - D      : prezzo riferito a 10 unita'                *
+      *        *                                                       *
+      *        * Nota : Questo flag influenza la gestione della secon- *
+      *        *        da quantita' di fatturazione                   *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-flg-puq             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di ordine                                        *
+      *        *                                                       *
+      *        * - Spaces : normale                                    *
+      *        * - P      : pro-forma (non impegna il magazzino)       *
+      *        * - F      : forecast  (previsionale)                   *
+      *        * - C      : contratto (non impegna il magazzino)       *
+      *        *                                                       *
+      *        * N.B. : Dalla testata ordine                           *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-tip-ord             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-ocr-alx-exp.
+               10  filler  occurs 40      pic  x(01)                  .

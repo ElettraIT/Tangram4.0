@@ -1,0 +1,135 @@
+      *    *===========================================================*
+      *    * Record file [lfd] Listini fornitori storicizzati          *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "LSTFNTDVF " = rf-lfd-tip-rec                    *
+      *    *                         rf-lfd-cod-dcf                    *
+      *    *                         rf-lfd-sgl-vlt                    *
+      *    *                         rf-lfd-tip-mag                    *
+      *    *                         rf-lfd-num-mag                    *
+      *    *                         rf-lfd-fda-pif                    *
+      *    *                         rf-lfd-dva-fin                    *
+      *    *                                                           *
+      *    * Indici : "LSTFNTDFR " = rf-lfd-tip-rec                    *
+      *    *                         rf-lfd-cod-dcf                    *
+      *    *                         rf-lfd-sgl-vlt                    *
+      *    *                         rf-lfd-tip-mag                    *
+      *    *                         rf-lfd-num-mag                    *
+      *    *                         rf-lfd-fda-pif                    *
+      *    *                         rf-lfd-dvf-rev                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-lfd.
+      *        *-------------------------------------------------------*
+      *        * Tipo record                                           *
+      *        *                                                       *
+      *        * - 01 : Listini di acquisto prodotti per fornitore     *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-tip-rec             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice fornitore                                      *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-cod-dcf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla della valuta                                    *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali della valuta                          *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-dec-vlt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo magazzino                                        *
+      *        *                                                       *
+      *        *  - 01 : Prodotti di vendita                           *
+      *        *  - 02 : Semilavorati                                  *
+      *        *  - 03 : Materie prime                                 *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico magazzino                             *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-num-mag             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Formato di acquisizione presso il fornitore           *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-fda-pif             pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni relative a prezzi e sconti               *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-inf-pes.
+      *            *---------------------------------------------------*
+      *            * Tabella prezzi d'acquisto, e sconti, pattuiti con *
+      *            * il fornitore                                      *
+      *            *---------------------------------------------------*
+               10  rf-lfd-tbl-pes.
+      *                *-----------------------------------------------*
+      *                * Elementi della tabella                        *
+      *                *                                               *
+      *                * Nota : Se il tipo applicazione prezzo e scon- *
+      *                *        ti e' al valore 01, cioe' indipendente *
+      *                *        dalla quantita', esistera' solamente   *
+      *                *        il primo elemento di questa tabella,   *
+      *                *        con quantita' di riferimento a zero.   *
+      *                *-----------------------------------------------*
+                   15  rf-lfd-ele-pes occurs 06.
+      *                    *-------------------------------------------*
+      *                    * Quantita' di riferimento per prezzi e     *
+      *                    * sconti, espressa in conformita' alla u-   *
+      *                    * nita' di misura del fornitore             *
+      *                    *-------------------------------------------*
+                       20  rf-lfd-qta-pes pic  9(06)v9(03)            .
+      *                    *-------------------------------------------*
+      *                    * Prezzo unitario fino al non superamento   *
+      *                    * della quantita', riferito alla quantita'  *
+      *                    * unitaria in termini di unita' di misura   *
+      *                    * del fornitore. In valuta.                 *
+      *                    *-------------------------------------------*
+                       20  rf-lfd-prz-pes pic  9(09)                  .
+      *                    *-------------------------------------------*
+      *                    * Categoria di sconto in riga applicata fi- *
+      *                    * no al non superamento della quantita'     *
+      *                    *                                           *
+      *                    * N.B. : Campo attualmente non gestito      *
+      *                    *-------------------------------------------*
+                       20  rf-lfd-csr-pes pic  9(05)                  .
+      *                    *-------------------------------------------*
+      *                    * % di sconto in riga 1..5 applicate fino   *
+      *                    * al non superamento della quantita'        *
+      *                    *-------------------------------------------*
+                       20  rf-lfd-psr-pes occurs 05
+                                          pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' iniziale                            *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-dva-ini             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' finale                              *
+      *        *                                                       *
+      *        * N.B.: Data di storicizzazione del listino, ovvero     *
+      *        *       data fino alla quale valgono prezzi e sconti    *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-dva-fin             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di validita' finale in formato 'reverse'         *
+      *        *                                                       *
+      *        * Si ottiene con il seguente calcolo:                   *
+      *        * rf-lfd-dvf-rev = (99999999-(19000000+rf-lfd-dva-fin)) *
+      *        *                                                       *
+      *        * Se rf-lfd-dva-fin vale zero, questo campo viene for-  *
+      *        * zato al valore 99999999                               *
+      *        *                                                       *
+      *        * E' da osservare pertanto che record senza data di va- *
+      *        * lidita' finale avrebbero qui il valore 99999999       *
+      *        *                                                       *
+      *        * In ogni caso un prezzo storicizzato non puo' mancare  *
+      *        * mai della data di validita' finale                    *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-dvf-rev             pic  9(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-lfd-alx-exp.
+               10  filler occurs 20       pic  x(01)                  .

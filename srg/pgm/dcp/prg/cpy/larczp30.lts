@@ -1,0 +1,63 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zp3]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zp3-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zp3-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice sottogruppo a zero               *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zp3-sgr    =    zero
+                     go to let-arc-zp3-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODSGR    "         to   f-key                  .
+           move      w-let-arc-zp3-cla    to   rf-zp3-cod-cla         .
+           move      w-let-arc-zp3-gru    to   rf-zp3-cod-gru         .
+           move      w-let-arc-zp3-sgr    to   rf-zp3-cod-sgr         .
+           move      "pgm/dcp/fls/ioc/obj/iofzp3"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zp3                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zp3-400.
+       let-arc-zp3-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zp3-des-sgr       to   w-let-arc-zp3-des      .
+           move      rf-zp3-mne-sgr       to   w-let-arc-zp3-mne      .
+           move      rf-zp3-ult-sud       to   w-let-arc-zp3-sud      .
+           move      rf-zp3-sqz-num       to   w-let-arc-zp3-sqz      .
+           move      rf-zp3-umi-def       to   w-let-arc-zp3-umi      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zp3-999.
+       let-arc-zp3-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zp3-flg      .
+           move      all   "."            to   w-let-arc-zp3-des      .
+           move      w-let-arc-zp3-sgr    to   w-let-arc-zp3-mne      .
+           go to     let-arc-zp3-600.
+       let-arc-zp3-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zp3-des      .
+           move      spaces               to   w-let-arc-zp3-mne      .
+       let-arc-zp3-600.
+           move      spaces               to   w-let-arc-zp3-umi      .
+           move      zero                 to   w-let-arc-zp3-sud      .
+           move      zero                 to   w-let-arc-zp3-sqz      .
+       let-arc-zp3-999.
+           exit.
+

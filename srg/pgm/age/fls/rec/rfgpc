@@ -1,0 +1,227 @@
+      *    *===========================================================*
+      *    * Record file [gpc] : Conteggi provvigionali                *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMCTG    " = rf-gpc-num-ctg                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-gpc-ide-dat                    *
+      *    *                         rf-gpc-num-ctg                    *
+      *    *                                                           *
+      *    *          "DENDOC    " = rf-gpc-dat-doc                    *
+      *    *                         rf-gpc-num-doc                    *
+      *    *                         rf-gpc-num-ctg                    *
+      *    *                                                           *
+      *    *          "ADNDOC    " = rf-gpc-cod-age                    *
+      *    *                         rf-gpc-dat-doc                    *
+      *    *                         rf-gpc-num-doc                    *
+      *    *                         rf-gpc-num-ctg                    *
+      *    *                                                           *
+      *    *          "CDNDOC    " = rf-gpc-cod-cli                    *
+      *    *                         rf-gpc-dat-doc                    *
+      *    *                         rf-gpc-num-doc                    *
+      *    *                         rf-gpc-num-ctg                    *
+      *    *                                                           *
+      *    *          "SDNDOC    " = rf-gpc-cod-plf                    *
+      *    *                         rf-gpc-dat-doc                    *
+      *    *                         rf-gpc-num-doc                    *
+      *    *                         rf-gpc-num-ctg                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-gpc.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero conteggio                                      *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-num-ctg             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di fatture clienti        *
+      *        *                                                       *
+      *        * N.B.: Solo se conteggio generato automaticamente dal- *
+      *        *       la procedura di fatturazione.                   *
+      *        *       Servira' in caso di maturazione legata agli     *
+      *        *       incassi a fronte del documento.                 *
+      *        *                                                       *
+      *        *       Se questo numero di protocollo manca, significa *
+      *        *       che l'imputazione e' stata manuale.             *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-prt-fcl             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di conteggio                                     *
+      *        *                                                       *
+      *        *  - 01 : Conteggio a fronte fattura                    *
+      *        *  - 02 : Conteggio a fronte nota di addebito           *
+      *        *  - 03 : Conteggio a fronte nota di accredito          *
+      *        *  - 11 : Conteggio a fronte fattura, ma in detrazione  *
+      *        *  - 21 : Conteggio a fronte fatturato periodico _DAIMP_*
+      *        *-------------------------------------------------------*
+           05  rf-gpc-tip-ctg             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo vendita per l'agente                             *
+      *        *                                                       *
+      *        *  - 01 : Diretta                                       *
+      *        *  - 02 : Indiretta                                     *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-tip-vpa             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento cui si riferisce il conteggio          *
+      *        *                                                       *
+      *        * N.B.: Questo valore non puo' mai mancare, in quanto   *
+      *        *       costituisce la data su cui vengono parzializ-   *
+      *        *       zate tutte le elaborazioni sull'archivio.       *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento cui si riferisce il conteggio, alli- *
+      *        * neato a destra, per avere un ordinamento              *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-num-doc             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice agente                                         *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-cod-age             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice cliente                                        *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-cod-cli             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza del cliente                         *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-dpz-cli             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Imponibile provvigionale, in valuta base              *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-ibl-pvg             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % di provvigione                                      *
+      *        *                                                       *
+      *        * Nota : Possono esistere conteggi senza provvigione, e *
+      *        *        in questo caso sia la percentuale che l'ammon- *
+      *        *        tare sono a zero                               *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-per-pvg             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigione conteggiata sul documento, in   *
+      *        * valuta base                                           *
+      *        *                                                       *
+      *        * Nota : Possono esistere conteggi senza provvigione, e *
+      *        *        in questo caso sia la percentuale che l'ammon- *
+      *        *        tare sono a zero                               *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-amm-pvg             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo totale del documento cui si riferisce il con- *
+      *        * teggio, in valuta base                                *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-imp-doc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo totale di eventuali acconti gia' fatturati    *
+      *        * assorbiti nel documento cui si riferisce il conteg-   *
+      *        * gio, in valuta base                                   *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-imp-agf             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Annotazioni sul conteggio provvigionale               *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-not-ctg             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di maturazione prevista per la provvigione       *
+      *        *                                                       *
+      *        * - 01 : Maturazione immediata                          *
+      *        * - 02 : Maturazione su incassi a fronte documento      *
+      *        *                                                       *
+      *        * N.B. : In caso di conteggio a fronte di una nota di   *
+      *        *        accredito questo campo viene forzato al valo-  *
+      *        *        re 01.                                         *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-tip-mat             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di provvigione con maturazione bloccata       *
+      *        *                                                       *
+      *        * - 01 : Maturazione della provvigione non bloccata     *
+      *        * - 02 : Maturazione della provvigione bloccata         *
+      *        *                                                       *
+      *        * N.B. : In caso di conteggio a fronte di una nota di   *
+      *        *        accredito questo campo viene forzato al valo-  *
+      *        *        re 01.                                         *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-mat-blo             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di maturazione minima per la provvigione         *
+      *        *                                                       *
+      *        * N.B. : In caso di valore a zero si intende che la da- *
+      *        *        ta di maturazione minima sia pari alla data    *
+      *        *        del documento (maturazione a vista)            *
+      *        *                                                       *
+      *        * N.B. : In caso di conteggio a fronte di una nota di   *
+      *        *        accredito questo campo viene forzato al valo-  *
+      *        *        re zero.                               .       *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-ddm-min             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice agente subordinato                             *
+      *        *                                                       *
+      *        * N.B. : Solo se provvigione di un super-agente         *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-cod-ags             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice del cliente per la fatturazione                *
+      *        *                                                       *
+      *        * N.B. : Puo' essere diverso dal codice cliente prece-  *
+      *        *        dentemente citato                              *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-cod-plf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza del cliente per la fatturazione     *
+      *        *                                                       *
+      *        * N.B. : Puo' essere diverso dal codice dipendenza del  *
+      *        *        cliente precedentemente citato                 *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-dpz-plf             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-gpc-flg-blo.
+                   15  rf-gpc-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-gpc-flg-nbl.
+                   15  rf-gpc-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-gpc-alx-exp.
+               10  filler    occurs 80    pic  x(01)                  .

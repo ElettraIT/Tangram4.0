@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione della forma di pagamento   *
+      *    *-----------------------------------------------------------*
+       cod-mne-zfp-opn-000.
+           move      "pgm/dcc/prg/obj/acmnzfp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zfp-pth      .
+           move      "OP"                 to   w-cod-mne-zfp-ope      .
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+       cod-mne-zfp-opn-999.
+           exit.
+       cod-mne-zfp-cls-000.
+           move      "CL"                 to   w-cod-mne-zfp-ope      .
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+           move      "C?"                 to   w-cod-mne-zfp-ope      .
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+           if        w-cod-mne-zfp-ope    not  = spaces
+                     go to cod-mne-zfp-cls-999.
+           cancel    w-cod-mne-zfp-pth                                .
+       cod-mne-zfp-cls-999.
+           exit.
+       cod-mne-zfp-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zfp-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc1500"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zfp-foi-999.
+           move      "pgm/dcc/prg/obj/pdcc1500"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zfp-ope      .
+           go to     cod-mne-zfp-foi-999.
+       cod-mne-zfp-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zfp-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc1510"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zfp-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcc/prg/obj/pdcc1510"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zfp-ope      .
+           go to     cod-mne-zfp-foi-999.
+       cod-mne-zfp-foi-999.
+           exit.
+       cod-mne-zfp-cll-000.
+           call      w-cod-mne-zfp-pth   using w-cod-mne-zfp
+                                               v
+                                               s                      .
+       cod-mne-zfp-cll-999.
+           exit.
+

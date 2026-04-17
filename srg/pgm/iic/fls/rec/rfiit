@@ -1,0 +1,359 @@
+      *    *===========================================================*
+      *    * Record file [iit] Archivio movimenti iva intracomunitari, *
+      *    *                   testate                                 *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "DATREG    " = rf-iit-dat-reg                    *
+      *    *                         rf-iit-num-prt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-iit-ide-dat                    *
+      *    *                         rf-iit-dat-reg                    *
+      *    *                         rf-iit-num-prt                    *
+      *    *                                                           *
+      *    *          "RIFCGE    " = rf-iit-dtr-cge                    *
+      *    *                         rf-iit-prt-cge                    *
+      *    *                         rf-iit-dat-reg                    *
+      *    *                         rf-iit-num-prt                    *
+      *    *                                                           *
+      *    *          "TOPDAT    " = rf-iit-top-iic                    *
+      *    *                         rf-iit-dat-reg                    *
+      *    *                         rf-iit-num-prt                    *
+      *    *                                                           *
+      *    *          "ARCDAT    " = rf-iit-tip-arc                    *
+      *    *                         rf-iit-cod-arc                    *
+      *    *                         rf-iit-dat-reg                    *
+      *    *                         rf-iit-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-iit.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-iit-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-iit-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-iit-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione del movimento                      *
+      *        *-------------------------------------------------------*
+           05  rf-iit-dat-reg             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo del movimento : s.aa.nnnnnnn        *
+      *        *-------------------------------------------------------*
+           05  rf-iit-num-prt             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione                                       *
+      *        *  - 0001 : Acquisto                                    *
+      *        *  - 0002 : Cessione                                    *
+      *        *  - 0011 : Rettifica ad acquisto                       *
+      *        *  - 0012 : Rettifica a cessione                        *
+      *        *-------------------------------------------------------*
+           05  rf-iit-top-iic             pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione del movimento di contabilita' ge-  *
+      *        * nerale connesso al movimento                          *
+      *        *                                                       *
+      *        * Puo' mancare                                          *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per cessioni                                        *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-dtr-cge             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo del movimento di contabilita' ge-   *
+      *        * nerale connesso al movimento                          *
+      *        *                                                       *
+      *        * Puo' mancare                                          *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per cessioni                                        *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-prt-cge             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio                                         *
+      *        *                                                       *
+      *        *  - C : Cliente                                        *
+      *        *  - F : Fornitore                                      *
+      *        *                                                       *
+      *        * Puo' mancare                                          *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per cessioni                                        *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *                                                       *
+      *        * E' il codice contabile del cliente o del fornitore    *
+      *        *                                                       *
+      *        * Puo' mancare                                          *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per cessioni                                        *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio precedente                            *
+      *        *                                                       *
+      *        * E' il codice contabile del cliente o del fornitore    *
+      *        * precedente                                            *
+      *        *                                                       *
+      *        * Puo' mancare                                          *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-arc-pre             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ISO dello Stato membro CEE cui l'operatore co- *
+      *        * munitario appartiene                                  *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per cessioni                                        *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-iso-opc             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ISO dello Stato membro CEE cui l'operatore co- *
+      *        * munitario appartiene precedente                       *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-iso-ocp             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice IVA dell'operatore comunitario                 *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per cessioni                                        *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cdi-opi             pic  x(16)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice IVA dell'operatore comunitario precedente      *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cdi-ocp             pic  x(16)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice della natura della transazione                 *
+      *        *  - 0 : Non definita                                   *
+      *        *  - 1 : Acquisto o vendita, compreso il baratto        *
+      *        *  - 2 : Restituzione o sostituzione di merci           *
+      *        *  - 3 : Aiuti governativi, privati o finanziati dalla  *
+      *        *        comunita' europea                              *
+      *        *  - 4 : Operazione in vista di una lavorazione per     *
+      *        *        conto terzi o di una riparazione               *
+      *        *  - 5 : Operazione successiva ad una lavorazione per   *
+      *        *        conto terzi o di una riparazione               *
+      *        *  - 6 : Movimento di merci senza trasferimento di      *
+      *        *        proprieta'                                     *
+      *        *  - 7 : Operazione a titolo di un programma comune di  *
+      *        *        difesa o di un altro programma intergovernati- *
+      *        *        vo di fabbricazione coordinata                 *
+      *        *  - 8 : Fornitura di materiali e macchinari nel quadro *
+      *        *        di un contratto generale di costruzione o di   *
+      *        *        genio civile                                   *
+      *        *  - 9 : Altre transazioni                              *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per cessioni                                        *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cdn-dtr             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice della natura della transazione precedente      *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per rettifiche ad acquisti                          *
+      *        * - Per rettifiche a cessioni                           *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cdn-dtp             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice del regime                                     *
+      *        *                                                       *
+      *        *  - 4 : Introduzione definitiva (immissione in consu-  *
+      *        *        mo)                                            *
+      *        *  - 5 : Introduzione temporanea a scopo di perfeziona- *
+      *        *        mento (lavorazione, riparazione, trasformazio- *
+      *        *        ne, ecc.)                                      *
+      *        *  - 6 : Reintroduzione a seguito di spedizione tempo-  *
+      *        *        ranea a scopo di perfezionamento               *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per cessioni                                        *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        *     N.B.: Campo obsoleto (D.M.04/02/98)               *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cod-rgm             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice condizioni di consegna                         *
+      *        *                                                       *
+      *        *  - 00 : Non definita                                  *
+      *        *                                                       *
+      *        *  - 01 : Franco fabbrica                       EXW (E) *
+      *        *                                                       *
+      *        *  - 11 : Franco vettore                        FCA (F) *
+      *        *  - 12 : Franco sotto bordo                    FAS (F) *
+      *        *  - 13 : Franco a bordo                        FOB (F) *
+      *        *                                                       *
+      *        *  - 21 : Costo e nolo                          CFR (C) *
+      *        *  - 22 : Costo, assicurazione, nolo            CIF (C) *
+      *        *  - 23 : Nolo/porto pagato fino a ...          CPT (C) *
+      *        *  - 24 : Nolo/porto e assic. pagati fino a ... CIP (C) *
+      *        *                                                       *
+      *        *  - 31 : Reso frontiera                        DAF (D) *
+      *        *  - 32 : Reso franco bordo nave a destino      DES (D) *
+      *        *  - 33 : Reso franco banchina                  DEQ (D) *
+      *        *  - 34 : Reso non sdoganato                    DDU (D) *
+      *        *  - 35 : Reso sdoganato                        DDP (D) *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per cessioni                                        *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        *     N.B.: Campo nuovo (D.M.04/02/98) - vedi prec.     *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cod-cdc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice del modo di trasporto                          *
+      *        *                                                       *
+      *        *  - 0 : Non definito                                   *
+      *        *  - 1 : Trasporto marittimo                            *
+      *        *  - 2 : Trasporto ferroviario                          *
+      *        *  - 3 : Trasporto stradale                             *
+      *        *  - 4 : Trasporto aereo                                *
+      *        *  - 5 : Spedizioni postali                             *
+      *        *  - 7 : Installazioni fisse di trasporto               *
+      *        *  - 8 : Trasporto per vie d'acqua                      *
+      *        *  - 9 : Propulsione propria                            *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per cessioni                                        *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-cod-mdt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ISO dello Stato membro CEE di provenienza o di *
+      *        * destinazione delle merci                              *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti, paese di provenienza                  *
+      *        * - Per cessioni, paese di destinazione                 *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-iso-pod             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice della provincia italiana di provenienza o di   *
+      *        * destinazione delle merci                              *
+      *        *                                                       *
+      *        * Corrisponde alla sigla automobilistica                *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti, provincia di destinazione             *
+      *        * - Per cessioni, provincia di origine                  *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-pvc-ood             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Totale del corrispettivo dell'operazione espresso in  *
+      *        * valuta estera                                         *
+      *        *                                                       *
+      *        * Non significativo in caso di assenza della data di    *
+      *        * registrazione e numero di protocollo di contabili-    *
+      *        * ta' generale                                          *
+      *        *                                                       *
+      *        *     ---------------------------------------------     *
+      *        *                                                       *
+      *        * - Per acquisti                                        *
+      *        * - Per rettifiche ad acquisti                          *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-iit-tco-eiv             pic s9(13)v9(03)            .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-iit-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-iit-flg-blo.
+                   15  rf-iit-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-iit-flg-nbl.
+                   15  rf-iit-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-iit-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-iit-alx-exp.
+               10  filler      occurs 28  pic  x(01)                  .

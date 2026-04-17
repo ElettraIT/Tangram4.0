@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice categoria prov- *
+      *    * vigioni legate all'agente                                 *
+      *    *-----------------------------------------------------------*
+       cmn-zpv-001-opn-000.
+           move      "pgm/age/prg/obj/acmnzpv1"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cmn-zpv-001-pth      .
+           move      "OP"                 to   w-cmn-zpv-001-ope      .
+           perform   cmn-zpv-001-cll-000  thru cmn-zpv-001-cll-999    .
+       cmn-zpv-001-opn-999.
+           exit.
+       cmn-zpv-001-cls-000.
+           move      "CL"                 to   w-cmn-zpv-001-ope      .
+           perform   cmn-zpv-001-cll-000  thru cmn-zpv-001-cll-999    .
+           move      "C?"                 to   w-cmn-zpv-001-ope      .
+           perform   cmn-zpv-001-cll-000  thru cmn-zpv-001-cll-999    .
+           if        w-cmn-zpv-001-ope    not  = spaces
+                     go to cmn-zpv-001-cls-999.
+           cancel    w-cmn-zpv-001-pth                                .
+       cmn-zpv-001-cls-999.
+           exit.
+       cmn-zpv-001-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cmn-zpv-001-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "page1100"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zpv-001-foi-999.
+           move      "pgm/age/prg/obj/page1100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cmn-zpv-001-ope      .
+           go to     cmn-zpv-001-foi-999.
+       cmn-zpv-001-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cmn-zpv-001-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "page1110"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zpv-001-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/age/prg/obj/page1110"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cmn-zpv-001-ope      .
+           go to     cmn-zpv-001-foi-999.
+       cmn-zpv-001-foi-999.
+           exit.
+       cmn-zpv-001-cll-000.
+           call      w-cmn-zpv-001-pth   using w-cmn-zpv-001
+                                               v
+                                               s                      .
+       cmn-zpv-001-cll-999.
+           exit.
+

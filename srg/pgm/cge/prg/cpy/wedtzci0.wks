@@ -1,0 +1,143 @@
+      *    *===========================================================*
+      *    * Editing Codice Iva                                        *
+      *    *                                                           *
+      *    * Da intero a decimale                                      *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Dato un codice Iva in formato numerico di 5 interi, si    *
+      *    * desume l'eventuale presenza di decimali e si ottiene un   *
+      *    * numerico di 3 caratteri con 2 decimali                    *
+      *    *                                                           *
+      *    * Input  : w-edt-iva-cod = Codice Iva (intero di 5)         *
+      *    *                                                           *
+      *    * Output : w-edt-iva-cie = Codice Iva editato (3,2)         *
+      *    *                                                           *
+      *    *          w-edt-iva-spc = Eventuale indicatore di aliquota *
+      *    *                          speciale (0,3,4,5,6,7,9)         *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       edt-cod-iva-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni iniziali                        *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-edt-iva-cie          .
+      *              *-------------------------------------------------*
+      *              * Indicatore di aliquota speciale                 *
+      *              *-------------------------------------------------*
+           move      w-edt-iva-cod-003    to   w-edt-iva-spc          .
+      *              *-------------------------------------------------*
+      *              * Test sulla 3a cifra del codice                  *
+      *              *-------------------------------------------------*
+           if        w-edt-iva-cod-003    not  = zero and
+                     w-edt-iva-cod-003    not  = 7    and
+                     w-edt-iva-cod-003    not  = 9
+                     go to edt-cod-iva-300.
+       edt-cod-iva-100.
+      *              *-------------------------------------------------*
+      *              * Aliquota imponibile o non detraibile o omaggio  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Trattamento interi                          *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-045    to   w-edt-iva-cod-int      .
+      *                  *---------------------------------------------*
+      *                  * Trattamento decimali                        *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-001    to   w-edt-iva-cod-d01      .
+           move      w-edt-iva-cod-002    to   w-edt-iva-cod-d02      .
+      *                  *---------------------------------------------*
+      *                  * Trattamento eventuale specifica             *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-003    to   w-edt-iva-spc          .
+           move      w-edt-iva-cod-003    to   w-edt-iva-cod-i01      .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     edt-cod-iva-900.
+       edt-cod-iva-300.
+      *              *-------------------------------------------------*
+      *              * Codice di esenzione                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Trattamento interi                          *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-345    to   w-edt-iva-cod-int      .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     edt-cod-iva-900.
+       edt-cod-iva-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     edt-cod-iva-999.
+       edt-cod-iva-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Editing Codice Iva                                        *
+      *    *                                                           *
+      *    * Da decimale a intero                                      *
+      *    *-----------------------------------------------------------*
+      *    * Input  : w-edt-iva-cie = Codice Iva editato (3,2)         *
+      *    *                                                           *
+      *    * Output : w-edt-iva-cod = Codice Iva intero (5)            *
+      *    *                                                           *
+      *    *          w-edt-iva-spc = Eventuale indicatore di aliquota *
+      *    *                          speciale (0,3,4,5,6,7,9)         *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       edt-iva-cod-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni iniziali                        *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-edt-iva-cod          .
+           move      zero                 to   w-edt-iva-spc          .
+      *              *-------------------------------------------------*
+      *              * Test sulla 1a cifra del codice                  *
+      *              *-------------------------------------------------*
+           if        w-edt-iva-cod-i01    not  = zero and
+                     w-edt-iva-cod-i01    not  = 7    and
+                     w-edt-iva-cod-i01    not  = 9
+                     go to edt-iva-cod-300.
+       edt-iva-cod-100.
+      *              *-------------------------------------------------*
+      *              * Aliquota imponibile o non detraibile o omaggio  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Trattamento interi                          *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-i02    to   w-edt-iva-cod-345      .
+      *                  *---------------------------------------------*
+      *                  * Trattamento specifica                       *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-i01    to   w-edt-iva-cod-003      .
+      *                  *---------------------------------------------*
+      *                  * Trattamento decimali                        *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-dd1    to   w-edt-iva-cod-001      .
+           move      w-edt-iva-cod-dd2    to   w-edt-iva-cod-002      .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     edt-iva-cod-900.
+       edt-iva-cod-300.
+      *              *-------------------------------------------------*
+      *              * Codice di esenzione                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Trattamento interi                          *
+      *                  *---------------------------------------------*
+           move      w-edt-iva-cod-int    to   w-edt-iva-cod-345      .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     edt-iva-cod-900.
+       edt-iva-cod-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     edt-iva-cod-999.
+       edt-iva-cod-999.
+           exit.
+

@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [ada]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-dpz-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-dpz-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice dipendenza a zero                *
+      *              *-------------------------------------------------*
+           if        w-let-arc-dpz-cod    =    zero
+                     go to let-arc-dpz-500.
+      *              *-------------------------------------------------*
+      *              * Test se codice dipendenza accettabile           *
+      *              *-------------------------------------------------*
+           if        w-let-arc-dpz-cod    <    01 or
+                     w-let-arc-dpz-cod    >    99
+                     go to let-arc-dpz-400.
+      *              *-------------------------------------------------*
+      *              * Test se dipendenza esistente                    *
+      *              *-------------------------------------------------*
+           if        w-dpz-ele-flg
+                    (w-let-arc-dpz-cod)   =    spaces
+                     go to let-arc-dpz-400.
+      *              *-------------------------------------------------*
+      *              * Pseudo-lettura da memoria con bufferizzazione   *
+      *              * valori                                          *
+      *              *-------------------------------------------------*
+           move      w-dpz-ele-den
+                    (w-let-arc-dpz-cod)   to   w-let-arc-dpz-des      .
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODDPZ    "         to   f-key                  .
+           move      w-let-arc-dpz-cod    to   rf-ada-cod-dpz         .
+           move      "pgm/azi/fls/ioc/obj/iofada"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ada                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-dpz-400.
+       let-arc-dpz-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-ada-rag-soc       to   w-let-arc-dpz-rag      .
+           move      rf-ada-via-azi       to   w-let-arc-dpz-via      .
+           move      rf-ada-loc-azi       to   w-let-arc-dpz-loc      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-dpz-999.
+       let-arc-dpz-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-dpz-flg      .
+           move      all   "."            to   w-let-arc-dpz-des      .
+           go to     let-arc-dpz-600.
+       let-arc-dpz-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-dpz-des      .
+       let-arc-dpz-600.
+           move      spaces               to   w-let-arc-dpz-rag      .
+           move      spaces               to   w-let-arc-dpz-via      .
+           move      spaces               to   w-let-arc-dpz-loc      .
+       let-arc-dpz-999.
+           exit.
+

@@ -1,0 +1,164 @@
+      *    *===========================================================*
+      *    * Area di comunicazione per determinazione saldi magazzino  *
+      *    *-----------------------------------------------------------*
+       01  d-sld-mag.
+      *        *-------------------------------------------------------*
+      *        * Tipo operazione                                       *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-tip-ope          pic  x(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di saldo che deve essere determinato             *
+      *        *                                                       *
+      *        *  - 0000 : Giacenza fisica                             *
+      *        *  - 0100 : Giacenza di proprieta'                      *
+      *        *  - 0200 : Giacenza merce presso terzi ma non loro     *
+      *        *  - 0300 : Giacenza merce presso di noi ma non nostra  *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-tip-sld          pic  9(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento per il saldo; se pari a zero si   *
+      *        * intende il saldo alla data attuale                    *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-dat-sld          pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Riferimento a una o tutte le dipendenze               *
+      *        *                                                       *
+      *        *  - U : Una sola dipendenza                            *
+      *        *  - T : Tutte le dipendenze                            *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-uot-dpz          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza cui deve riferirsi il saldo         *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-cod-dpz          pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino cui deve riferirsi il saldo  *
+      *        *                                                       *
+      *        *  - 01 : Prodotti finiti                               *
+      *        *  - 02 : Semilavorati                                  *
+      *        *  - 03 : Materie prime                                 *
+      *        *  - 04 : Materiali vari                                *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-tip-mag          pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico di magazzino cui deve riferirsi il    *
+      *        * saldo                                                 *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-num-mag          pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Riferimento a una o tutte le varianti                 *
+      *        *                                                       *
+      *        *  - U : Una sola variante                              *
+      *        *  - T : Tutte le varianti                              *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-uot-var          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla variante al codice numerico di magazzino cui    *
+      *        * deve riferirsi il saldo                               *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-var-mag          pic  x(14)                  .
+      *        *-------------------------------------------------------*
+      *        * Riferimento a una o tutte le dislocazioni             *
+      *        *                                                       *
+      *        *  - U : Una sola dislocazione                          *
+      *        *  - T : Tutte le dislocazioni                          *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-uot-dsl          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice della dislocazione cui deve riferirsi il saldo *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-cod-dsl          pic  x(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Riferimento a uno o tutti i codici conto merce        *
+      *        *                                                       *
+      *        *  - U : Un solo codice conto merce                     *
+      *        *  - T : Tutti i codici conto merce                     *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-uot-ctm          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto merce cui deve riferirsi il saldo        *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-cod-ctm          pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo ,archivio di riferimento                         *
+      *        *                                                       *
+      *        *  - C : Clienti                                        *
+      *        *  - F : Fornitori                                      *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-tip-arc          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Riferimento a uno o tutti i codici archivio           *
+      *        *                                                       *
+      *        *  - U : Un solo codice archivio                        *
+      *        *  - T : Tutti i codici archivio                        *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-uot-arc          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice del tipo archivio cui deve riferirsi il saldo  *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-cod-arc          pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Riferimento a una o tutte le dipendenze del codice    *
+      *        * archivio                                              *
+      *        *                                                       *
+      *        *  - U : Una sola dipendenza del codice archivio        *
+      *        *  - T : Tutte le dipendenze del codice archivio        *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-uot-dpa          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice della dipendenza del codice archivio           *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-dpz-arc          pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Return status code                                    *
+      *        *                                                       *
+      *        *  - Spaces : Operazione eseguita                       *
+      *        *  - #      : Errore di esecuzione                      *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-exi-sts          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Messaggio di errore                                   *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-msg-exi          pic  x(76)                  .
+      *        *-------------------------------------------------------*
+      *        * Saldo determinato                                     *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-sld-mag          pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Sub-saldo 1                                           *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-sub-s01          pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Sub-saldo 2                                           *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-sub-s02          pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Sub-saldo 3                                           *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-sub-s03          pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Sub-saldo 4                                           *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-sub-s04          pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Sub-saldo 5                                           *
+      *        *-------------------------------------------------------*
+           05  d-sld-mag-sub-s05          pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .

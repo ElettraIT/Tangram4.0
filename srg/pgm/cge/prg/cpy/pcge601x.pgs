@@ -1,0 +1,34 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione righe                        *
+      *    *-----------------------------------------------------------*
+       esp-rig-cer-opn-000.
+           move      "pgm/cge/prg/obj/pcge601x"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-rig-cer-pth      .
+           move      "OP"                 to   w-esp-rig-cer-ope      .
+           perform   esp-rig-cer-cll-000  thru esp-rig-cer-cll-999    .
+       esp-rig-cer-opn-999.
+           exit.
+       esp-rig-cer-cls-000.
+           move      "CL"                 to   w-esp-rig-cer-ope      .
+           perform   esp-rig-cer-cll-000  thru esp-rig-cer-cll-999    .
+           move      "C?"                 to   w-esp-rig-cer-ope      .
+           perform   esp-rig-cer-cll-000  thru esp-rig-cer-cll-999    .
+           if        w-esp-rig-cer-ope    not  = spaces
+                     go to esp-rig-cer-cls-999.
+           cancel    w-esp-rig-cer-pth                                .
+       esp-rig-cer-cls-999.
+           exit.
+       esp-rig-cer-esp-000.
+           move      "ES"                 to   w-esp-rig-cer-ope      .
+           perform   esp-rig-cer-cll-000  thru esp-rig-cer-cll-999    .
+           go to     esp-rig-cer-esp-999.
+       esp-rig-cer-esp-999.
+           exit.
+       esp-rig-cer-cll-000.
+           call      w-esp-rig-cer-pth   using w-esp-rig-cer          .
+       esp-rig-cer-cll-999.
+           exit.
+

@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per generazione fatture fornitori formato XML *
+      *    *-----------------------------------------------------------*
+       mdl-scf-xml-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   m-scf-xml-tip-ope      .
+           perform   mdl-scf-xml-cll-000  thru mdl-scf-xml-cll-999    .
+       mdl-scf-xml-opn-999.
+           exit.
+
+       mdl-scf-xml-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   m-scf-xml-tip-ope      .
+           perform   mdl-scf-xml-cll-000  thru mdl-scf-xml-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   m-scf-xml-tip-ope      .
+           perform   mdl-scf-xml-cll-000  thru mdl-scf-xml-cll-999    .
+      *
+           if        m-scf-xml-exi-sts    not  = spaces
+                     go to mdl-scf-xml-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/scf/prg/obj/mscfxml0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       mdl-scf-xml-cls-999.
+           exit.
+
+       mdl-scf-xml-cll-000.
+      *              *=================================================*
+      *              * Chiamata modulo                                 *
+      *              *-------------------------------------------------*
+           move      "pgm/scf/prg/obj/mscfxml0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using m-scf-xml              .
+       mdl-scf-xml-cll-999.
+           exit.
+

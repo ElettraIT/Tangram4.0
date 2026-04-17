@@ -1,0 +1,34 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione documenti correlati bolla    *
+      *    *-----------------------------------------------------------*
+       esp-idv-bit-opn-000.
+           move      "pgm/bol/prg/obj/pbol301y"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-idv-bit-pth      .
+           move      "OP"                 to   w-esp-idv-bit-ope      .
+           perform   esp-idv-bit-cll-000  thru esp-idv-bit-cll-999    .
+       esp-idv-bit-opn-999.
+           exit.
+       esp-idv-bit-cls-000.
+           move      "CL"                 to   w-esp-idv-bit-ope      .
+           perform   esp-idv-bit-cll-000  thru esp-idv-bit-cll-999    .
+           move      "C?"                 to   w-esp-idv-bit-ope      .
+           perform   esp-idv-bit-cll-000  thru esp-idv-bit-cll-999    .
+           if        w-esp-idv-bit-ope    not  = spaces
+                     go to esp-idv-bit-cls-999.
+           cancel    w-esp-idv-bit-pth                                .
+       esp-idv-bit-cls-999.
+           exit.
+       esp-idv-bit-esp-000.
+           move      "ES"                 to   w-esp-idv-bit-ope      .
+           perform   esp-idv-bit-cll-000  thru esp-idv-bit-cll-999    .
+           go to     esp-idv-bit-esp-999.
+       esp-idv-bit-esp-999.
+           exit.
+       esp-idv-bit-cll-000.
+           call      w-esp-idv-bit-pth   using w-esp-idv-bit          .
+       esp-idv-bit-cll-999.
+           exit.
+

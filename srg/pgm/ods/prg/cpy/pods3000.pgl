@@ -1,0 +1,722 @@
+      *    *===========================================================*
+      *    * Link-area comune per programmi della serie pods3000       *
+      *    *                                                           *
+      *    * La link-area comprende :                                  *
+      *    *                                                           *
+      *    *  - 'w-tes'     : Work-area per bufferizzazione testata    *
+      *    *  - 'w-pie'     : Work-area per bufferizzazione piede      *
+      *    *  - 'w-rig'     : Work-area per bufferizzazione riga       *
+      *    *  - 'w-cat-rig' : Work-area di comunicazione per gestione  *
+      *    *                  catena righe                             *
+      *    *-----------------------------------------------------------*
+
+      *    *===========================================================*
+      *    * Work-area per bufferizzazione testata                     *
+      *    *-----------------------------------------------------------*
+       01  w-tes.
+      *        *-------------------------------------------------------*
+      *        * Valori chiave                                         *
+      *        *                                                       *
+      *        * N.B.: Questo gruppo viene salvato in caso di selezio- *
+      *        *       ne in uscita da interrogazione su archivio te-  *
+      *        *       state spedizioni [ost]. Il campo di salvatag-   *
+      *        *       gio si chiama w-sav-val-key ed e' attualmente   *
+      *        *       definito di 200 caratteri; tenerne conto in ca- *
+      *        *       so di modifiche ai valori chiave di w-tes.      *
+      *        *-------------------------------------------------------*
+           05  w-tes-val-key.
+      *            *---------------------------------------------------*
+      *            * Codice dipendenza                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-dpz          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Numero protocollo                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-num-prt          pic  9(11)                  .
+               10  w-tes-num-prt-r redefines
+                   w-tes-num-prt.
+                   15  w-tes-num-prt-saa  pic  9(03)                  .
+                   15  w-tes-num-prt-dpz  pic  9(02)                  .
+                   15  w-tes-num-prt-prg  pic  9(06)                  .
+      *            *---------------------------------------------------*
+      *            * Data documento                                    *
+      *            *---------------------------------------------------*
+               10  w-tes-dat-doc          pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo movimento per la spedizione                  *
+      *            *---------------------------------------------------*
+               10  w-tes-tip-mps          pic  x(05)                  .
+               10  w-tes-tip-mps-des      pic  x(30)                  .
+               10  w-tes-tip-mps-maf      pic  9(02)                  .
+               10  w-tes-tip-mps-dmf      pic  x(05)                  .
+               10  w-tes-tip-mps-tar      pic  x(01)                  .
+               10  w-tes-tip-mps-dtr      pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Comodo per gestione decimali quantita' intero     *
+      *            * documento                                         *
+      *            *---------------------------------------------------*
+               10  w-tes-dec-qta          pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Valori attuali e precedenti                           *
+      *        *-------------------------------------------------------*
+           05  w-tes-val-aep occurs 2.
+      *            *---------------------------------------------------*
+      *            * Flag di accettazione pagina testata 1             *
+      *            *---------------------------------------------------*
+               10  w-tes-fda-pt1          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flag di accettazione pagina testata 2             *
+      *            *---------------------------------------------------*
+               10  w-tes-fda-pt2          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo archivio                                     *
+      *            * - N      : Nessun archivio                        *
+      *            * - C      : Cliente                                *
+      *            * - F      : Fornitore                              *
+      *            * - D      : Dipendenza                             *
+      *            *---------------------------------------------------*
+               10  w-tes-tip-arc          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Codice archivio                                   *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-arc          pic  9(07)                  .
+               10  w-tes-cod-arc-rag      pic  x(40)                  .
+               10  w-tes-cod-arc-via      pic  x(40)                  .
+               10  w-tes-cod-arc-loc      pic  x(40)                  .
+               10  w-tes-cod-arc-piv      pic  9(11)                  .
+               10  w-tes-cod-arc-stc      pic  9(07)                  .
+               10  w-tes-cod-arc-snd      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Indirizzo sede dell'archivio                      *
+      *            *---------------------------------------------------*
+               10  w-tes-rag-sed          pic  x(40)                  .
+               10  w-tes-via-sed          pic  x(40)                  .
+               10  w-tes-loc-sed          pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice lingua applicato al cliente                *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-lng          pic  x(03)                  .
+               10  w-tes-cod-lng-des      pic  x(20)                  .
+      *            *---------------------------------------------------*
+      *            * Momento di applicazione cambio per la valuta per  *
+      *            * il prezzo                                         *
+      *            * - 00 : No gestione valuta per il prezzo           *
+      *            * - 11 : Al momento della bolla                     *
+      *            * - 21 : Al momento della fatturazione              *
+      *            *---------------------------------------------------*
+               10  w-tes-mac-vpp          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Momento di applicazione cambio per legame valuta- *
+      *            * rio                                               *
+      *            * - 00 : No gestione legame valutario               *
+      *            * - 11 : Al momento della bolla                     *
+      *            * - 21 : Al momento della fatturazione              *
+      *            *---------------------------------------------------*
+               10  w-tes-mac-lvl          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo esposizione prezzo e sconti in riga documen- *
+      *            * to                                                *
+      *            * - 11 : Prezzo e sconti                            *
+      *            * - 21 : Solo prezzo netto                          *
+      *            *---------------------------------------------------*
+               10  w-tes-epz-pes          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice dipendenza dell'archivio                   *
+      *            *---------------------------------------------------*
+               10  w-tes-dpz-arc          pic  x(04)                  .
+               10  w-tes-dpz-arc-rag      pic  x(40)                  .
+               10  w-tes-dpz-arc-via      pic  x(40)                  .
+               10  w-tes-dpz-arc-loc      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo indirizzo di spedizione                      *
+      *            * - 01 : alla sede legale                           *
+      *            * - 02 : manuale                                    *
+      *            * - 03 : alla sede                                  *
+      *            * - 04 : alla dipendenza                            *
+      *            *---------------------------------------------------*
+               10  w-tes-tip-ids          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Indirizzo di spedizione                           *
+      *            *---------------------------------------------------*
+               10  w-tes-rag-ids          pic  x(40)                  .
+               10  w-tes-rs2-ids          pic  x(40)                  .
+               10  w-tes-via-ids          pic  x(40)                  .
+               10  w-tes-loc-ids          pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo fornitura                                    *
+      *            *---------------------------------------------------*
+               10  w-tes-tip-frn          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice cliente per fatturazione                   *
+      *            *---------------------------------------------------*
+               10  w-tes-arc-plf          pic  9(07)                  .
+               10  w-tes-arc-plf-rag      pic  x(40)                  .
+               10  w-tes-arc-plf-via      pic  x(40)                  .
+               10  w-tes-arc-plf-loc      pic  x(40)                  .
+               10  w-tes-arc-plf-snd      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Codice dipendenza del cliente per fatturazione    *
+      *            *---------------------------------------------------*
+               10  w-tes-dpz-plf          pic  x(04)                  .
+               10  w-tes-dpz-plf-rag      pic  x(40)                  .
+               10  w-tes-dpz-plf-via      pic  x(40)                  .
+               10  w-tes-dpz-plf-loc      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo fatturazione                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-tip-ftz          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Inoltro documenti                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-inl-dcm          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Inoltro pagamenti                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-inl-pgt          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Valuta per la fatturazione                        *
+      *            *---------------------------------------------------*
+               10  w-tes-vpf.
+      *                *-----------------------------------------------*
+      *                * Flag di accettazione valuta per fatturazione  *
+      *                *-----------------------------------------------*
+                   15  w-tes-fda-vpf      pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Sigla valuta                                  *
+      *                *-----------------------------------------------*
+                   15  w-tes-sgl-vpf      pic  x(03)                  .
+                   15  w-tes-sgl-vpf-des  pic  x(20)                  .
+      *                *-----------------------------------------------*
+      *                * Numero decimali per la valuta                 *
+      *                *-----------------------------------------------*
+                   15  w-tes-dec-vpf      pic  9(01)                  .
+      *                *-----------------------------------------------*
+      *                * Tipo di cambio : '/' o '*'                    *
+      *                *-----------------------------------------------*
+                   15  w-tes-tdc-vpf      pic  x(01)                  .
+      *                *-----------------------------------------------*
+      *                * Coefficiente di cambio per la valuta alla da- *
+      *                * ta del documento                              *
+      *                *-----------------------------------------------*
+                   15  w-tes-cdc-vpf      pic  9(06)v9(05)            .
+      *            *---------------------------------------------------*
+      *            * Assoggettamento iva                               *
+      *            *---------------------------------------------------*
+               10  w-tes-ass-iva          pic  9(05)                  .
+               10  w-tes-ass-iva-des      pic  x(20)                  .
+               10  w-tes-ass-iva-spl      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Contropartita vendite                             *
+      *            *---------------------------------------------------*
+               10  w-tes-ctp-ven          pic  9(07)                  .
+               10  w-tes-ctp-ven-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Fatturazione separata per il documento            *
+      *            *---------------------------------------------------*
+               10  w-tes-fat-sep          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Voci descrittive                                  *
+      *            *---------------------------------------------------*
+               10  w-tes-voc-des     occurs 06
+                                          pic  x(03)                  .
+               10  w-tes-voc-des-des occurs 06
+                                          pic  x(25)                  .
+      *            *---------------------------------------------------*
+      *            * Codice listino                                    *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-lst          pic  x(03)                  .
+               10  w-tes-cod-lst-des      pic  x(20)                  .
+               10  w-tes-cod-lst-drg      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Categoria sconti in riga associati al cliente     *
+      *            *---------------------------------------------------*
+               10  w-tes-csr-aac          pic  9(05)                  .
+               10  w-tes-csr-aac-des      pic  x(20)                  .
+               10  w-tes-psr-aac occurs 05
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * % sconti in riga associati alla categoria cliente *
+      *            *---------------------------------------------------*
+               10  w-tes-psr-acc occurs 05
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Categoria sconto in chiusura associata al cliente *
+      *            *---------------------------------------------------*
+               10  w-tes-csc-aac          pic  9(05)                  .
+               10  w-tes-csc-aac-des      pic  x(20)                  .
+               10  w-tes-psc-aac          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * % sconto in chiusura associato alla categoria     *
+      *            * cliente                                           *
+      *            *---------------------------------------------------*
+               10  w-tes-psc-acc          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Categoria provvigioni associata al cliente        *
+      *            *---------------------------------------------------*
+               10  w-tes-cpv-aac          pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuali di provvigione associate al cliente   *
+      *            *---------------------------------------------------*
+               10  w-tes-ppv-aac occurs 03
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Codice agente del documento                       *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-age          pic  9(07)                  .
+               10  w-tes-cod-age-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Flag di significativita' provvigioni per il docu- *
+      *            * mento                                             *
+      *            *---------------------------------------------------*
+               10  w-tes-fsp-doc          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo vendita per l'agente                         *
+      *            * - 01 : Diretta                                    *
+      *            * - 02 : Indiretta                                  *
+      *            *---------------------------------------------------*
+               10  w-tes-tip-vpa          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Provvigioni a forfait per l'agente per il docu-   *
+      *            * mento                                             *
+      *            *---------------------------------------------------*
+               10  w-tes-pvf-age          pic  9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Codice agente associato al cliente                *
+      *            *---------------------------------------------------*
+               10  w-tes-age-aac          pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice agente associato alla dipendenza cliente   *
+      *            *---------------------------------------------------*
+               10  w-tes-age-aad          pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Categoria provvigioni associata all'agente        *
+      *            *---------------------------------------------------*
+               10  w-tes-cpv-aaa          pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuali di provvigione associate all'agente   *
+      *            *---------------------------------------------------*
+               10  w-tes-ppv-aaa occurs 03
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Codice intermediario                              *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-ime          pic  9(07)                  .
+               10  w-tes-pvf-ime          pic  9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Forma di pagamento e campi testata connessi       *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-fop          pic  9(07)                  .
+               10  w-tes-cod-fop-des      pic  x(40)                  .
+               10  w-tes-snx-nsb          pic  x(01)                  .
+               10  w-tes-snx-ncp          pic  x(01)                  .
+               10  w-tes-snx-abi          pic  x(01)                  .
+               10  w-tes-snx-rid          pic  x(01)                  .
+               10  w-tes-snx-spm          pic  x(01)                  .
+               10  w-tes-snx-qaf          pic  x(01)                  .
+               10  w-tes-snx-act          pic  x(01)                  .
+               10  w-tes-tip-esm          pic  9(02)                  .
+               10  w-tes-ggg-alt          pic  9(02)                  .
+               10  w-tes-mmm-e01          pic  9(02)                  .
+               10  w-tes-mmm-e02          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Sconto pagamento                                  *
+      *            *---------------------------------------------------*
+               10  w-tes-scp-aap          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Codice ABI banca di appoggio nel documento        *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-abi          pic  9(05)                  .
+               10  w-tes-cod-abi-den      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CAB sportello banca di appoggio documento  *
+      *            *---------------------------------------------------*
+               10  w-tes-cod-cab          pic  9(05)                  .
+               10  w-tes-cod-cab-den      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Conto corrente cliente di appoggio nel documento  *
+      *            *---------------------------------------------------*
+               10  w-tes-ccc-app          pic  x(12)                  .
+      *            *---------------------------------------------------*
+      *            * Codice ABI banca di appoggio del cliente          *
+      *            *---------------------------------------------------*
+               10  w-tes-abi-cli          pic  9(05)                  .
+               10  w-tes-abi-cli-den      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CAB sportello banca di appoggio del cliente*
+      *            *---------------------------------------------------*
+               10  w-tes-cab-cli          pic  9(05)                  .
+               10  w-tes-cab-cli-den      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Conto corrente cliente di appoggio del cliente    *
+      *            *---------------------------------------------------*
+               10  w-tes-cca-cli          pic  x(12)                  .
+      *            *---------------------------------------------------*
+      *            * Codice ABI banca di appoggio della dipendenza     *
+      *            *---------------------------------------------------*
+               10  w-tes-abi-dpz          pic  9(05)                  .
+               10  w-tes-abi-dpz-den      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice CAB sportello banca di appoggio dipendenza *
+      *            *---------------------------------------------------*
+               10  w-tes-cab-dpz          pic  9(05)                  .
+               10  w-tes-cab-dpz-den      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Conto corrente cliente di appoggio dipendenza     *
+      *            *---------------------------------------------------*
+               10  w-tes-cca-dpz          pic  x(12)                  .
+      *            *---------------------------------------------------*
+      *            * Nostra banca per bonifico nel documento           *
+      *            *---------------------------------------------------*
+               10  w-tes-nos-ban          pic  x(10)                  .
+               10  w-tes-nos-ban-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Nostra banca per bonifico associata al cliente    *
+      *            *---------------------------------------------------*
+               10  w-tes-nsb-aac          pic  x(10)                  .
+               10  w-tes-nsb-aac-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Nostro c/c postale per pagamento nel documento    *
+      *            *---------------------------------------------------*
+               10  w-tes-nos-ccp          pic  x(10)                  .
+               10  w-tes-nos-ccp-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Nostro c/c postale per pagamento associato al     *
+      *            * cliente                                           *
+      *            *---------------------------------------------------*
+               10  w-tes-ncp-aac          pic  x(10)                  .
+               10  w-tes-ncp-aac-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Addebito spese incasso                            *
+      *            *---------------------------------------------------*
+               10  w-tes-add-spi          pic  x(03)                  .
+               10  w-tes-add-spi-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Addebito spese bollo                              *
+      *            *---------------------------------------------------*
+               10  w-tes-add-spb          pic  x(03)                  .
+               10  w-tes-add-spb-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Data scadenza pagamento manuale                   *
+      *            *---------------------------------------------------*
+               10  w-tes-pag-dsm          pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Ammontare quota a forfait pagamento               *
+      *            *---------------------------------------------------*
+               10  w-tes-pag-qaf          pic  9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Ammontare acconto                                 *
+      *            *---------------------------------------------------*
+               10  w-tes-pag-act          pic  9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo incasso elettronico preferenziale            *
+      *            *---------------------------------------------------*
+               10  w-tes-ipr-iel          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Numero di stampe eseguite                         *
+      *            *---------------------------------------------------*
+               10  w-tes-ctr-stp          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Flag di spedizione completamente chiusa           *
+      *            * - Spaces : Non ancora completamente chiusa        *
+      *            * - #      : Completamente chiusa                   *
+      *            *---------------------------------------------------*
+               10  w-tes-flg-sch          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione                             *
+      *            *---------------------------------------------------*
+               10  w-tes-flg-ela.
+                   15  w-tes-flg-blo.
+                       20  w-tes-flg-blx occurs 07
+                                          pic  x(01)                  .
+                   15  w-tes-flg-nbl.
+                       20  w-tes-flg-nbx occurs 03
+                                          pic  x(01)                  .
+               10  w-tes-flg-pul          pic  x(01)                  .
+               10  w-tes-flg-rfp          pic  x(01)                  .
+               10  w-tes-prt-mag          pic  9(11)                  .
+               10  w-tes-cod-rsm          pic  9(05)                  .
+               10  w-tes-bcd-tip          pic  x(05)                  .
+      *            *---------------------------------------------------*
+      *            * Area libera per espansioni speciali               *
+      *            *---------------------------------------------------*
+               10  w-tes-alx-exp.
+                   15  filler  occurs 18  pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work-area per bufferizzazione piede                       *
+      *    *-----------------------------------------------------------*
+       01  w-pie.
+      *        *-------------------------------------------------------*
+      *        * Area valori attuali e precedenti                      *
+      *        *-------------------------------------------------------*
+           05  w-pie-val-aep     occurs 2.
+      *            *---------------------------------------------------*
+      *            * Trasporto a cura                                  *
+      *            * - 10 : Mittente                                   *
+      *            * - 20 : Destinatario                               *
+      *            * - 30 : Vettore                                    *
+      *            *---------------------------------------------------*
+               10  w-pie-tra-cur          pic  9(02)                  .
+               10  w-pie-tcu-aac          pic  9(02)                  .
+               10  w-pie-tcu-aad          pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Causale del trasporto                             *
+      *            *---------------------------------------------------*
+               10  w-pie-cau-tra          pic  x(03)                  .
+               10  w-pie-cau-tra-des      pic  x(20)                  .
+      *            *---------------------------------------------------*
+      *            * Codice aspetto esteriore dei beni                 *
+      *            *---------------------------------------------------*
+               10  w-pie-cod-aeb          pic  x(03)                  .
+               10  w-pie-cod-aeb-des      pic  x(20)                  .
+      *            *---------------------------------------------------*
+      *            * Numero colli                                      *
+      *            *---------------------------------------------------*
+               10  w-pie-num-col          pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Peso totale                                       *
+      *            *---------------------------------------------------*
+               10  w-pie-pes-tot          pic  9(06)v9(03)            .
+      *            *---------------------------------------------------*
+      *            * Data inizio trasporto                             *
+      *            *---------------------------------------------------*
+               10  w-pie-dat-itr          pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Ora inizio trasporto                              *
+      *            *---------------------------------------------------*
+               10  w-pie-ora-itr          pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Codice primo vettore                              *
+      *            *---------------------------------------------------*
+               10  w-pie-cod-vet          pic  9(07)                  .
+               10  w-pie-cod-vet-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice secondo vettore                            *
+      *            *---------------------------------------------------*
+               10  w-pie-cod-vt2          pic  9(07)                  .
+               10  w-pie-cod-vt2-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice terzo vettore                              *
+      *            *---------------------------------------------------*
+               10  w-pie-cod-vt3          pic  9(07)                  .
+               10  w-pie-cod-vt3-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice primo vettore associato al cliente         *
+      *            *---------------------------------------------------*
+               10  w-pie-vet-aac          pic  9(07)                  .
+               10  w-pie-vet-aac-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice secondo vettore associato al cliente       *
+      *            *---------------------------------------------------*
+               10  w-pie-vt2-aac          pic  9(07)                  .
+               10  w-pie-vt2-aac-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice terzo vettore associato al cliente         *
+      *            *---------------------------------------------------*
+               10  w-pie-vt3-aac          pic  9(07)                  .
+               10  w-pie-vt3-aac-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice primo vettore associato alla dipendenza    *
+      *            * cliente                                           *
+      *            *---------------------------------------------------*
+               10  w-pie-vet-aad          pic  9(07)                  .
+               10  w-pie-vet-aad-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice secondo vettore associato alla dipendenza  *
+      *            * cliente                                           *
+      *            *---------------------------------------------------*
+               10  w-pie-vt2-aad          pic  9(07)                  .
+               10  w-pie-vt2-aad-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice terzo vettore associato alla dipendenza    *
+      *            * cliente                                           *
+      *            *---------------------------------------------------*
+               10  w-pie-vt3-aad          pic  9(07)                  .
+               10  w-pie-vt3-aad-des      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Codice annotazioni per spedizione                 *
+      *            *---------------------------------------------------*
+               10  w-pie-cod-aps          pic  9(03)                  .
+      *            *---------------------------------------------------*
+      *            * Descrizione annotazioni per spedizione            *
+      *            *---------------------------------------------------*
+               10  w-pie-des-aps.
+                   15  w-pie-rig-aps occurs 3
+                                          pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Totali per tipo prodotto                          *
+      *            *---------------------------------------------------*
+               10  w-pie-tot-rig occurs 09
+                                          pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Totale righe di tipo 'A'                          *
+      *            *---------------------------------------------------*
+               10  w-pie-tot-rta          pic s9(11)                  .
+      *            *---------------------------------------------------*
+      *            * Sconto in chiusura                                *
+      *            *---------------------------------------------------*
+               10  w-pie-tot-scc          pic s9(11)                  .
+               10  w-pie-per-scc          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Sconto pagamento                                  *
+      *            *---------------------------------------------------*
+               10  w-pie-tot-scp          pic s9(11)                  .
+               10  w-pie-per-scp          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Spese aggiuntive                                  *
+      *            *---------------------------------------------------*
+               10  w-pie-spe-add occurs 06.
+                   15  w-pie-spe-snx      pic  9(01)                  .
+                   15  w-pie-spe-mad      pic  9(01)                  .
+                   15  w-pie-spe-per      pic  9(02)v9(01)            .
+                   15  w-pie-spe-ibl      pic  9(02)                  .
+                   15  w-pie-spe-ibt.
+                       20  w-pie-spe-ibx occurs 09
+                                          pic  x(01)                  .
+                   15  w-pie-spe-imp      pic s9(09)                  .
+      *            *---------------------------------------------------*
+      *            * Totali di riepilogo                               *
+      *            *---------------------------------------------------*
+               10  w-pie-tot-lor          pic s9(11)                  .
+               10  w-pie-tot-nsc          pic s9(11)                  .
+               10  w-pie-tot-nsf          pic s9(11)                  .
+               10  w-pie-tot-net          pic s9(11)                  .
+               10  w-pie-tot-spe          pic s9(11)                  .
+               10  w-pie-tot-doc          pic s9(11)                  .
+
+      *    *===========================================================*
+      *    * Work-area per bufferizzazione riga corpo                  *
+      *    *-----------------------------------------------------------*
+       01  w-rig.
+      *        *-------------------------------------------------------*
+      *        * Area valori attuali e precedenti                      *
+      *        *-------------------------------------------------------*
+           05  w-rig-val-aep     occurs 2.
+               10  w-rig-num-prg          pic  9(05)                  .
+               10  w-rig-bld-flb          pic  9(01)                  .
+               10  w-rig-bld-tpb          pic  9(01)                  .
+               10  w-rig-bld-rgb          pic  9(01)                  .
+               10  w-rig-tip-rig          pic  x(05)                  .
+               10  w-rig-tip-rig-tpr      pic  x(01)                  .
+               10  w-rig-tip-rig-tfu      pic  x(01)                  .
+               10  w-rig-tip-rig-cac      pic  9(03)                  .
+               10  w-rig-tip-rig-ast      pic  x(01)                  .
+               10  w-rig-tip-mag          pic  9(02)                  .
+               10  w-rig-num-pro          pic  9(07)                  .
+               10  w-rig-alf-pro          pic  x(14)                  .
+               10  w-rig-sgl-vrn          pic  x(14)                  .
+               10  w-rig-cop-scl          pic  x(14)                  .
+               10  w-rig-des-ext          pic  9(01)                  .
+               10  w-rig-des-por.
+                   15  w-rig-dpo-rig occurs 10
+                                          pic  x(40)                  .
+               10  w-rig-des-rig.
+                   15  w-rig-der-rig occurs 10
+                                          pic  x(40)                  .
+               10  w-rig-tip-pro          pic  9(02)                  .
+               10  w-rig-coi-rig          pic  9(05)                  .
+               10  w-rig-coi-rig-des      pic  x(15)                  .
+               10  w-rig-ctv-rig          pic  9(07)                  .
+               10  w-rig-ctv-rig-des      pic  x(40)                  .
+               10  w-rig-umi-ven          pic  x(03)                  .
+               10  w-rig-dec-qta          pic  9(01)                  .
+               10  w-rig-qta-ven          pic s9(10)v9(03)            .
+               10  w-rig-snx-2qt          pic  9(01)                  .
+               10  w-rig-dec-2qt          pic  9(01)                  .
+               10  w-rig-qta-a02          pic s9(10)v9(03)            .
+               10  w-rig-snx-3qt          pic  9(01)                  .
+               10  w-rig-dec-3qt          pic  9(01)                  .
+               10  w-rig-qta-a03          pic s9(10)v9(03)            .
+               10  w-rig-dec-prz          pic  9(01)                  .
+               10  w-rig-vps.
+                   15  w-rig-sgl-vps      pic  x(03)                  .
+                   15  w-rig-dec-vps      pic  9(01)                  .
+                   15  w-rig-tdc-vps      pic  x(01)                  .
+                   15  w-rig-cdc-vps      pic  9(06)v9(05)            .
+               10  w-rig-prz-lrs          pic  9(09)                  .
+               10  w-rig-prz-nts          pic  9(09)                  .
+               10  w-rig-vpp.
+                   15  w-rig-sgl-vpp      pic  x(03)                  .
+                   15  w-rig-dec-vpp      pic  9(01)                  .
+                   15  w-rig-tdc-vpp      pic  x(01)                  .
+                   15  w-rig-cdc-vpp      pic  9(06)v9(05)            .
+               10  w-rig-prz-ven          pic  9(09)                  .
+               10  w-rig-snx-2pz          pic  9(01)                  .
+               10  w-rig-prz-a02          pic  9(09)                  .
+               10  w-rig-vpl.
+                   15  w-rig-sgl-vpl      pic  x(03)                  .
+                   15  w-rig-dec-vpl      pic  9(01)                  .
+                   15  w-rig-tdc-vpl      pic  x(01)                  .
+                   15  w-rig-prz-vpl      pic  9(09)                  .
+                   15  w-rig-cdc-vpl      pic  9(06)v9(05)            .
+                   15  w-rig-ccr-vpl      pic  9(06)v9(05)            .
+                   15  w-rig-plm-vpl      pic  9(01)v9(02)            .
+                   15  w-rig-tlm-vpl      pic  x(01)                  .
+                   15  w-rig-map-vpl      pic  x(01)                  .
+               10  w-rig-epz-rgf          pic  9(01)                  .
+               10  w-rig-csr-aap          pic  9(05)                  .
+               10  w-rig-psr-aap occurs 05
+                                          pic  9(02)v9(01)            .
+               10  w-rig-per-scr occurs 05
+                                          pic  9(02)v9(01)            .
+               10  w-rig-prz-net          pic  9(09)                  .
+               10  w-rig-epz-pes          pic  9(02)                  .
+               10  w-rig-vpc.
+                   15  w-rig-sgl-vpc      pic  x(03)                  .
+                   15  w-rig-dec-vpc      pic  9(01)                  .
+                   15  w-rig-tdc-vpc      pic  x(01)                  .
+                   15  w-rig-cdc-vpc      pic  9(06)v9(05)            .
+               10  w-rig-dec-cos          pic  9(01)                  .
+               10  w-rig-cos-rif          pic  9(09)                  .
+               10  w-rig-imp-rig          pic s9(11)                  .
+               10  w-rig-iau-rig          pic s9(11)                  .
+               10  w-rig-cpv-aap          pic  9(05)                  .
+               10  w-rig-ppv-aap occurs 03
+                                          pic  9(02)v9(01)            .
+               10  w-rig-fsp-rig          pic  9(02)                  .
+               10  w-rig-cpv-rig          pic  9(05)                  .
+               10  w-rig-ppv-rig occurs 03
+                                          pic  9(02)v9(01)            .
+               10  w-rig-pvf-rig          pic s9(11)                  .
+               10  w-rig-ocl-dat          pic  9(07)                  .
+               10  w-rig-ocl-num          pic  x(10)                  .
+               10  w-rig-cmc-tip          pic  x(05)                  .
+               10  w-rig-cmc-dat          pic  9(07)                  .
+               10  w-rig-cmc-num          pic  9(11)                  .
+               10  w-rig-coc-tip          pic  x(05)                  .
+               10  w-rig-coc-dat          pic  9(07)                  .
+               10  w-rig-coc-num          pic  9(11)                  .
+               10  w-rig-coc-prt          pic  9(11)                  .
+               10  w-rig-coc-prg          pic  9(05)                  .
+               10  w-rig-coc-fzs          pic  x(01)                  .
+               10  w-rig-flg-rch          pic  x(01)                  .
+               10  w-rig-flg-ela.
+                   15  w-rig-flg-blo.
+                       20  w-rig-flg-blx occurs 07
+                                          pic  x(01)                  .
+                   15  w-rig-flg-nbl.
+                       20  w-rig-flg-nbx occurs 03
+                                          pic  x(01)                  .
+               10  w-rig-flg-pul          pic  x(01)                  .
+               10  w-rig-flg-puq          pic  x(01)                  .
+               10  w-rig-alx-exp.
+                   15  filler  occurs 80  pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per gestione catena rig, con buffer *
+      *    * dati in grado di ospitare l'area w-rig                    *
+      *    *-----------------------------------------------------------*
+       01  w-cat-rig.
+           05  w-cat-rig-ope              pic  x(02)                  .
+           05  w-cat-rig-exs              pic  x(01)                  .
+           05  w-cat-rig-num              pic  9(05)                  .
+           05  w-cat-rig-cur              pic  9(05)                  .
+           05  w-cat-rig-prg              pic  9(05)                  .
+           05  w-cat-rig-max              pic  9(05)                  .
+           05  w-cat-rig-app              pic  x(01)                  .
+           05  w-cat-rig-ins              pic  x(01)                  .
+           05  w-cat-rig-new              pic  x(01)                  .
+           05  w-cat-rig-lst              pic  x(01)                  .
+           05  w-cat-rig-buf.
+               10  filler occurs 3072     pic  x(01)                  .
+

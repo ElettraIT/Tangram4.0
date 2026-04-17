@@ -1,0 +1,202 @@
+      *    *===========================================================*
+      *    * [zmc] : Causali per gestione magazzino                    *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODCAU    " = rf-zmc-cod-cau                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zmc-des-key                    *
+      *    *                         rf-zmc-cod-cau                    *
+      *    *                                                           *
+      *    *          "CODMNE    " = rf-zmc-mne-cau                    *
+      *    *                         rf-zmc-cod-cau                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zmc.
+      *        *-------------------------------------------------------*
+      *        * Codice causale per gestione magazzino                 *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-cod-cau             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione causale                                   *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-des-cau             pic  x(30)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione causale in uppercase per ordinamento      *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-des-key             pic  x(30)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice mnemonico causale                              *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-mne-cau             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Commento interno per la causale                       *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-com-cau             pic  x(30)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di trattamento per il valore per la causale      *
+      *        *                                                       *
+      *        *   - N : Nessun trattamento del valore                 *
+      *        *   - I : Trattamento del valore per impostazione       *
+      *        *   - S : Trattamento del valore, ma senza impostazione *
+      *        *         in quanto valorizzazione al costo standard    *
+      *        *   - C : Trattamento del solo valore, senza quantita'  *
+      *        *         come costo aggiuntivo                         *
+      *        *   - X : Trattamento del solo valore, senza quantita'  *
+      *        *         come costo aggiuntivo riferito alla fine e-   *
+      *        *         sercizio precedente                           *
+      *        *   - R : Trattamento del solo valore, senza quantita'  *
+      *        *         come rettifica ad un costo                    *
+      *        *   - Y : Trattamento del solo valore, senza quantita'  *
+      *        *         come rettifica ad un costo riferito alla fi-  *
+      *        *         ne esercizio precedente                       *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-trt-val             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimentazione quantita' di magazzino            *
+      *        *                                                       *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Carico                                         *
+      *        * - 02 : Scarico                                        *
+      *        * - 03 : Movimentazione interna                         *
+      *        *                                                       *
+      *        * N.B. : Se il tipo trattamento del valore indica un    *
+      *        *        costo aggiuntivo o una rettifica di costo,     *
+      *        *        questo campo puo' assumere solamente il valo-  *
+      *        *        re 00                                          *
+      *        *                                                       *
+      *        * N.B. : Se il tipo trattamento del valore indica un    *
+      *        *        trattamento per impostazione diretta o per     *
+      *        *        ripresa del costo standard, questo campo puo'  *
+      *        *        assumere solamente il valore 01                *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-tip-mdm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Trattamento conto merce per la causale                *
+      *        *                                                       *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Puo' riferirsi ad un altro documento il quale  *
+      *        *        era un documento di movimentazione di merce in *
+      *        *        conto                                          *
+      *        * - 02 : Non puo' riferirsi ad un altro documento       *
+      *        * - 03 : Il documento stesso e' una movimentazione di   *
+      *        *        merce in conto                                 *
+      *        *                                                       *
+      *        * N.B. : Se il tipo trattamento del valore indica un    *
+      *        *        costo aggiuntivo o una rettifica di costo,     *
+      *        *        questo campo puo' assumere solamente il valo-  *
+      *        *        re 00                                          *
+      *        *                                                       *
+      *        * N.B. : Se il tipo trattamento del valore indica un    *
+      *        *        trattamento per impostazione diretta o per     *
+      *        *        ripresa del costo standard, questo campo puo'  *
+      *        *        assumere solamente il valore 01 o 02           *
+      *        *                                                       *
+      *        * N.B. : Se la causale e' di movimentazione interna,    *
+      *        *        questo campo puo' assumere solamente il va-    *
+      *        *        lore 02                                        *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-trt-mic             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo conto merce per la causale                       *
+      *        *                                                       *
+      *        * - Spaces : Non significativo                          *
+      *        * - N      : Merce presso terzi ma non di loro pro-     *
+      *        *            prieta'                                    *
+      *        * - T      : Merce presso di noi ma non di nostra pro-  *
+      *        *            prieta'                                    *
+      *        *                                                       *
+      *        * N.B. : Se la causale non puo' riferirsi ad un altro   *
+      *        *        documento questo campo puo' assumere solamen-  *
+      *        *        te il valore Spaces.                           *
+      *        *        Negli altri casi questo campo puo' assumere    *
+      *        *        solamente il valore 'N' o 'T'                  *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-tip-mic             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice c/merce di gestione magazzino automaticamente  *
+      *        * proposto come default per la causale                  *
+      *        *                                                       *
+      *        * N.B. : Se la causale non puo' riferirsi ad un altro   *
+      *        *        documento questo campo puo' assumere solamen-  *
+      *        *        te il valore Spaces.                           *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-cod-mic             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No possibilita' di variare il c/merce di gestione  *
+      *        * magazzino automaticamente proposto come default per   *
+      *        * la causale                                            *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-snv-mic             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio automaticamente proposto come default   *
+      *        * per la causale                                        *
+      *        *                                                       *
+      *        * - Spaces : Nessun tipo archivio proposto              *
+      *        * - N      : No tipo archivio                           *
+      *        * - C      : Cliente                                    *
+      *        * - F      : Fornitore                                  *
+      *        * - D      : Dipendenza                                 *
+      *        * - A      : Agente (Incaricato alla vendita)           *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-def-tar             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No possibilita' di variare il tipo archivio propo- *
+      *        * sto come default per la causale                       *
+      *        *                                                       *
+      *        * - S : Si, e'possibile variare il tipo archivio propo- *
+      *        *           sto automaticamente come default; in questo *
+      *        *           caso il default puo' anche essere a Spaces, *
+      *        *           pero' e' necessario che esista un elemento  *
+      *        *           nella lista dei tipi archivio ammessi per   *
+      *        *           la causale corrispondente al tipo archivio  *
+      *        *           impostato                                   *
+      *        *                                                       *
+      *        * - N : No, non e'possibile variare il tipo archivio    *
+      *        *           proposto automaticamente come default; in   *
+      *        *           questo caso il default deve essere diverso  *
+      *        *           da Spaces, e non e' necessario che esso sia *
+      *        *           presente nella lista dei tipi archivio am-  *
+      *        *           messi per la causale                        *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-snv-tar             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Lista dei tipi archivio ammessi per la causale; se    *
+      *        * vuota sono ammessi tutti i tipi archivio              *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-lst-tar             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Default tipo codice di magazzino per la causale       *
+      *        *                                                       *
+      *        * Spaces : Nessun default                               *
+      *        * P      : Default 'P', prodotto finito                 *
+      *        * S      : Default 'S', semilavorato                    *
+      *        * M      : Default 'M', materia prima                   *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-def-tco             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No possibilita' di variare il default per il tipo  *
+      *        * codice di magazzino per la causale                    *
+      *        *                                                       *
+      *        * N : No                                                *
+      *        * S : Si                                                *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-snv-tco             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Lista dei tipi codice di magazzino ammessi per la     *
+      *        * causale; se vuota sono ammessi tutti i tipi codice    *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-lst-tco             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No movimento di inventario                         *
+      *        *                                                       *
+      *        * N : No                                                *
+      *        * S : Si                                                *
+      *        *                                                       *
+      *        * ___ DA IMPLEMENTARE ___                               *
+      *        *-------------------------------------------------------*
+______*    05  rf-zmc-snv-inv             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zmc-alx-exp.
+               10  filler  occurs 50      pic  x(01)                  .

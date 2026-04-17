@@ -1,0 +1,38 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice operazione per  *
+      *    * la gestione movimenti Iva intracomunitari                 *
+      *    *-----------------------------------------------------------*
+       cmn-top-iic-opn-000.
+           move      "pgm/iic/prg/obj/atopiic0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cmn-top-iic-pth      .
+           move      "OP"                 to   w-cmn-top-iic-ope      .
+           perform   cmn-top-iic-cll-000  thru cmn-top-iic-cll-999    .
+       cmn-top-iic-opn-999.
+           exit.
+       cmn-top-iic-cls-000.
+           move      "CL"                 to   w-cmn-top-iic-ope      .
+           perform   cmn-top-iic-cll-000  thru cmn-top-iic-cll-999    .
+           move      "C?"                 to   w-cmn-top-iic-ope      .
+           perform   cmn-top-iic-cll-000  thru cmn-top-iic-cll-999    .
+           if        w-cmn-top-iic-ope    not  = spaces
+                     go to cmn-top-iic-cls-999.
+           cancel    w-cmn-top-iic-pth                                .
+       cmn-top-iic-cls-999.
+           exit.
+       cmn-top-iic-foi-000.
+           if        v-key                not  = "FIND"
+                     go to cmn-top-iic-foi-999.
+           move      "F+"                 to   w-cmn-top-iic-ope      .
+           go to     cmn-top-iic-foi-999.
+       cmn-top-iic-foi-999.
+           exit.
+       cmn-top-iic-cll-000.
+           call      w-cmn-top-iic-pth   using w-cmn-top-iic
+                                               v
+                                               s                      .
+       cmn-top-iic-cll-999.
+           exit.
+

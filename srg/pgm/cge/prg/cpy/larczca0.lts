@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zca]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zca-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zca-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zca-cod    =    zero
+                     go to let-arc-zca-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODCAU    "         to   f-key                  .
+           move      w-let-arc-zca-cod    to   rf-zca-cod-cau         .
+           move      "pgm/cge/fls/ioc/obj/iofzca"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zca                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zca-400.
+       let-arc-zca-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zca-des-cau       to   w-let-arc-zca-des      .
+           move      rf-zca-cod-mne       to   w-let-arc-zca-mne      .
+           move      rf-zca-sgn-mov       to   w-let-arc-zca-sgn      .
+           move      rf-zca-per-amr       to   w-let-arc-zca-per      .
+           move      rf-zca-per-val       to   w-let-arc-zca-pvl      .
+           move      rf-zca-tip-arc       to   w-let-arc-zca-tar      .
+           move      rf-zca-flg-snx (01)  to   w-let-arc-zca-sna      .
+           move      rf-zca-flg-snx (02)  to   w-let-arc-zca-sni      .
+           move      rf-zca-flg-snx (03)  to   w-let-arc-zca-snp      .
+           move      rf-zca-flg-snx (04)  to   w-let-arc-zca-snd      .
+           move      rf-zca-flg-snx (05)  to   w-let-arc-zca-snm      .
+           move      rf-zca-flg-snx (06)  to   w-let-arc-zca-snc      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zca-999.
+       let-arc-zca-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zca-flg      .
+           move      all   "."            to   w-let-arc-zca-des      .
+           go to     let-arc-zca-600.
+       let-arc-zca-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zca-des      .
+       let-arc-zca-600.
+           move      spaces               to   w-let-arc-zca-mne      .
+           move      spaces               to   w-let-arc-zca-sgn      .
+           move      zero                 to   w-let-arc-zca-per      .
+           move      zero                 to   w-let-arc-zca-pvl      .
+           move      spaces               to   w-let-arc-zca-tar      .
+           move      spaces               to   w-let-arc-zca-sna      .
+           move      spaces               to   w-let-arc-zca-sni      .
+           move      spaces               to   w-let-arc-zca-snp      .
+           move      spaces               to   w-let-arc-zca-snd      .
+           move      spaces               to   w-let-arc-zca-snm      .
+           move      spaces               to   w-let-arc-zca-snc      .
+       let-arc-zca-999.
+           exit.
+

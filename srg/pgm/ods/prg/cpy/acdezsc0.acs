@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione tipo movimento per spedi-  *
+      *    * zioni                                                     *
+      *    *-----------------------------------------------------------*
+       cod-des-zsc-opn-000.
+           move      "pgm/ods/prg/obj/acdezsc0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-des-zsc-pth      .
+           move      "OP"                 to   w-cod-des-zsc-ope      .
+           perform   cod-des-zsc-cll-000  thru cod-des-zsc-cll-999    .
+       cod-des-zsc-opn-999.
+           exit.
+       cod-des-zsc-cls-000.
+           move      "CL"                 to   w-cod-des-zsc-ope      .
+           perform   cod-des-zsc-cll-000  thru cod-des-zsc-cll-999    .
+           move      "C?"                 to   w-cod-des-zsc-ope      .
+           perform   cod-des-zsc-cll-000  thru cod-des-zsc-cll-999    .
+           if        w-cod-des-zsc-ope    not  = spaces
+                     go to cod-des-zsc-cls-999.
+           cancel    w-cod-des-zsc-pth                                .
+       cod-des-zsc-cls-999.
+           exit.
+       cod-des-zsc-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-des-zsc-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pods0100"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-zsc-foi-999.
+           move      "pgm/ods/prg/obj/pods0100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-des-zsc-ope      .
+           go to     cod-des-zsc-foi-999.
+       cod-des-zsc-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-des-zsc-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pods0110"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-des-zsc-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/ods/prg/obj/pods0110"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-des-zsc-ope      .
+           go to     cod-des-zsc-foi-999.
+       cod-des-zsc-foi-999.
+           exit.
+       cod-des-zsc-cll-000.
+           call      w-cod-des-zsc-pth   using w-cod-des-zsc
+                                               v
+                                               s                      .
+       cod-des-zsc-cll-999.
+           exit.
+

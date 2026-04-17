@@ -1,0 +1,54 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione Indirizzo + Citta'         *
+      *    *-----------------------------------------------------------*
+       ind-cec-geo-opn-000.
+           move      "pgm/geo/prg/obj/aiplgeo0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-ind-cec-geo-pth      .
+           move      "OP"                 to   w-ind-cec-geo-ope      .
+           perform   ind-cec-geo-cll-000  thru ind-cec-geo-cll-999    .
+       ind-cec-geo-opn-999.
+           exit.
+       ind-cec-geo-cls-000.
+           move      "CL"                 to   w-ind-cec-geo-ope      .
+           perform   ind-cec-geo-cll-000  thru ind-cec-geo-cll-999    .
+           move      "C?"                 to   w-ind-cec-geo-ope      .
+           perform   ind-cec-geo-cll-000  thru ind-cec-geo-cll-999    .
+           if        w-ind-cec-geo-ope    not  = spaces
+                     go to ind-cec-geo-cls-999.
+           cancel    w-ind-cec-geo-pth                                .
+       ind-cec-geo-cls-999.
+           exit.
+       ind-cec-geo-foi-000.
+           if        v-key                not  = "INSR"
+                     go to ind-cec-geo-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pgeo5000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to ind-cec-geo-foi-999.
+           move      "pgm/geo/prg/obj/pgeo5000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-ind-cec-geo-ope      .
+           go to     ind-cec-geo-foi-999.
+       ind-cec-geo-foi-500.
+           if        v-key                not  = "FIND"
+                     go to ind-cec-geo-foi-999.
+           move      "F+"                 to   w-ind-cec-geo-ope      .
+           go to     ind-cec-geo-foi-999.
+       ind-cec-geo-foi-999.
+           exit.
+       ind-cec-geo-cll-000.
+           call      w-ind-cec-geo-pth   using w-ind-cec-geo
+                                               v
+                                               s                      .
+       ind-cec-geo-cll-999.
+           exit.
+

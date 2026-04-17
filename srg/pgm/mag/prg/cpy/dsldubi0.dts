@@ -1,0 +1,52 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione saldo di magazzino per     *
+      *    * ubicazione                                                *
+      *    *-----------------------------------------------------------*
+       det-sld-ubi-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-sld-ubi-tip-ope      .
+           perform   det-sld-ubi-cll-000  thru det-sld-ubi-cll-999    .
+       det-sld-ubi-opn-999.
+           exit.
+
+       det-sld-ubi-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-sld-ubi-tip-ope      .
+           perform   det-sld-ubi-cll-000  thru det-sld-ubi-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-sld-ubi-tip-ope      .
+           perform   det-sld-ubi-cll-000  thru det-sld-ubi-cll-999    .
+           if        d-sld-ubi-exi-sts    not  = spaces
+                     go to det-sld-ubi-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/mag/prg/obj/dsldubi0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-sld-ubi-cls-999.
+           exit.
+
+       det-sld-ubi-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/mag/prg/obj/dsldubi0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-sld-ubi              .
+       det-sld-ubi-cll-999.
+           exit.
+

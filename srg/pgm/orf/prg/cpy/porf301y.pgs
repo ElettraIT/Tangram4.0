@@ -1,0 +1,34 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione documenti correlati ordine   *
+      *    *-----------------------------------------------------------*
+       esp-ida-oft-opn-000.
+           move      "pgm/orf/prg/obj/porf301y"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-ida-oft-pth      .
+           move      "OP"                 to   w-esp-ida-oft-ope      .
+           perform   esp-ida-oft-cll-000  thru esp-ida-oft-cll-999    .
+       esp-ida-oft-opn-999.
+           exit.
+       esp-ida-oft-cls-000.
+           move      "CL"                 to   w-esp-ida-oft-ope      .
+           perform   esp-ida-oft-cll-000  thru esp-ida-oft-cll-999    .
+           move      "C?"                 to   w-esp-ida-oft-ope      .
+           perform   esp-ida-oft-cll-000  thru esp-ida-oft-cll-999    .
+           if        w-esp-ida-oft-ope    not  = spaces
+                     go to esp-ida-oft-cls-999.
+           cancel    w-esp-ida-oft-pth                                .
+       esp-ida-oft-cls-999.
+           exit.
+       esp-ida-oft-esp-000.
+           move      "ES"                 to   w-esp-ida-oft-ope      .
+           perform   esp-ida-oft-cll-000  thru esp-ida-oft-cll-999    .
+           go to     esp-ida-oft-esp-999.
+       esp-ida-oft-esp-999.
+           exit.
+       esp-ida-oft-cll-000.
+           call      w-esp-ida-oft-pth   using w-esp-ida-oft          .
+       esp-ida-oft-cll-999.
+           exit.
+

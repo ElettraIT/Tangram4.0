@@ -1,0 +1,43 @@
+      *    *===========================================================*
+      *    * Subroutines per richiamo modulo per la determinazione     *
+      *    * della voce 'Fatturato' sulle statistiche di vendita sul   *
+      *    * fatturato da Testata Documenti                            *
+      *    *-----------------------------------------------------------*
+       mod-ffo-fft-opn-000.
+           move      "pgm/saf/prg/obj/mffofft0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-mod-ffo-fft-pth      .
+           move      "OP"                 to   w-mod-ffo-fft-ope      .
+           perform   mod-ffo-fft-cll-000  thru mod-ffo-fft-cll-999    .
+       mod-ffo-fft-opn-999.
+           exit.
+       mod-ffo-fft-cls-000.
+           move      "CL"                 to   w-mod-ffo-fft-ope      .
+           perform   mod-ffo-fft-cll-000  thru mod-ffo-fft-cll-999    .
+           cancel    w-mod-ffo-fft-pth                                .
+       mod-ffo-fft-cls-999.
+           exit.
+       mod-ffo-fft-gts-000.
+           move      "GS"                 to   w-mod-ffo-fft-ope      .
+           perform   mod-ffo-fft-cll-000  thru mod-ffo-fft-cll-999    .
+       mod-ffo-fft-gts-999.
+           exit.
+       mod-ffo-fft-get-000.
+           move      "GT"                 to   w-mod-ffo-fft-ope      .
+           perform   mod-ffo-fft-cll-000  thru mod-ffo-fft-cll-999    .
+       mod-ffo-fft-get-999.
+           exit.
+       mod-ffo-fft-dvf-000.
+           move      "VF"                 to   w-mod-ffo-fft-ope      .
+           perform   mod-ffo-fft-cll-000  thru mod-ffo-fft-cll-999    .
+       mod-ffo-fft-dvf-999.
+           exit.
+       mod-ffo-fft-cll-000.
+           call      w-mod-ffo-fft-pth   using w-mod-ffo-fft
+                                               rf-fft
+                                               rf-ffr                 .
+       mod-ffo-fft-cll-999.
+           exit.
+

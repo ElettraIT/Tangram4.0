@@ -1,0 +1,75 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice responsabile    *
+      *    * di magazzino                                              *
+      *    *-----------------------------------------------------------*
+       cod-mne-zrm-opn-000.
+           move      "pgm/mag/prg/obj/acmnzrm0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zrm-pth      .
+           move      "OP"                 to   w-cod-mne-zrm-ope      .
+           perform   cod-mne-zrm-cll-000  thru cod-mne-zrm-cll-999    .
+       cod-mne-zrm-opn-999.
+           exit.
+       cod-mne-zrm-cls-000.
+           move      "CL"                 to   w-cod-mne-zrm-ope      .
+           perform   cod-mne-zrm-cll-000  thru cod-mne-zrm-cll-999    .
+           move      "C?"                 to   w-cod-mne-zrm-ope      .
+           perform   cod-mne-zrm-cll-000  thru cod-mne-zrm-cll-999    .
+           if        w-cod-mne-zrm-ope    not  = spaces
+                     go to cod-mne-zrm-cls-999.
+           cancel    w-cod-mne-zrm-pth                                .
+       cod-mne-zrm-cls-999.
+           exit.
+       cod-mne-zrm-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zrm-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pmag0600"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zrm-foi-999.
+           move      "pgm/mag/prg/obj/pmag0600"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zrm-ope      .
+           go to     cod-mne-zrm-foi-999.
+       cod-mne-zrm-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zrm-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pmag0610"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zrm-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/mag/prg/obj/pmag0610"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zrm-ope      .
+           go to     cod-mne-zrm-foi-999.
+       cod-mne-zrm-foi-999.
+           exit.
+       cod-mne-zrm-cll-000.
+           call      w-cod-mne-zrm-pth   using w-cod-mne-zrm
+                                               v
+                                               s                      .
+       cod-mne-zrm-cll-999.
+           exit.
+

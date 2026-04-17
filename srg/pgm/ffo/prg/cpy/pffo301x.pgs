@@ -1,0 +1,36 @@
+      *    *===========================================================*
+      *    * Subroutines per l'espansione righe                        *
+      *    *-----------------------------------------------------------*
+       esp-rig-ffr-opn-000.
+           move      "pgm/ffo/prg/obj/pffo301x"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-esp-rig-ffr-pth      .
+           move      "OP"                 to   w-esp-rig-ffr-ope      .
+           perform   esp-rig-ffr-cll-000  thru esp-rig-ffr-cll-999    .
+       esp-rig-ffr-opn-999.
+           exit.
+       esp-rig-ffr-cls-000.
+           move      "CL"                 to   w-esp-rig-ffr-ope      .
+           perform   esp-rig-ffr-cll-000  thru esp-rig-ffr-cll-999    .
+           move      "C?"                 to   w-esp-rig-ffr-ope      .
+           perform   esp-rig-ffr-cll-000  thru esp-rig-ffr-cll-999    .
+           if        w-esp-rig-ffr-ope    not  = spaces
+                     go to esp-rig-ffr-cls-999.
+           cancel    w-esp-rig-ffr-pth                                .
+       esp-rig-ffr-cls-999.
+           exit.
+       esp-rig-ffr-esp-000.
+           move      "ES"                 to   w-esp-rig-ffr-ope      .
+           perform   esp-rig-ffr-cll-000  thru esp-rig-ffr-cll-999    .
+           go to     esp-rig-ffr-esp-999.
+       esp-rig-ffr-esp-999.
+           exit.
+       esp-rig-ffr-cll-000.
+           call      w-esp-rig-ffr-pth   using w-esp-rig-ffr
+                                               v
+                                               s                      .
+       esp-rig-ffr-cll-999.
+           exit.
+

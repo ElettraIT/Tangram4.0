@@ -1,0 +1,1348 @@
+********************************************************************************
+SOTTOCONTO
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice sottoconto              *
+      *    *-----------------------------------------------------------*
+       01  w-cod-mne-pdc.
+           05  w-cod-mne-pdc-pth          pic  x(40)     value spaces .
+           05  w-cod-mne-pdc-ope          pic  x(02)                  .
+           05  w-cod-mne-pdc-liv          pic  9(01)                  .
+           05  w-cod-mne-pdc-cod          pic  9(07)                  .
+           05  w-cod-mne-pdc-lin          pic  9(02)                  .
+           05  w-cod-mne-pdc-pos          pic  9(02)                  .
+           05  w-cod-mne-pdc-dln          pic  9(02)     value zero   .
+           05  w-cod-mne-pdc-dps          pic  9(02)     value zero   .
+           05  w-cod-mne-pdc-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione codice sottoconto      *
+      *              *-------------------------------------------------*
+           perform   cod-mne-pdc-opn-000  thru cod-mne-pdc-opn-999    .
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione codice sottoconto     *
+      *              *-------------------------------------------------*
+           perform   cod-mne-pdc-cls-000  thru cod-mne-pdc-cls-999    .
+
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice sottoconto      *
+      *    *-----------------------------------------------------------*
+       cod-mne-pdc-opn-000.
+           move      "pgm/cge/prg/obj/acmnpdc0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-pdc-pth      .
+           move      "OP"                 to   w-cod-mne-pdc-ope      .
+           perform   cod-mne-pdc-cll-000  thru cod-mne-pdc-cll-999    .
+       cod-mne-pdc-opn-999.
+           exit.
+       cod-mne-pdc-cls-000.
+           move      "CL"                 to   w-cod-mne-pdc-ope      .
+           perform   cod-mne-pdc-cll-000  thru cod-mne-pdc-cll-999    .
+           move      "C?"                 to   w-cod-mne-pdc-ope      .
+           perform   cod-mne-pdc-cll-000  thru cod-mne-pdc-cll-999    .
+           if        w-cod-mne-pdc-ope    not  = spaces
+                     go to cod-mne-pdc-cls-999.
+           cancel    w-cod-mne-pdc-pth                                .
+       cod-mne-pdc-cls-999.
+           exit.
+       cod-mne-pdc-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-pdc-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge2000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-pdc-foi-999.
+           move      "pgm/cge/prg/obj/pcge2000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-pdc-ope      .
+           go to     cod-mne-pdc-foi-999.
+       cod-mne-pdc-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-pdc-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge2010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-pdc-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/cge/prg/obj/pcge2010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-pdc-ope      .
+           go to     cod-mne-pdc-foi-999.
+       cod-mne-pdc-foi-999.
+           exit.
+       cod-mne-pdc-cll-000.
+           call      w-cod-mne-pdc-pth   using w-cod-mne-pdc
+                                               v
+                                               s                      .
+       cod-mne-pdc-cll-999.
+           exit.
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione conto di generale                  *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-mne-pdc-ope      .
+           move      _____________        to   w-cod-mne-pdc-liv      .
+           move      _____________        to   w-cod-mne-pdc-cod      .
+           move      __                   to   w-cod-mne-pdc-lin      .
+           move      __                   to   w-cod-mne-pdc-pos      .
+           move      __                   to   w-cod-mne-pdc-dln      .
+           move      __                   to   w-cod-mne-pdc-dps      .
+           move      "B"                  to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-rig    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if not   (w-tes-tip-moi (1)    not  = zero and
+                     w-cat-rig-cur        =    1        )
+                     move  "REMV"         to   v-pfk (06)             .
+           perform   cod-mne-pdc-cll-000  thru cod-mne-pdc-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-mne-pdc-foi-000  thru cod-mne-pdc-foi-999    .
+       acc-___-___-110.
+           perform   cod-mne-pdc-cll-000  thru cod-mne-pdc-cll-999    .
+           if        w-cod-mne-pdc-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-mne-pdc-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-mne-pdc-foi-000  thru cod-mne-pdc-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-mne-pdc-cod    to   v-num                  .
+
+
+********************************************************************************
+CLIENTE
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice cliente                 *
+      *    *-----------------------------------------------------------*
+       01  w-cod-mne-cli.
+           05  w-cod-mne-cli-pth          pic  x(40)     value spaces .
+           05  w-cod-mne-cli-ope          pic  x(02)                  .
+           05  w-cod-mne-cli-cod          pic  9(07)                  .
+           05  w-cod-mne-cli-lin          pic  9(02)                  .
+           05  w-cod-mne-cli-pos          pic  9(02)                  .
+           05  w-cod-mne-cli-rln          pic  9(02)     value zero   .
+           05  w-cod-mne-cli-rps          pic  9(02)     value zero   .
+           05  w-cod-mne-cli-vln          pic  9(02)     value zero   .
+           05  w-cod-mne-cli-vps          pic  9(02)     value zero   .
+           05  w-cod-mne-cli-lln          pic  9(02)     value zero   .
+           05  w-cod-mne-cli-lps          pic  9(02)     value zero   .
+           05  w-cod-mne-cli-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione codice cliente         *
+      *              *-------------------------------------------------*
+           perform   cod-mne-cli-opn-000  thru cod-mne-cli-opn-999    .
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione codice cliente        *
+      *              *-------------------------------------------------*
+           perform   cod-mne-cli-cls-000  thru cod-mne-cli-cls-999    .
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice cliente         *
+      *    *-----------------------------------------------------------*
+       cod-mne-cli-opn-000.
+           move      "pgm/cge/prg/obj/acmncli0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-cli-pth      .
+           move      "OP"                 to   w-cod-mne-cli-ope      .
+           perform   cod-mne-cli-cll-000  thru cod-mne-cli-cll-999    .
+       cod-mne-cli-opn-999.
+           exit.
+       cod-mne-cli-cls-000.
+           move      "CL"                 to   w-cod-mne-cli-ope      .
+           perform   cod-mne-cli-cll-000  thru cod-mne-cli-cll-999    .
+           move      "C?"                 to   w-cod-mne-cli-ope      .
+           perform   cod-mne-cli-cll-000  thru cod-mne-cli-cll-999    .
+           if        w-cod-mne-cli-ope    not  = spaces
+                     go to cod-mne-cli-cls-999.
+           cancel    w-cod-mne-cli-pth                                .
+       cod-mne-cli-cls-999.
+           exit.
+       cod-mne-cli-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-cli-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge4000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-cli-foi-999.
+           move      "pgm/cge/prg/obj/pcge4000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-cli-ope      .
+           go to     cod-mne-cli-foi-999.
+       cod-mne-cli-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-cli-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge4010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-cli-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/cge/prg/obj/pcge4010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-cli-ope      .
+           go to     cod-mne-cli-foi-999.
+       cod-mne-cli-foi-999.
+           exit.
+       cod-mne-cli-cll-000.
+           call      w-cod-mne-cli-pth   using w-cod-mne-cli
+                                               v
+                                               s                      .
+       cod-mne-cli-cll-999.
+           exit.
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione codice cliente                     *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-mne-cli-ope      .
+           move      _____________        to   w-cod-mne-cli-cod      .
+           move      __                   to   w-cod-mne-cli-lin      .
+           move      __                   to   w-cod-mne-cli-pos      .
+           move      __                   to   w-cod-mne-cli-rln      .
+           move      __                   to   w-cod-mne-cli-rps      .
+           move      zero                 to   w-cod-mne-cli-vln      .
+           move      zero                 to   w-cod-mne-cli-vps      .
+           move      zero                 to   w-cod-mne-cli-lln      .
+           move      zero                 to   w-cod-mne-cli-lps      .
+           move      "<B"                 to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-rig    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if not   (w-tes-tip-moi (1)    not  = zero and
+                     w-cat-rig-cur        =    1        )
+                     move  "REMV"         to   v-pfk (06)             .
+           perform   cod-mne-cli-cll-000  thru cod-mne-cli-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-mne-cli-foi-000  thru cod-mne-cli-foi-999    .
+       acc-___-___-110.
+           perform   cod-mne-cli-cll-000  thru cod-mne-cli-cll-999    .
+           if        w-cod-mne-cli-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-mne-cli-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-mne-cli-foi-000  thru cod-mne-cli-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-mne-cli-cod    to   v-num                  .
+
+
+
+********************************************************************************
+FORNITORE
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice fornitore               *
+      *    *-----------------------------------------------------------*
+       01  w-cod-mne-fnt.
+           05  w-cod-mne-fnt-pth          pic  x(40)     value spaces .
+           05  w-cod-mne-fnt-ope          pic  x(02)                  .
+           05  w-cod-mne-fnt-cod          pic  9(07)                  .
+           05  w-cod-mne-fnt-lin          pic  9(02)                  .
+           05  w-cod-mne-fnt-pos          pic  9(02)                  .
+           05  w-cod-mne-fnt-rln          pic  9(02)     value zero   .
+           05  w-cod-mne-fnt-rps          pic  9(02)     value zero   .
+           05  w-cod-mne-fnt-vln          pic  9(02)     value zero   .
+           05  w-cod-mne-fnt-vps          pic  9(02)     value zero   .
+           05  w-cod-mne-fnt-lln          pic  9(02)     value zero   .
+           05  w-cod-mne-fnt-lps          pic  9(02)     value zero   .
+           05  w-cod-mne-fnt-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione codice fornitore       *
+      *              *-------------------------------------------------*
+           perform   cod-mne-fnt-opn-000  thru cod-mne-fnt-opn-999    .
+
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione codice fornitore      *
+      *              *-------------------------------------------------*
+           perform   cod-mne-fnt-cls-000  thru cod-mne-fnt-cls-999    .
+
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice fornitore       *
+      *    *-----------------------------------------------------------*
+       cod-mne-fnt-opn-000.
+           move      "pgm/cge/prg/obj/acmnfnt0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-fnt-pth      .
+           move      "OP"                 to   w-cod-mne-fnt-ope      .
+           perform   cod-mne-fnt-cll-000  thru cod-mne-fnt-cll-999    .
+       cod-mne-fnt-opn-999.
+           exit.
+       cod-mne-fnt-cls-000.
+           move      "CL"                 to   w-cod-mne-fnt-ope      .
+           perform   cod-mne-fnt-cll-000  thru cod-mne-fnt-cll-999    .
+           move      "C?"                 to   w-cod-mne-fnt-ope      .
+           perform   cod-mne-fnt-cll-000  thru cod-mne-fnt-cll-999    .
+           if        w-cod-mne-fnt-ope    not  = spaces
+                     go to cod-mne-fnt-cls-999.
+           cancel    w-cod-mne-fnt-pth                                .
+       cod-mne-fnt-cls-999.
+           exit.
+       cod-mne-fnt-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-fnt-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge5000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-fnt-foi-999.
+           move      "pgm/cge/prg/obj/pcge5000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-fnt-ope      .
+           go to     cod-mne-fnt-foi-999.
+       cod-mne-fnt-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-fnt-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge5010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-fnt-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/cge/prg/obj/pcge5010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-fnt-ope      .
+           go to     cod-mne-fnt-foi-999.
+       cod-mne-fnt-foi-999.
+           exit.
+       cod-mne-fnt-cll-000.
+           call      w-cod-mne-fnt-pth   using w-cod-mne-fnt
+                                               v
+                                               s                      .
+       cod-mne-fnt-cll-999.
+           exit.
+
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione codice fornitore                   *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-mne-fnt-ope      .
+           move      _____________        to   w-cod-mne-fnt-cod      .
+           move      __                   to   w-cod-mne-fnt-lin      .
+           move      __                   to   w-cod-mne-fnt-pos      .
+           move      __                   to   w-cod-mne-fnt-rln      .
+           move      __                   to   w-cod-mne-fnt-rps      .
+           move      zero                 to   w-cod-mne-fnt-vln      .
+           move      zero                 to   w-cod-mne-fnt-vps      .
+           move      zero                 to   w-cod-mne-fnt-lln      .
+           move      zero                 to   w-cod-mne-fnt-lps      .
+           move      "<B"                 to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-rig    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if not   (w-tes-tip-moi (1)    not  = zero and
+                     w-cat-rig-cur        =    1        )
+                     move  "REMV"         to   v-pfk (06)             .
+           perform   cod-mne-fnt-cll-000  thru cod-mne-fnt-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-mne-fnt-foi-000  thru cod-mne-fnt-foi-999    .
+       acc-___-___-110.
+           perform   cod-mne-fnt-cll-000  thru cod-mne-fnt-cll-999    .
+           if        w-cod-mne-fnt-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-mne-fnt-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-mne-fnt-foi-000  thru cod-mne-fnt-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-mne-fnt-cod    to   v-num                  .
+
+
+
+
+
+********************************************************************************
+CAUSALE
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice causale contabile       *
+      *    *-----------------------------------------------------------*
+       01  w-cod-mne-zcc.
+           05  w-cod-mne-zcc-pth          pic  x(40)     value spaces .
+           05  w-cod-mne-zcc-ope          pic  x(02)                  .
+           05  w-cod-mne-zcc-cod          pic  9(03)                  .
+           05  w-cod-mne-zcc-lin          pic  9(02)                  .
+           05  w-cod-mne-zcc-pos          pic  9(02)                  .
+           05  w-cod-mne-zcc-dln          pic  9(02)     value zero   .
+           05  w-cod-mne-zcc-dps          pic  9(02)     value zero   .
+           05  w-cod-mne-zcc-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione codice causale         *
+      *              *-------------------------------------------------*
+           perform   cod-mne-zcc-opn-000  thru cod-mne-zcc-opn-999    .
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione codice causale        *
+      *              *-------------------------------------------------*
+           perform   cod-mne-zcc-cls-000  thru cod-mne-zcc-cls-999    .
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione della causale contabile    *
+      *    *-----------------------------------------------------------*
+       cod-mne-zcc-opn-000.
+           move      "pgm/cge/prg/obj/acmnzcc0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zcc-pth      .
+           move      "OP"                 to   w-cod-mne-zcc-ope      .
+           perform   cod-mne-zcc-cll-000  thru cod-mne-zcc-cll-999    .
+       cod-mne-zcc-opn-999.
+           exit.
+       cod-mne-zcc-cls-000.
+           move      "CL"                 to   w-cod-mne-zcc-ope      .
+           perform   cod-mne-zcc-cll-000  thru cod-mne-zcc-cll-999    .
+           move      "C?"                 to   w-cod-mne-zcc-ope      .
+           perform   cod-mne-zcc-cll-000  thru cod-mne-zcc-cll-999    .
+           if        w-cod-mne-zcc-ope    not  = spaces
+                     go to cod-mne-zcc-cls-999.
+           cancel    w-cod-mne-zcc-pth                                .
+       cod-mne-zcc-cls-999.
+           exit.
+       cod-mne-zcc-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zcc-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0300"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zcc-foi-999.
+           move      "pgm/cge/prg/obj/pcge0300"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zcc-ope      .
+           go to     cod-mne-zcc-foi-999.
+       cod-mne-zcc-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zcc-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pcge0310"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zcc-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/cge/prg/obj/pcge0310"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zcc-ope      .
+           go to     cod-mne-zcc-foi-999.
+       cod-mne-zcc-foi-999.
+           exit.
+       cod-mne-zcc-cll-000.
+           call      w-cod-mne-zcc-pth   using w-cod-mne-zcc
+                                               v
+                                               s                      .
+       cod-mne-zcc-cll-999.
+           exit.
+
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione codice causale contabile           *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-mne-zcc-ope      .
+           move      _________________    to   w-cod-mne-zcc-cod      .
+           move      __                   to   w-cod-mne-zcc-lin      .
+           move      __                   to   w-cod-mne-zcc-pos      .
+           move      __                   to   w-cod-mne-zcc-dln      .
+           move      __                   to   w-cod-mne-zcc-dps      .
+           move      "<B"                 to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if        w-tes-imp-ske        not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if        w-cnt-sts-imp-tes    not  = spaces
+                     move  "NXSC"         to   v-pfk (08)             .
+           if        w-tes-imp-ske        not  = spaces
+                     move  spaces         to   v-pfk (05)             .
+           perform   cod-mne-zcc-cll-000  thru cod-mne-zcc-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-mne-zcc-foi-000  thru cod-mne-zcc-foi-999    .
+       acc-___-___-110.
+           perform   cod-mne-zcc-cll-000  thru cod-mne-zcc-cll-999    .
+           if        w-cod-mne-zcc-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-mne-zcc-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-mne-zcc-foi-000  thru cod-mne-zcc-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-mne-zcc-cod    to   v-num                  .
+
+
+
+
+
+********************************************************************************
+CODICE ABI
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice ABI                     *
+      *    *-----------------------------------------------------------*
+       01  w-cod-mne-abi.
+           05  w-cod-mne-abi-pth          pic  x(40)     value spaces .
+           05  w-cod-mne-abi-ope          pic  x(02)                  .
+           05  w-cod-mne-abi-cod          pic  9(05)                  .
+           05  w-cod-mne-abi-lin          pic  9(02)                  .
+           05  w-cod-mne-abi-pos          pic  9(02)                  .
+           05  w-cod-mne-abi-dln          pic  9(02)     value zero   .
+           05  w-cod-mne-abi-dps          pic  9(02)     value zero   .
+           05  w-cod-mne-abi-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione codice ABI             *
+      *              *-------------------------------------------------*
+           perform   cod-mne-abi-opn-000  thru cod-mne-abi-opn-999    .
+
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione codice ABI            *
+      *              *-------------------------------------------------*
+           perform   cod-mne-abi-cls-000  thru cod-mne-abi-cls-999    .
+
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice ABI             *
+      *    *-----------------------------------------------------------*
+       cod-mne-abi-opn-000.
+           move      "pgm/abi/prg/obj/acmnabi0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-abi-pth      .
+           move      "OP"                 to   w-cod-mne-abi-ope      .
+           perform   cod-mne-abi-cll-000  thru cod-mne-abi-cll-999    .
+       cod-mne-abi-opn-999.
+           exit.
+       cod-mne-abi-cls-000.
+           move      "CL"                 to   w-cod-mne-abi-ope      .
+           perform   cod-mne-abi-cll-000  thru cod-mne-abi-cll-999    .
+           move      "C?"                 to   w-cod-mne-abi-ope      .
+           perform   cod-mne-abi-cll-000  thru cod-mne-abi-cll-999    .
+           if        w-cod-mne-abi-ope    not  = spaces
+                     go to cod-mne-abi-cls-999.
+           cancel    w-cod-mne-abi-pth                                .
+       cod-mne-abi-cls-999.
+           exit.
+       cod-mne-abi-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-abi-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pabi1000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-abi-foi-999.
+           move      "pgm/abi/prg/obj/pabi1000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-abi-ope      .
+           go to     cod-mne-abi-foi-999.
+       cod-mne-abi-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-abi-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pabi1010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-abi-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/abi/prg/obj/pabi1010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-abi-ope      .
+           go to     cod-mne-abi-foi-999.
+       cod-mne-abi-foi-999.
+           exit.
+       cod-mne-abi-cll-000.
+           call      w-cod-mne-abi-pth   using w-cod-mne-abi
+                                               v
+                                               s                      .
+       cod-mne-abi-cll-999.
+           exit.
+
+
+       acc-___-___-110.
+      *              *-------------------------------------------------*
+      *              * Accettazione codice ABI                         *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-mne-abi-ope      .
+           move      _________            to   w-cod-mne-abi-cod      .
+           move      __                   to   w-cod-mne-abi-lin      .
+           move      __                   to   w-cod-mne-abi-pos      .
+           move      __                   to   w-cod-mne-abi-dln      .
+           move      __                   to   w-cod-mne-abi-dps      .
+           move      "B"                  to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-rig    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if not   (w-tes-tip-moi (1)    not  = zero and
+                     w-cat-rig-cur        =    1        )
+                     move  "REMV"         to   v-pfk (06)             .
+           perform   cod-mne-abi-cll-000  thru cod-mne-abi-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-mne-abi-foi-000  thru cod-mne-abi-foi-999    .
+       acc-___-___-110.
+           perform   cod-mne-abi-cll-000  thru cod-mne-abi-cll-999    .
+           if        w-cod-mne-abi-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-mne-abi-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-mne-abi-foi-000  thru cod-mne-abi-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-mne-abi-cod    to   v-num                  .
+
+
+
+
+
+********************************************************************************
+CODICE DI PAGAMENTO
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice di pagamento            *
+      *    *-----------------------------------------------------------*
+       01  w-cod-mne-zpg.
+           05  w-cod-mne-zpg-pth          pic  x(40)     value spaces .
+           05  w-cod-mne-zpg-ope          pic  x(02)                  .
+           05  w-cod-mne-zpg-cod          pic  9(07)                  .
+           05  w-cod-mne-zpg-lin          pic  9(02)                  .
+           05  w-cod-mne-zpg-pos          pic  9(02)                  .
+           05  w-cod-mne-zpg-dln          pic  9(02)     value zero   .
+           05  w-cod-mne-zpg-dps          pic  9(02)     value zero   .
+           05  w-cod-mne-zpg-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione codice pagamento      *
+      *              *-------------------------------------------------*
+           perform   cod-mne-zpg-opn-000  thru cod-mne-zpg-opn-999    .
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione codice pagamento      *
+      *              *-------------------------------------------------*
+           perform   cod-mne-zpg-cls-000  thru cod-mne-zpg-cls-999    .
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice di pagamento    *
+      *    *-----------------------------------------------------------*
+       cod-mne-zpg-opn-000.
+           move      "pgm/gep/prg/obj/acmnzpg0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zpg-pth      .
+           move      "OP"                 to   w-cod-mne-zpg-ope      .
+           perform   cod-mne-zpg-cll-000  thru cod-mne-zpg-cll-999    .
+       cod-mne-zpg-opn-999.
+           exit.
+       cod-mne-zpg-cls-000.
+           move      "CL"                 to   w-cod-mne-zpg-ope      .
+           perform   cod-mne-zpg-cll-000  thru cod-mne-zpg-cll-999    .
+           move      "C?"                 to   w-cod-mne-zpg-ope      .
+           perform   cod-mne-zpg-cll-000  thru cod-mne-zpg-cll-999    .
+           if        w-cod-mne-zpg-ope    not  = spaces
+                     go to cod-mne-zpg-cls-999.
+           cancel    w-cod-mne-zpg-pth                                .
+       cod-mne-zpg-cls-999.
+           exit.
+       cod-mne-zpg-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zpg-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pgep0500"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zpg-foi-999.
+           move      "pgm/gep/prg/obj/pgep0500"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zpg-ope      .
+           go to     cod-mne-zpg-foi-999.
+       cod-mne-zpg-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zpg-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pgep0510"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zpg-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/gep/prg/obj/pgep0510"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zpg-ope      .
+           go to     cod-mne-zpg-foi-999.
+       cod-mne-zpg-foi-999.
+           exit.
+       cod-mne-zpg-cll-000.
+           call      w-cod-mne-zpg-pth   using w-cod-mne-zpg
+                                               v
+                                               s                      .
+       cod-mne-zpg-cll-999.
+           exit.
+
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione codice pagamento                   *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-mne-zpg-ope      .
+           move      _________________    to   w-cod-mne-zpg-cod      .
+           move      __                   to   w-cod-mne-zpg-lin      .
+           move      __                   to   w-cod-mne-zpg-pos      .
+           move      __                   to   w-cod-mne-zpg-dln      .
+           move      __                   to   w-cod-mne-zpg-dps      .
+           move      "<B"                 to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if        w-tes-imp-ske        not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if        w-cnt-sts-imp-tes    not  = spaces
+                     move  "NXSC"         to   v-pfk (08)             .
+           if        w-tes-imp-ske        not  = spaces
+                     move  spaces         to   v-pfk (05)             .
+           perform   cod-mne-zpg-cll-000  thru cod-mne-zpg-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-mne-zpg-foi-000  thru cod-mne-zpg-foi-999    .
+       acc-___-___-110.
+           perform   cod-mne-zpg-cll-000  thru cod-mne-zpg-cll-999    .
+           if        w-cod-mne-zpg-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-mne-zpg-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-mne-zpg-foi-000  thru cod-mne-zpg-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-mne-zpg-cod    to   v-num                  .
+
+
+
+
+
+********************************************************************************
+FORMA DI PAGAMENTO
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione forma di pagamento             *
+      *    *-----------------------------------------------------------*
+       01  w-cod-mne-zfp.
+           05  w-cod-mne-zfp-pth          pic  x(40)     value spaces .
+           05  w-cod-mne-zfp-ope          pic  x(02)                  .
+           05  w-cod-mne-zfp-cod          pic  9(07)                  .
+           05  w-cod-mne-zfp-lin          pic  9(02)                  .
+           05  w-cod-mne-zfp-pos          pic  9(02)                  .
+           05  w-cod-mne-zfp-dln          pic  9(02)     value zero   .
+           05  w-cod-mne-zfp-dps          pic  9(02)     value zero   .
+           05  w-cod-mne-zfp-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione forma di pagamento     *
+      *              *-------------------------------------------------*
+           perform   cod-mne-zfp-opn-000  thru cod-mne-zfp-opn-999    .
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione forma di pagamento    *
+      *              *-------------------------------------------------*
+           perform   cod-mne-zfp-cls-000  thru cod-mne-zfp-cls-999    .
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione della forma di pagamento   *
+      *    *-----------------------------------------------------------*
+       cod-mne-zfp-opn-000.
+           move      "pgm/dcc/prg/obj/acmnzfp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-zfp-pth      .
+           move      "OP"                 to   w-cod-mne-zfp-ope      .
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+       cod-mne-zfp-opn-999.
+           exit.
+       cod-mne-zfp-cls-000.
+           move      "CL"                 to   w-cod-mne-zfp-ope      .
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+           move      "C?"                 to   w-cod-mne-zfp-ope      .
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+           if        w-cod-mne-zfp-ope    not  = spaces
+                     go to cod-mne-zfp-cls-999.
+           cancel    w-cod-mne-zfp-pth                                .
+       cod-mne-zfp-cls-999.
+           exit.
+       cod-mne-zfp-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-zfp-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc1500"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zfp-foi-999.
+           move      "pgm/dcc/prg/obj/pdcc1500"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-zfp-ope      .
+           go to     cod-mne-zfp-foi-999.
+       cod-mne-zfp-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-zfp-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcc1510"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-zfp-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcc/prg/obj/pdcc1510"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-mne-zfp-ope      .
+           go to     cod-mne-zfp-foi-999.
+       cod-mne-zfp-foi-999.
+           exit.
+       cod-mne-zfp-cll-000.
+           call      w-cod-mne-zfp-pth   using w-cod-mne-zfp
+                                               v
+                                               s                      .
+       cod-mne-zfp-cll-999.
+           exit.
+
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione forma di pagamento                 *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-mne-zfp-ope      .
+           move      _________________    to   w-cod-mne-zfp-cod      .
+           move      __                   to   w-cod-mne-zfp-lin      .
+           move      __                   to   w-cod-mne-zfp-pos      .
+           move      __                   to   w-cod-mne-zfp-dln      .
+           move      __                   to   w-cod-mne-zfp-dps      .
+           move      "<B"                 to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if        w-tes-imp-ske        not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if        w-cnt-sts-imp-tes    not  = spaces
+                     move  "NXSC"         to   v-pfk (08)             .
+           if        w-tes-imp-ske        not  = spaces
+                     move  spaces         to   v-pfk (05)             .
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-mne-zfp-foi-000  thru cod-mne-zfp-foi-999    .
+       acc-___-___-110.
+           perform   cod-mne-zfp-cll-000  thru cod-mne-zfp-cll-999    .
+           if        w-cod-mne-zfp-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-mne-zfp-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-mne-zfp-foi-000  thru cod-mne-zfp-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-mne-zfp-cod    to   v-num                  .
+
+
+
+********************************************************************************
+UNITA' DI MISURA
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione unita' di misura               *
+      *    *-----------------------------------------------------------*
+       01  w-cod-cod-umi.
+           05  w-cod-cod-umi-pth          pic  x(40)     value spaces .
+           05  w-cod-cod-umi-ope          pic  x(02)                  .
+           05  w-cod-cod-umi-cod          pic  x(03)                  .
+           05  w-cod-cod-umi-lin          pic  9(02)                  .
+           05  w-cod-cod-umi-pos          pic  9(02)                  .
+           05  w-cod-cod-umi-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione unita' di misura       *
+      *              *-------------------------------------------------*
+           perform   cod-cod-zum-opn-000  thru cod-cod-zum-opn-999    .
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione unita' di misura      *
+      *              *-------------------------------------------------*
+           perform   cod-cod-zum-cls-000  thru cod-cod-zum-cls-999    .
+
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione unita' di misura           *
+      *    *-----------------------------------------------------------*
+       cod-cod-zum-opn-000.
+           move      "pgm/dcp/prg/obj/acodzum0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-cod-umi-pth      .
+           move      "OP"                 to   w-cod-cod-umi-ope      .
+           perform   cod-cod-zum-cll-000  thru cod-cod-zum-cll-999    .
+       cod-cod-zum-opn-999.
+           exit.
+       cod-cod-zum-cls-000.
+           move      "CL"                 to   w-cod-cod-umi-ope      .
+           perform   cod-cod-zum-cll-000  thru cod-cod-zum-cll-999    .
+           move      "C?"                 to   w-cod-cod-umi-ope      .
+           perform   cod-cod-zum-cll-000  thru cod-cod-zum-cll-999    .
+           if        w-cod-cod-umi-ope    not  = spaces
+                     go to cod-cod-zum-cls-999.
+           cancel    w-cod-cod-umi-pth                                .
+       cod-cod-zum-cls-999.
+           exit.
+       cod-cod-zum-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-cod-zum-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcp1100"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-zum-foi-999.
+           move      "pgm/dcp/prg/obj/pdcp1100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-cod-umi-ope      .
+           go to     cod-cod-zum-foi-999.
+       cod-cod-zum-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-cod-zum-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcp1110"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-zum-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcp/prg/obj/pdcp1110"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-cod-umi-ope      .
+           go to     cod-cod-zum-foi-999.
+       cod-cod-zum-foi-999.
+           exit.
+       cod-cod-zum-cll-000.
+           call      w-cod-cod-umi-pth   using w-cod-cod-umi
+                                               v
+                                               s                      .
+       cod-cod-zum-cll-999.
+           exit.
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione unita' di misura                   *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-cod-umi-ope      .
+           move      _____________        to   w-cod-cod-umi-cod      .
+           move      __                   to   w-cod-cod-umi-lin      .
+           move      __                   to   w-cod-cod-umi-pos      .
+           move      spaces               to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-rig    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           perform   cod-cod-zum-cll-000  thru cod-cod-zum-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-cod-zum-foi-000  thru cod-cod-zum-foi-999    .
+       acc-___-___-110.
+           perform   cod-cod-zum-cll-000  thru cod-cod-zum-cll-999    .
+           if        w-cod-cod-umi-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-cod-umi-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-cod-zum-foi-000  thru cod-cod-zum-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-cod-umi-cod    to   v-num                  .
+
+
+
+
+********************************************************************************
+CODICE LISTINO
+********************************************************************************
+
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice listino                 *
+      *    *-----------------------------------------------------------*
+       01  w-cod-cod-lst.
+           05  w-cod-cod-lst-pth          pic  x(40)     value spaces .
+           05  w-cod-cod-lst-ope          pic  x(02)                  .
+           05  w-cod-cod-lst-cod          pic  x(03)                  .
+           05  w-cod-cod-lst-lin          pic  9(02)                  .
+           05  w-cod-cod-lst-pos          pic  9(02)                  .
+           05  w-cod-cod-lst-lwa occurs 256
+                                          pic  x(01)                  .
+           05  filler                     pic  x(80)     value spaces .
+
+
+      *              *-------------------------------------------------*
+      *              * Open modulo accettazione codice listino         *
+      *              *-------------------------------------------------*
+           perform   cod-cod-zls-opn-000  thru cod-cod-zls-opn-999    .
+
+
+      *              *-------------------------------------------------*
+      *              * Close modulo accettazione codice listino        *
+      *              *-------------------------------------------------*
+           perform   cod-cod-zls-cls-000  thru cod-cod-zls-cls-999    .
+
+
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione codice listino             *
+      *    *-----------------------------------------------------------*
+       cod-cod-zls-opn-000.
+           move      "pgm/dcp/prg/obj/acodzls0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-cod-lst-pth      .
+           move      "OP"                 to   w-cod-cod-lst-ope      .
+           perform   cod-cod-zls-cll-000  thru cod-cod-zls-cll-999    .
+       cod-cod-zls-opn-999.
+           exit.
+       cod-cod-zls-cls-000.
+           move      "CL"                 to   w-cod-cod-lst-ope      .
+           perform   cod-cod-zls-cll-000  thru cod-cod-zls-cll-999    .
+           move      "C?"                 to   w-cod-cod-lst-ope      .
+           perform   cod-cod-zls-cll-000  thru cod-cod-zls-cll-999    .
+           if        w-cod-cod-lst-ope    not  = spaces
+                     go to cod-cod-zls-cls-999.
+           cancel    w-cod-cod-lst-pth                                .
+       cod-cod-zls-cls-999.
+           exit.
+       cod-cod-zls-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-cod-zls-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcp0200"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-zls-foi-999.
+           move      "pgm/dcp/prg/obj/pdcp1100"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-cod-lst-ope      .
+           go to     cod-cod-zls-foi-999.
+       cod-cod-zls-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-cod-zls-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pdcp0210"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-cod-zls-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/dcp/prg/obj/pdcp0210"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cod-cod-lst-ope      .
+           go to     cod-cod-zls-foi-999.
+       cod-cod-zls-foi-999.
+           exit.
+       cod-cod-zls-cll-000.
+           call      w-cod-cod-lst-pth   using w-cod-cod-lst
+                                               v
+                                               s                      .
+       cod-cod-zls-cll-999.
+           exit.
+
+
+       acc-___-___-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione codice listino                     *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-cod-lst-ope      .
+           move      _____________        to   w-cod-cod-lst-cod      .
+           move      __                   to   w-cod-cod-lst-lin      .
+           move      __                   to   w-cod-cod-lst-pos      .
+           move      spaces               to   v-edm                  .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           if        w-cnt-sts-imp-rig    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           perform   cod-cod-zls-cll-000  thru cod-cod-zls-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-cod-zls-foi-000  thru cod-cod-zls-foi-999    .
+       acc-___-___-110.
+           perform   cod-cod-zls-cll-000  thru cod-cod-zls-cll-999    .
+           if        w-cod-cod-lst-ope    =    "F+"
+                     go to acc-___-___-115.
+           if        w-cod-cod-lst-ope    =    "AC"
+                     go to acc-___-___-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-___-___-115.
+           perform   cod-cod-zls-foi-000  thru cod-cod-zls-foi-999    .
+           go to     acc-___-___-110.
+       acc-___-___-120.
+           move      w-cod-cod-lst-cod    to   v-num                  .
+
+
+
+
+
+
+

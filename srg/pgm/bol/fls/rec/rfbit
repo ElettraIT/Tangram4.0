@@ -1,0 +1,949 @@
+      *    *===========================================================*
+      *    * Record file [bit] Bolle clienti testate                   *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPRT    " = rf-bit-num-prt                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-bit-ide-dat                    *
+      *    *                         rf-bit-dat-doc                    *
+      *    *                         rf-bit-num-prt                    *
+      *    *                                                           *
+      *    *          "IDEDOC    " = rf-bit-dat-doc                    *
+      *    *                         rf-bit-cod-dpz                    *
+      *    *                         rf-bit-num-doc                    *
+      *    *                         rf-bit-cod-tmb                    *
+      *    *                         rf-bit-num-prt                    *
+      *    *                                                           *
+      *    *          "CNTDEN    " = rf-bit-snx-fac                    *
+      *    *                         rf-bit-scl-ann                    *
+      *    *                         rf-bit-cod-dpz                    *
+      *    *                         rf-bit-sgl-num                    *
+      *    *                         rf-bit-num-doc                    *
+      *    *                         rf-bit-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZARCDAT " = rf-bit-cod-dpz                    *
+      *    *                         rf-bit-tip-arc                    *
+      *    *                         rf-bit-cod-arc                    *
+      *    *                         rf-bit-dat-doc                    *
+      *    *                         rf-bit-num-doc                    *
+      *    *                         rf-bit-num-prt                    *
+      *    *                                                           *
+      *    *          "DPZTMBDAT " = rf-bit-cod-dpz                    *
+      *    *                         rf-bit-cod-tmb                    *
+      *    *                         rf-bit-dat-doc                    *
+      *    *                         rf-bit-num-doc                    *
+      *    *                         rf-bit-num-prt                    *
+      *    *                                                           *
+      *    *          "FATARC    " = rf-bit-fat-snx                    *
+      *    *                         rf-bit-fat-dat                    *
+      *    *                         rf-bit-fat-num                    *
+      *    *                         rf-bit-fat-npb                    *
+      *    *                         rf-bit-tip-arc                    *
+      *    *                         rf-bit-arc-plf                    *
+      *    *                         rf-bit-num-prt                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-bit.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo : s.aa.dd.nnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento per la bolla                           *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-tmb             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di fatturazione                     *
+      *        *-------------------------------------------------------*
+           05  rf-bit-prt-fti             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di magazzino                        *
+      *        *-------------------------------------------------------*
+           05  rf-bit-prt-mag             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo di magazzino per causali giroconto  *
+      *        * merce                                                 *
+      *        *-------------------------------------------------------*
+           05  rf-bit-pr2-mag             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No movimento che interessa la fatturazione         *
+      *        *                                                       *
+      *        * - 01 : No                                             *
+      *        * - 02 : Si, il documento deve successivamente essere   *
+      *        *            sottoposta alla procedura di fatturazio-   *
+      *        *            ne automatica da bolle emesse              *
+      *        * - 03 : Si, il documento stesso e' anche una fattura   *
+      *        *                                                       *
+      *        * N.B. : il tipo '03' e' in obsolescenza e di conse-    *
+      *        *        guenza i successivi campi in relazione         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-int-ftr             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo movimento di fatturazione                        *
+      *        *                                                       *
+      *        * - Se movimento che interessa la fatturazione 01       *
+      *        *      - Valore fisso Spaces, non significativo         *
+      *        *                                                       *
+      *        * - Se documento che interessa la fatturazione 02       *
+      *        *      - Codice tipo movimento di fatturazione che sa-  *
+      *        *        ra' utilizzato dalla procedura di fatturazio-  *
+      *        *        ne automatica da bolle emesse                  *
+      *        *                                                       *
+      *        * - Se movimento che interessa la fatturazione 03       *
+      *        *      - Codice tipo movimento di fatturazione corri-   *
+      *        *        spondente alla componente 'fattura' del pre-   *
+      *        *        sente tipo movimento di bollettazione          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tmo-ftr             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Documento da sottoporre a fatturazione differita      *
+      *        *                                                       *
+      *        * - N : No                                              *
+      *        * - S : Si                                              *
+      *        *                                                       *
+      *        * N.B. : Per le fatture accompagnatorie questo valore   *
+      *        *        e' ovviamente posto a 'N'.                     *
+      *        *-------------------------------------------------------*
+           05  rf-bit-fat-snx             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Data fattura                                          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-fat-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero fattura : s.aa.dd.nnnnnn                       *
+      *        *-------------------------------------------------------*
+           05  rf-bit-fat-num             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo bolla nella fattura                *
+      *        *-------------------------------------------------------*
+           05  rf-bit-fat-npb             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No documento che accompagna la merce               *
+      *        *-------------------------------------------------------*
+           05  rf-bit-snx-acm             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza che ha emesso il documento          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-dpz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data documento                                        *
+      *        *-------------------------------------------------------*
+           05  rf-bit-dat-doc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento : s.aa.xx.nnnnnn                     *
+      *        * - s      : secolo                                     *
+      *        * - aa     : anno                                       *
+      *        * - xx     : numero giornale iva, se bolla/fattura      *
+      *        *            codice dipendenza  , se bolla              *
+      *        * - nnnnnn : numero progressivo                         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-num-doc             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No fattura accompagnatoria                         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-snx-fac             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Secolo ed anno relativi alla data documento           *
+      *        *-------------------------------------------------------*
+           05  rf-bit-scl-ann             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla numerazione relativa al numero documento        *
+      *        *                                                       *
+      *        * Nota : Per le fatture accompagnatorie questo campo    *
+      *        *        contiene la sigla numerazione del relativo     *
+      *        *        codice tipo movimento di fatturazione (vedi    *
+      *        *        'rf-bit-tmo-ftr')                              *
+      *        *-------------------------------------------------------*
+           05  rf-bit-sgl-num             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo archivio per il movimento                        *
+      *        *                                                       *
+      *        * - N : No tipo archivio                                *
+      *        * - C : Cliente                                         *
+      *        * - F : Fornitore                                       *
+      *        * - D : Deposito                                        *
+      *        * - A : Agente (Incaricato alla vendita)                *
+      *        *                                                       *
+      *        * N.B. : Se il documento interessa la fatturazione, il  *
+      *        *        tipo archivio deve essere pari a 'C'           *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tip-arc             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-arc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio                       *
+      *        *-------------------------------------------------------*
+           05  rf-bit-dpz-arc             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo fornitura                                        *
+      *        * - 00 : Non significativo, perche' documento che non   *
+      *        *        interessa la fatturazione                      *
+      *        * - 01 : Diretta                                        *
+      *        * - 11 : Tramite Leasing                                *
+      *        * - 21 : Tramite gruppo d'acquisto                      *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tip-frn             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice archivio per la fatturazione                   *
+      *        *                                                       *
+      *        * Solo se documento che interessa la fatturazione       *
+      *        *-------------------------------------------------------*
+           05  rf-bit-arc-plf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza dell'archivio per la fatturazione   *
+      *        *                                                       *
+      *        * Solo se documento che interessa la fatturazione       *
+      *        *-------------------------------------------------------*
+           05  rf-bit-dpz-plf             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo fatturazione                                     *
+      *        *                                                       *
+      *        * - 00 : Non significativo, perche' documento che non   *
+      *        *        interessa la fatturazione, o perche' non e'    *
+      *        *        presente uno specifico cliente per la fattu-   *
+      *        *        razione                                        *
+      *        * - 01 : Separata dagli altri associati                 *
+      *        * - 02 : Cumulativa, assieme agli altri associati       *
+      *        *                                                       *
+      *        * N.B.: Significativo solo se tipo fornitura tramite    *
+      *        *       gruppo d'acquisto                               *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tip-ftz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo indirizzo di spedizione                          *
+      *        *                                                       *
+      *        * - 01 : alla sede legale                               *
+      *        * - 02 : manuale                                        *
+      *        * - 03 : alla sede                                      *
+      *        * - 04 : alla dipendenza                                *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tip-ids             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice lingua per il documento                        *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-lng             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Valuta per la fatturazione                            *
+      *        *-------------------------------------------------------*
+           05  rf-bit-vpf.
+      *            *---------------------------------------------------*
+      *            * Sigla valuta                                      *
+      *            *---------------------------------------------------*
+               10  rf-bit-sgl-vpf         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero decimali per la valuta                     *
+      *            *---------------------------------------------------*
+               10  rf-bit-dec-vpf         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di cambio : '/' o '*'                        *
+      *            *---------------------------------------------------*
+               10  rf-bit-tdc-vpf         pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Coefficiente di cambio per la valuta alla data    *
+      *            * del documento                                     *
+      *            *---------------------------------------------------*
+               10  rf-bit-cdc-vpf         pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Assoggettamento iva per il documento                  *
+      *        * - 00000 : Soggetto iva                                *
+      *        * - nnnnn : Titolo di esenzione                         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ass-iva             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Conto di contabilita' generale usato come contropar-  *
+      *        * tita vendite per l'intero documento                   *
+      *        * - 0000000 : A seconda delle righe fatturate           *
+      *        * - nnnnnnn : Conto di contropartita vendite            *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ctp-ven             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Fatturazione separata per questo documento            *
+      *        * - Spaces : Non significativo, perche' documento che   *
+      *        *            non interessa la fatturazione              *
+      *        * - N      : No, segue le regole di fatturazione del    *
+      *        *            cliente                                    *
+      *        * - S      : Si, questo documento deve essere comunque  *
+      *        *            fatturato a parte                          *
+      *        * - O      : Si, questo documento puo' essere fatturato *
+      *        *            solo con altri che si riferiscono allo     *
+      *        *            stesso ordine                              *
+      *        *-------------------------------------------------------*
+           05  rf-bit-fat-sep             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro documenti                                     *
+      *        *                                                       *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        * - 99 : secondo dati anagrafici dedotti da [dcc]       *
+      *        *                                                       *
+      *        * N.B.: attualmente il campo non viene gestito ma viene *
+      *        *       forzato al valore 99                            *
+      *        *-------------------------------------------------------*
+           05  rf-bit-inl-dcm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro pagamenti                                     *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla filiale                                   *
+      *        *-------------------------------------------------------*
+           05  rf-bit-inl-pgt             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice listino da applicare per il documento          *
+      *        * - Spaces : listino base                               *
+      *        * - xxx    : listino xxx                                *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-lst             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in riga associata al cliente         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-csr-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in riga associate al cliente                 *
+      *        *-------------------------------------------------------*
+           05  rf-bit-psr-aac occurs 05   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria sconto in chiusura associato al cliente     *
+      *        *-------------------------------------------------------*
+           05  rf-bit-csc-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * % sconto chiusura associato al cliente                *
+      *        *-------------------------------------------------------*
+           05  rf-bit-psc-aac             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigioni associata al cliente         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cpv-aac             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di provvigione associate al cliente       *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ppv-aac occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Voci descrittive in fattura                           *
+      *        *-------------------------------------------------------*
+           05  rf-bit-voc-des occurs 06   pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice forma di pagamento per il documento            *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-fop             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Sconto pagamento associato alla forma di pagamento    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-scp-aap             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI dell'istituto di credito di appoggio per   *
+      *        * gli effetti, per il documento                         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-abi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice CAB per lo sportello dell'istituto di credito  *
+      *        * di appoggio per gli effetti, per il documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-cab             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice conto corrente del cliente presso l'istituto   *
+      *        * di credito per l'appoggio del pagamento, solo per gli *
+      *        * accrediti pre-autorizzati in conto 'RID', per il do-  *
+      *        * cumento.                                              *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ccc-app             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca per pagamenti per mezzo bonifico  *
+      *        * bancario                                              *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-bit-nos-ban             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostro c/c postale per pagamenti per mezzo c/c *
+      *        * postale                                               *
+      *        *                                                       *
+      *        * Da cliente per fatturazione                           *
+      *        *-------------------------------------------------------*
+           05  rf-bit-nos-ccp             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese incasso per il documento        *
+      *        *-------------------------------------------------------*
+           05  rf-bit-add-spi             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice addebito spese bollo per il documento          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-add-spb             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Scadenze da raggruppare per il cliente, prima         *
+      *        * della composizione distinta                           *
+      *        *                                                       *
+      *        * - 01 : No                                             *
+      *        * - 02 : Si, il cliente vuole scadenze raggruppate      *
+      *        *                                                       *
+      *        * N.B. : Campo riconvertito da precedente:              *
+      *        *                                                       *
+      *        * Tipo incasso alternativo per incassi elettronici,     *
+      *        * normalmente destinati a risolversi in una dispo-      *
+      *        * sizione di pagamento                                  *
+      *        *                                                       *
+      *        * - 01 : Nessuna preferenza                             *
+      *        * - 02 : Ri.Ba.                                         *
+      *        * - 03 : M.av.                                          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ipr-iel             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data scadenza pagamento nel caso che la forma di pa-  *
+      *        * gamento preveda un codice di pagamento con data di    *
+      *        * decorrenza manuale                                    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-pag-dsm             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare della quota a forfait nel caso che la forma *
+      *        * di pagamento preveda un codice di pagamento relativa  *
+      *        * ad una quota a forfait, in valuta                     *
+      *        *-------------------------------------------------------*
+           05  rf-bit-pag-qaf             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare dell'acconto nel caso che la forma di paga- *
+      *        * mento preveda la deduzione dell'acconto relativamente *
+      *        * ad uno dei tre codici di pagamento previsti,          *
+      *        * in valuta                                             *
+      *        *-------------------------------------------------------*
+           05  rf-bit-pag-act             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice agente per le provvigioni sul documento        *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-age             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di significativita' provvigioni per il documento *
+      *        *                                                       *
+      *        * - 01 : Si, da righe documento                         *
+      *        * - 02 : No provvigioni per il documento                *
+      *        * - 03 : A forfait per l'intero documento               *
+      *        * - 04 : A forfait per l'intero documento, in %         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-fsp-doc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'agente, in valuta base                              *
+      *        *                                                       *
+      *        * N.B.: Significativo solo se campo precedente a 03 o,  *
+      *        *       se a 04, contiene una % (2 interi e 2 decimali) *
+      *        *-------------------------------------------------------*
+           05  rf-bit-pvf-age             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo vendita per l'agente                             *
+      *        *                                                       *
+      *        * - 01 : Diretta                                        *
+      *        * - 02 : Indiretta                                      *
+      *        *                                                       *
+      *        * N.B.: Significativo solo se codice agente diverso da  *
+      *        *       zero                                            *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tip-vpa             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Categoria di provvigioni associata all'agente         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cpv-aaa             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Percentuali di provvigione in riga associate all'a-   *
+      *        * gente                                                 *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ppv-aaa occurs 03   pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice intermediario per le provvigioni sul documento *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito (vedi 'rffit')    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-cod-ime             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Ammontare provvigioni a forfait per il documento per  *
+      *        * l'intermediario, in valuta base                       *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-bit-pvf-ime             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Totali di suddivisione per le righe, in valuta        *
+      *        *                                                       *
+      *        * - 01 : Totale merce                                   *
+      *        * - 02 : Totale servizi                                 *
+      *        * - 03 : Totale imballi                                 *
+      *        * - 04 : Totale servizi periodici (DA IMPLEMENTARE)     *
+      *        * - 05 : Totale libero 5                                *
+      *        * - 06 : Totale libero 6                                *
+      *        * - 07 : Totale libero 7                                *
+      *        * - 08 : Totale libero 8                                *
+      *        * - 09 : Totale extra                                   *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tot-rig occurs 09   pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto in chiusura, in valuta                 *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tot-scc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto in chiusura                                  *
+      *        *-------------------------------------------------------*
+           05  rf-bit-per-scc             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto in chiusura           *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-civ-scc             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto in chiusura *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ccp-scc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo sconto pagamento, in valuta                   *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tot-scp             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * % sconto pagamento                                    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-per-scp             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per l'importo sconto pagamento             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non e' sog-  *
+      *        *        getto ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-civ-scp             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per l'importo sconto pagamento   *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che l'importo non si rife- *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ccp-scp             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Si/No addebito spese e modalita' di addebito          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-spe-add occurs 06.
+      *            *---------------------------------------------------*
+      *            * Si/No addebito spese                              *
+      *            * - 0 : No addebito                                 *
+      *            * - 1 : Si addebito                                 *
+      *            *---------------------------------------------------*
+               10  rf-bit-spe-snx         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Modalita' di addebito spese                       *
+      *            * - 1 : Addebito a percentuale fissa                *
+      *            * - 2 : Addebito a percentuale variabile            *
+      *            * - 3 : Addebito ad importo fisso                   *
+      *            * - 4 : Addebito ad importo variabile               *
+      *            *---------------------------------------------------*
+               10  rf-bit-spe-mad         pic  9(01)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale di addebito della spesa               *
+      *            *---------------------------------------------------*
+               10  rf-bit-spe-per         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Tipo di imponibile per la percentuale della spesa *
+      *            *                                                   *
+      *            * - 00 : Non significativo                          *
+      *            * - 01 : Totale lordo                               *
+      *            * - 02 : Totale netto                               *
+      *            * - 03 : Su una combinazione delle voci seguenti    *
+      *            * - 11 : Totale merci                               *
+      *            * - 12 : Totale servizi                             *
+      *            * - 13 : Totale imballi                             *
+      *            * - 14 : Totale libero 4                            *
+      *            * - 15 : Totale libero 5                            *
+      *            * - 16 : Totale libero 6                            *
+      *            * - 17 : Totale libero 7                            *
+      *            * - 18 : Totale libero 8                            *
+      *            * - 19 : Totale extra                               *
+      *            *---------------------------------------------------*
+               10  rf-bit-spe-ibl         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Totalizzatori da considerarsi per la determina-   *
+      *            * zione dell'imponibile per la percentuale della    *
+      *            * spesa, in valuta                                  *
+      *            *                                                   *
+      *            * Solo se l'imponibile per la percentuale e' pari a *
+      *            * 03                                                *
+      *            *                                                   *
+      *            * Per ogni totalizzatore deve essere specificato un *
+      *            * valore di un carattere, dove :                    *
+      *            *                                                   *
+      *            * - N : Non concorre a formare l'imponibile         *
+      *            * - S : Concorre a formare l'imponibile             *
+      *            *                                                   *
+      *            * Il significato dei totalizzatori e' di tipo posi- *
+      *            * zionale, con la seguente codifica :               *
+      *            *                                                   *
+      *            * 1 : Totale merci                                  *
+      *            * 2 : Totale servizi                                *
+      *            * 3 : Totale imballi                                *
+      *            * 4 : Totale libero 4                               *
+      *            * 5 : Totale libero 5                               *
+      *            * 6 : Totale libero 6                               *
+      *            * 7 : Totale libero 7                               *
+      *            * 8 : Totale libero 8                               *
+      *            * 9 : Totale extra                                  *
+      *            *---------------------------------------------------*
+               10  rf-bit-ibt-spe.
+                   15  rf-bit-ibx-spe  occurs 09
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Importo di addebito della spesa, in valuta        *
+      *            *---------------------------------------------------*
+               10  rf-bit-spe-imp         pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Codice iva per la spesa                           *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non e'    *
+      *            *        soggetta ad un particolare codice iva, ma  *
+      *            *        che l'importo spesa va' sventagliato in    *
+      *            *        proporzione ai codici iva gia' presenti    *
+      *            *        nel documento                              *
+      *            *---------------------------------------------------*
+               10  rf-bit-spe-civ         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Codice contropartita per la spesa                 *
+      *            *                                                   *
+      *            * N.B. : Se a zero significa che la spesa non si    *
+      *            *        riferisce ad una particolare contropartita,*
+      *            *        ma che l'importo spesa va' sventagliato in *
+      *            *        proporzione alle contropartite gia' pre-   *
+      *            *        senti nel documento                        *
+      *            *---------------------------------------------------*
+               10  rf-bit-spe-ccp         pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese incasso                       *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-civ-spi             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese incasso             *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ccp-spi             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese incasso calcolate, in valuta            *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tot-sic             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese incasso aggiuntive, in valuta           *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tot-sia             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese bollo, in valuta                        *
+      *        *-------------------------------------------------------*
+           05  rf-bit-tot-spb             pic s9(09)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Codice iva per le spese bollo                         *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non e' sog-   *
+      *        *        getta ad un particolare codice iva, ma che     *
+      *        *        l'importo va' sventagliato in proporzione ai   *
+      *        *        codice iva gia' presenti nel documento         *
+      *        *-------------------------------------------------------*
+           05  rf-bit-civ-spb             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice contropartita per le spese bollo               *
+      *        *                                                       *
+      *        * N.B. : Se a zero significa che la spesa non si rife-  *
+      *        *        risce ad una particolare contropartita, ma che *
+      *        *        l'importo va' sventagliato in proporzione alle *
+      *        *        contropartite gia' presenti nel documento      *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ccp-spb             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati relativi al trasporto                            *
+      *        *                                                       *
+      *        * N.B. : Significativi solo per documenti che accompa-  *
+      *        *        gnano merce                                    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-dtr-tra.
+      *            *---------------------------------------------------*
+      *            * Trasporto a cura                                  *
+      *            *                                                   *
+      *            * - 00 : Non specificato                            *
+      *            * - 10 : Mittente                                   *
+      *            * - 20 : Destinatario                               *
+      *            * - 30 : Vettore                                    *
+      *            *---------------------------------------------------*
+               10  rf-bit-tra-cur         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Causale del trasporto                             *
+      *            *---------------------------------------------------*
+               10  rf-bit-cau-tra         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Codice aspetto esteriore dei beni                 *
+      *            *---------------------------------------------------*
+               10  rf-bit-asp-ben         pic  x(03)                  .
+      *            *---------------------------------------------------*
+      *            * Numero colli                                      *
+      *            *---------------------------------------------------*
+               10  rf-bit-num-col         pic  9(05)                  .
+      *            *---------------------------------------------------*
+      *            * Peso totale                                       *
+      *            *---------------------------------------------------*
+               10  rf-bit-pes-tot         pic  9(06)v9(03)            .
+      *            *---------------------------------------------------*
+      *            * Data inizio trasporto                             *
+      *            *---------------------------------------------------*
+               10  rf-bit-dat-itr         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Ora inizio trasporto                              *
+      *            *---------------------------------------------------*
+               10  rf-bit-ora-itr         pic  9(04)                  .
+      *            *---------------------------------------------------*
+      *            * Codice primo vettore                              *
+      *            *---------------------------------------------------*
+               10  rf-bit-cod-vet         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice secondo vettore                            *
+      *            *                                                   *
+      *            * N.B. : in presenza di apposita personalizzazione, *
+      *            *        se il campo precedente e' relativo ad un   *
+      *            *        vettore interno, questo campo puo' conte-  *
+      *            *        nere un codice veicolo aziendale           *
+      *            *---------------------------------------------------*
+               10  rf-bit-cod-vt2         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice terzo vettore                              *
+      *            *---------------------------------------------------*
+               10  rf-bit-cod-vt3         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Codice annotazioni                                *
+      *            *---------------------------------------------------*
+               10  rf-bit-cod-ant         pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo per movimento di contabilita' gene- *
+      *        * rale relativo al documento                            *
+      *        *                                                       *
+      *        * N.B. : La data di registrazione per il movimento di   *
+      *        *        contabilita' generale relativo al documento e' *
+      *        *        sempre pari alla data del documento            *
+      *        *-------------------------------------------------------*
+           05  rf-bit-prt-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero registrazioni di contabilita' generale genera- *
+      *        * te per il documento                                   *
+      *        *-------------------------------------------------------*
+           05  rf-bit-nrg-mgd             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento per movimento di contabilita' ge- *
+      *        * nerale relativo al documento                          *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente utilizzato per ospitare la    *
+      *        *       data documento del cliente nel caso di bolla di *
+      *        *       reso su vendita cui segue Nota di Accredito     *
+      *        *-------------------------------------------------------*
+           05  rf-bit-dri-mgd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di riferimento per movimento di contabilita'   *
+      *        * generale relativo al documento                        *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente utilizzato per ospitare il    *
+      *        *       numero documento del cliente nel caso di bolla  *
+      *        *       di reso su vendita cui segue Nota di Accredito  *
+      *        *-------------------------------------------------------*
+           05  rf-bit-nri-mgd             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero scadenza della prima scadenza generata per la  *
+      *        * gestione del portafoglio effetti attivi               *
+      *        *                                                       *
+      *        * N.B. : Le scadenze successive alla prima hanno un nu- *
+      *        *        mero scadenza in progressione di uno in uno    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-nps-sdb             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di scadenze generate per la gestione del por-  *
+      *        * tafoglio effetti attivi : 00..96                      *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ctr-sdb             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto iva                                       *
+      *        *-------------------------------------------------------*
+           05  rf-bit-iva-cst.
+      *            *---------------------------------------------------*
+      *            * Righe del castelletto iva                         *
+      *            *---------------------------------------------------*
+               10  rf-bit-iva-rig occurs 06.
+      *                *-----------------------------------------------*
+      *                * Codice iva                                    *
+      *                *-----------------------------------------------*
+                   15  rf-bit-iva-cod     pic  9(05)                  .
+      *                *-----------------------------------------------*
+      *                * Imponibile iva, in valuta                     *
+      *                *-----------------------------------------------*
+                   15  rf-bit-iva-ibl     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Imposta iva, in valuta                        *
+      *                *-----------------------------------------------*
+                   15  rf-bit-iva-imp     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Totale documento, in valuta                       *
+      *            *---------------------------------------------------*
+               10  rf-bit-iva-tdo         pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Castelletto contropartite contabili, esclusa iva      *
+      *        *                                                       *
+      *        * N.B.: implementare eventualmente il record 'bic' per  *
+      *        *       consentire un numero maggiore di contropartite  *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ctp-cst.
+      *            *---------------------------------------------------*
+      *            * Righe del castelletto contropartite               *
+      *            *---------------------------------------------------*
+               10  rf-bit-ctp-rig occurs 10.
+      *                *-----------------------------------------------*
+      *                * Codice contropartita                          *
+      *                *-----------------------------------------------*
+                   15  rf-bit-ctp-cod     pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Importo contropartita, in valuta              *
+      *                *-----------------------------------------------*
+                   15  rf-bit-ctp-imp     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Numero di stampe eseguite per il documento, max 99    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-ctr-stp             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-bit-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *                                                   *
+      *            * 01 : (libero)                                     *
+      *            * 02 : (libero)                                     *
+      *            * 03 : (libero)                                     *
+      *            * 04 : (libero)                                     *
+      *            * 05 : (libero)                                     *
+      *            * 06 : (libero)                                     *
+      *            * 07 : (libero)                                     *
+      *            *---------------------------------------------------*
+               10  rf-bit-flg-blo.
+                   15  rf-bit-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *                                                   *
+      *            *      -------------------------------------------- *
+      *            * 01 : Flag di esclusione provvisoria bolla dalla   *
+      *            *      fatturazione                                 *
+      *            *                                                   *
+      *            *       - Spaces : no esclusione                    *
+      *            *       - '#'    : esclusione                       *
+      *            *                                                   *
+      *            *      N.B.: Soggetto a personalizzazione           *
+      *            *                                                   *
+      *            *      -------------------------------------------- *
+      *            * 03 : Flag di avviso consegna al cliente           *
+      *            *                                                   *
+      *            *       - Spaces : non avvisato                     *
+      *            *       - '#'    : avvisato                         *
+      *            *                                                   *
+      *            *      -------------------------------------------- *
+      *            * 03 : Flag di bolla effettivamente consegnata      *
+      *            *                                                   *
+      *            *       - Spaces : non consegnata                   *
+      *            *       - '#'    : consegnata                       *
+      *            *                                                   *
+      *            *---------------------------------------------------*
+               10  rf-bit-flg-nbl.
+                   15  rf-bit-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-bit-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di regime fiscale particolare                    *
+      *        *                                                       *
+      *        * - Spaces o N : Normale regime fiscale                 *
+      *        * - S          : Regime di Scissione Pagamenti          *
+      *        *-------------------------------------------------------*
+           05  rf-bit-flg-rfp             pic  x(01)                  .
+           
+           
+      *        *-------------------------------------------------------*
+      *        * Codice dislocazione di origine per il documento       *
+      *        *                                                       *
+      *        * N.B. : Solo se diverso da quello contenuto nel tipo   *
+      *        *        documento                                      *
+      *        *-------------------------------------------------------*
+______*    05  rf-bit-cod-dsl             pic  x(07)                  .
+
+           
+      *        *-------------------------------------------------------*
+      *        * Codice responsabile di magazzino                      *
+      *        *-------------------------------------------------------*
+______*    05  rf-bit-cod-rsm             pic  9(05)                  .
+
+           
+           
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-bit-alx-exp.
+               10  filler  occurs 39      pic  x(01)                  .

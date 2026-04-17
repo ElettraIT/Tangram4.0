@@ -1,0 +1,54 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione C.a.p. e citta'            *
+      *    *-----------------------------------------------------------*
+       cap-cit-geo-opn-000.
+           move      "pgm/geo/prg/obj/acecgeo0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cap-cit-geo-pth      .
+           move      "OP"                 to   w-cap-cit-geo-ope      .
+           perform   cap-cit-geo-cll-000  thru cap-cit-geo-cll-999    .
+       cap-cit-geo-opn-999.
+           exit.
+       cap-cit-geo-cls-000.
+           move      "CL"                 to   w-cap-cit-geo-ope      .
+           perform   cap-cit-geo-cll-000  thru cap-cit-geo-cll-999    .
+           move      "C?"                 to   w-cap-cit-geo-ope      .
+           perform   cap-cit-geo-cll-000  thru cap-cit-geo-cll-999    .
+           if        w-cap-cit-geo-ope    not  = spaces
+                     go to cap-cit-geo-cls-999.
+           cancel    w-cap-cit-geo-pth                                .
+       cap-cit-geo-cls-999.
+           exit.
+       cap-cit-geo-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cap-cit-geo-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pgeo4000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cap-cit-geo-foi-999.
+           move      "pgm/geo/prg/obj/pgeo4000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cap-cit-geo-ope      .
+           go to     cap-cit-geo-foi-999.
+       cap-cit-geo-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cap-cit-geo-foi-999.
+           move      "F+"                 to   w-cap-cit-geo-ope      .
+           go to     cap-cit-geo-foi-999.
+       cap-cit-geo-foi-999.
+           exit.
+       cap-cit-geo-cll-000.
+           call      w-cap-cit-geo-pth   using w-cap-cit-geo
+                                               v
+                                               s                      .
+       cap-cit-geo-cll-999.
+           exit.
+

@@ -1,0 +1,356 @@
+      *    *===========================================================*
+      *    * Routine di calcolo importo in EURO                        *
+      *    *                                                           *
+      *    * Input  : w-cal-imp-eur-imi = importo in input             *
+      *    *          w-cal-imp-eur-dec = decimali                     *
+      *    *                                                           *
+      *    * Output : w-cal-imp-eur-ime = importo in EURO              *
+      *    *                                                           *
+      *    * Note   :       Il criterio di arrotondamento segue        *
+      *    *                la seguente regola:                        *
+      *    *                 - importo di 1 cifra : 5 decimali         *
+      *    *                 - importo di 2 cifra : 4 decimali         *
+      *    *                 - importo di 3 cifra : 3 decimali         *
+      *    *                 - importo di 4 cifra : 2 decimali         *
+      *    *                Il metodo di arrotondamento prevede        *
+      *    *                il "difetto" fino a 4 e l'"eccesso"        *
+      *    *                da 5 in su.                                *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       cal-imp-eur-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni preliminari                     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cal-imp-eur-flg      .
+           move      zero                 to   w-cal-imp-eur-ime      .
+           move      zero                 to   w-cal-imp-eur-dcv      .
+           move      "+"                  to   w-cal-imp-eur-sgn      .
+       cal-imp-eur-010.
+      *              *-------------------------------------------------*
+      *              * Se importo in input a zero : uscita             *
+      *              *-------------------------------------------------*
+           if        w-cal-imp-eur-imi    =    zero
+                     go to cal-imp-eur-999.
+       cal-imp-eur-020.
+      *              *-------------------------------------------------*
+      *              * Trattamento del segno                           *
+      *              *-------------------------------------------------*
+           if        w-cal-imp-eur-imi    <    zero
+                     move  "-"            to   w-cal-imp-eur-sgn      .
+      *              *-------------------------------------------------*
+      *              * In comodo di trattamento                        *
+      *              *-------------------------------------------------*
+           move      w-cal-imp-eur-imi    to   w-cal-imp-eur-wcl      .
+       cal-imp-eur-050.
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del valore da convertire *
+      *              *-------------------------------------------------*
+           if        w-cal-imp-eur-wcl    >    999
+                     go to cal-imp-eur-400
+           else if   w-cal-imp-eur-wcl    >    99
+                     go to cal-imp-eur-300
+           else if   w-cal-imp-eur-wcl    >    9
+                     go to cal-imp-eur-200
+           else      go to cal-imp-eur-100.
+       cal-imp-eur-100.
+      *              *-------------------------------------------------*
+      *              * Importo originale di una cifra o inferiore      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Decimali utilizzati a : 5                   *
+      *                  *---------------------------------------------*
+           move      5                    to   w-cal-imp-eur-dcv      .
+      *                  *---------------------------------------------*
+      *                  * Importo in comodo di calcolo                *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-wcl    to   w-cal-imp-eur-w5d      .
+      *                  *---------------------------------------------*
+      *                  * Calcolo                                     *
+      *                  *---------------------------------------------*
+           divide    1936,27              into w-cal-imp-eur-w5d
+                                          rounded                     .
+      *                  *---------------------------------------------*
+      *                  * Importo convertito in valore di uscita      *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-w5d    to   w-cal-imp-eur-ime      .
+      *                  *---------------------------------------------*
+      *                  * A trattamento segno                         *
+      *                  *---------------------------------------------*
+           go to     cal-imp-eur-800.
+       cal-imp-eur-200.
+      *              *-------------------------------------------------*
+      *              * Importo originale di 2 cifre o inferiore        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Decimali utilizzati a : 4                   *
+      *                  *---------------------------------------------*
+           move      4                    to   w-cal-imp-eur-dcv      .
+      *                  *---------------------------------------------*
+      *                  * Importo in comodo di calcolo                *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-wcl    to   w-cal-imp-eur-w4d      .
+      *                  *---------------------------------------------*
+      *                  * Calcolo                                     *
+      *                  *---------------------------------------------*
+           divide    1936,27              into w-cal-imp-eur-w4d
+                                          rounded                     .
+      *                  *---------------------------------------------*
+      *                  * Importo convertito in valore di uscita      *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-w4d    to   w-cal-imp-eur-ime      .
+      *                  *---------------------------------------------*
+      *                  * A trattamento segno                         *
+      *                  *---------------------------------------------*
+           go to     cal-imp-eur-800.
+       cal-imp-eur-300.
+      *              *-------------------------------------------------*
+      *              * Importo originale di 3 cifre o inferiore        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Decimali utilizzati a : 3                   *
+      *                  *---------------------------------------------*
+           move      3                    to   w-cal-imp-eur-dcv      .
+      *                  *---------------------------------------------*
+      *                  * Importo in comodo di calcolo                *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-wcl    to   w-cal-imp-eur-w3d      .
+      *                  *---------------------------------------------*
+      *                  * Calcolo                                     *
+      *                  *---------------------------------------------*
+           divide    1936,27              into w-cal-imp-eur-w3d
+                                          rounded                     .
+      *                  *---------------------------------------------*
+      *                  * Importo convertito in valore di uscita      *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-w3d    to   w-cal-imp-eur-ime      .
+      *                  *---------------------------------------------*
+      *                  * A trattamento segno                         *
+      *                  *---------------------------------------------*
+           go to     cal-imp-eur-800.
+       cal-imp-eur-400.
+      *              *-------------------------------------------------*
+      *              * Importo originale di 4 cifre o superiore        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Decimali utilizzati a : 2                   *
+      *                  *---------------------------------------------*
+           move      2                    to   w-cal-imp-eur-dcv      .
+      *                  *---------------------------------------------*
+      *                  * Importo in comodo di calcolo                *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-wcl    to   w-cal-imp-eur-w2d      .
+      *                  *---------------------------------------------*
+      *                  * Calcolo                                     *
+      *                  *---------------------------------------------*
+           divide    1936,27              into w-cal-imp-eur-w2d
+                                          rounded                     .
+      *                  *---------------------------------------------*
+      *                  * Importo convertito in valore di uscita      *
+      *                  *---------------------------------------------*
+           move      w-cal-imp-eur-w2d    to   w-cal-imp-eur-ime      .
+      *                  *---------------------------------------------*
+      *                  * A trattamento segno                         *
+      *                  *---------------------------------------------*
+           go to     cal-imp-eur-800.
+       cal-imp-eur-800.
+      *              *-------------------------------------------------*
+      *              * Messaggio di errore per importo inferiore al    *
+      *              * centesimo di Euro                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test preliminari                            *
+      *                  *---------------------------------------------*
+           if        w-cal-imp-eur-imi    >    20
+                     go to cal-imp-eur-820.
+           if        w-cal-imp-eur-ime    >    zero
+                     go to cal-imp-eur-820.
+      *                  *---------------------------------------------*
+      *                  * Flag di uscita                              *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-cal-imp-eur-flg      .
+       cal-imp-eur-820.
+      *              *-------------------------------------------------*
+      *              * Aggiustamento del segno                         *
+      *              *-------------------------------------------------*
+           if        w-cal-imp-eur-sgn    =    "-"
+                     multiply -1          by   w-cal-imp-eur-ime      .
+       cal-imp-eur-830.
+      *              *-------------------------------------------------*
+      *              * Spostamento di due decimali virtuali standard   *
+      *              *-------------------------------------------------*
+           multiply  100                  by   w-cal-imp-eur-ime      .
+       cal-imp-eur-830.
+      *              *-------------------------------------------------*
+      *              * Spostamento eventuali decimali virtuali extra   *
+      *              *-------------------------------------------------*
+           if        w-cal-imp-eur-dec    =    zero
+                     go to cal-imp-eur-900.
+           if        w-cal-imp-eur-dec    =    1
+                     multiply  10         by   w-cal-imp-eur-ime
+           else if   w-cal-imp-eur-dec    =    2
+                     multiply  100        by   w-cal-imp-eur-ime
+           else if   w-cal-imp-eur-dec    =    3
+                     multiply  1000       by   w-cal-imp-eur-ime      .
+       cal-imp-eur-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     cal-imp-eur-999.
+       cal-imp-eur-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Conversione generica valuta                               *
+      *    *-----------------------------------------------------------*
+       exe-cnv-val-000.
+      *              *-------------------------------------------------*
+      *              * Il tipo di cambio diventa '*' in tutti i casi   *
+      *              *-------------------------------------------------*
+           move      "*"                  to   w-exe-cnv-val-tdc      .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione della valuta in input    *
+      *              *-------------------------------------------------*
+           if        w-exe-cnv-val-sgl    =    "LIT"
+                     go to exe-cnv-val-100
+           else if   w-exe-cnv-val-sgl    =    "EUR"
+                     go to exe-cnv-val-300
+           else      go to exe-cnv-val-500.
+       exe-cnv-val-100.
+      *              *-------------------------------------------------*
+      *              * Se 'LIT' (ex valuta base)                       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento cambio                        *
+      *                  *---------------------------------------------*
+           move      1936,27              to   w-exe-cnv-val-cdc      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     exe-cnv-val-900.
+       exe-cnv-val-300.
+      *              *-------------------------------------------------*
+      *              * Se 'EUR'                                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Aggiornamento cambio                        *
+      *                  *---------------------------------------------*
+           move      c-cdc                to   w-exe-cnv-val-cdc      .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     exe-cnv-val-900.
+       exe-cnv-val-500.
+      *              *-------------------------------------------------*
+      *              * Se altra valuta                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione indice                      *
+      *                  *---------------------------------------------*
+           set       w-tab-pae-inx        to   1                      .
+      *                  *---------------------------------------------*
+      *                  * Ricerca                                     *
+      *                  *---------------------------------------------*
+           search    w-tab-pae-ele
+                     when    w-tab-pae-cod
+                            (w-tab-pae-inx)
+                                          =    w-exe-cnv-val-sgl
+                     go to exe-cnv-val-600.
+      *                  *---------------------------------------------*
+      *                  * Oltre                                       *
+      *                  *---------------------------------------------*
+           go to     exe-cnv-val-800.
+       exe-cnv-val-600.
+      *                  *---------------------------------------------*
+      *                  * Se paese membro 'Euro'                      *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test su data                            *
+      *                      *-----------------------------------------*
+           if        w-exe-cnv-val-dat    >    0981231
+                     go to exe-cnv-val-700.
+       exe-cnv-val-620.
+      *                      *-----------------------------------------*
+      *                      * Se prima dell'entrata in vigore         *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Determinazione coefficiente         *
+      *                          *-------------------------------------*
+           divide    1936,27              by   w-exe-cnv-val-cdc
+                                        giving w-exe-cnv-val-cdc      .
+      *                          *-------------------------------------*
+      *                          * Uscita                              *
+      *                          *-------------------------------------*
+           go to     exe-cnv-val-900.
+       exe-cnv-val-700.
+      *                      *-----------------------------------------*
+      *                      * Se dopo dell'entrata in vigore          *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Coefficiente fisso                  *
+      *                          *-------------------------------------*
+           move      w-tab-pae-cdc
+                    (w-tab-pae-inx)       to   w-exe-cnv-val-cdc      .
+      *                          *-------------------------------------*
+      *                          * Uscita                              *
+      *                          *-------------------------------------*
+           go to     exe-cnv-val-900.
+       exe-cnv-val-800.
+      *                  *---------------------------------------------*
+      *                  * Se paese extra 'Euro'                       *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Determinazione coefficiente             *
+      *                      *-----------------------------------------*
+           divide    1936,27              by   w-exe-cnv-val-cdc
+                                        giving w-exe-cnv-val-cdc      .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-cnv-val-900.
+       exe-cnv-val-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cnv-val-999.
+       exe-cnv-val-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Conversione generica legame valutario                     *
+      *    *-----------------------------------------------------------*
+       exe-cnv-lgv-000.
+      *              *-------------------------------------------------*
+      *              * Test se da effettuare                           *
+      *              *-------------------------------------------------*
+           if        w-exe-cnv-lgv-sgl    =    spaces
+                     go to exe-cnv-lgv-900.
+       exe-cnv-lgv-100.
+      *              *-------------------------------------------------*
+      *              * Tipo di coefficiente                            *
+      *              *-------------------------------------------------*
+           move      "*"                  to   w-exe-cnv-lgv-tdc      .
+       exe-cnv-lgv-200.
+      *              *-------------------------------------------------*
+      *              * Prezzo di riferimento (rimane quello in valuta) *
+      *              *-------------------------------------------------*
+           move      w-exe-cnv-lgv-prz    to   w-exe-cnv-lgv-prz      .
+       exe-cnv-lgv-300.
+      *              *-------------------------------------------------*
+      *              * Coefficiente di cambio alla data di emissione   *
+      *              *-------------------------------------------------*
+           divide    1936,27              by   w-exe-cnv-lgv-cdc
+                                        giving w-exe-cnv-lgv-cdc      .
+       exe-cnv-lgv-400.
+      *              *-------------------------------------------------*
+      *              * Coefficiente di cambio fissato per il legame    *
+      *              *-------------------------------------------------*
+           divide    1936,27              by   w-exe-cnv-lgv-ccr
+                                        giving w-exe-cnv-lgv-ccr      .
+       exe-cnv-lgv-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-cnv-lgv-999.
+       exe-cnv-lgv-999.
+           exit.
+

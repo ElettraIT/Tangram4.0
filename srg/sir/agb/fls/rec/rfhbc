@@ -1,0 +1,114 @@
+      *    *===========================================================*
+      *    * Record file [hbc] : Archivio di appoggio alle righe [osr] *
+      *    *                     spedizione clienti per raccolta in-   *
+      *    *                     formazioni relative alla rintraccia-  *
+      *    *                     bilita' dei prodotti                  *
+      *    *                                                           *
+      *    *                     Ex 'hox' abbandonato                  *
+      *    *                     Da spostare in sir/cgi ...            *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "PRTPRO    " = rf-hbc-num-prt                    *
+      *    *                         rf-hbc-num-pro                    *
+      *    *                         rf-hbc-num-spl                    *
+      *    *                                                           *
+      *    *          "PRTBNC    " = rf-hbc-num-prt                    *
+      *    *                         rf-hbc-sgl-bnc                    *
+      *    *                         rf-hbc-num-pro                    *
+      *    *                         rf-hbc-num-spl                    *
+      *    *                                                           *
+      *    *          "PROPRT    " = rf-hbc-num-pro                    *
+      *    *                         rf-hbc-num-prt                    *
+      *    *                         rf-hbc-num-spl                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-hbc.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo                                     *
+      *        *                                                       *
+      *        * N.B.: la prima cifra, quella del secolo, e' pari a    *
+      *        *       quella reale del protocollo se si tratta di     *
+      *        *       ordini di spedizione, mentre inizia per '9'     *
+      *        *       se si tratta di carichi 'bfo'                   *
+      *        *                                                       *
+      *        * '12401000001' = Protocollo 'ods'                      *
+      *        *                                                       *
+      *        * '92401000001' = Protocollo 'bfo'                      *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-num-prt             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico prodotto                              *
+      *        *                                                       *
+      *        * N.B.: se il codice prodotto e' a zero, il record      *
+      *        *       contiene il percorso dell'immagine o del docu-  *
+      *        *       mento PDF associato al protocollo               *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-num-pro             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero progressivo split quantita' prodotto o numero  *
+      *        * progressivo documento / immagine                      *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-num-spl             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Quantita' relativa alla sub-riga                      *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-qta-spl             pic s9(10)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Informazioni dedotte da barcode produttore            *
+      *        *                                                       *
+      *        * N.B.: 6 sezioni da 80 caratteri per un totale di 480  *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-dat-bcd occurs 06.
+               10  rf-hbc-sez-bcd         pic  x(80)                  .
+      *        *-------------------------------------------------------*
+      *        * Annotazioni relativa alla sub-riga                    *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-ann-spl.
+               10  filler     occurs 256  pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Percorso immagine eventuale                           *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-pth-img             pic  x(80)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di record cancellato o abbinato ad altro record  *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-flg-del             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero bancale                                        *
+      *        *                                                       *
+      *        * N.B.: campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-num-bnc             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla bancale                                         *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-sgl-bnc             pic  x(20)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo ordine di spedizione                *
+      *        *                                                       *
+      *        * N.B.: solo in caso di 'abbinamento' da BFO            *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-prt-ods             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-hbc-alx-exp.
+               10  filler     occurs 256  pic  x(01)                  .

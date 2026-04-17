@@ -1,0 +1,51 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazione saldo di magazzino         *
+      *    *-----------------------------------------------------------*
+       det-sld-mag-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-sld-mag-tip-ope      .
+           perform   det-sld-mag-cll-000  thru det-sld-mag-cll-999    .
+       det-sld-mag-opn-999.
+           exit.
+
+       det-sld-mag-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-sld-mag-tip-ope      .
+           perform   det-sld-mag-cll-000  thru det-sld-mag-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-sld-mag-tip-ope      .
+           perform   det-sld-mag-cll-000  thru det-sld-mag-cll-999    .
+           if        d-sld-mag-exi-sts    not  = spaces
+                     go to det-sld-mag-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/mag/prg/obj/pmag300y"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-sld-mag-cls-999.
+           exit.
+
+       det-sld-mag-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/mag/prg/obj/pmag300y"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-sld-mag              .
+       det-sld-mag-cll-999.
+           exit.
+

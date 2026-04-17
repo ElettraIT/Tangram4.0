@@ -1,0 +1,54 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione codice Localita' 'geo'     *
+      *    *-----------------------------------------------------------*
+       cod-loc-geo-opn-000.
+           move      "pgm/geo/prg/obj/alocgeo0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-loc-geo-pth      .
+           move      "OP"                 to   w-cod-loc-geo-ope      .
+           perform   cod-loc-geo-cll-000  thru cod-loc-geo-cll-999    .
+       cod-loc-geo-opn-999.
+           exit.
+       cod-loc-geo-cls-000.
+           move      "CL"                 to   w-cod-loc-geo-ope      .
+           perform   cod-loc-geo-cll-000  thru cod-loc-geo-cll-999    .
+           move      "C?"                 to   w-cod-loc-geo-ope      .
+           perform   cod-loc-geo-cll-000  thru cod-loc-geo-cll-999    .
+           if        w-cod-loc-geo-ope    not  = spaces
+                     go to cod-loc-geo-cls-999.
+           cancel    w-cod-loc-geo-pth                                .
+       cod-loc-geo-cls-999.
+           exit.
+       cod-loc-geo-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-loc-geo-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pgeo4000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-loc-geo-foi-999.
+           move      "pgm/geo/prg/obj/pgeo4000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-loc-geo-ope      .
+           go to     cod-loc-geo-foi-999.
+       cod-loc-geo-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-loc-geo-foi-999.
+           move      "F+"                 to   w-cod-loc-geo-ope      .
+           go to     cod-loc-geo-foi-999.
+       cod-loc-geo-foi-999.
+           exit.
+       cod-loc-geo-cll-000.
+           call      w-cod-loc-geo-pth   using w-cod-loc-geo
+                                               v
+                                               s                      .
+       cod-loc-geo-cll-999.
+           exit.
+

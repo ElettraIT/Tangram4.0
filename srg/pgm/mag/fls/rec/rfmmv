@@ -1,0 +1,237 @@
+      *    *===========================================================*
+      *    * Record file [mmv] Saldi valore per gestione fisica del    *
+      *    *                   magazzino                               *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "ESECOD    " = rf-mmv-ann-ese                    *
+      *    *                         rf-mmv-tip-mag                    *
+      *    *                         rf-mmv-num-mag                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-mmv.
+      *        *-------------------------------------------------------*
+      *        * Anno di esercizio : s.aa                              *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-ann-ese             pic  9(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo codice di magazzino                              *
+      *        *                                                       *
+      *        * - 01 : Prodotti di vendita                            *
+      *        * - 02 : Semilavorati                                   *
+      *        * - 03 : Materie prime                                  *
+      *        * - 04 : Materiali vari                                 *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-tip-mag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice numerico magazzino                             *
+      *        *                                                       *
+      *        * - Se prodotto di vendita   : codice su [dcp]          *
+      *        * - Se semilavorato          : codice su [dps]          *
+      *        * - Se materia prima         : codice su [dpm]          *
+      *        * - Se materiale vario       : codice su [mtv]          *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-num-mag             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati per esercizi precedenti                          *
+      *        *                                                       *
+      *        * Nota : Da riporto scheda anno precedente              *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-dat-pre.
+      *            *---------------------------------------------------*
+      *            * 10 esercizi precedenti                            *
+      *            *    - 01 : Ultimo esercizio precedente             *
+      *            *    - 02 : Penultimo esercizio precedente          *
+      *            *    - ..                                           *
+      *            *    - 10 : Decimo esercizio precedente             *
+      *            *---------------------------------------------------*
+               10  rf-mmv-ese-pre occurs 10.
+      *                *-----------------------------------------------*
+      *                * Rimanenza finale dell'esercizio passato       *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-rim-pre     pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Costo medio ponderato finale dell'esercizio   *
+      *                * passato                                       *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-ump-pre     pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Valore normale del bene nell'ultimo trimestre *
+      *                * dell'esercizio passato                        *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-vnb-pre     pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Flag di rivalutazione                         *
+      *                * - Spaces : No                                 *
+      *                * - S      : Si                                 *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-fdr-pre     pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati per inizio esercizio attuale                     *
+      *        *                                                       *
+      *        * Nota : Da riporto scheda anno precedente              *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-dat-ies.
+      *            *---------------------------------------------------*
+      *            * Data costo ultimo ad inizio esercizio             *
+      *            *---------------------------------------------------*
+               10  rf-mmv-dcu-ies         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Costo ultimo ad inizio esercizio                  *
+      *            *---------------------------------------------------*
+               10  rf-mmv-ucu-ies         pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Data costo standard ad inizio esercizio           *
+      *            *---------------------------------------------------*
+               10  rf-mmv-dst-ies         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Costo standard ad inizio esercizio                *
+      *            *---------------------------------------------------*
+               10  rf-mmv-ust-ies         pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Dati globali per esercizio attuale                    *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-dat-gea.
+      *            *---------------------------------------------------*
+      *            * Data costo standard valido per tutto l'esercizio  *
+      *            * attuale in mancanza di costi standard specifici   *
+      *            * mensili                                           *
+      *            *---------------------------------------------------*
+               10  rf-mmv-dst-gea         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Costo standard valido per tutto l'esercizio attu- *
+      *            * ale in mancanza di costi standard specifici men-  *
+      *            * sili                                              *
+      *            *---------------------------------------------------*
+               10  rf-mmv-ust-gea         pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Valore normale del bene nell'ultimo trimestre     *
+      *            * dell'esercizio attuale                            *
+      *            *---------------------------------------------------*
+               10  rf-mmv-vnb-gea         pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Flag di rivalutazione dell'esercizio attuale      *
+      *            * - Spaces : No                                     *
+      *            * - S      : Si                                     *
+      *            *---------------------------------------------------*
+               10  rf-mmv-fdr-gea         pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Dati mensili esercizio attuale                        *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-dat-mns.
+      *            *---------------------------------------------------*
+      *            * 12 mesi esercizio attuale                         *
+      *            *---------------------------------------------------*
+               10  rf-mmv-mes-mns occurs 12.
+      *                *-----------------------------------------------*
+      *                * Progressivo quantita' in attesa di valorizza- *
+      *                * zione nel mese                                *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-qav-mns     pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Progressivo quantita' da valorizzare al costo *
+      *                * standard nel mese                             *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-qcs-mns     pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Progressivo quantita' valorizzata nel mese    *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-qtv-mns     pic s9(08)v9(03) sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Progressivo valore relativo alla quantita'    *
+      *                * valorizzata nel mese                          *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-vlv-mns     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Progressivo costi aggiuntivi nel mese         *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-pca-mns     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Progressivo rettifiche a costi nel mese       *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-prc-mns     pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Data costo ultimo del mese                    *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-dcu-mns     pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Costo ultimo del mese                         *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-ucu-mns     pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *                *-----------------------------------------------*
+      *                * Data costo standard del mese                  *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-dst-mns     pic  9(07)                  .
+      *                *-----------------------------------------------*
+      *                * Costo standard del mese                       *
+      *                *-----------------------------------------------*
+                   15  rf-mmv-ust-mns     pic  9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Dati chiusura esercizio attuale                       *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-dat-che.
+      *            *---------------------------------------------------*
+      *            * Progressivo costi aggiuntivi di chiusura eserci-  *
+      *            * zio                                               *
+      *            *---------------------------------------------------*
+               10  rf-mmv-pca-che         pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *            *---------------------------------------------------*
+      *            * Progressivo rettifiche a costi di chiusura eser-  *
+      *            * cizio                                             *
+      *            *---------------------------------------------------*
+               10  rf-mmv-prc-che         pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-mmv-alx-exp.
+               10  filler     occurs 19   pic  x(01)                  .

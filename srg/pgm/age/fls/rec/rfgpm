@@ -1,0 +1,115 @@
+      *    *===========================================================*
+      *    * Record file [gpm] : Maturazioni su conteggi provvigionali *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMMTZ    " = rf-gpm-num-mtz                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-gpm-ide-dat                    *
+      *    *                         rf-gpm-num-mtz                    *
+      *    *                                                           *
+      *    *          "CTGMTZ    " = rf-gpm-num-ctg                    *
+      *    *                         rf-gpm-num-mtz                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-gpm.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero maturazione                                    *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-num-mtz             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero conteggio provvigionale di riferimento         *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-num-ctg             pic  9(09)                  .
+      *        *-------------------------------------------------------*
+      *        * Data di riferimento per la maturazione                *
+      *        *                                                       *
+      *        * N.B.: Questo valore non puo' mai mancare, in quanto   *
+      *        *       costituisce la data su cui vengono parzializ-   *
+      *        *       zate tutte le elaborazioni sull'archivio.       *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-dat-mtz             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di maturazione                                   *
+      *        *                                                       *
+      *        *  - 01 : Maturazione immediata di provvigione          *
+      *        *  - 02 : Maturazione a fronte incasso di provvigione   *
+      *        *  - 51 : Storno di provvigione                         *
+      *        *                                                       *
+      *        * In caso di conteggio a fronte di una nota di accredi- *
+      *        * to il tipo di maturazione e' sempre immediato.        *
+      *        *                                                       *
+      *        * Note sul tipo maturazione 51, di storno:              *
+      *        *                                                       *
+      *        *  - Non e' mai generato automaticamente, bensi' puo'   *
+      *        *    solo essere impostato manualmente.                 *
+      *        *                                                       *
+      *        *  - Non deve essere confuso con una maturazione imme-  *
+      *        *    diata di tipo positivo a fronte di una nota di     *
+      *        *    accredito, che costituisce una detrazione. Infat-  *
+      *        *    ti il tipo maturazione di storno puo' riferirsi    *
+      *        *    sia ad un conteggio positivo sia ad un conteggio   *
+      *        *    negativo. In entrambi i casi non modifica l'im-    *
+      *        *    porto maturato totale per l'agente, bensi' serve   *
+      *        *    solo per chiudere il conteggio.                    *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-tip-mtz             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Importo incassato, che fa' scattare la maturazione    *
+      *        * proporzionalmente all'importo totale del documento    *
+      *        * cui si riferisce il conteggio, eventualmente aumen-   *
+      *        * tato di eventuali acconti fatturati                   *
+      *        *                                                       *
+      *        * N.B.: Solo se tipo di maturazione 02                  *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-imp-inc             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo di provvigione maturato                       *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-imp-mtz             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Annotazioni sulla maturazione                         *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-not-mtz             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-gpm-flg-blo.
+                   15  rf-gpm-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-gpm-flg-nbl.
+                   15  rf-gpm-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-gpm-alx-exp.
+               10  filler    occurs 40    pic  x(01)                  .

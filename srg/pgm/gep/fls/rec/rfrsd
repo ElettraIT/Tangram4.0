@@ -1,0 +1,236 @@
+      *    *===========================================================*
+      *    * Record file [rsd] Riscossioni scadenze debitori           *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMRSD    " = rf-rsd-num-rsd                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-rsd-ide-dat                    *
+      *    *                         rf-rsd-num-rsd                    *
+      *    *                                                           *
+      *    *          "DBTRSD    " = rf-rsd-tip-dbt                    *
+      *    *                         rf-rsd-cod-dbt                    *
+      *    *                         rf-rsd-num-rsd                    *
+      *    *                                                           *
+      *    *          "UORRSD    " = rf-rsd-num-uor                    *
+      *    *                         rf-rsd-num-rsd                    *
+      *    *                                                           *
+      *    *          "CBPUOR    " = rf-rsd-cbp-rsd                    *
+      *    *                         rf-rsd-num-uor                    *
+      *    *                         rf-rsd-num-rsd                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-rsd.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di riscossione           *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-dtr-rsd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di riscossione                          *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-drc-rsd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di riscossione                          *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-npc-rsd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero riscossione : s.aa.nnnnnnnn                    *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-num-rsd             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di riscossione                              *
+      *        *                                                       *
+      *        * - 01 : Riscossione per Contanti                       *
+      *        * - 02 : Riscossione con Assegno                        *
+      *        * - 03 : Riscossione per Bonifico bancario              *
+      *        * - 04 : Riscossione per C/C postale                    *
+      *        * - 05 : Riscossione f/RID   ___ DA IMPLEMENTARE        *
+      *        *                                                       *
+      *        * - 21 : Pagamento per Contanti                         *
+      *        * - 22 : Pagamento con Assegno                          *
+      *        * - 23 : Pagamento per Bonifico bancario                *
+      *        * - 24 : Pagamento per C/C postale                      *
+      *        * - 50 : Compensazione scadenze                         *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-mod-rsd             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di riscossione                                   *
+      *        *                                                       *
+      *        * - 01 : A fronte scadenze, normale                     *
+      *        * - 02 : Anticipo su scadenze future                    *
+      *        *                                                       *
+      *        * N.B. : Solo se modalita' di riscossione :             *
+      *        *        - 01 : Riscossione per Contanti                *
+      *        *        - 02 : Riscossione con Assegno                 *
+      *        *        - 03 : Riscossione per Bonifico bancario       *
+      *        *        - 04 : Riscossione per C/C postale             *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-tip-rsd             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo valuta per la riscossione                        *
+      *        *                                                       *
+      *        * - 01 : Riscossione in valuta base                     *
+      *        * - 02 : Riscossione in valuta diversa da quella base   *
+      *        *                                                       *
+      *        * N.B. : Campo attualmente non gestito, e forzato al    *
+      *        *        valore 01                                      *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-tvl-rsd             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo debitore                                         *
+      *        *                                                       *
+      *        * - 01 : Cliente                                        *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-tip-dbt             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice debitore                                       *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-cod-dbt             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza del debitore                        *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-dpz-dbt             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra cassa per la RISCOSSIONE se per contan- *
+      *        * ti o per assegno, oppure codice nostra banca per la   *
+      *        * riscossione se tramite bonifico bancario, oppure co-  *
+      *        * dice nostro conto corrente postale se tramite conto   *
+      *        * corrente postale                                      *
+      *        *                                                       *
+      *        * Codice nostra cassa per il PAGAMENTO se per contanti  *
+      *        * oppure codice nostra banca per il pagamento se per    *
+      *        * assegno o per bonifico bancario, oppure codice nostro *
+      *        * conto corrente postale se tramite c.c.p.              *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-cbp-rsd             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla valuta per la riscossione                       *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la valuta della riscossione       *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-dec-vlt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di cambio : '/' o '*'                            *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-tdc-vlt             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Coefficiente di cambio per la valuta alla data della  *
+      *        * riscossione                                           *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-cdc-rsd             pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Importo riscossione, in valuta                        *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-iiv-rsd             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo riscossione                                   *
+      *        *                                                       *
+      *        * N.B. : Relativo sia a scadenze in valuta base, che    *
+      *        *        non.                                           *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-imp-rsd             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca per la riscos-   *
+      *        * sione in caso di modalita' di riscossione pari a :    *
+      *        * - 03 : Bonifico bancario                              *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Importo spese addebitate dalla posta per la riscos-   *
+      *        * sione in caso di modalita' di riscossione pari a :    *
+      *        * - 04 : Bonifico postale                               *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-spe-rsd             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data documento per la riscossione                     *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-ddo-rsd             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento per la riscossione                   *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-ndo-rsd             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero scadenza generata a fronte della riscossione   *
+      *        *                                                       *
+      *        * N.B. : Solo se tipo riscossione :                     *
+      *        *        - 02 : Anticipo su scadenze future             *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-nsc-rsd             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero ulteriore operazione post-riscossione, nel     *
+      *        * formato : s.aa.nnnnnnnn                               *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-num-uor             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 1                        *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-fcs-uno             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 2                        *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-fcs-due             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 3                        *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-fcs-tre             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-rsd-flg-blo.
+                   15  rf-rsd-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-rsd-flg-nbl.
+                   15  rf-rsd-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra banca in cui e' stato versato l'assegno *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-cbp-ass             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI istituto di credito di emissione assegno   *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-abi-ass             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice CAB sportello di emissione assegno             *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-cab-ass             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-rsd-alx-exp.
+               10  filler    occurs 20    pic  x(01)                  .

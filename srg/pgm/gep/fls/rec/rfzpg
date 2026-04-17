@@ -1,0 +1,168 @@
+      *    *===========================================================*
+      *    * Record tabella codici di pagamento [zpg]                  *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODPAG    " = rf-zpg-cod-pag                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-zpg-ide-dat                    *
+      *    *                         rf-zpg-cod-pag                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-zpg-des-key                    *
+      *    *                         rf-zpg-cod-pag                    *
+      *    *                                                           *
+      *    *          "CODMNE    " = rf-zpg-cod-mne                    *
+      *    *                         rf-zpg-cod-pag                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zpg.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice pagamento                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-cod-pag             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice mnemonico                                      *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-cod-mne             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione in uppercase                              *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-des-key             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione pagamento                                 *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-des-pag             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di pagamento                                     *
+      *        *                                                       *
+      *        * - 01 : Rimessa diretta                                *
+      *        * - 02 : Incasso elettronico                            *
+      *        * - 03 : Ri.Ba.                                         *
+      *        * - 04 : C.d.O. (Collateralized debt obligation)        *
+      *        * - 05 : Mav - Mediante avviso                          *
+      *        * - 06 : Rid - Accredito preautorizzato in conto        *
+      *        * - 07 : Bonifico bancario                              *
+      *        * - 08 : Conto corrente postale                         *
+      *        * - 09 : Ricevuta bancaria tradizionale                 *
+      *        * - 10 : Tratta                                         *
+      *        * - 11 : Paghero'                                       *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-tip-pag             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero di scadenze : 01..96                           *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-num-sca             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Decorrenza della prima scadenza                       *
+      *        *                                                       *
+      *        * - 01 : Manuale                                        *
+      *        * - 02 : Ad una data prefissata (gg/mm)                 *
+      *        * - 03 : A vista                                        *
+      *        * - 04 : A  15 giorni                                   *
+      *        * - 05 : A  30 giorni                                   *
+      *        * - 06 : A  45 giorni                                   *
+      *        * - 07 : A  60 giorni                                   *
+      *        * - 08 : A  90 giorni                                   *
+      *        * - 09 : A 120 giorni                                   *
+      *        * - 10 : A 150 giorni                                   *
+      *        * - 11 : A 180 giorni                                   *
+      *        * - 12 : A 'n' giorni                                   *
+      *        *                                                       *
+      *        * N.B. : I valori 01, 02, 03, sono ammessi solo se il   *
+      *        *        numero scadenze e' pari a 1                    *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-dec-prs             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data prefissata, mese, solo se decorrenza prima sca-  *
+      *        * denza pari a 02                                       *
+      *        *                                                       *
+      *        * N.B. : Se decorrenza prima scadenza a 'n' giorni, il  *
+      *        *        mese ed il giorno prefissato contengono il nr. *
+      *        *        di giorni (1..999)                             *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-dap-mes             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Data prefissata, giorno, solo se decorrenza prima     *
+      *        * scadenza pari a 02                                    *
+      *        *                                                       *
+      *        * N.B. : Se decorrenza prima scadenza a 'n' giorni, il  *
+      *        *        mese ed il giorno prefissato contengono il nr. *
+      *        *        di giorni (1..999)                             *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-dap-gio             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Giorni di intervallo tra due scadenze                 *
+      *        *                                                       *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Di 30 giorni in 30 giorni                      *
+      *        * - 02 : Di 15 giorni in 15 giorni                      *
+      *        * - 11 : Di 'nn' giorni ___ da implementare ___         *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-ggg-int             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di scadenza nel mese                             *
+      *        *                                                       *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Giorno di decorrenza                           *
+      *        * - 02 : Fine mese                                      *
+      *        * - 03 : Giorno fisso nel mese                          *
+      *        * - 04 : Giorno fisso nel mese successivo a fine mese   *
+      *        *                                                       *
+      *        * N.B. : Non significativo se la decorrenza per la pri- *
+      *        *        ma scadenza ha il valore 01, 02, 03.           *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-tip-scm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Giorno di scadenza nel mese                           *
+      *        *                                                       *
+      *        * - 00     : non significativo                          *
+      *        * - 01..28 : solo se tipo scadenza nel mese 03          *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-gio-scm             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di pagamento - tabella per Sdi              *
+      *        *                                                       *
+      *        * 'MP01' : Contanti                                     *
+      *        * 'MP02' : Assegno                                      *
+      *        * 'MP03' : Assegno Circolare                            *
+      *        * 'MP04' : Contanti presso Tesoreria                    *
+      *        * 'MP05' : Bonifico                                     *
+      *        * 'MP06' : Vaglia cambiario                             *
+      *        * 'MP07' : Bollettino bancario                          *
+      *        * 'MP08' : carta di pagamento                           *
+      *        * 'MP09' : RID		                             *				
+      *        * 'MP10' : RID utenze	                             *
+      *        * 'MP11' : RID veloce			               *
+      *        * 'MP12' : RIBA				               *
+      *        * 'MP13' : MAV				               *
+      *        * 'MP14' : quietanza erario			        *
+      *        * 'MP15' : giroconto su conti di contabilita' sp.       *
+      *        * 'MP16' : domiciliazione bancaria		        *
+      *        * 'MP17' : domiciliazione postale			        *
+      *        * 'MP18' : bollettino di c/c postale		        *
+      *        * 'MP19' : SEPA Direct Debit			        *
+      *        * 'MP20' : SEPA Direct Debit CORE			        *
+      *        * 'MP21' : SEPA Direct Debit B2B			        *
+      *        * 'MP22' : Trattenuta su somme gia' riscosse	        *
+      *        *                                                       *
+      *        * DA IMPLEMENTARE: Attenzione a alx-exp                 *
+      *        * O  IN ALTERNATIVA USARE IL MNEMONICO                  *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+______*    05  rf-zpg-mdp-sdi             pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zpg-alx-exp.
+               10  filler     occurs 98   pic  x(01)                  .

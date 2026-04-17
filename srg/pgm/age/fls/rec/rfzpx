@@ -1,0 +1,113 @@
+      *    *===========================================================*
+      *    * Record tabella provvigioni incrociate [zpx]               *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "UNODUE    " = rf-zpx-tip-inc                    *
+      *    *                         rf-zpx-cod-uno                    *
+      *    *                         rf-zpx-cod-due                    *
+      *    *                                                           *
+      *    *          "DUEUNO    " = rf-zpx-tip-inc                    *
+      *    *                         rf-zpx-cod-due                    *
+      *    *                         rf-zpx-cod-uno                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-zpx.
+      *        *-------------------------------------------------------*
+      *        * Tipo di incrocio                                      *
+      *        * - 01 : Incrocio tra                                   *
+      *        *        - Categorie provvigione agenti                 *
+      *        *        - Categorie provvigione prodotti               *
+      *        * - 02 : Incrocio tra                                   *
+      *        *        - Categorie provvigione agenti                 *
+      *        *        - Categorie provvigione clienti                *
+      *        * - 03 : Incrocio tra                                   *
+      *        *        - Categorie provvigione clienti                *
+      *        *        - Categorie provvigione prodotti               *
+      *        *-------------------------------------------------------*
+           05  rf-zpx-tip-inc             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * 1. codice per l'incrocio                              *
+      *        * - Se tipo incrocio 01 : cod. cat provv. agente        *
+      *        * - Se tipo incrocio 02 : cod. cat provv. agente        *
+      *        * - Se tipo incrocio 03 : cod. cat provv. cliente       *
+      *        *-------------------------------------------------------*
+           05  rf-zpx-cod-uno             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * 2. codice per l'incrocio                              *
+      *        * - Se tipo incrocio 01 : cod. cat provv. prodotto      *
+      *        * - Se tipo incrocio 02 : cod. cat provv. cliente       *
+      *        * - Se tipo incrocio 03 : cod. cat provv. prodotto      *
+      *        *-------------------------------------------------------*
+           05  rf-zpx-cod-due             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Scaletta % di provvigioni in funzione delle fascie di *
+      *        * sconto, per l'incrocio                                *
+      *        *                                                       *
+      *        * Per vendite effettuate direttamente dall'agente       *
+      *        *-------------------------------------------------------*
+           05  rf-zpx-spd-scl occurs 06.
+      *            *---------------------------------------------------*
+      *            * A partire dallo sconto del ...                    *
+      *            *                                                   *
+      *            * Nota : Le percentuali 4. e 5. sono forzate comun- *
+      *            *        que a zero                                 *
+      *            *---------------------------------------------------*
+               10  rf-zpx-spd-sco occurs 05
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * % di sconto unica, interna, calcolata in base al- *
+      *            * le cinque percentuali di sconto espresse visiva-  *
+      *            * mente                                             *
+      *            *---------------------------------------------------*
+               10  rf-zpx-spd-scu         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * La % di provvigione del ...                       *
+      *            *                                                   *
+      *            * Nota : Le percentuali 2. e 3. sono forzate comun- *
+      *            *        que a zero                                 *
+      *            *---------------------------------------------------*
+               10  rf-zpx-spd-pvg occurs 03
+                                          pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Trattamento provvigioni indirette                     *
+      *        *  - 01 : Uguali alle provvigioni dirette               *
+      *        *  - 02 : Diverse dalle provvigioni dirette             *
+      *        *-------------------------------------------------------*
+           05  rf-zpx-trt-pvi             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Scaletta % di provvigioni in funzione delle fascie di *
+      *        * sconto, per l'incrocio                                *
+      *        *                                                       *
+      *        * Per vendite effettuate indirettamente dall'agente     *
+      *        *                                                       *
+      *        * Nota : Se le provvigioni indirette sono uguali alle   *
+      *        *        provvigioni dirette, questa scaletta sara'     *
+      *        *        tutta a zero                                   *
+      *        *-------------------------------------------------------*
+           05  rf-zpx-spi-scl occurs 06.
+      *            *---------------------------------------------------*
+      *            * A partire dallo sconto del ...                    *
+      *            *                                                   *
+      *            * Nota : Le percentuali 4. e 5. sono forzate comun- *
+      *            *        que a zero                                 *
+      *            *---------------------------------------------------*
+               10  rf-zpx-spi-sco occurs 05
+                                          pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * % di sconto unica, interna, calcolata in base al- *
+      *            * le cinque percentuali di sconto espresse visiva-  *
+      *            * mente                                             *
+      *            *---------------------------------------------------*
+               10  rf-zpx-spi-scu         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * La % di provvigione del ...                       *
+      *            *                                                   *
+      *            * Nota : Le percentuali 2. e 3. sono forzate comun- *
+      *            *        que a zero                                 *
+      *            *---------------------------------------------------*
+               10  rf-zpx-spi-pvg occurs 03
+                                          pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-zpx-alx-exp             pic  x(40)                  .

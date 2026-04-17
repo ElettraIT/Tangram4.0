@@ -1,0 +1,43 @@
+      *    *===========================================================*
+      *    * Subroutines per richiamo modulo per la determinazione     *
+      *    * della voce 'Fatturato' sulle statistiche di vendita sul   *
+      *    * fatturato da Testata Documenti                            *
+      *    *-----------------------------------------------------------*
+       mod-fat-fit-opn-000.
+           move      "pgm/svf/prg/obj/mfatfit0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-mod-fat-fit-pth      .
+           move      "OP"                 to   w-mod-fat-fit-ope      .
+           perform   mod-fat-fit-cll-000  thru mod-fat-fit-cll-999    .
+       mod-fat-fit-opn-999.
+           exit.
+       mod-fat-fit-cls-000.
+           move      "CL"                 to   w-mod-fat-fit-ope      .
+           perform   mod-fat-fit-cll-000  thru mod-fat-fit-cll-999    .
+           cancel    w-mod-fat-fit-pth                                .
+       mod-fat-fit-cls-999.
+           exit.
+       mod-fat-fit-gts-000.
+           move      "GS"                 to   w-mod-fat-fit-ope      .
+           perform   mod-fat-fit-cll-000  thru mod-fat-fit-cll-999    .
+       mod-fat-fit-gts-999.
+           exit.
+       mod-fat-fit-get-000.
+           move      "GT"                 to   w-mod-fat-fit-ope      .
+           perform   mod-fat-fit-cll-000  thru mod-fat-fit-cll-999    .
+       mod-fat-fit-get-999.
+           exit.
+       mod-fat-fit-dvf-000.
+           move      "VF"                 to   w-mod-fat-fit-ope      .
+           perform   mod-fat-fit-cll-000  thru mod-fat-fit-cll-999    .
+       mod-fat-fit-dvf-999.
+           exit.
+       mod-fat-fit-cll-000.
+           call      w-mod-fat-fit-pth   using w-mod-fat-fit
+                                               rf-fit
+                                               rf-fir                 .
+       mod-fat-fit-cll-999.
+           exit.
+

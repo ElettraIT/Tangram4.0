@@ -1,0 +1,400 @@
+      *    *===========================================================*
+      *    * Record file [sfp] Pagamenti scadenze fornitori            *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "NUMPGF    " = rf-sfp-num-pgf                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-sfp-ide-dat                    *
+      *    *                         rf-sfp-num-pgf                    *
+      *    *                                                           *
+      *    *          "FNTPGF    " = rf-sfp-cod-fnt                    *
+      *    *                         rf-sfp-num-pgf                    *
+      *    *                                                           *
+      *    *          "ADPPGF    " = rf-sfp-num-adp                    *
+      *    *                         rf-sfp-num-pgf                    *
+      *    *                                                           *
+      *    *          "CBPADP    " = rf-sfp-cbp-pgf                    *
+      *    *                         rf-sfp-num-adp                    *
+      *    *                         rf-sfp-num-pgf                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-sfp.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di pagamento             *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-dtr-pgf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Data registrazione movimento di contabilita' a fronte *
+      *        * del movimento di pagamento                            *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-drc-pgf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero protocollo movimento di contabilita' a fronte  *
+      *        * del movimento di pagamento                            *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-npc-pgf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero pagamento : s.aa.nnnnnnnn                      *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-num-pgf             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Modalita' di pagamento                                *
+      *        *                                                       *
+      *        * - 01 : Per Contanti                                   *
+      *        * - 02 : Con Assegno                                    *
+      *        * - 03 : Contro Addebito in c/c Bancario                *
+      *        * - 04 : Per C/C postale                                *
+      *        *                                                       *
+      *        * - 05 : Compensazione scadenze                         *
+      *        *                                                       *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        * - 14 : Bollettino in c/c postale                      *
+      *        * - 15 : Incarico a Banca su Avviso di Scadenza         *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-mod-pgf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo valuta per il pagamento                          *
+      *        * - 01 : Pagamento in valuta base                       *
+      *        * - 02 : Pagamento in valuta diversa da quella base     *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-tvl-pgf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice fornitore                                      *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-cod-fnt             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice dipendenza del fornitore                       *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-dpz-fnt             pic  x(04)                  .
+      *        *-------------------------------------------------------*
+      *        * Inoltro pagamento al fornitore                        *
+      *        * - 01 : alla sede                                      *
+      *        * - 02 : alla sede legale                               *
+      *        * - 03 : alla dipendenza                                *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-inl-pgf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice nostra cassa per pagamento in caso di modali-  *
+      *        * ta' di pagamento pari a :                             *
+      *        * - 01 : Per Contanti                                   *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Codice nostra banca per pagamento in caso di modali-  *
+      *        * ta' di pagamento pari a :                             *
+      *        * - 02 : Con Assegno                                    *
+      *        * - 03 : Contro Addebito in c/c Bancario                *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        * - 14 : Bollettino in c/c postale                      *
+      *        * - 15 : Incarico a Banca su Avviso di Scadenza         *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Codice nostro c/c postale per pagamento in caso di    *
+      *        * modalita' di pagamento pari a :                       *
+      *        * - 04 : Per C/C postale                                *
+      *        * - 14 : Bollettino in c/c postale                      *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-cbp-pgf             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di pagamento richiesto                           *
+      *        * - 00 : Non significativo                              *
+      *        * - 01 : Contro addebito nel c/c bancario o postale     *
+      *        * - 02 : Contro versamento in cassa                     *
+      *        *                                                       *
+      *        * N.B.: Significativo solo in caso di modalita' di pa-  *
+      *        *       gamento pari a :                                *
+      *        *       - 13 : Ordine di Bonifico Bancario              *
+      *        *       - 14 : Bollettino in c/c postale                *
+      *        *       - 15 : Incarico a Banca su Avviso di Scadenza   *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-tip-pgf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice ABI banca fornitore per pagamento in caso di   *
+      *        * modalita' di pagamento pari a :                       *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        * e tipo valuta per il pagamento e' :                   *
+      *        * - 01 : Pagamento in valuta base                       *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-abi-pgf             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice CAB banca fornitore per pagamento in caso di   *
+      *        * modalita' di pagamento pari a :                       *
+      *        *                                                       *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        *                                                       *
+      *        * e tipo valuta per il pagamento e' :                   *
+      *        *                                                       *
+      *        * - 01 : Pagamento in valuta base                       *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-cab-pgf             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice banca estera fornitore per pagamento in caso   *
+      *        * di modalita' di pagamento pari a :                    *
+      *        *                                                       *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        *                                                       *
+      *        * e tipo valuta per il pagamento e' :                   *
+      *        *                                                       *
+      *        * - 02 : Pagamento in valuta diversa da quella base     *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-bef-pgf             pic  9(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Conto corrente bancario fornitore per pagamento in    *
+      *        * caso di modalita' di pagamento pari a :               *
+      *        *                                                       *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        *                                                       *
+      *        * e tipo valuta per il pagamento e' :                   *
+      *        *                                                       *
+      *        * - 01 : Pagamento in valuta base                       *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Conto corrente postale fornitore per pagamento in ca- *
+      *        * so di modalita' di pagamento pari a :                 *
+      *        *                                                       *
+      *        * - 14 : Bollettino in c/c postale                      *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-ccc-pgf             pic  x(12)                  .
+      *        *-------------------------------------------------------*
+      *        * Sigla valuta per il pagamento                         *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-sgl-vlt             pic  x(03)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero decimali per la valuta del pagamento           *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-dec-vlt             pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo di cambio : '/' o '*'                            *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-tdc-vlt             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Coefficiente di cambio per la valuta alla data del    *
+      *        * pagamento                                             *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito, in quanto i pa-  *
+      *        *       menti di scadenze con valuta diversa da quella  *
+      *        *       base vengono attualmente gestiti con il tipo    *
+      *        *       operazione 'Richiesta di Pagamento su Estero',  *
+      *        *       che non prevede in questa fase alcuna registra- *
+      *        *       zione contabile                                 *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-cdc-pgf             pic  9(06)v9(05)            .
+      *        *-------------------------------------------------------*
+      *        * Importo pagamento, in valuta                          *
+      *        *                                                       *
+      *        * N.B.: Campo attualmente non gestito, in quanto i pa-  *
+      *        *       menti di scadenze con valuta diversa da quella  *
+      *        *       base vengono attualmente gestiti con il tipo    *
+      *        *       operazione 'Richiesta di Pagamento su Estero',  *
+      *        *       che non prevede in questa fase alcuna registra- *
+      *        *       zione contabile                                 *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-iiv-pgf             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo pagamento                                     *
+      *        *                                                       *
+      *        * N.B. : Relativo sia a scadenze in valuta base, che    *
+      *        *        non.                                           *
+      *        *                                                       *
+      *        * N.B. : Rappresenta la somma degli importi scadenze    *
+      *        *        coinvolti nel pagamento, eventualmente modifi- *
+      *        *        cato per sconti o abbuoni.                     *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-imp-pgf             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Importo spese addebitate dalla banca per il pagamento *
+      *        * in caso di modalita' di pagamento pari a :            *
+      *        * - 03 : Contro Addebito in c/c Bancario                *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Importo spese addebitate dalla Posta per il pagamento *
+      *        * in caso di modalita' di pagamento pari a :            *
+      *        * - 04 : Per C/C postale                                *
+      *        *                                                       *
+      *        * oppure                                                *
+      *        *                                                       *
+      *        * Importo spese sostenute in caso di pagamento per con- *
+      *        * tanti presso banca o posta                            *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-spe-pgf             pic s9(11)       sign is
+                                                           trailing
+                                                           separate
+                                                           character  .
+      *        *-------------------------------------------------------*
+      *        * Data documento per il pagamento                       *
+      *        *                                                       *
+      *        * Solamente per modalita' di pagamento pari a :         *
+      *        * - 01 : Per Contanti                                   *
+      *        * - 02 : Con Assegno                                    *
+      *        * - 03 : Contro Addebito in c/c Bancario                *
+      *        * - 04 : Per C/C postale                                *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-ddo-pgf             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero documento per il pagamento                     *
+      *        *                                                       *
+      *        * Solamente per modalita' di pagamento pari a :         *
+      *        * - 01 : Per Contanti                                   *
+      *        * - 02 : Con Assegno                                    *
+      *        * - 03 : Contro Addebito in c/c Bancario                *
+      *        * - 04 : Per C/C postale                                *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-ndo-pgf             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Data valuta fissa per il beneficiario                 *
+      *        *                                                       *
+      *        * Solamente per modalita' di pagamento pari a :         *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-dvf-bfc             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale acconto/saldo per il pagamento                *
+      *        * - 00 : non significativo, ovvero a saldo              *
+      *        * - 01 : a  saldo                                       *
+      *        * - 02 : in conto                                       *
+      *        *                                                       *
+      *        * N.B. : Questo segnale ha valore globale, in quanto e' *
+      *        *        relativo a tutte le scadenze coinvolte nel pa- *
+      *        *        gamento.                                       *
+      *        *                                                       *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-aos-pgf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Segnale di si/no registrazione nuova scadenza per il  *
+      *        * residuo da pagare, solo se il segnale acconto/saldo   *
+      *        * per il pagamento indica 'in conto'                    *
+      *        * - 01 : Si                                             *
+      *        * - 02 : No                                             *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-rns-pgf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero nuova scadenza per la differenza tra l'importo *
+      *        * della scadenza e l'importo pagato : s.aa.nnnnnnnn     *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-nns-pgf             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Tipo nuova scadenza a fronte del movimento di paga-   *
+      *        * mento                                                 *
+      *        *                                                       *
+      *        * N.B.: In caso di 'Richiesta di pagamento su Estero'   *
+      *        *       questo campo viene forzato al valore 07         *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-tns-pgf             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Numero operazione di addebito, se scadenza addebita-  *
+      *        * ta, nel formato : s.aa.nnnnnnnn                       *
+      *        *                                                       *
+      *        * Solamente per modalita' di pagamento pari a :         *
+      *        *                                                       *
+      *        * - 13 : Ordine di Bonifico Bancario                    *
+      *        * - 14 : Bollettino in c/c postale                      *
+      *        * - 15 : Incarico a Banca su Avviso di Scadenza         *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-num-adp             pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 1                        *
+      *        *                                                       *
+      *        * Assume un valore diverso a seconda della modalita' di *
+      *        * pagamento :                                           *
+      *        *                                                       *
+      *        * - 01 Contanti           : Non significativo           *
+      *        * - 02 Assegno            : Flag di stampa assegno      *
+      *        * - 03 Contro Addebito in : Non significativo           *
+      *        *            c/c Bancario                               *
+      *        * - 04 Per C/C postale    : Non significativo           *
+      *        * - 13 Ordine di Bonifico : Flag di stampa lettera per  *
+      *        *                Bancario   ordine di bonifico a banca  *
+      *        * - 14 Bollettino in c/c  : Flag di stampa bollettino   *
+      *        *                postale                                *
+      *        * - 15 Incarico su Avviso : Flag di stampa lettera per  *
+      *        *                           ordine di pagamento avviso  *
+      *        *                           a banca                     *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-fcs-uno             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 2                        *
+      *        *                                                       *
+      *        * Assume un valore diverso a seconda della modalita' di *
+      *        * pagamento :                                           *
+      *        *                                                       *
+      *        * - 01 Contanti           : Non significativo           *
+      *        * - 02 Assegno            : Non significativo           *
+      *        * - 03 Contro Addebito in : Non significativo           *
+      *        *            c/c Bancario                               *
+      *        * - 04 Per C/C postale    : Non significativo           *
+      *        * - 13 Ordine di Bonifico : Non significativo           *
+      *        * - 14 Bollettino in c/c  : Non significativo           *
+      *        *                postale                                *
+      *        * - 15 Incarico su Avviso : Non significativo           *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-fcs-due             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag/contatore di stampa nr. 3                        *
+      *        *                                                       *
+      *        * Assume un valore diverso a seconda della modalita' di *
+      *        * pagamento :                                           *
+      *        *                                                       *
+      *        * - 01 Contanti           : Non significativo           *
+      *        * - 02 Assegno            : Flag di stampa lettera di   *
+      *        *                           accompagnamento assegno per *
+      *        *                           il fornitore                *
+      *        * - 03 Contro Addebito in : Non significativo           *
+      *        *            c/c Bancario                               *
+      *        * - 04 Per C/C postale    : Non significativo           *
+      *        * - 13 Ordine di Bonifico : Flag di stampa lettera di   *
+      *        *                           avvenuto ordine di bonifico *
+      *        *                           a banca per fornitore       *
+      *        * - 14 Bollettino in c/c  : Flag di stampa lettera di   *
+      *        *                postale    avvenuto ordine di bonifico *
+      *        *                           postale per fornitore       *
+      *        * - 15 Incarico su Avviso : Non significativo           *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-fcs-tre             pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Flags di elaborazione                                 *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-flg-ela.
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione bloccanti                   *
+      *            *---------------------------------------------------*
+               10  rf-sfp-flg-blo.
+                   15  rf-sfp-flg-blx occurs 07
+                                          pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Flags di elaborazione non bloccanti               *
+      *            *---------------------------------------------------*
+               10  rf-sfp-flg-nbl.
+                   15  rf-sfp-flg-nbx occurs 03
+                                          pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Flag di sottoponibilita' a pulizia                    *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-flg-pul             pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-sfp-alx-exp.
+               10  filler    occurs 13    pic  x(01)                  .

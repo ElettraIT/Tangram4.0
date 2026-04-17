@@ -1,0 +1,64 @@
+      *    *===========================================================*
+      *    * Routine di lettura archivio [zac]                         *
+      *    *-----------------------------------------------------------*
+       let-arc-zac-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zac-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codici nulli                            *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zac-tip    =    zero or
+                     w-let-arc-zac-cod    =    zero
+                     go to let-arc-zac-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODAOC    "         to   f-key                  .
+           move      w-let-arc-zac-tip    to   rf-zac-tip-rec         .
+           move      w-let-arc-zac-cod    to   rf-zac-cod-aoc         .
+           move      "pgm/fat/fls/ioc/obj/iofzac"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zac                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zac-400.
+       let-arc-zac-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zac-des-aoc       to   w-let-arc-zac-des      .
+           move      rf-zac-cod-iva       to   w-let-arc-zac-civ      .
+           move      rf-zac-cod-ctp       to   w-let-arc-zac-ccp      .
+           move      rf-zac-tip-tot       to   w-let-arc-zac-tot      .
+      *
+           if        rf-zac-tip-tot       not  numeric
+                     move  zero           to   w-let-arc-zac-tot      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zac-999.
+       let-arc-zac-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zac-flg      .
+           move      spaces               to   w-let-arc-zac-des      .
+           move      all   "."            to   w-let-arc-zac-drg (1)  .
+           go to     let-arc-zac-600.
+       let-arc-zac-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zac-des      .
+       let-arc-zac-600.
+           move      zero                 to   w-let-arc-zac-civ      .
+           move      zero                 to   w-let-arc-zac-ccp      .
+           move      zero                 to   w-let-arc-zac-tot      .
+       let-arc-zac-999.
+           exit.
+

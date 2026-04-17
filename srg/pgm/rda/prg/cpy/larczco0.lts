@@ -1,0 +1,56 @@
+      *    *===========================================================*
+      *    * Routine lettura tabella [zco]                             *
+      *    *-----------------------------------------------------------*
+       let-arc-zco-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zco-flg      .
+      *              *-------------------------------------------------*
+      *              * Test se codice a zero                           *
+      *              *-------------------------------------------------*
+           if        w-let-arc-zco-cod    =    zero
+                     go to let-arc-zco-500.
+      *              *-------------------------------------------------*
+      *              * Lettura per codice                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODTCB    "         to   f-key                  .
+           move      w-let-arc-zco-cod    to   rf-zco-cod-tcb         .
+           move      "pgm/rda/fls/ioc/obj/iofzco"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zco                 .
+           if        f-sts                not  = e-not-err
+                     go to let-arc-zco-400.
+       let-arc-zco-200.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-zco-des-tcb       to   w-let-arc-zco-des      .
+           move      rf-zco-cod-mne       to   w-let-arc-zco-mne      .
+           move      rf-zco-per-tcb       to   w-let-arc-zco-per      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-zco-999.
+       let-arc-zco-400.
+      *              *-------------------------------------------------*
+      *              * Azioni per record non trovato                   *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-let-arc-zco-flg      .
+           move      all   "."            to   w-let-arc-zco-des      .
+           go to     let-arc-zco-600.
+       let-arc-zco-500.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione work area                       *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-zco-des      .
+       let-arc-zco-600.
+           move      spaces               to   w-let-arc-zco-mne      .
+           move      zero                 to   w-let-arc-zco-per      .
+       let-arc-zco-999.
+           exit.
+

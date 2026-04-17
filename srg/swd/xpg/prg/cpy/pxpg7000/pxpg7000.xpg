@@ -1,0 +1,3034 @@
+      *    *===========================================================*
+      *    * Area [xpg] Ultimo aggiornamento: 20/02/26                 *
+      *    *===========================================================*
+
+      *    *===========================================================*
+      *    * Esportazione [cat]                                        *
+      *    *-----------------------------------------------------------*
+       exe-exp-cat-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione file area generica                 *
+      *              *-------------------------------------------------*
+           move      "xpg "               to   f-xxx-are              .
+           move      "cat "               to   f-xxx-nam              .
+           move      "std_xpg_cat"        to   f-xxx-npe              .
+      *              *-------------------------------------------------*
+      *              * Richiesta di conferma, se manuale               *
+      *              *-------------------------------------------------*
+           perform   ric-cnf-man-000      thru ric-cnf-man-999        .
+      *              *-------------------------------------------------*
+      *              * Se non confermato : ad uscita                   *
+      *              *-------------------------------------------------*
+           if        f-xxx-sts            not  = "S"
+                     go to exe-exp-cat-999.
+      *              *-------------------------------------------------*
+      *              * Eventuali forzature se esecuzione batch         *
+      *              *-------------------------------------------------*
+           if        w-exe-flg-btc        =    "S"
+                     go to exe-exp-cat-010.
+      *              *-------------------------------------------------*
+      *              * Messaggio di programma in esecuzione            *
+      *              *-------------------------------------------------*
+           move      "PE"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       exe-exp-cat-010.
+      *              *-------------------------------------------------*
+      *              * Numero records letti e scritti a zero           *
+      *              *-------------------------------------------------*
+           move      zero                 to   f-xxx-nrl              .
+           move      zero                 to   f-xxx-nrs              .
+       exe-exp-cat-020.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Apertura file personalizzazioni             *
+      *                  *---------------------------------------------*
+           perform   opn-enc-000          thru opn-enc-999            .
+      *                  *---------------------------------------------*
+      *                  * Open generica file sequenziale di output    *
+      *                  *---------------------------------------------*
+           perform   opn-seq-out-000      thru opn-seq-out-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se errori                              *
+      *                  *---------------------------------------------*
+           if        g-sts                =    e-not-err
+                     go to exe-exp-cat-100.
+      *                  *---------------------------------------------*
+      *                  * Se errori                                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore sull'input          *
+      *                      *-----------------------------------------*
+           perform   msg-inp-err-000      thru msg-inp-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-exp-cat-999.
+       exe-exp-cat-100.
+      *              *-------------------------------------------------*
+      *              * Start su [enc]                                  *
+      *              *-------------------------------------------------*
+           move      "enc "               to   enc-tre                .
+           move      spaces               to   enc-cod                .
+           move      zero                 to   enc-prg                .
+           start     enc   key not less
+                           enc-rck
+                           invalid key
+                           go to exe-exp-cat-800.
+       exe-exp-cat-200.
+      *              *-------------------------------------------------*
+      *              * Read next su [enc]                              *
+      *              *-------------------------------------------------*
+           read      enc   next
+                           with no lock
+                           at end
+                           go to exe-exp-cat-800.
+       exe-exp-cat-300.
+      *              *-------------------------------------------------*
+      *              * Text max                                        *
+      *              *-------------------------------------------------*
+           if        enc-tre              not  = "enc "
+                     go to exe-exp-cat-800.
+       exe-exp-cat-400.
+      *              *-------------------------------------------------*
+      *              * Sel su [enc]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-cat-500.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records letti                 *
+      *              *-------------------------------------------------*
+           perform   inc-rec-let-000      thru inc-rec-let-999        .
+           if        w-exe-flg-brk        not  = spaces
+                     go to exe-exp-cat-800.
+       exe-exp-cat-550.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare record sequenziale          *
+      *              *-------------------------------------------------*
+           move      spaces               to   g-rec                  .
+       exe-exp-cat-600.
+      *              *-------------------------------------------------*
+      *              * Composizione record in output                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-str-out          .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "iA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice                                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      enc-cod              to   w-scr-str-ele          .
+           move      04                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Ultimo codice utilizzato                    *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      enc-num              to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      13                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "Nf"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-cat-690.
+      *              *-------------------------------------------------*
+      *              * Composizione carattere di fine record           *
+      *              *-------------------------------------------------*
+           move      "fr"                 to   w-scr-str-tip          .
+           move      w-scr-fso-cfr        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-cat-700.
+      *              *-------------------------------------------------*
+      *              * Scrittura record in output                      *
+      *              *-------------------------------------------------*
+           move      w-out-str-out        to   g-rec                  .
+           perform   put-nxt-out-000      thru put-nxt-out-999        .
+       exe-exp-cat-720.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records scritti               *
+      *              *-------------------------------------------------*
+           perform   inc-rec-scr-000      thru inc-rec-scr-999        .
+       exe-exp-cat-750.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [cat]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-cat-200.
+       exe-exp-cat-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * Chiusura file personalizzazioni             *
+      *                  *---------------------------------------------*
+           perform   cls-enc-000          thru cls-enc-999            .
+       exe-exp-cat-850.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione nr records letti e scritti      *
+      *              *-------------------------------------------------*
+           perform   vis-rec-let-000      thru vis-rec-let-999        .
+           perform   vis-rec-scr-000      thru vis-rec-scr-999        .
+      *              *-------------------------------------------------*
+      *              * Accettazione presa visione                      *
+      *              *-------------------------------------------------*
+           perform   acc-pre-vis-000      thru acc-pre-vis-999        .
+       exe-exp-cat-900.
+      *              *-------------------------------------------------*
+      *              * Scrittura rullino messaggi                      *
+      *              *-------------------------------------------------*
+           perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
+       exe-exp-cat-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [prs]                                        *
+      *    *-----------------------------------------------------------*
+       exe-exp-prs-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione file area generica                 *
+      *              *-------------------------------------------------*
+           move      "xpg "               to   f-xxx-are              .
+           move      "prs "               to   f-xxx-nam              .
+           move      "std_xpg_prs"        to   f-xxx-npe              .
+      *              *-------------------------------------------------*
+      *              * Richiesta di conferma, se manuale               *
+      *              *-------------------------------------------------*
+           perform   ric-cnf-man-000      thru ric-cnf-man-999        .
+      *              *-------------------------------------------------*
+      *              * Se non confermato : ad uscita                   *
+      *              *-------------------------------------------------*
+           if        f-xxx-sts            not  = "S"
+                     go to exe-exp-prs-999.
+      *              *-------------------------------------------------*
+      *              * Eventuali forzature se esecuzione batch         *
+      *              *-------------------------------------------------*
+           if        w-exe-flg-btc        =    "S"
+                     go to exe-exp-prs-010.
+      *              *-------------------------------------------------*
+      *              * Messaggio di programma in esecuzione            *
+      *              *-------------------------------------------------*
+           move      "PE"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       exe-exp-prs-010.
+      *              *-------------------------------------------------*
+      *              * Numero records letti e scritti a zero           *
+      *              *-------------------------------------------------*
+           move      zero                 to   f-xxx-nrl              .
+           move      zero                 to   f-xxx-nrs              .
+       exe-exp-prs-020.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Apertura file personalizzazioni             *
+      *                  *---------------------------------------------*
+           perform   opn-prs-000          thru opn-prs-999            .
+      *                  *---------------------------------------------*
+      *                  * Open generica file sequenziale di output    *
+      *                  *---------------------------------------------*
+           perform   opn-seq-out-000      thru opn-seq-out-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se errori                              *
+      *                  *---------------------------------------------*
+           if        g-sts                =    e-not-err
+                     go to exe-exp-prs-100.
+      *                  *---------------------------------------------*
+      *                  * Se errori                                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore sull'input          *
+      *                      *-----------------------------------------*
+           perform   msg-inp-err-000      thru msg-inp-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-exp-prs-999.
+       exe-exp-prs-100.
+      *              *-------------------------------------------------*
+      *              * Start su [prs]                                  *
+      *              *-------------------------------------------------*
+           move      "prs "               to   prs-tre                .
+           move      spaces               to   prs-cod                .
+           move      zero                 to   prs-prg                .
+           start     prs   key not less
+                           prs-rck
+                           invalid key
+                           go to exe-exp-prs-800.
+       exe-exp-prs-200.
+      *              *-------------------------------------------------*
+      *              * Read next su [auc]                              *
+      *              *-------------------------------------------------*
+           read      prs    next
+                            with no lock
+                            at end
+                            go to exe-exp-prs-800.
+       exe-exp-prs-300.
+      *              *-------------------------------------------------*
+      *              * Text max                                        *
+      *              *-------------------------------------------------*
+           if        prs-tre              not  = "prs "
+                     go to exe-exp-prs-800.
+       exe-exp-prs-400.
+      *              *-------------------------------------------------*
+      *              * Sel su [prs]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Eliminazione personalizzazioni obsolete     *
+      *                  * ___ DA AGGIORNARE ___                       *
+      *                  *---------------------------------------------*
+           if        prs-cod              =     "pgm/abi[snx]" or
+                                                "pgm/bol[snx]" or
+                                                "pgm/cdp[snx]" or
+                                                "pgm/dcc[snx]" or
+                                                "pgm/dcp[snx]" or
+                                                "pgm/dtp[snx]" or
+                                                "pgm/vdp[snx]" or
+                                                "pgm/cdp[snx]"
+                     go to exe-exp-prs-200.
+           
+      *                  *---------------------------------------------*
+      *                  * Lettura personalizzazione                   *
+      *                  *---------------------------------------------*
+           move      "P:"                 to   s-ope                  .
+           move      prs-cod              to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Test su valori letti                        *
+      *                  *---------------------------------------------*
+           if        s-ves                not  = spaces
+                     go to exe-exp-prs-200.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione tipo personalizzazione      *
+      *                  *---------------------------------------------*
+           move      s-tip                to   w-exe-per-tip          .
+           move      spaces               to   w-exe-per-val          .
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del tipo personaliz- *
+      *                  * zazione                                     *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-exe-per-val          .
+           if        s-tip                =    "A"
+                     perform  exe-exp-prs-alf-000
+                                          thru exe-exp-prs-alf-999
+           else if   s-tip                =    "D"
+                     perform  exe-exp-prs-dat-000
+                                          thru exe-exp-prs-dat-999
+           else if   s-tip                =    "N"
+                     perform  exe-exp-prs-num-000
+                                          thru exe-exp-prs-num-999    .
+       exe-exp-prs-500.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records letti                 *
+      *              *-------------------------------------------------*
+           perform   inc-rec-let-000      thru inc-rec-let-999        .
+           if        w-exe-flg-brk        not  = spaces
+                     go to exe-exp-prs-800.
+       exe-exp-prs-550.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare record sequenziale          *
+      *              *-------------------------------------------------*
+           move      spaces               to   g-rec                  .
+       exe-exp-prs-600.
+      *              *-------------------------------------------------*
+      *              * Composizione record in output                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-str-out          .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "iA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice                                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      prs-cod              to   w-scr-str-ele          .
+           move      40                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo                                        *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-per-tip        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valore alfanumerico                         *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-per-val        to   w-scr-str-ele          .
+           move      80                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "Af"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-prs-690.
+      *              *-------------------------------------------------*
+      *              * Composizione carattere di fine record           *
+      *              *-------------------------------------------------*
+           move      "fr"                 to   w-scr-str-tip          .
+           move      w-scr-fso-cfr        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-prs-700.
+      *              *-------------------------------------------------*
+      *              * Scrittura record in output                      *
+      *              *-------------------------------------------------*
+           move      w-out-str-out        to   g-rec                  .
+           perform   put-nxt-out-000      thru put-nxt-out-999        .
+       exe-exp-prs-720.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records scritti               *
+      *              *-------------------------------------------------*
+           perform   inc-rec-scr-000      thru inc-rec-scr-999        .
+       exe-exp-prs-750.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [prs]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prs-200.
+       exe-exp-prs-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * Chiusura file personalizzazioni             *
+      *                  *---------------------------------------------*
+           perform   cls-prs-000          thru cls-prs-999            .
+       exe-exp-prs-850.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione nr records letti e scritti      *
+      *              *-------------------------------------------------*
+           perform   vis-rec-let-000      thru vis-rec-let-999        .
+           perform   vis-rec-scr-000      thru vis-rec-scr-999        .
+      *              *-------------------------------------------------*
+      *              * Accettazione presa visione                      *
+      *              *-------------------------------------------------*
+           perform   acc-pre-vis-000      thru acc-pre-vis-999        .
+       exe-exp-prs-900.
+      *              *-------------------------------------------------*
+      *              * Scrittura rullino messaggi                      *
+      *              *-------------------------------------------------*
+           perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
+       exe-exp-prs-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [prs]                                        *
+      *    *                                                           *
+      *    * Personalizzazione alfanumerica                            *
+      *    *-----------------------------------------------------------*
+       exe-exp-prs-alf-000.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valore                          *
+      *              *-------------------------------------------------*
+           move      s-alf                to   w-exe-per-val          .
+       exe-exp-prs-alf-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prs-alf-999.
+       exe-exp-prs-alf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [prs]                                        *
+      *    *                                                           *
+      *    * Personalizzazione numerica                                *
+      *    *-----------------------------------------------------------*
+       exe-exp-prs-num-000.
+      *              *-------------------------------------------------*
+      *              * Editing valore numerico                         *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "<B"                 to   v-edm                  .
+           move      s-num                to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valore                          *
+      *              *-------------------------------------------------*
+           move      v-edt                to   w-exe-per-val          .
+       exe-exp-prs-num-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prs-num-999.
+       exe-exp-prs-num-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [prs]                                        *
+      *    *                                                           *
+      *    * Personalizzazione data                                    *
+      *    *-----------------------------------------------------------*
+       exe-exp-prs-dat-000.
+      *              *-------------------------------------------------*
+      *              * Editing data                                    *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      s-dat                to   v-dat                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valore                          *
+      *              *-------------------------------------------------*
+           move      v-edt                to   w-exe-per-val          .
+       exe-exp-prs-dat-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prs-dat-999.
+       exe-exp-prs-dat-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [ref]                                        *
+      *    *-----------------------------------------------------------*
+       exe-exp-ref-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione file area generica                 *
+      *              *-------------------------------------------------*
+           move      "xpg "               to   f-xxx-are              .
+           move      "ref "               to   f-xxx-nam              .
+           move      "std_xpg_ref"        to   f-xxx-npe              .
+      *              *-------------------------------------------------*
+      *              * Richiesta di conferma, se manuale               *
+      *              *-------------------------------------------------*
+           perform   ric-cnf-man-000      thru ric-cnf-man-999        .
+      *              *-------------------------------------------------*
+      *              * Se non confermato : ad uscita                   *
+      *              *-------------------------------------------------*
+           if        f-xxx-sts            not  = "S"
+                     go to exe-exp-ref-999.
+      *              *-------------------------------------------------*
+      *              * Eventuali forzature se esecuzione batch         *
+      *              *-------------------------------------------------*
+           if        w-exe-flg-btc        =    "S"
+                     go to exe-exp-ref-010.
+      *              *-------------------------------------------------*
+      *              * Messaggio di programma in esecuzione            *
+      *              *-------------------------------------------------*
+           move      "PE"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       exe-exp-ref-010.
+      *              *-------------------------------------------------*
+      *              * Numero records letti e scritti a zero           *
+      *              *-------------------------------------------------*
+           move      zero                 to   f-xxx-nrl              .
+           move      zero                 to   f-xxx-nrs              .
+       exe-exp-ref-020.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Apertura file personalizzazioni             *
+      *                  *---------------------------------------------*
+           perform   opn-ref-000          thru opn-ref-999            .
+      *                  *---------------------------------------------*
+      *                  * Open generica file sequenziale di output    *
+      *                  *---------------------------------------------*
+           perform   opn-seq-out-000      thru opn-seq-out-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se errori                              *
+      *                  *---------------------------------------------*
+           if        g-sts                =    e-not-err
+                     go to exe-exp-ref-100.
+      *                  *---------------------------------------------*
+      *                  * Se errori                                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore sull'input          *
+      *                      *-----------------------------------------*
+           perform   msg-inp-err-000      thru msg-inp-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-exp-ref-999.
+       exe-exp-ref-100.
+      *              *-------------------------------------------------*
+      *              * Start su [ref]                                  *
+      *              *-------------------------------------------------*
+           move      "ref "               to   ref-tre                .
+           move      spaces               to   ref-cod                .
+           move      zero                 to   ref-prg                .
+           start     ref   key not less
+                           ref-rck
+                           invalid key
+                           go to exe-exp-ref-800.
+       exe-exp-ref-200.
+      *              *-------------------------------------------------*
+      *              * Read next su [auc]                              *
+      *              *-------------------------------------------------*
+           read      ref    next
+                            with no lock
+                            at end
+                            go to exe-exp-ref-800.
+       exe-exp-ref-300.
+      *              *-------------------------------------------------*
+      *              * Text max                                        *
+      *              *-------------------------------------------------*
+           if        ref-tre              not  = "ref "
+                     go to exe-exp-ref-800.
+       exe-exp-ref-400.
+      *              *-------------------------------------------------*
+      *              * Sel su [ref]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Lettura referenza                           *
+      *                  *---------------------------------------------*
+           move      "R:"                 to   s-ope                  .
+           move      ref-cod              to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Test su valori letti                        *
+      *                  *---------------------------------------------*
+           if        s-ves                not  = spaces
+                     go to exe-exp-ref-200.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione tipo personalizzazione      *
+      *                  *---------------------------------------------*
+           move      s-tip                to   w-exe-per-tip          .
+           move      spaces               to   w-exe-per-val          .
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del tipo referenza   *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-exe-per-val          .
+           if        s-tip                =    "A"
+                     perform  exe-exp-ref-alf-000
+                                          thru exe-exp-ref-alf-999
+           else if   s-tip                =    "D"
+                     perform  exe-exp-ref-dat-000
+                                          thru exe-exp-ref-dat-999
+           else if   s-tip                =    "N"
+                     perform  exe-exp-ref-num-000
+                                          thru exe-exp-ref-num-999    .
+       exe-exp-ref-500.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records letti                 *
+      *              *-------------------------------------------------*
+           perform   inc-rec-let-000      thru inc-rec-let-999        .
+           if        w-exe-flg-brk        not  = spaces
+                     go to exe-exp-ref-800.
+       exe-exp-ref-550.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare record sequenziale          *
+      *              *-------------------------------------------------*
+           move      spaces               to   g-rec                  .
+       exe-exp-ref-600.
+      *              *-------------------------------------------------*
+      *              * Composizione record in output                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-str-out          .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "iA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice                                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      ref-cod              to   w-scr-str-ele          .
+           move      40                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Progressivo                                 *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      03                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      ref-prg              to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo                                        *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-per-tip        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Valore alfanumerico                         *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-per-val        to   w-scr-str-ele          .
+           move      80                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "Af"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-ref-690.
+      *              *-------------------------------------------------*
+      *              * Composizione carattere di fine record           *
+      *              *-------------------------------------------------*
+           move      "fr"                 to   w-scr-str-tip          .
+           move      w-scr-fso-cfr        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-ref-700.
+      *              *-------------------------------------------------*
+      *              * Scrittura record in output                      *
+      *              *-------------------------------------------------*
+           move      w-out-str-out        to   g-rec                  .
+           perform   put-nxt-out-000      thru put-nxt-out-999        .
+       exe-exp-ref-720.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records scritti               *
+      *              *-------------------------------------------------*
+           perform   inc-rec-scr-000      thru inc-rec-scr-999        .
+       exe-exp-ref-750.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [ref]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ref-200.
+       exe-exp-ref-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * Chiusura file personalizzazioni             *
+      *                  *---------------------------------------------*
+           perform   cls-ref-000          thru cls-ref-999            .
+       exe-exp-ref-850.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione nr records letti e scritti      *
+      *              *-------------------------------------------------*
+           perform   vis-rec-let-000      thru vis-rec-let-999        .
+           perform   vis-rec-scr-000      thru vis-rec-scr-999        .
+      *              *-------------------------------------------------*
+      *              * Accettazione presa visione                      *
+      *              *-------------------------------------------------*
+           perform   acc-pre-vis-000      thru acc-pre-vis-999        .
+       exe-exp-ref-900.
+      *              *-------------------------------------------------*
+      *              * Scrittura rullino messaggi                      *
+      *              *-------------------------------------------------*
+           perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
+       exe-exp-ref-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [ref]                                        *
+      *    *                                                           *
+      *    * Personalizzazione alfanumerica                            *
+      *    *-----------------------------------------------------------*
+       exe-exp-ref-alf-000.
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valore                          *
+      *              *-------------------------------------------------*
+           move      s-alf                to   w-exe-per-val          .
+       exe-exp-ref-alf-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ref-alf-999.
+       exe-exp-ref-alf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [ref]                                        *
+      *    *                                                           *
+      *    * Personalizzazione numerica                                *
+      *    *-----------------------------------------------------------*
+       exe-exp-ref-num-000.
+      *              *-------------------------------------------------*
+      *              * Editing valore numerico                         *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      13                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "<B"                 to   v-edm                  .
+           move      s-num                to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valore                          *
+      *              *-------------------------------------------------*
+           move      v-edt                to   w-exe-per-val          .
+       exe-exp-ref-num-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ref-num-999.
+       exe-exp-ref-num-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [ref]                                        *
+      *    *                                                           *
+      *    * Personalizzazione data                                    *
+      *    *-----------------------------------------------------------*
+       exe-exp-ref-dat-000.
+      *              *-------------------------------------------------*
+      *              * Editing data                                    *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      s-dat                to   v-dat                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valore                          *
+      *              *-------------------------------------------------*
+           move      v-edt                to   w-exe-per-val          .
+       exe-exp-ref-dat-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ref-dat-999.
+       exe-exp-ref-dat-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione file area generica                 *
+      *              *-------------------------------------------------*
+           move      "xpg "               to   f-xxx-are              .
+           move      "num "               to   f-xxx-nam              .
+           move      "std_xpg_num"        to   f-xxx-npe              .
+      *              *-------------------------------------------------*
+      *              * Richiesta di conferma, se manuale               *
+      *              *-------------------------------------------------*
+           perform   ric-cnf-man-000      thru ric-cnf-man-999        .
+      *              *-------------------------------------------------*
+      *              * Se non confermato : ad uscita                   *
+      *              *-------------------------------------------------*
+           if        f-xxx-sts            not  = "S"
+                     go to exe-exp-num-999.
+      *              *-------------------------------------------------*
+      *              * Eventuali forzature se esecuzione batch         *
+      *              *-------------------------------------------------*
+           if        w-exe-flg-btc        =    "S"
+                     go to exe-exp-num-010.
+      *              *-------------------------------------------------*
+      *              * Messaggio di programma in esecuzione            *
+      *              *-------------------------------------------------*
+           move      "PE"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       exe-exp-num-010.
+      *              *-------------------------------------------------*
+      *              * Numero records letti e scritti a zero           *
+      *              *-------------------------------------------------*
+           move      zero                 to   f-xxx-nrl              .
+           move      zero                 to   f-xxx-nrs              .
+       exe-exp-num-020.
+      *              *-------------------------------------------------*
+      *              * Open files                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * [num]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *                  *---------------------------------------------*
+      *                  * Open generica file sequenziale di output    *
+      *                  *---------------------------------------------*
+           perform   opn-seq-out-000      thru opn-seq-out-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se errori                              *
+      *                  *---------------------------------------------*
+           if        g-sts                =    e-not-err
+                     go to exe-exp-num-100.
+      *                  *---------------------------------------------*
+      *                  * Se errori                                   *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Messaggio di errore sull'input          *
+      *                      *-----------------------------------------*
+           perform   msg-inp-err-000      thru msg-inp-err-999        .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     exe-exp-num-999.
+       exe-exp-num-100.
+      *              *-------------------------------------------------*
+      *              * Start su file [num]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "NUMKEY    "         to   f-key                  .
+           move      spaces               to   rf-num-key-fix         .
+           move      spaces               to   rf-num-key-var         .
+           move      zero                 to   rf-num-key-cnf         .
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-num-800.
+       exe-exp-num-200.
+      *              *-------------------------------------------------*
+      *              * Next su [num]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-num-800.
+       exe-exp-num-300.
+      *              *-------------------------------------------------*
+      *              * Max su [num]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-num-400.
+      *              *-------------------------------------------------*
+      *              * Sel su [num]                                    *
+      *              *-------------------------------------------------*
+       exe-exp-num-500.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records letti                 *
+      *              *-------------------------------------------------*
+           perform   inc-rec-let-000      thru inc-rec-let-999        .
+           if        w-exe-flg-brk        not  = spaces
+                     go to exe-exp-num-800.
+       exe-exp-num-550.
+      *              *-------------------------------------------------*
+      *              * Pulizia preliminare record sequenziale          *
+      *              *-------------------------------------------------*
+           move      spaces               to   g-rec                  .
+       exe-exp-num-600.
+      *              *-------------------------------------------------*
+      *              * Composizione record in output                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione della numerazione    *
+      *                  *---------------------------------------------*
+           if        rf-num-key-fix       =    "bfoprt  "
+                     perform exe-exp-bfo-prt-000
+                                          thru exe-exp-bfo-prt-999
+           else if   rf-num-key-fix       =    "ffoprt  "
+                     perform exe-exp-ffo-prt-000
+                                          thru exe-exp-ffo-prt-999
+           else if   rf-num-key-fix       =    "bciprt  "
+                     perform exe-exp-bol-prt-000
+                                          thru exe-exp-bol-prt-999
+           else if   rf-num-key-fix       =    "bcindo  "
+                     perform exe-exp-bol-ndo-000
+                                          thru exe-exp-bol-ndo-999
+           else if   rf-num-key-fix       =    "cdpprt  "
+                     perform exe-exp-cdp-prt-000
+                                          thru exe-exp-cdp-prt-999
+           else if   rf-num-key-fix       =    "cdpndo  "
+                     perform exe-exp-cdp-ndo-000
+                                          thru exe-exp-cdp-ndo-999
+           else if   rf-num-key-fix       =    "datbil  "
+                     perform exe-exp-dat-bil-000
+                                          thru exe-exp-dat-bil-999
+           else if   rf-num-key-fix       =    "dtrcge  "
+                     perform exe-exp-dtr-cge-000
+                                          thru exe-exp-dtr-cge-999
+           else if   rf-num-key-fix       =    "giocon  "
+                     perform exe-exp-gio-con-000
+                                          thru exe-exp-gio-con-999
+           else if   rf-num-key-fix       =    "givacq  "
+                     perform exe-exp-giv-acq-000
+                                          thru exe-exp-giv-acq-999
+           else if   rf-num-key-fix       =    "givcor  "
+                     perform exe-exp-giv-cor-000
+                                          thru exe-exp-giv-cor-999
+           else if   rf-num-key-fix       =    "givven  "
+                     perform exe-exp-giv-ven-000
+                                          thru exe-exp-giv-ven-999
+           else if   rf-num-key-fix       =    "mpuprt  "
+                     perform exe-exp-mpu-prt-000
+                                          thru exe-exp-mpu-prt-999
+           else if   rf-num-key-fix       =    "parcli  "
+                     perform exe-exp-par-cli-000
+                                          thru exe-exp-par-cli-999
+           else if   rf-num-key-fix       =    "parfnt  "
+                     perform exe-exp-par-fnt-000
+                                          thru exe-exp-par-fnt-999
+           else if   rf-num-key-fix       =    "pargen  "
+                     perform exe-exp-par-gen-000
+                                          thru exe-exp-par-gen-999
+           else if   rf-num-key-fix       =    "prtcge  "
+                     perform exe-exp-prt-cge-000
+                                          thru exe-exp-prt-cge-999
+           else if   rf-num-key-fix       =    "prtivf  "
+                     perform exe-exp-prt-ivf-000
+                                          thru exe-exp-prt-ivf-999
+           else if   rf-num-key-fix       =    "datife  "
+                     perform exe-exp-dat-ife-000
+                                          thru exe-exp-dat-ife-999
+           else if   rf-num-key-fix       =    "datinv  "
+                     perform exe-exp-dat-inv-000
+                                          thru exe-exp-dat-inv-999
+           else if   rf-num-key-fix       =    "duccmc  "
+                     perform exe-exp-duc-cmc-000
+                                          thru exe-exp-duc-cmc-999
+           else if   rf-num-key-fix       =    "prtmag  "
+                     perform exe-exp-prt-mag-000
+                                          thru exe-exp-prt-mag-999
+           else if   rf-num-key-fix       =    "ftilfd  "
+                     perform exe-exp-fat-lfd-000
+                                          thru exe-exp-fat-lfd-999
+           else if   rf-num-key-fix       =    "ftiprt  "
+                     perform exe-exp-fat-prt-000
+                                          thru exe-exp-fat-prt-999
+           else if   rf-num-key-fix       =    "ftindo  "
+                     perform exe-exp-fat-ndo-000
+                                          thru exe-exp-fat-ndo-999
+           else if   rf-num-key-fix       =    "givaic  "
+                     perform exe-exp-giv-aic-000
+                                          thru exe-exp-giv-aic-999
+           else if   rf-num-key-fix       =    "numiic  "
+                     perform exe-exp-num-iic-000
+                                          thru exe-exp-num-iic-999
+           else if   rf-num-key-fix       =    "numgpc  "
+                     perform exe-exp-num-gpc-000
+                                          thru exe-exp-num-gpc-999
+           else if   rf-num-key-fix       =    "numgpm  "
+                     perform exe-exp-num-gpm-000
+                                          thru exe-exp-num-gpm-999
+           else if   rf-num-key-fix       =    "orcprt  "
+                     perform exe-exp-orc-prt-000
+                                          thru exe-exp-orc-prt-999
+           else if   rf-num-key-fix       =    "orcndo  "
+                     perform exe-exp-orc-ndo-000
+                                          thru exe-exp-orc-ndo-999
+           else if   rf-num-key-fix       =    "orfprt  "
+                     perform exe-exp-orf-prt-000
+                                          thru exe-exp-orf-prt-999
+           else if   rf-num-key-fix       =    "orcndo  "
+                     perform exe-exp-orf-ndo-000
+                                          thru exe-exp-orf-ndo-999
+           else if   rf-num-key-fix       =    "odsprt  "
+                     perform exe-exp-ods-prt-000
+                                          thru exe-exp-ods-prt-999
+           else if   rf-num-key-fix       =    "lotslc  "
+                     perform exe-exp-lot-slc-000
+                                          thru exe-exp-lot-slc-999
+           else if   rf-num-key-fix       =    "numddp  "
+                     perform exe-exp-num-ddp-000
+                                          thru exe-exp-num-ddp-999
+           else if   rf-num-key-fix       =    "numddx  "
+                     perform exe-exp-num-ddx-000
+                                          thru exe-exp-num-ddx-999
+           else if   rf-num-key-fix       =    "numrsd  "
+                     perform exe-exp-num-rsd-000
+                                          thru exe-exp-num-rsd-999
+           else if   rf-num-key-fix       =    "numsdb  "
+                     perform exe-exp-num-sdb-000
+                                          thru exe-exp-num-sdb-999
+           else if   rf-num-key-fix       =    "sfanum  "
+                     perform exe-exp-num-sfa-000
+                                          thru exe-exp-num-sfa-999
+           else if   rf-num-key-fix       =    "sffnum  "
+                     perform exe-exp-num-sff-000
+                                          thru exe-exp-num-sff-999
+           else if   rf-num-key-fix       =    "sfonum  "
+                     perform exe-exp-num-sfo-000
+                                          thru exe-exp-num-sfo-999
+           else if   rf-num-key-fix       =    "sfsnum  "
+                     perform exe-exp-num-sfs-000
+                                          thru exe-exp-num-sfs-999
+           else if   rf-num-key-fix       =    "rdaprt  "
+                     perform exe-exp-prt-rda-000
+                                          thru exe-exp-prt-rda-999
+           else if   rf-num-key-fix       =    "vdpprt  "
+                     perform exe-exp-vdp-prt-000
+                                          thru exe-exp-vdp-prt-999
+           else if   rf-num-key-fix       =    "vdpndo  "
+                     perform exe-exp-vdp-ndo-000
+                                          thru exe-exp-vdp-ndo-999
+______*    else if   rf-num-key-fix       =    "numdst  "
+______*              perform exe-exp-num-dst-000
+______*                                   thru exe-exp-num-dst-999
+           else      go to exe-exp-num-200.
+       exe-exp-num-690.
+      *              *-------------------------------------------------*
+      *              * Composizione carattere di fine record           *
+      *              *-------------------------------------------------*
+           move      "fr"                 to   w-scr-str-tip          .
+           move      w-scr-fso-cfr        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-num-700.
+      *              *-------------------------------------------------*
+      *              * Scrittura record in output                      *
+      *              *-------------------------------------------------*
+           move      w-out-str-out        to   g-rec                  .
+           perform   put-nxt-out-000      thru put-nxt-out-999        .
+       exe-exp-num-720.
+      *              *-------------------------------------------------*
+      *              * Incremento numero records scritti               *
+      *              *-------------------------------------------------*
+           perform   inc-rec-scr-000      thru inc-rec-scr-999        .
+       exe-exp-num-750.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [num]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-200.
+       exe-exp-num-800.
+      *              *-------------------------------------------------*
+      *              * Close files                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [num]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+       exe-exp-num-850.
+      *              *-------------------------------------------------*
+      *              * Visualizzazione nr records letti e scritti      *
+      *              *-------------------------------------------------*
+           perform   vis-rec-let-000      thru vis-rec-let-999        .
+           perform   vis-rec-scr-000      thru vis-rec-scr-999        .
+      *              *-------------------------------------------------*
+      *              * Accettazione presa visione                      *
+      *              *-------------------------------------------------*
+           perform   acc-pre-vis-000      thru acc-pre-vis-999        .
+       exe-exp-num-900.
+      *              *-------------------------------------------------*
+      *              * Scrittura rullino messaggi                      *
+      *              *-------------------------------------------------*
+           perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
+       exe-exp-num-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [bfoprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-bfo-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "bfo"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-bfo-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bfo-prt-999.
+       exe-exp-bfo-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [ffoprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-ffo-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "ffo"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-ffo-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ffo-prt-999.
+       exe-exp-ffo-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [bciprt] che diventa [bolprt]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-bol-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "bolprt  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "bol"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-bol-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bol-prt-999.
+       exe-exp-bol-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [bcindo] che diventa [bolndo]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-bol-ndo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "bolndo  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-key-var
+                    (06 : 03)             to   w-exe-num-sgl          .
+           move      rf-num-dat-num
+                    (20 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 11)             to   w-exe-num-prt          .
+           move      "bol"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-bol-ndo-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bol-ndo-999.
+       exe-exp-bol-ndo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [cdpprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-cdp-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "cdp"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-cdp-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-cdp-prt-999.
+       exe-exp-cdp-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [cdp]                                                     *
+      *    *-----------------------------------------------------------*
+       exe-exp-cdp-ndo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-key-var
+                    (06 : 03)             to   w-exe-num-sgl          .
+           move      rf-num-dat-num
+                    (20 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 11)             to   w-exe-num-prt          .
+           move      "cdp"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-cdp-ndo-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-cdp-ndo-999.
+       exe-exp-cdp-ndo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [datbil]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-dat-bil-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+      *              *-------------------------------------------------*
+      *              * Secolo anno numerazione: a zero                 *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-exe-num-saa          .
+      *              *-------------------------------------------------*
+      *              * In data 1: data inizio bilanci                  *
+      *              *-------------------------------------------------*
+           move      rf-num-dat-num
+                    (02 : 07)             to   w-exe-num-d01          .
+      *              *-------------------------------------------------*
+      *              * In data 2: data fine bilanci                    *
+      *              *-------------------------------------------------*
+           move      rf-num-dat-num
+                    (09 : 07)             to   w-exe-num-d02          .
+      *              *-------------------------------------------------*
+      *              * Flag di bilancio in corso                       *
+      *              *-------------------------------------------------*
+           move      rf-num-dat-num
+                    (01 : 01)             to   w-exe-num-f01          .
+      *              *-------------------------------------------------*
+      *              * Data completa esercizio chiuso                  *
+      *              *-------------------------------------------------*
+           move      rf-num-dat-num
+                    (16 : 03)             to   s-saa                  .
+           move      12                   to   s-mes                  .
+           move      31                   to   s-gio                  .
+           move      s-dat                to   w-exe-num-d03          .
+      *              *-------------------------------------------------*
+      *              * Area                                            *
+      *              *-------------------------------------------------*
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-dat-bil-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-dat-bil-999.
+       exe-exp-dat-bil-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [dtrcge]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-dtr-cge-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 07)             to   w-exe-num-d01          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-dtr-cge-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-dtr-cge-999.
+       exe-exp-dtr-cge-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [giocon]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-gio-con-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 07)             to   w-exe-num-d01          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-gio-con-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-gio-con-999.
+       exe-exp-gio-con-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [givacq]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-giv-acq-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 02)             to   w-exe-num-cdn          .
+           move      rf-num-dat-num
+                    (03 : 07)             to   w-exe-num-d01          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-giv-acq-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-giv-acq-999.
+       exe-exp-giv-acq-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [givcor]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-giv-cor-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 02)             to   w-exe-num-cdn          .
+           move      rf-num-dat-num
+                    (03 : 07)             to   w-exe-num-d01          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-giv-cor-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-giv-cor-999.
+       exe-exp-giv-cor-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [givven]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-giv-ven-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 02)             to   w-exe-num-cdn          .
+           move      rf-num-dat-num
+                    (03 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (10 : 11)             to   w-exe-num-prt          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-giv-ven-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-giv-ven-999.
+       exe-exp-giv-ven-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [mpuprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-mpu-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 09)             to   w-exe-num-prt          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-mpu-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-mpu-prt-999.
+       exe-exp-mpu-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [parcli]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-par-cli-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (08 : 07)             to   w-exe-num-d02          .
+           move      rf-num-dat-num
+                    (15 : 01)             to   w-exe-num-f01          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-par-cli-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-par-cli-999.
+       exe-exp-par-cli-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [parfnt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-par-fnt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (08 : 07)             to   w-exe-num-d02          .
+           move      rf-num-dat-num
+                    (15 : 01)             to   w-exe-num-f01          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-par-fnt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-par-fnt-999.
+       exe-exp-par-fnt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [pargen]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-par-gen-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (08 : 07)             to   w-exe-num-d02          .
+           move      rf-num-dat-num
+                    (15 : 01)             to   w-exe-num-f01          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-par-gen-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-par-gen-999.
+       exe-exp-par-gen-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [prtcge]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-prt-cge-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 07)             to   w-exe-num-prt          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-prt-cge-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prt-cge-999.
+       exe-exp-prt-cge-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [prtivf]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-prt-ivf-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-cdn          .
+           move      rf-num-dat-num
+                    (06 : 07)             to   w-exe-num-prt          .
+           move      "cge"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-prt-ivf-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prt-ivf-999.
+       exe-exp-prt-ivf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [datife]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-dat-ife-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 01)             to   w-exe-num-f01          .
+           move      rf-num-dat-num
+                    (02 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 07)             to   w-exe-num-d02          .
+           move      rf-num-dat-num
+                    (16 : 03)             to   w-exe-num-saa          .
+           move      "mag"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-dat-ife-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-dat-ife-999.
+       exe-exp-dat-ife-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [datinv]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-dat-inv-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 01)             to   w-exe-num-f01          .
+           move      rf-num-dat-num
+                    (02 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 01)             to   w-exe-num-f02          .
+           move      rf-num-dat-num
+                    (10 : 07)             to   w-exe-num-d02          .
+           move      "mag"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-dat-inv-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-dat-inv-999.
+       exe-exp-dat-inv-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [duccmc]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-duc-cmc-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 07)             to   w-exe-num-d01          .
+           move      "mag"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-duc-cmc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-duc-cmc-999.
+       exe-exp-duc-cmc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [prtmag]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-prt-mag-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "mag"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-prt-mag-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prt-mag-999.
+       exe-exp-prt-mag-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [ftilfd] che diventa [fatlfd]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-fat-lfd-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 07)             to   w-exe-num-prt          .
+           move      rf-num-dat-num
+                    (11 : 01)             to   w-exe-num-f01          .
+           move      "fat"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-fat-lfd-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-fat-lfd-999.
+       exe-exp-fat-lfd-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [ftiprt] che diventa [fatprt]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-fat-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "fatprt  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "fat"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-fat-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-fat-prt-999.
+       exe-exp-fat-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [ftindo] che diventa [fatndo]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-fat-ndo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "fatndo  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-key-var
+                    (06 : 03)             to   w-exe-num-sgl          .
+           move      rf-num-dat-num
+                    (20 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 11)             to   w-exe-num-prt          .
+           move      "fat"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-fat-ndo-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-fat-ndo-999.
+       exe-exp-fat-ndo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [givaic]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-giv-aic-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 02)             to   w-exe-num-cdn          .
+                    
+                    
+           move      rf-num-key-var       to   w-exe-num-cdn          .
+                    
+                    
+                    
+                    
+           move      rf-num-dat-num
+                    (03 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (10 : 11)             to   w-exe-num-prt          .
+           move      "iic"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-giv-aic-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-giv-aic-999.
+       exe-exp-giv-aic-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [numiic]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-iic-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 09)             to   w-exe-num-prt          .
+           move      "iic"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-iic-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-iic-999.
+       exe-exp-num-iic-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [numgpc]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-gpc-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 09)             to   w-exe-num-prt          .
+           move      "age"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-gpc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-gpc-999.
+       exe-exp-num-gpc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [numgpm]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-gpm-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 09)             to   w-exe-num-prt          .
+           move      "age"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-gpm-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-gpm-999.
+       exe-exp-num-gpm-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [orcprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-orc-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "orcprt  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "orc"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-orc-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-orc-prt-999.
+       exe-exp-orc-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [orcndo]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-orc-ndo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "orcndo  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-key-var
+                    (06 : 03)             to   w-exe-num-sgl          .
+           move      rf-num-dat-num
+                    (20 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 11)             to   w-exe-num-prt          .
+           move      "orc"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-orc-ndo-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-orc-ndo-999.
+       exe-exp-orc-ndo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [orfprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-orf-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "orfprt  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "orf"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-orf-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-orf-prt-999.
+       exe-exp-orf-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [orfndo]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-orf-ndo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "orfndo  "           to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-key-var
+                    (06 : 03)             to   w-exe-num-sgl          .
+           move      rf-num-dat-num
+                    (20 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 11)             to   w-exe-num-prt          .
+           move      "orf"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-orf-ndo-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-orf-ndo-999.
+       exe-exp-orf-ndo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [odsprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-ods-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "ods"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-ods-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ods-prt-999.
+       exe-exp-ods-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [lotslc]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-lot-slc-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-dat-num
+                    (01 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (08 : 07)             to   w-exe-num-d02          .
+           move      rf-num-dat-num
+                    (15 : 07)             to   w-exe-num-d03          .
+           move      "gep"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-lot-slc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-lot-slc-999.
+       exe-exp-lot-slc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [numddp]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-ddp-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "gep"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-ddp-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-ddp-999.
+       exe-exp-num-ddp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [numddx]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-ddx-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "fat"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-ddx-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-ddx-999.
+       exe-exp-num-ddx-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [numrsd]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-rsd-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "gep"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-rsd-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-rsd-999.
+       exe-exp-num-rsd-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [numsdb]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-sdb-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "gep"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-sdb-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-sdb-999.
+       exe-exp-num-sdb-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [sfanum] che diventa [numsfa]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-sfa-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "numsfa"             to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "scf"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-sfa-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-sfa-999.
+       exe-exp-num-sfa-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [sffnum] che diventa [numsff]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-sff-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "numsff"             to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "scf"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-sff-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-sff-999.
+       exe-exp-num-sff-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [sfonum] che diventa [numsfo]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-sfo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "numsfo"             to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "scf"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-sfo-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-sfo-999.
+       exe-exp-num-sfo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [sfpnum] che diventa [numsfp]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-sfp-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "numsfp"             to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "scf"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-sfp-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-sfp-999.
+       exe-exp-num-sfp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [sfsnum] che diventa [numsfs]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-sfs-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "numsfs"             to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 11)             to   w-exe-num-prt          .
+           move      "scf"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-sfs-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-sfs-999.
+       exe-exp-num-sfs-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [rdaprt] che diventa [prtrda]                             *
+      *    *-----------------------------------------------------------*
+       exe-exp-prt-rda-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      "prtrda"             to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 09)             to   w-exe-num-prt          .
+           move      "rda"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-prt-rda-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-prt-rda-999.
+       exe-exp-prt-rda-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [vdpprt]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-vdp-prt-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-dat-num
+                    (06 : 11)             to   w-exe-num-prt          .
+           move      "vdp"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-vdp-prt-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-vdp-prt-999.
+       exe-exp-vdp-prt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * [vdp]                                                     *
+      *    *-----------------------------------------------------------*
+       exe-exp-vdp-ndo-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-key-var
+                    (04 : 02)             to   w-exe-num-dpz          .
+           move      rf-num-key-var
+                    (06 : 03)             to   w-exe-num-sgl          .
+           move      rf-num-dat-num
+                    (20 : 07)             to   w-exe-num-d01          .
+           move      rf-num-dat-num
+                    (09 : 11)             to   w-exe-num-prt          .
+           move      "vdp"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-vdp-ndo-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-vdp-ndo-999.
+       exe-exp-vdp-ndo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * ___ da rivedere ___                                       *
+      *    *                                                           *
+      *    * [numddp]                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-dst-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione preliminare                     *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-nor-000  thru exe-exp-num-nor-999    .
+      *              *-------------------------------------------------*
+      *              * Preparazione valori                             *
+      *              *-------------------------------------------------*
+           move      rf-num-key-fix       to   w-exe-num-key          .
+           move      rf-num-key-var
+                    (01 : 03)             to   w-exe-num-saa          .
+           move      rf-num-dat-num
+                    (04 : 09)             to   w-exe-num-prt          .
+           move      "azi"                to   w-exe-num-are          .
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+           perform   exe-exp-num-gen-000  thru exe-exp-num-gen-999    .
+       exe-exp-num-dst-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-dst-999.
+       exe-exp-num-dst-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * Generico - normalizzazione                                *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-nor-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione                                 *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-exe-num-key          .
+           move      spaces               to   w-exe-num-saa          .
+           move      spaces               to   w-exe-num-dpz          .
+           move      spaces               to   w-exe-num-sgl          .
+           move      spaces               to   w-exe-num-cdn          .
+           move      zero                 to   w-exe-num-d01          .
+           move      zero                 to   w-exe-num-d02          .
+           move      zero                 to   w-exe-num-d03          .
+           move      spaces               to   w-exe-num-f01          .
+           move      spaces               to   w-exe-num-f02          .
+           move      spaces               to   w-exe-num-f03          .
+           move      spaces               to   w-exe-num-prt          .
+           move      spaces               to   w-exe-num-com          .
+           move      spaces               to   w-exe-num-are          .
+       exe-exp-num-nor-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-nor-999.
+       exe-exp-num-nor-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esportazione [num]                                        *
+      *    *                                                           *
+      *    * Generico                                                  *
+      *    *-----------------------------------------------------------*
+       exe-exp-num-gen-000.
+      *              *-------------------------------------------------*
+      *              * Composizione                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Inizio                                      *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-str-out          .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "iA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice                                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-num-key        to   w-scr-str-ele          .
+           move      08                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Secolo ed anno                              *
+      *                  *---------------------------------------------*
+           move      "N "                 to   w-scr-str-tip          .
+           move      w-exe-num-saa        to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Dipendenza                                  *
+      *                  *---------------------------------------------*
+           move      "N "                 to   w-scr-str-tip          .
+           move      w-exe-num-dpz        to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Sigla                                       *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-num-sgl        to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice numerico                             *
+      *                  *---------------------------------------------*
+           move      "N "                 to   w-scr-str-tip          .
+           move      w-exe-num-cdn        to   w-scr-str-ele          .
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Data 1                                      *
+      *                  *---------------------------------------------*
+           move      "D "                 to   w-scr-str-tip          .
+           move      w-exe-num-d01        to   w-scr-dat-dat          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Data 2                                      *
+      *                  *---------------------------------------------*
+           move      "D "                 to   w-scr-str-tip          .
+           move      w-exe-num-d02        to   w-scr-dat-dat          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Data 3                                      *
+      *                  *---------------------------------------------*
+           move      "D "                 to   w-scr-str-tip          .
+           move      w-exe-num-d03        to   w-scr-dat-dat          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Flag 1                                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-num-f01        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Flag 2                                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-num-f02        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Flag 3                                      *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-num-f03        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Protocollo                                  *
+      *                  *---------------------------------------------*
+           move      "N "                 to   w-scr-str-tip          .
+           move      w-exe-num-prt        to   w-scr-str-ele          .
+           move      11                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Commento                                    *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-num-com        to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Area                                        *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-exe-num-are        to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "Af"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+       exe-exp-num-gen-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     exe-exp-num-gen-999.
+       exe-exp-num-gen-999.
+           exit.
+

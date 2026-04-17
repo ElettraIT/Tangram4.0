@@ -1,0 +1,548 @@
+      *    *===========================================================*
+      *    * Main program                                              *
+      *    *-----------------------------------------------------------*
+       main-000.
+      *              *-------------------------------------------------*
+      *              * Test su tipo operazione                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Start                                       *
+      *                  *---------------------------------------------*
+           if        f-ope                =    "ST"
+                     perform str-000      thru str-999
+      *                  *---------------------------------------------*
+      *                  * Read record per chiave primaria             *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RD"
+                     perform rea-000      thru rea-999
+      *                  *---------------------------------------------*
+      *                  * Read next                                   *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RN"
+                     perform nxt-000      thru nxt-999
+      *                  *---------------------------------------------*
+      *                  * Get Record per chiave primaria              *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "GT"
+                     perform rea-000      thru rea-999
+      *                  *---------------------------------------------*
+      *                  * Get next                                    *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "GN"
+                     perform nxt-000      thru nxt-999
+      *                  *---------------------------------------------*
+      *                  * Release record                              *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "RL"
+                     perform rel-000      thru rel-999
+      *                  *---------------------------------------------*
+      *                  * Delete record                               *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "DE"
+                     perform del-000      thru del-999
+      *                  *---------------------------------------------*
+      *                  * Update record                               *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "UP"
+                     perform upd-000      thru upd-999
+      *                  *---------------------------------------------*
+      *                  * Put record                                  *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "PT"
+                     perform put-000      thru put-999
+      *                  *---------------------------------------------*
+      *                  * Force put record                            *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "FP"
+                     perform fpt-000      thru fpt-999
+      *                  *---------------------------------------------*
+      *                  * Open                                        *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "OP"
+                     perform opn-000      thru opn-999
+      *                  *---------------------------------------------*
+      *                  * Close                                       *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "CL"
+                     perform cls-000      thru cls-999
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione record logico               *
+      *                  *---------------------------------------------*
+           else if   f-ope                =    "NO"
+                     perform nor-000
+                        thru nor-999                                  .
+       main-999.
+           exit program.
+
+      *    *===========================================================*
+      *    * Open                                                      *
+      *    *-----------------------------------------------------------*
+       opn-000.
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per la di-    *
+      *              * chiarazione di inizio modulo oggetto            *
+      *              *-------------------------------------------------*
+           move      "M+"                 to   s-ope                  .
+           move      i-ide-pmo            to   s-pmo                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *              *-------------------------------------------------*
+      *              * Determinazione del numero di frammenti di 80    *
+      *              * caratteri in cui deve essere suddiviso il re-   *
+      *              * cord logico                                     *
+      *              *-------------------------------------------------*
+           move      1                    to   z-inx                  .
+       opn-200.
+           move      z-inx                to   z-nfr                  .
+           perform   uns-000              thru uns-999                .
+           if        z-inx                not  = z-nfr 
+                     go to opn-200.
+           add       78                   to   z-nfr                  .
+           divide    80                   into z-nfr                  .
+       opn-999.
+           exit.
+           
+      *    *===========================================================*
+      *    * Close                                                     *
+      *    *-----------------------------------------------------------*
+       cls-000.
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo di segreteria per la di-    *
+      *              * chiarazione di fine modulo oggetto              *
+      *              *-------------------------------------------------*
+           move      "M-"                 to   s-ope                  .
+           move      i-ide-pmo            to   s-pmo                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+       cls-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Start                                                     *
+      *    *-----------------------------------------------------------*
+       str-000.
+      *              *-------------------------------------------------*
+      *              * Composizione componente variabile della chiave  *
+      *              *-------------------------------------------------*
+           perform   key-000              thru key-999                .
+      *              *-------------------------------------------------*
+      *              * Zero in numero frammento                        *
+      *              *-------------------------------------------------*
+           move      zero                 to   k-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Composizione chiave per file [num]              *
+      *              *-------------------------------------------------*
+           move      k                    to   rf-num-key-num         .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+       str-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Read                                                      *
+      *    *-----------------------------------------------------------*
+       rea-000.
+      *              *-------------------------------------------------*
+      *              * Composizione componente variabile della chiave  *
+      *              *-------------------------------------------------*
+           perform   key-000              thru key-999                .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero frammento               *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione puntatore per string-unstring  *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-pnt                  .
+       rea-100.
+      *              *-------------------------------------------------*
+      *              * Incremento numero frammento                     *
+      *              *-------------------------------------------------*
+           add       1                    to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Incremento puntatore per string-unstring        *
+      *              *-------------------------------------------------*
+           if        z-pnt                =    zero
+                     move  1              to   z-pnt
+           else      add   80             to   z-pnt                  .
+      *              *-------------------------------------------------*
+      *              * Se oltre massimo numero frammento si esce       *
+      *              *-------------------------------------------------*
+           if        z-cnf                >    z-nfr
+                     go to rea-800.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave per file [num]              *
+      *              *-------------------------------------------------*
+           move      z-cnf                to   k-cnf                  .
+           move      k                    to   rf-num-key-num         .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *              *-------------------------------------------------*
+      *              * Se errore di esecuzione si esce con lo status   *
+      *              *-------------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to rea-999.
+      *              *-------------------------------------------------*
+      *              * Spostamento da record [num] a record numeri     *
+      *              *-------------------------------------------------*
+           move      z-pnt                to   z-inx                  .
+           perform   stg-000              thru stg-999                .
+      *              *-------------------------------------------------*
+      *              * Riciclo su frammento successivo                 *
+      *              *-------------------------------------------------*
+           go to     rea-100.
+       rea-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita a e-not-err                    *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       rea-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Read next                                                 *
+      *    *-----------------------------------------------------------*
+       nxt-000.
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero frammento               *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione puntatore per string-unstring  *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-pnt                  .
+       nxt-100.
+      *              *-------------------------------------------------*
+      *              * Incremento numero frammento                     *
+      *              *-------------------------------------------------*
+           add       1                    to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Incremento puntatore per string-unstring        *
+      *              *-------------------------------------------------*
+           if        z-pnt                =    zero
+                     move  1              to   z-pnt
+           else      add   80             to   z-pnt                  .
+      *              *-------------------------------------------------*
+      *              * Se oltre massimo numero frammento si esce       *
+      *              *-------------------------------------------------*
+           if        z-cnf                >    z-nfr
+                     go to nxt-800.
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *              *-------------------------------------------------*
+      *              * Se fisicamente at end si esce con lo status     *
+      *              *-------------------------------------------------*
+           if        f-sts                =    e-end-fil
+                     go to nxt-999.
+      *              *-------------------------------------------------*
+      *              * Se logicamente at end si esce con lo status     *
+      *              *-------------------------------------------------*
+           if        rf-num-key-fix       not  = k-fix
+                     move  e-end-fil      to   f-sts
+                     go to nxt-999.
+      *              *-------------------------------------------------*
+      *              * Spostamento da record [num] a record numeri     *
+      *              *-------------------------------------------------*
+           move      z-pnt                to   z-inx                  .
+           perform   stg-000              thru stg-999                .
+      *              *-------------------------------------------------*
+      *              * Riciclo su frammento successivo                 *
+      *              *-------------------------------------------------*
+           go to     nxt-100.
+       nxt-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita a e-not-err                    *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       nxt-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Unlock records                                            *
+      *    *-----------------------------------------------------------*
+       rel-000.
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+       rel-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Delete record                                             *
+      *    *-----------------------------------------------------------*
+       del-000.
+      *              *-------------------------------------------------*
+      *              * Composizione componente variabile della chiave  *
+      *              *-------------------------------------------------*
+           perform   key-000              thru key-999                .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero frammento               *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-cnf                  .
+       del-100.
+      *              *-------------------------------------------------*
+      *              * Incremento numero frammento                     *
+      *              *-------------------------------------------------*
+           add       1                    to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Se oltre massimo numero frammento si esce       *
+      *              *-------------------------------------------------*
+           if        z-cnf                >    z-nfr
+                     go to del-800.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave per file [num]              *
+      *              *-------------------------------------------------*
+           move      z-cnf                to   k-cnf                  .
+           move      k                    to   rf-num-key-num         .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *              *-------------------------------------------------*
+      *              * Si ricicla per deletare, se necessario, il      *
+      *              * frammento successivo                            *
+      *              *-------------------------------------------------*
+           go to     del-100.
+       del-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita a e-not-err                    *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       del-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Update record                                             *
+      *    *-----------------------------------------------------------*
+       upd-000.
+      *              *-------------------------------------------------*
+      *              * Composizione componente variabile della chiave  *
+      *              *-------------------------------------------------*
+           perform   key-000              thru key-999                .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero frammento               *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione puntatore per string-unstring  *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-pnt                  .
+       upd-100.
+      *              *-------------------------------------------------*
+      *              * Incremento numero frammento                     *
+      *              *-------------------------------------------------*
+           add       1                    to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Incremento puntatore per string-unstring        *
+      *              *-------------------------------------------------*
+           if        z-pnt                =    zero
+                     move  1              to   z-pnt
+           else      add   80             to   z-pnt                  .
+      *              *-------------------------------------------------*
+      *              * Se oltre massimo numero frammento si esce       *
+      *              *-------------------------------------------------*
+           if        z-cnf                >    z-nfr
+                     go to upd-800.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave per file [num]              *
+      *              *-------------------------------------------------*
+           move      z-cnf                to   k-cnf                  .
+           move      k                    to   rf-num-key-num         .
+      *              *-------------------------------------------------*
+      *              * Spostamento da record numeri  a record [num]    *
+      *              *-------------------------------------------------*
+           move      spaces               to   rf-num-dat-num         .
+           move      z-pnt                to   z-inx                  .
+           perform   uns-000              thru uns-999                .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *              *-------------------------------------------------*
+      *              * Se errore di esecuzione si esce con lo status   *
+      *              *-------------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to upd-999.
+      *              *-------------------------------------------------*
+      *              * Altrimenti si ricicla per riscrivere, se neces- *
+      *              * sario, il frammento successivo                  *
+      *              *-------------------------------------------------*
+           go to     upd-100.
+       upd-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita a e-not-err                    *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       upd-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Put record                                                *
+      *    *-----------------------------------------------------------*
+       put-000.
+      *              *-------------------------------------------------*
+      *              * Composizione componente variabile della chiave  *
+      *              *-------------------------------------------------*
+           perform   key-000              thru key-999                .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero frammento               *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione puntatore per string-unstring  *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-pnt                  .
+       put-100.
+      *              *-------------------------------------------------*
+      *              * Incremento numero frammento                     *
+      *              *-------------------------------------------------*
+           add       1                    to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Incremento puntatore per string-unstring        *
+      *              *-------------------------------------------------*
+           if        z-pnt                =    zero
+                     move  1              to   z-pnt
+           else      add   80             to   z-pnt                  .
+      *              *-------------------------------------------------*
+      *              * Se oltre massimo numero frammento si esce       *
+      *              *-------------------------------------------------*
+           if        z-cnf                >    z-nfr
+                     go to put-800.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave per file [num]              *
+      *              *-------------------------------------------------*
+           move      z-cnf                to   k-cnf                  .
+           move      k                    to   rf-num-key-num         .
+      *              *-------------------------------------------------*
+      *              * Spostamento da record numeri  a record [num]    *
+      *              *-------------------------------------------------*
+           move      spaces               to   rf-num-dat-num         .
+           move      z-pnt                to   z-inx                  .
+           perform   uns-000              thru uns-999                .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *              *-------------------------------------------------*
+      *              * Se errore di esecuzione si esce con lo status   *
+      *              *-------------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to put-999.
+      *              *-------------------------------------------------*
+      *              * Altrimenti si ricicla per riscrivere, se neces- *
+      *              * sario, il frammento successivo                  *
+      *              *-------------------------------------------------*
+           go to     put-100.
+       put-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita a e-not-err                    *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       put-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Forced put record                                         *
+      *    *-----------------------------------------------------------*
+       fpt-000.
+      *              *-------------------------------------------------*
+      *              * Composizione componente variabile della chiave  *
+      *              *-------------------------------------------------*
+           perform   key-000              thru key-999                .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione numero frammento               *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Inizializzazione puntatore per string-unstring  *
+      *              *-------------------------------------------------*
+           move      zero                 to   z-pnt                  .
+       fpt-100.
+      *              *-------------------------------------------------*
+      *              * Incremento numero frammento                     *
+      *              *-------------------------------------------------*
+           add       1                    to   z-cnf                  .
+      *              *-------------------------------------------------*
+      *              * Incremento puntatore per string-unstring        *
+      *              *-------------------------------------------------*
+           if        z-pnt                =    zero
+                     move  1              to   z-pnt
+           else      add   80             to   z-pnt                  .
+      *              *-------------------------------------------------*
+      *              * Se oltre massimo numero frammento si esce       *
+      *              *-------------------------------------------------*
+           if        z-cnf                >    z-nfr
+                     go to fpt-800.
+      *              *-------------------------------------------------*
+      *              * Composizione chiave per file [num]              *
+      *              *-------------------------------------------------*
+           move      z-cnf                to   k-cnf                  .
+           move      k                    to   rf-num-key-num         .
+      *              *-------------------------------------------------*
+      *              * Spostamento da record numeri  a record [num]    *
+      *              *-------------------------------------------------*
+           move      spaces               to   rf-num-dat-num         .
+           move      z-pnt                to   z-inx                  .
+           perform   uns-000              thru uns-999                .
+      *              *-------------------------------------------------*
+      *              * Richiamo modulo di "iofnum" per l'esecuzione    *
+      *              * effettiva dell'operazione                       *
+      *              *-------------------------------------------------*
+           call      "swd/xpg/fls/ioc/obj/iofnum"
+                                         using f
+                                               rf-num                 .
+      *              *-------------------------------------------------*
+      *              * Si ricicla per scrivere, se necessario, il      *
+      *              * frammento successivo                            *
+      *              *-------------------------------------------------*
+           go to     fpt-100.
+       fpt-800.
+      *              *-------------------------------------------------*
+      *              * Status in uscita a e-not-err                    *
+      *              *-------------------------------------------------*
+           move      e-not-err            to   f-sts                  .
+       fpt-999.
+           exit.
+

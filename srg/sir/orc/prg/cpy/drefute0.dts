@@ -1,0 +1,205 @@
+      *    *===========================================================*
+      *    * Lettura referenze relative ad accessi utente              *
+      *    *-----------------------------------------------------------*
+       ref-sir-ute-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazioni preliminari                     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-ref-sir-ute-ute      .
+           move      zero                 to   w-ref-sir-ute-age      .
+           move      zero                 to   w-ref-sir-ute-fnt      .
+      *              *-------------------------------------------------*
+      *              * Ciclo per 'max' referenze                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-ref-sir-ute-ctr      .
+       ref-sir-ute-200.
+           add       1                    to   w-ref-sir-ute-ctr      .
+           if        w-ref-sir-ute-ctr    >    w-ref-sir-ute-max
+                     go to ref-sir-ute-999.
+      *                  *---------------------------------------------*
+      *                  * Lettura referenza multipla                  *
+      *                  *---------------------------------------------*
+           move      "R:"                 to   s-ope                  .
+           move      w-ref-sir-ute-ctr    to   s-num                  .
+           move      "sir[ute-prd]"       to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Test su esito operazione                    *
+      *                  *---------------------------------------------*
+           if        s-ves                not  = spaces
+                     go to ref-sir-ute-800.
+           if        s-alf                =    spaces
+                     go to ref-sir-ute-800.
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione elemento                    *
+      *                  *---------------------------------------------*
+           move      s-alf                to   w-ref-sir-ute-ele      .
+           move      w-ref-sir-ute-ute    to   w-ref-sir-ute-bfu
+                                              (w-ref-sir-ute-ctr)     .
+           move      w-ref-sir-ute-age    to   w-ref-sir-ute-bfa
+                                              (w-ref-sir-ute-ctr)     .
+           move      w-ref-sir-ute-fnt    to   w-ref-sir-ute-bff
+                                              (w-ref-sir-ute-ctr)     .
+       ref-sir-ute-800.
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     ref-sir-ute-200.
+       ref-sir-ute-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     ref-sir-ute-999.
+       ref-sir-ute-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione se accesso consentito o no (solo utente)   *
+      *    *-----------------------------------------------------------*
+       det-acc-ute-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag                            *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-ref-sir-ute-fll      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione codice agente                   *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-ref-sir-ute-age      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione codice fornitore                *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-ref-sir-ute-fff      .
+      *              *-------------------------------------------------*
+      *              * Richiesta a segreteria del codice utente        *
+      *              *-------------------------------------------------*
+           move      "IG"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      s-ute                to   w-ref-sir-ute-utc      .
+       det-acc-ute-100.
+      *              *-------------------------------------------------*
+      *              * Ricerca utente in tabella                       *
+      *              *-------------------------------------------------*
+           set       w-ref-sir-ute-inx    to   1                      .
+           search    w-ref-sir-ute-cst
+                     when    w-ref-sir-ute-bfu
+                            (w-ref-sir-ute-inx)
+                                          =    w-ref-sir-ute-utc
+                     go to   det-acc-ute-300.
+       det-acc-ute-200.
+      *              *-------------------------------------------------*
+      *              * Utente non trovato                              *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     det-acc-ute-900.
+       det-acc-ute-300.
+      *              *-------------------------------------------------*
+      *              * Utente trovato                                  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Flag                                        *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-ref-sir-ute-fll      .
+      *                  *---------------------------------------------*
+      *                  * Eventuale agente                            *
+      *                  *---------------------------------------------*
+           move      w-ref-sir-ute-bfa
+                    (w-ref-sir-ute-inx)   to   w-ref-sir-ute-age      .
+      *                  *---------------------------------------------*
+      *                  * Eventuale fornitore                         *
+      *                  *---------------------------------------------*
+           move      w-ref-sir-ute-bff
+                    (w-ref-sir-ute-inx)   to   w-ref-sir-ute-fff      .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     det-acc-ute-900.
+       det-acc-ute-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     det-acc-ute-999.
+       det-acc-ute-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione se accesso consentito o no                 *
+      *    * (agente - utente)                                         *
+      *    *-----------------------------------------------------------*
+       det-age-ute-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag                            *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-ref-sir-ute-fla      .
+      *              *-------------------------------------------------*
+      *              * Richiesta a segreteria del codice utente        *
+      *              *-------------------------------------------------*
+           move      "IG"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      s-ute                to   w-ref-sir-ute-utc      .
+       det-age-ute-100.
+      *              *-------------------------------------------------*
+      *              * Ricerca utente in tabella                       *
+      *              *-------------------------------------------------*
+           set       w-ref-sir-ute-inx    to   1                      .
+           search    w-ref-sir-ute-cst
+                     when    w-ref-sir-ute-bfu
+                            (w-ref-sir-ute-inx)
+                                          =    w-ref-sir-ute-utc
+                     go to   det-age-ute-300.
+       det-age-ute-200.
+      *              *-------------------------------------------------*
+      *              * Utente non trovato                              *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     det-age-ute-900.
+       det-age-ute-300.
+      *              *-------------------------------------------------*
+      *              * Utente trovato                                  *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ricerca agente                              *
+      *                  *---------------------------------------------*
+           set       w-ref-sir-ute-inx    to   1                      .
+           search    w-ref-sir-ute-cst
+                     when    w-ref-sir-ute-bfu
+                            (w-ref-sir-ute-inx)
+                                          =    w-ref-sir-ute-utc and
+                             w-ref-sir-ute-bfa
+                            (w-ref-sir-ute-inx)
+                                          =    w-ref-sir-ute-age
+                     go to   det-age-ute-340.
+       det-age-ute-320.
+      *                  *---------------------------------------------*
+      *                  * Agente non trovato                          *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Flag                                    *
+      *                      *-----------------------------------------*
+           move      "#"                  to   w-ref-sir-ute-fla      .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     det-age-ute-900.
+       det-age-ute-340.
+      *                  *---------------------------------------------*
+      *                  * Agente trovato                              *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     det-age-ute-900.
+       det-age-ute-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     det-age-ute-999.
+       det-age-ute-999.
+           exit.
+

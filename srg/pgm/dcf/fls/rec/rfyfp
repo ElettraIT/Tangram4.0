@@ -1,0 +1,91 @@
+      *    *===========================================================*
+      *    * Record tabella forme di pagamento fornitori [yfp]         *
+      *    *-----------------------------------------------------------*
+      *    *                                                           *
+      *    * Indici : "CODFOP    " = rf-yfp-cod-fop                    *
+      *    *                                                           *
+      *    *          "DATSYS    " = rf-yfp-ide-dat                    *
+      *    *                         rf-yfp-cod-fop                    *
+      *    *                                                           *
+      *    *          "DESKEY    " = rf-yfp-des-key                    *
+      *    *                         rf-yfp-cod-fop                    *
+      *    *                                                           *
+      *    *          "CODMNE    " = rf-yfp-cod-mne                    *
+      *    *                         rf-yfp-cod-fop                    *
+      *    *                                                           *
+      *    *-----------------------------------------------------------*
+       01  rf-yfp.
+      *        *-------------------------------------------------------*
+      *        * Data di sistema di ultimo inserimento/modifica        *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-ide-dat             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice utente di ultimo inserimento/modifica          *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-ide-ute             pic  x(08)                  .
+      *        *-------------------------------------------------------*
+      *        * Fase di ultimo inserimento/modifica                   *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-ide-fas             pic  x(06)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice forma di pagamento                             *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-cod-fop             pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Codice mnemonico                                      *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-cod-mne             pic  x(10)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione in uppercase                              *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-des-key             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Descrizione forma di pagamento                        *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-des-fop             pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Sconto in fatturazione associato al pagamento         *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-sco-fat             pic  9(02)v9(01)            .
+      *        *-------------------------------------------------------*
+      *        * Codici di pagamento associati alla forma di pagamento *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-cpg-ass occurs 3.
+      *            *---------------------------------------------------*
+      *            * Codice di pagamento                               *
+      *            *---------------------------------------------------*
+               10  rf-yfp-cod-pag         pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Tipo di ammontare su cui agisce il codice di pa-  *
+      *            * gamento                                           *
+      *            * - 01 : Il totale documento                        *
+      *            * - 02 : Il totale imponibile                       *
+      *            * - 03 : Una percentuale del totale documento       *
+      *            * - 04 : Una percentuale del totale imponibile      *
+      *            * - 05 : Il totale Iva                              *
+      *            * - 06 : Solo una quota a forfait                   *
+      *            * - 07 : Totale Iva piu' quota a forfait            *
+      *            * - 08 : Totale documento  meno quota a forfait     *
+      *            * - 09 : Totale imponibile meno quota a forfait     *
+      *            * - 10 : Il residuo per il totale documento         *
+      *            * - 11 : Il residuo per il totale imponibile        *
+      *            *---------------------------------------------------*
+               10  rf-yfp-tip-amm         pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Percentuale del totale documento o dell'imponibi- *
+      *            * le, obbligatoria se tipo ammontare su percentuale *
+      *            *---------------------------------------------------*
+               10  rf-yfp-per-toi         pic  9(02)v9(01)            .
+      *            *---------------------------------------------------*
+      *            * Segnale di diminuzione dell'ammontare per l'im-   *
+      *            * porto dell'acconto                                *
+      *            * - 01 : No, nessuna diminuzione dell'ammontare     *
+      *            * - 02 : Si, l'ammontare viene diminuito dell'ac-   *
+      *            *        conto                                      *
+      *            *---------------------------------------------------*
+               10  rf-yfp-dim-act         pic  9(02)                  .
+      *        *-------------------------------------------------------*
+      *        * Area libera per espansioni speciali                   *
+      *        *-------------------------------------------------------*
+           05  rf-yfp-alx-exp.
+               10  filler     occurs 80   pic  x(01)                  .

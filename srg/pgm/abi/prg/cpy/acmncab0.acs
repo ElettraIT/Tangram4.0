@@ -1,0 +1,67 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione codice C.A.B.              *
+      *    *-----------------------------------------------------------*
+       cod-mne-cab-opn-000.
+           move      "pgm/abi/prg/obj/acmncab0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-cab-pth      .
+           move      "OP"                 to   w-cod-mne-cab-ope      .
+           perform   cod-mne-cab-cll-000  thru cod-mne-cab-cll-999    .
+       cod-mne-cab-opn-999.
+           exit.
+       cod-mne-cab-cls-000.
+           move      "CL"                 to   w-cod-mne-cab-ope      .
+           perform   cod-mne-cab-cll-000  thru cod-mne-cab-cll-999    .
+           move      "C?"                 to   w-cod-mne-cab-ope      .
+           perform   cod-mne-cab-cll-000  thru cod-mne-cab-cll-999    .
+           if        w-cod-mne-cab-ope    not  = spaces
+                     go to cod-mne-cab-cls-999.
+           cancel    w-cod-mne-cab-pth                                .
+       cod-mne-cab-cls-999.
+           exit.
+       cod-mne-cab-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cod-mne-cab-foi-500.
+      *
+           move      "PV"                 to   s-ope                  .
+           move      "cod-abi"            to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "N"                  to   s-tip                  .
+           move      05                   to   s-car                  .
+           move      zero                 to   s-dec                  .
+           move      spaces               to   s-sgn                  .
+           move      w-cod-mne-cab-abi    to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *
+           move      "P?"                 to   s-ope                  .
+           move      "pabi2000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-cab-foi-999.
+      *
+           move      "pgm/abi/prg/obj/pabi2000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cod-mne-cab-ope      .
+           go to     cod-mne-cab-foi-999.
+       cod-mne-cab-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cod-mne-cab-foi-999.
+           move      "F+"                 to   w-cod-mne-cab-ope      .
+           go to     cod-mne-cab-foi-999.
+       cod-mne-cab-foi-999.
+           exit.
+       cod-mne-cab-cll-000.
+           call      w-cod-mne-cab-pth   using w-cod-mne-cab
+                                               v
+                                               s                      .
+       cod-mne-cab-cll-999.
+           exit.
+

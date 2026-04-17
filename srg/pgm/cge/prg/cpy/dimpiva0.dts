@@ -1,0 +1,51 @@
+      *    *===========================================================*
+      *    * Subroutines per determinazioni su importi Iva             *
+      *    *-----------------------------------------------------------*
+       det-imp-iva-opn-000.
+      *              *=================================================*
+      *              * Open modulo                                     *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   d-imp-iva-tip-ope      .
+           perform   det-imp-iva-cll-000  thru det-imp-iva-cll-999    .
+       det-imp-iva-opn-999.
+           exit.
+
+       det-imp-iva-cls-000.
+      *              *=================================================*
+      *              * Close modulo                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   d-imp-iva-tip-ope      .
+           perform   det-imp-iva-cll-000  thru det-imp-iva-cll-999    .
+      *                  *---------------------------------------------*
+      *                  * Test se cancellabile                        *
+      *                  *---------------------------------------------*
+           move      "C?"                 to   d-imp-iva-tip-ope      .
+           perform   det-imp-iva-cll-000  thru det-imp-iva-cll-999    .
+           if        d-imp-iva-exi-sts    not  = spaces
+                     go to det-imp-iva-cls-999.
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo                        *
+      *                  *---------------------------------------------*
+           move      "pgm/cge/prg/obj/dimpiva0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
+       det-imp-iva-cls-999.
+           exit.
+
+       det-imp-iva-cll-000.
+      *              *=================================================*
+      *              * Chiamata generica modulo                        *
+      *              *-------------------------------------------------*
+           move      "pgm/cge/prg/obj/dimpiva0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using d-imp-iva              .
+       det-imp-iva-cll-999.
+           exit.
+

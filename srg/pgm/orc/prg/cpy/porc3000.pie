@@ -1,0 +1,1693 @@
+      *    *===========================================================*
+      *    * Routine pre-trattamento piede registrazione               *
+      *    *-----------------------------------------------------------*
+       pre-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione status di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-pre-pie-reg      .
+      *              *-------------------------------------------------*
+      *              * Determinazione totali riga                      *
+      *              *-------------------------------------------------*
+           perform   det-tot-rig-000      thru det-tot-rig-999        .
+      *              *-------------------------------------------------*
+      *              * Determinazione totali riepilogo documento       *
+      *              *-------------------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+       pre-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione numero pagine che compongono il piede      *
+      *    *-----------------------------------------------------------*
+       dmp-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Il piede e' composto di nr. 1 pagina            *
+      *              *-------------------------------------------------*
+           move      1                    to   w-cnt-sts-imp-mpp      .
+       dmp-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione si/no pagina w-cnt-sts-imp-npp da trattare *
+      *    *-----------------------------------------------------------*
+       snp-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Flag di uscita a Si                             *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-sts-imp-snx      .
+      *              *-------------------------------------------------*
+      *              * Deviazione in funzione del numero pagina piede  *
+      *              *-------------------------------------------------*
+           go to     snp-pie-reg-100
+                     depending            on   w-cnt-sts-imp-npp      .
+           go to     snp-pie-reg-999.
+       snp-pie-reg-100.
+      *              *-------------------------------------------------*
+      *              * Pagina 1                                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su tipo archivio                       *
+      *                  *---------------------------------------------*
+           if        w-tes-tip-arc (1)    =    "D"
+                     move  "#"            to   w-cnt-sts-imp-snx
+                     go to snp-pie-reg-999.
+           go to     snp-pie-reg-999.
+       snp-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione piede registrazione                          *
+      *    *-----------------------------------------------------------*
+       acc-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione tipo uscita                     *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-cnt-tus-acc-pie      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione func-key di impostazione        *
+      *              *-------------------------------------------------*
+           move      spaces               to   v-key                  .
+      *              *-------------------------------------------------*
+      *              * Tipo impostazione : piede                       *
+      *              *-------------------------------------------------*
+           move      "P"                  to   w-cnt-mfu-tip-imp      .
+      *              *-------------------------------------------------*
+      *              * Accettazioni                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del numero pagina    *
+      *                  *---------------------------------------------*
+           go to     acc-pie-reg-100
+                     depending            on   w-cnt-sts-imp-npp      .
+           go to     acc-pie-reg-999.
+       acc-pie-reg-100.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione func-key di impostazione    *
+      *                  *---------------------------------------------*
+           move      spaces               to   v-key                  .
+      *                  *---------------------------------------------*
+      *                  * Abilitazione tasto Do                       *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-cnt-sts-imp-pie      .
+      *                  *---------------------------------------------*
+      *                  * Determinazione esposizione cliente con      *
+      *                  * totali ordine inserito                      *
+      *                  *---------------------------------------------*
+           perform   rou-det-cec-000      thru rou-det-cec-999        .
+           if        w-det-esp-cli-olf    =    spaces
+                     go to acc-pie-reg-105.
+           perform   rou-exp-cec-000      thru rou-exp-cec-999        .
+       acc-pie-reg-105.
+      *                  *---------------------------------------------*
+      *                  * Totale sconto in chiusura                   *
+      *                  *---------------------------------------------*
+           perform   acc-tot-scc-000      thru acc-tot-scc-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-pie      .
+           if        v-key                =    "PRSC"
+                     move  "-"            to   w-cnt-tus-acc-pie      .
+           if        w-cnt-tus-acc-pie    not  = spaces
+                     go to acc-pie-reg-999.
+           if        v-key                =    "UP  "
+                     move  "-"            to   w-cnt-tus-acc-pie
+                     go to acc-pie-reg-999.
+       acc-pie-reg-110.
+      *                  *---------------------------------------------*
+      *                  * Percentuale sconto in chiusura              *
+      *                  *---------------------------------------------*
+           perform   acc-per-scc-000      thru acc-per-scc-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-pie      .
+           if        v-key                =    "PRSC"
+                     move  "-"            to   w-cnt-tus-acc-pie      .
+           if        w-cnt-tus-acc-pie    not  = spaces
+                     go to acc-pie-reg-999.
+           if        v-key                =    "UP  "
+                     go to acc-pie-reg-100.
+       acc-pie-reg-120.
+      *                  *---------------------------------------------*
+      *                  * Totale sconto pagamento                     *
+      *                  *---------------------------------------------*
+           perform   acc-tot-scp-000      thru acc-tot-scp-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-pie      .
+           if        v-key                =    "PRSC"
+                     move  "-"            to   w-cnt-tus-acc-pie      .
+           if        w-cnt-tus-acc-pie    not  = spaces
+                     go to acc-pie-reg-999.
+           if        v-key                =    "UP  "
+                     go to acc-pie-reg-110.
+           if        v-key                =    "DOWN"
+                     go to acc-pie-reg-135.
+       acc-pie-reg-130.
+      *                  *---------------------------------------------*
+      *                  * Percentuale sconto pagamento                *
+      *                  *---------------------------------------------*
+           perform   acc-per-scp-000      thru acc-per-scp-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-pie      .
+           if        v-key                =    "PRSC"
+                     move  "-"            to   w-cnt-tus-acc-pie      .
+           if        w-cnt-tus-acc-pie    not  = spaces
+                     go to acc-pie-reg-999.
+           if        v-key                =    "UP  "
+                     go to acc-pie-reg-120.
+       acc-pie-reg-135.
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione contatore per tabella spese*
+      *                  *---------------------------------------------*
+           move      1                    to   w-acc-iep-spe-ctr      .
+       acc-pie-reg-140.
+      *                  *---------------------------------------------*
+      *                  * Si/No addebito, importo e percentuale spesa *
+      *                  *---------------------------------------------*
+       acc-pie-reg-142.
+      *                      *-----------------------------------------*
+      *                      * Accettazione Si/No addebito             *
+      *                      *-----------------------------------------*
+           perform   acc-spe-snx-000      thru acc-spe-snx-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-pie      .
+           if        v-key                =    "PRSC"
+                     move  "-"            to   w-cnt-tus-acc-pie      .
+           if        w-cnt-tus-acc-pie    not  = spaces
+                     go to acc-pie-reg-999.
+      *                      *-----------------------------------------*
+      *                      * Se Up                                   *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "UP  "
+                     go to acc-pie-reg-144.
+           subtract  1                    from w-acc-iep-spe-ctr      .
+           if        w-acc-iep-spe-ctr    =    zero
+                     go to acc-pie-reg-130
+           else      go to acc-pie-reg-142.
+       acc-pie-reg-144.
+      *                      *-----------------------------------------*
+      *                      * Se Down                                 *
+      *                      *-----------------------------------------*
+           if        v-key                =    "DOWN"
+                     go to acc-pie-reg-148.
+      *                      *-----------------------------------------*
+      *                      * Accettazione importo spesa              *
+      *                      *-----------------------------------------*
+           perform   acc-spe-imp-000      thru acc-spe-imp-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-pie      .
+           if        v-key                =    "PRSC"
+                     move  "-"            to   w-cnt-tus-acc-pie      .
+           if        w-cnt-tus-acc-pie    not  = spaces
+                     go to acc-pie-reg-999.
+           if        v-key                =    "UP  "
+                     go to acc-pie-reg-142.
+       acc-pie-reg-146.
+      *                      *-----------------------------------------*
+      *                      * Accettazione percentuale spesa          *
+      *                      *-----------------------------------------*
+           perform   acc-spe-per-000      thru acc-spe-per-999        .
+           if        v-key                =    "NXSC"
+                     move  "+"            to   w-cnt-tus-acc-pie      .
+           if        v-key                =    "PRSC"
+                     move  "-"            to   w-cnt-tus-acc-pie      .
+           if        w-cnt-tus-acc-pie    not  = spaces
+                     go to acc-pie-reg-999.
+           if        v-key                =    "UP  "
+                     go to acc-pie-reg-144.
+       acc-pie-reg-148.
+      *                      *-----------------------------------------*
+      *                      * Se Down o Return                        *
+      *                      *-----------------------------------------*
+           add       1                    to   w-acc-iep-spe-ctr      .
+           if        w-acc-iep-spe-ctr    >    w-prs-spe-fat-nst
+                     go to acc-pie-reg-149
+           else      go to acc-pie-reg-142.
+       acc-pie-reg-149.
+      *                  *---------------------------------------------*
+      *                  * Inizializzazione contatore per tabella spese*
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-nst    to   w-acc-iep-spe-ctr      .
+       acc-pie-reg-150.
+      *                  *---------------------------------------------*
+      *                  * Fine Pagina                                 *
+      *                  *---------------------------------------------*
+           move      "+"                  to   w-cnt-tus-acc-pie      .
+           go to     acc-pie-reg-999.
+       acc-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione piede registrazione                       *
+      *    *-----------------------------------------------------------*
+       vis-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Visualizzazioni                                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del numero pagina    *
+      *                  *---------------------------------------------*
+           go to     vis-pie-reg-100
+                     depending            on   w-cnt-sts-imp-npp      .
+           go to     vis-pie-reg-999.
+       vis-pie-reg-100.
+      *                  *---------------------------------------------*
+      *                  * Totale sconto in chiusura                   *
+      *                  *---------------------------------------------*
+           perform   vis-tot-scc-000      thru vis-tot-scc-999        .
+      *                  *---------------------------------------------*
+      *                  * Percentuale sconto in chiusura              *
+      *                  *---------------------------------------------*
+           perform   vis-per-scc-000      thru vis-per-scc-999        .
+      *                  *---------------------------------------------*
+      *                  * Totale sconto pagamento                     *
+      *                  *---------------------------------------------*
+           perform   vis-tot-scp-000      thru vis-tot-scp-999        .
+      *                  *---------------------------------------------*
+      *                  * Percentuale sconto pagamento                *
+      *                  *---------------------------------------------*
+           perform   vis-per-scp-000      thru vis-per-scp-999        .
+      *                  *---------------------------------------------*
+      *                  * Si/No addebito spese                        *
+      *                  *---------------------------------------------*
+           perform   vis-spe-snx-000      thru vis-spe-snx-999        .
+      *                  *---------------------------------------------*
+      *                  * Importi spese                               *
+      *                  *---------------------------------------------*
+           perform   vis-spe-imp-000      thru vis-spe-imp-999        .
+      *                  *---------------------------------------------*
+      *                  * Percentuali spese                           *
+      *                  *---------------------------------------------*
+           perform   vis-spe-per-000      thru vis-spe-per-999        .
+      *                  *---------------------------------------------*
+      *                  * Riepilogo totali                            *
+      *                  *---------------------------------------------*
+           perform   vis-rie-tot-000      thru vis-rie-tot-999        .
+           go to     vis-pie-reg-999.
+       vis-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts piede                             *
+      *    *-----------------------------------------------------------*
+       pmt-pie-reg-000.
+      *              *-------------------------------------------------*
+      *              * Erase linee impegnate                           *
+      *              *-------------------------------------------------*
+           move      "EL"                 to   v-ope                  .
+           move      04                   to   v-lin                  .
+           move      21                   to   v-lto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Visualizzazione prompts                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Deviazione in funzione del numero pagina    *
+      *                  *---------------------------------------------*
+           go to     pmt-pie-reg-100
+                     depending            on   w-cnt-sts-imp-npp      .
+           go to     pmt-pie-reg-999.
+       pmt-pie-reg-100.
+      *                  *---------------------------------------------*
+      *                  * Intestazione pagina totali                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Fincatura                               *
+      *                      *-----------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      04                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "          Voce                   Importo     %    
+      -              "|            Totali"
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Sottolineatura fincatura                *
+      *                      *-----------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      80                   to   v-car                  .
+           move      05                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "------------------------- ---------------- -----  
+      -              "| ----------------------------"
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Trattini verticali                      *
+      *                      *-----------------------------------------*
+           move      5                    to   I                      .
+       pmt-pie-reg-210.
+           add       1                    to   I                      .
+           if        I                    >    21
+                     go to pmt-pie-reg-220.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      I                    to   v-lin                  .
+           move      51                   to   v-pos                  .
+           move      "|"                  to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           go to     pmt-pie-reg-210.
+       pmt-pie-reg-220.
+      *                  *---------------------------------------------*
+      *                  * Sconto in chiusura                          *
+      *                  *---------------------------------------------*
+           perform   pmt-tot-scc-000      thru pmt-tot-scc-999        .
+      *                  *---------------------------------------------*
+      *                  * Sconto pagamento                            *
+      *                  *---------------------------------------------*
+           perform   pmt-tot-scp-000      thru pmt-tot-scp-999        .
+      *                  *---------------------------------------------*
+      *                  * Importi spese                               *
+      *                  *---------------------------------------------*
+           perform   pmt-spe-imp-000      thru pmt-spe-imp-999        .
+      *                  *---------------------------------------------*
+      *                  * Riepilogo totali                            *
+      *                  *---------------------------------------------*
+           perform   pmt-rie-tot-000      thru pmt-rie-tot-999        .
+       pmt-pie-reg-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per sconto in chiusura            *
+      *    *-----------------------------------------------------------*
+       pmt-tot-scc-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      25                   to   v-car                  .
+           move      07                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-ref-sco-chi-des    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      07                   to   v-lin                  .
+           move      26                   to   v-pos                  .
+           move      ":"                  to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       pmt-tot-scc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per sconto pagamento              *
+      *    *-----------------------------------------------------------*
+       pmt-tot-scp-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      25                   to   v-car                  .
+           move      08                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-ref-sco-pag-des    to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      08                   to   v-lin                  .
+           move      26                   to   v-pos                  .
+           move      ":"                  to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+       pmt-tot-scp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per importi spese                 *
+      *    *-----------------------------------------------------------*
+       pmt-spe-imp-000.
+      *              *-------------------------------------------------*
+      *              * Se nessuna personalizzazione : uscita           *
+      *              *-------------------------------------------------*
+           if        w-prs-spe-fat-nst    =    zero
+                     go to pmt-spe-imp-999.
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione su tabella spese             *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-pmt-iep-spe-ctr      .
+       pmt-spe-imp-100.
+           add       1                    to   w-pmt-iep-spe-ctr      .
+           if        w-pmt-iep-spe-ctr    >    w-prs-spe-fat-nst
+                     go to pmt-spe-imp-999.
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione                             *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      25                   to   v-car                  .
+           add       09
+                     w-pmt-iep-spe-ctr  giving v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-prs-spe-fat-dve
+                    (w-pmt-iep-spe-ctr)   to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           add       09
+                     w-pmt-iep-spe-ctr  giving v-lin                  .
+           move      26                   to   v-pos                  .
+           move      ":"                  to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo                                     *
+      *                  *---------------------------------------------*
+           go to     pmt-spe-imp-100.
+       pmt-spe-imp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione prompts per riepilogo totali              *
+      *    *-----------------------------------------------------------*
+       pmt-rie-tot-000.
+      *              *-------------------------------------------------*
+      *              * Totale lordo                                    *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      12                   to   v-car                  .
+           move      07                   to   v-lin                  .
+           move      53                   to   v-pos                  .
+           move      "Lordo      :"       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Totale netto                                    *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      12                   to   v-car                  .
+           move      09                   to   v-lin                  .
+           move      53                   to   v-pos                  .
+           move      "Netto      :"       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Totale spese                                    *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      12                   to   v-car                  .
+           move      11                   to   v-lin                  .
+           move      53                   to   v-pos                  .
+           move      "Spese      :"       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *              *-------------------------------------------------*
+      *              * Deviazione a seconda che sia un documento in    *
+      *              * valuta o no                                     *
+      *              *-------------------------------------------------*
+           if        w-tes-sgl-vpf (1)    =    c-sgl
+                     go to pmt-rie-tot-100
+           else      go to pmt-rie-tot-200.
+       pmt-rie-tot-100.
+      *              *-------------------------------------------------*
+      *              * Se documento non in valuta                      *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      12                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      53                   to   v-pos                  .
+           move      "Totale     :"       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           go to     pmt-rie-tot-999.
+       pmt-rie-tot-200.
+      *              *-------------------------------------------------*
+      *              * Se documento in valuta                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Totale in valuta                            *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      12                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      53                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           string    "Totale "  delimited by   size
+                     w-tes-sgl-vpf (1)
+                                delimited by   size
+                     " :"       delimited by   size
+                                          into v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                  *---------------------------------------------*
+      *                  * Totale in valuta base                       *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      12                   to   v-car                  .
+           move      15                   to   v-lin                  .
+           move      53                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           string    "       "  delimited by   size
+                     c-sgl      delimited by   size
+                     " :"       delimited by   size
+                                          into v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+           go to     pmt-rie-tot-999.
+       pmt-rie-tot-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo piede : Presa visione per pagina piede *
+      *    *-----------------------------------------------------------*
+       acc-pre-vpp-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+       acc-pre-vpp-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "MX"                 to   v-ope                  .
+           move      "U"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      spaces               to   v-msk                  .
+           move      spaces               to   v-alf                  .
+           move      spaces               to   v-not                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-pre-vpp-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-pre-vpp-999.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-pre-vpp-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-pre-vpp-000.
+       acc-pre-vpp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo piede : Totale sconto incondizionato   *
+      *    *-----------------------------------------------------------*
+       acc-tot-scc-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valore precedente               *
+      *                  *---------------------------------------------*
+           move      w-pie-tot-scc (1)    to   w-sav-tot-scc          .
+       acc-tot-scc-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      07                   to   v-lin                  .
+           move      28                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           move      w-pie-tot-scc (1)    to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-tot-scc-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-tot-scc-999.
+      *              *-------------------------------------------------*
+      *              * Valore impostato                                *
+      *              *-------------------------------------------------*
+           move      v-num                to   w-pie-tot-scc (1)      .
+       acc-tot-scc-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-tot-scc-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore attuale diverso dal precedente    *
+      *                  *---------------------------------------------*
+           if        w-pie-tot-scc (1)    =    w-sav-tot-scc
+                     go to acc-tot-scc-800.
+      *                      *-----------------------------------------*
+      *                      * Trattamento % sconto in chiusura        *
+      *                      *-----------------------------------------*
+           if        w-pie-per-scc (1)    not  = zero
+                     move  zero           to   w-pie-per-scc (1)      .
+      *                      *-----------------------------------------*
+      *                      * Determinazione totali riepilogo docum.  *
+      *                      *-----------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+      *                      *-----------------------------------------*
+      *                      * Rivisualizzazione intero piede          *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           perform   vis-pie-reg-000      thru vis-pie-reg-999        .
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-tot-scc-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-tot-scc-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-tot-scc-100.
+       acc-tot-scc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo piede : Totale sconto incondizionato*
+      *    *-----------------------------------------------------------*
+       vis-tot-scc-000.
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      07                   to   v-lin                  .
+           move      28                   to   v-pos                  .
+           move      w-pie-tot-scc (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-tot-scc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo piede : % sconto incondizionato        *
+      *    *-----------------------------------------------------------*
+       acc-per-scc-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valore precedente               *
+      *                  *---------------------------------------------*
+           move      w-pie-per-scc (1)    to   w-sav-per-scc          .
+       acc-per-scc-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      01                   to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "BD"                 to   v-edm                  .
+           move      07                   to   v-lin                  .
+           move      45                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           move      w-pie-per-scc (1)    to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-per-scc-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-per-scc-999.
+      *              *-------------------------------------------------*
+      *              * Valore impostato                                *
+      *              *-------------------------------------------------*
+           move      v-num                to   w-pie-per-scc (1)      .
+       acc-per-scc-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-per-scc-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore attuale diverso dal precedente    *
+      *                  *---------------------------------------------*
+           if        w-pie-per-scc (1)    =    w-sav-per-scc
+                     go to acc-per-scc-800.
+      *                      *-----------------------------------------*
+      *                      * Determinazione totali riepilogo docum.  *
+      *                      *-----------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+      *                      *-----------------------------------------*
+      *                      * Rivisualizzazione intero piede          *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           perform   vis-pie-reg-000      thru vis-pie-reg-999        .
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-per-scc-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-per-scc-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-per-scc-100.
+       acc-per-scc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo piede : % sconto incondizionato     *
+      *    *-----------------------------------------------------------*
+       vis-per-scc-000.
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      01                   to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "BD"                 to   v-edm                  .
+           move      07                   to   v-lin                  .
+           move      45                   to   v-pos                  .
+           move      w-pie-per-scc (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-per-scc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo piede : Totale sconto pagamento        *
+      *    *-----------------------------------------------------------*
+       acc-tot-scp-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valore precedente               *
+      *                  *---------------------------------------------*
+           move      w-pie-tot-scp (1)    to   w-sav-tot-scp          .
+       acc-tot-scp-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      08                   to   v-lin                  .
+           move      28                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           move      w-pie-tot-scp (1)    to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-tot-scp-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-tot-scp-999.
+      *              *-------------------------------------------------*
+      *              * Valore impostato                                *
+      *              *-------------------------------------------------*
+           move      v-num                to   w-pie-tot-scp (1)      .
+       acc-tot-scp-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-tot-scp-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore attuale diverso dal precedente    *
+      *                  *---------------------------------------------*
+           if        w-pie-tot-scp (1)    =    w-sav-tot-scp
+                     go to acc-tot-scp-800.
+      *                      *-----------------------------------------*
+      *                      * Trattamento % sconto pagamento          *
+      *                      *-----------------------------------------*
+           if        w-pie-per-scp (1)    not  = zero
+                     move  zero           to   w-pie-per-scp (1)      .
+      *                      *-----------------------------------------*
+      *                      * Determinazione totali riepilogo docum.  *
+      *                      *-----------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+      *                      *-----------------------------------------*
+      *                      * Rivisualizzazione intero piede          *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           perform   vis-pie-reg-000      thru vis-pie-reg-999        .
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-tot-scp-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-tot-scp-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-tot-scp-100.
+       acc-tot-scp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo piede : Totale sconto pagamento     *
+      *    *-----------------------------------------------------------*
+       vis-tot-scp-000.
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      08                   to   v-lin                  .
+           move      28                   to   v-pos                  .
+           move      w-pie-tot-scp (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-tot-scp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo piede : % sconto pagamento             *
+      *    *-----------------------------------------------------------*
+       acc-per-scp-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valore precedente               *
+      *                  *---------------------------------------------*
+           move      w-pie-per-scp (1)    to   w-sav-per-scp          .
+       acc-per-scp-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      01                   to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "BD"                 to   v-edm                  .
+           move      08                   to   v-lin                  .
+           move      45                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           move      w-pie-per-scp (1)    to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-per-scp-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-per-scp-999.
+      *              *-------------------------------------------------*
+      *              * Valore impostato                                *
+      *              *-------------------------------------------------*
+           move      v-num                to   w-pie-per-scp (1)      .
+       acc-per-scp-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-per-scp-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore attuale diverso dal precedente    *
+      *                  *---------------------------------------------*
+           if        w-pie-per-scp (1)    =    w-sav-per-scp
+                     go to acc-per-scp-800.
+      *                      *-----------------------------------------*
+      *                      * Determinazione totali riepilogo docum.  *
+      *                      *-----------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+      *                      *-----------------------------------------*
+      *                      * Rivisualizzazione intero piede          *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           perform   vis-pie-reg-000      thru vis-pie-reg-999        .
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-per-scp-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-per-scp-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-per-scp-100.
+       acc-per-scp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo piede : % sconto pagamento          *
+      *    *-----------------------------------------------------------*
+       vis-per-scp-000.
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      01                   to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "BD"                 to   v-edm                  .
+           move      08                   to   v-lin                  .
+           move      45                   to   v-pos                  .
+           move      w-pie-per-scp (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-per-scp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo riga : Si/No addebito spesa in funzio- *
+      *    * ne di w-acc-iep-spe-ctr                                   *
+      *    *-----------------------------------------------------------*
+       acc-spe-snx-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se campo da accettare                  *
+      *                  *---------------------------------------------*
+           if        w-prs-spe-fat-nst    =    zero
+                     go to acc-spe-snx-999.
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-acc-iep-spe-ctr)   to   w-acc-iep-spe-inx      .
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valore precedente               *
+      *                  *---------------------------------------------*
+           move      w-pie-spe-snx
+                    (1, w-acc-iep-spe-inx)
+                                          to   w-sav-spe-snx          .
+       acc-spe-snx-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "E"                  to   v-tip                  .
+           move      w-exp-spe-snx-lun    to   v-car                  .
+           move      w-exp-spe-snx-num    to   v-ldt                  .
+           move      "NS#"                to   v-msk                  .
+           move      spaces               to   v-edm                  .
+           add       09
+                     w-acc-iep-spe-ctr  giving v-lin                  .
+           move      28                   to   v-pos                  .
+           move      w-exp-spe-snx-tbl    to   v-txt                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           if        w-pie-spe-snx
+                    (1, w-acc-iep-spe-inx)
+                                          =    0
+                     move  1              to   v-num
+           else if   w-pie-spe-snx
+                    (1, w-acc-iep-spe-inx)
+                                          =    1
+                     move  2              to   v-num
+           else      move  zero           to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-spe-snx-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-spe-snx-999.
+      *              *-------------------------------------------------*
+      *              * Valore impostato                                *
+      *              *-------------------------------------------------*
+           if        v-num                =    1
+                     move  0              to   w-pie-spe-snx
+                                              (1, w-acc-iep-spe-inx)
+           else if   v-num                =    2
+                     move  1              to   w-pie-spe-snx
+                                              (1, w-acc-iep-spe-inx)
+           else      move  zero           to   w-pie-spe-snx
+                                              (1, w-acc-iep-spe-inx)  .
+       acc-spe-snx-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-spe-snx-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore attuale diverso dal precedente    *
+      *                  *---------------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-acc-iep-spe-inx)
+                                          =    w-sav-spe-snx
+                     go to acc-spe-snx-800.
+      *                      *-----------------------------------------*
+      *                      * Trattamento importo e percentuale spesa *
+      *                      *-----------------------------------------*
+      *                          *-------------------------------------*
+      *                          * Se si addebito : oltre              *
+      *                          *-------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-acc-iep-spe-inx)
+                                          =    1
+                     go to acc-spe-snx-650.
+      *                          *-------------------------------------*
+      *                          * Test su personalizzazione per tipo  *
+      *                          * accettazione                        *
+      *                          *-------------------------------------*
+           if        w-prs-spe-fat-tac    =    01
+                     go to acc-spe-snx-650.
+      *                          *-------------------------------------*
+      *                          * Normalizzazione importo e percen-   *
+      *                          * tuale                               *
+      *                          *-------------------------------------*
+           move      zero                 to   w-pie-spe-imp
+                                              (1, w-acc-iep-spe-inx)  .
+           move      zero                 to   w-pie-spe-per
+                                              (1, w-acc-iep-spe-inx)  .
+       acc-spe-snx-650.
+      *                      *-----------------------------------------*
+      *                      * Determinazione totali riepilogo docum.  *
+      *                      *-----------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+      *                      *-----------------------------------------*
+      *                      * Rivisualizzazione intero piede          *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           perform   vis-pie-reg-000      thru vis-pie-reg-999        .
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-spe-snx-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-spe-snx-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-spe-snx-100.
+       acc-spe-snx-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo campo riga : Si/No addebito spese   *
+      *    *-----------------------------------------------------------*
+       vis-spe-snx-000.
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione                              *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-vis-iep-spe-ctr      .
+       vis-spe-snx-100.
+           add       1                    to   w-vis-iep-spe-ctr      .
+           if        w-vis-iep-spe-ctr    >    w-prs-spe-fat-nst
+                     go to vis-spe-snx-999.
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-vis-iep-spe-ctr)   to   w-vis-iep-spe-inx      .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione                             *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "E"                  to   v-tip                  .
+           move      w-exp-spe-snx-lun    to   v-car                  .
+           move      w-exp-spe-snx-num    to   v-ldt                  .
+           move      spaces               to   v-edm                  .
+           add       09
+                     w-vis-iep-spe-ctr  giving v-lin                  .
+           move      28                   to   v-pos                  .
+           move      w-exp-spe-snx-tbl    to   v-txt                  .
+           if        w-pie-spe-snx
+                    (1, w-vis-iep-spe-inx)
+                                          =    0
+                     move  1              to   v-num
+           else if   w-pie-spe-snx
+                    (1, w-vis-iep-spe-inx)
+                                          =    1
+                     move  2              to   v-num
+           else      move  zero           to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo su scansione                        *
+      *                  *---------------------------------------------*
+           go to     vis-spe-snx-100.
+       vis-spe-snx-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo riga : Importo spesa in funzione di    *
+      *    * w-acc-iep-spe-ctr                                         *
+      *    *-----------------------------------------------------------*
+       acc-spe-imp-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-acc-iep-spe-ctr)   to   w-acc-iep-spe-inx      .
+      *                  *---------------------------------------------*
+      *                  * Test se campo da accettare                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se numero spese personalizzate a zero : *
+      *                      * il campo non e' da accettare            *
+      *                      *-----------------------------------------*
+           if        w-prs-spe-fat-nst    =    zero
+                     go to acc-spe-imp-999.
+      *                      *-----------------------------------------*
+      *                      * Se spesa da addebitare : oltre          *
+      *                      *-----------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-acc-iep-spe-inx)
+                                          =    1
+                     go to acc-spe-imp-050.
+      *                      *-----------------------------------------*
+      *                      * Test su personalizzazione per tipo ac-  *
+      *                      * cettazione                              *
+      *                      *-----------------------------------------*
+           if        w-prs-spe-fat-tac    =    00
+                     go to acc-spe-imp-999.
+       acc-spe-imp-050.
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valore precedente               *
+      *                  *---------------------------------------------*
+           move      w-pie-spe-imp
+                    (1, w-acc-iep-spe-inx)
+                                          to   w-sav-spe-imp          .
+       acc-spe-imp-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      09                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           add       09
+                     w-acc-iep-spe-ctr  giving v-lin                  .
+           move      31                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           move      w-pie-spe-imp
+                    (1, w-acc-iep-spe-inx)
+                                          to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-spe-imp-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-spe-imp-999.
+      *              *-------------------------------------------------*
+      *              * Valore impostato                                *
+      *              *-------------------------------------------------*
+           move      v-num                to   w-pie-spe-imp
+                                              (1, w-acc-iep-spe-inx)  .
+       acc-spe-imp-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-spe-imp-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore attuale diverso dal precedente    *
+      *                  *---------------------------------------------*
+           if        w-pie-spe-imp
+                    (1, w-acc-iep-spe-inx)
+                                          =    w-sav-spe-imp
+                     go to acc-spe-imp-800.
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione percentuale spesa       *
+      *                      *-----------------------------------------*
+           move      zero                 to   w-pie-spe-per
+                                              (1, w-acc-iep-spe-inx)  .
+      *                      *-----------------------------------------*
+      *                      * Determinazione totali riepilogo docum.  *
+      *                      *-----------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+      *                      *-----------------------------------------*
+      *                      * Rivisualizzazione intero piede          *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           perform   vis-pie-reg-000      thru vis-pie-reg-999        .
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-spe-imp-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-spe-imp-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-spe-imp-100.
+       acc-spe-imp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo campo riga : Importi spese          *
+      *    *-----------------------------------------------------------*
+       vis-spe-imp-000.
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione                              *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-vis-iep-spe-ctr      .
+       vis-spe-imp-100.
+           add       1                    to   w-vis-iep-spe-ctr      .
+           if        w-vis-iep-spe-ctr    >    w-prs-spe-fat-nst
+                     go to vis-spe-imp-999.
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-vis-iep-spe-ctr)   to   w-vis-iep-spe-inx      .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione                             *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      09                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           add       09
+                     w-vis-iep-spe-ctr  giving v-lin                  .
+           move      31                   to   v-pos                  .
+           move      w-pie-spe-imp
+                    (1, w-vis-iep-spe-inx)
+                                          to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo su scansione                        *
+      *                  *---------------------------------------------*
+           go to     vis-spe-imp-100.
+       vis-spe-imp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione campo riga : % spesa in funzione di          *
+      *    * w-acc-iep-spe-ctr                                         *
+      *    *-----------------------------------------------------------*
+       acc-spe-per-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-acc-iep-spe-ctr)   to   w-acc-iep-spe-inx      .
+      *                  *---------------------------------------------*
+      *                  * Test se campo da accettare                  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Se numero spese personalizzate a zero : *
+      *                      * il campo non e' da accettare            *
+      *                      *-----------------------------------------*
+           if        w-prs-spe-fat-nst    =    zero
+                     go to acc-spe-per-999.
+      *                      *-----------------------------------------*
+      *                      * Se tipo di imponibile per la spesa a    *
+      *                      * zero : no                               *
+      *                      *-----------------------------------------*
+           if        w-pie-spe-ibl
+                    (1, w-acc-iep-spe-inx)
+                                          =    zero
+                     go to acc-spe-per-999.
+      *                      *-----------------------------------------*
+      *                      * Se spesa da addebitare : oltre          *
+      *                      *-----------------------------------------*
+           if        w-pie-spe-snx
+                    (1, w-acc-iep-spe-inx)
+                                          =    1
+                     go to acc-spe-per-050.
+      *                      *-----------------------------------------*
+      *                      * Test su personalizzazione per tipo ac-  *
+      *                      * cettazione                              *
+      *                      *-----------------------------------------*
+           if        w-prs-spe-fat-tac    =    00
+                     go to acc-spe-per-999.
+       acc-spe-per-050.
+      *                  *---------------------------------------------*
+      *                  * Salvataggio valore precedente               *
+      *                  *---------------------------------------------*
+           move      w-pie-spe-per
+                    (1, w-acc-iep-spe-inx)
+                                          to   w-sav-spe-per          .
+       acc-spe-per-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      01                   to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "BD"                 to   v-edm                  .
+           add       09
+                     w-acc-iep-spe-ctr  giving v-lin                  .
+           move      45                   to   v-pos                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-tes    not  = spaces and
+                     w-cnt-sts-imp-cor    not  = spaces and
+                     w-cnt-sts-imp-pie    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           move      w-pie-spe-per
+                    (1, w-acc-iep-spe-inx)
+                                          to   v-num                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-tus-acc-pie
+                     go to acc-spe-per-999.
+      *              *-------------------------------------------------*
+      *              * Se Delt                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DELT"
+                     move  "X"            to   w-cnt-tus-acc-pie
+                     go to acc-spe-per-999.
+      *              *-------------------------------------------------*
+      *              * Valore impostato                                *
+      *              *-------------------------------------------------*
+           move      v-num                to   w-pie-spe-per
+                                              (1, w-acc-iep-spe-inx)  .
+       acc-spe-per-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-spe-per-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se valore attuale diverso dal precedente    *
+      *                  *---------------------------------------------*
+           if        w-pie-spe-per
+                    (1, w-acc-iep-spe-inx)
+                                          =    w-sav-spe-per
+                     go to acc-spe-per-800.
+      *                      *-----------------------------------------*
+      *                      * Determinazione totali riepilogo docum.  *
+      *                      *-----------------------------------------*
+           perform   det-tri-doc-000      thru det-tri-doc-999        .
+      *                      *-----------------------------------------*
+      *                      * Rivisualizzazione intero piede          *
+      *                      *-----------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+           perform   vis-pie-reg-000      thru vis-pie-reg-999        .
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       acc-spe-per-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform cnt-tdo-nok-000
+                                          thru cnt-tdo-nok-999
+                     if      w-cnt-tdo-nok-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-tus-acc-pie
+                             go to acc-spe-per-999
+                     else    move  spaces to   w-cnt-tdo-nok-flg
+                             go to acc-spe-per-100.
+       acc-spe-per-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo campo riga : % spese                *
+      *    *-----------------------------------------------------------*
+       vis-spe-per-000.
+      *              *-------------------------------------------------*
+      *              * Ciclo di scansione                              *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-vis-iep-spe-ctr      .
+       vis-spe-per-100.
+           add       1                    to   w-vis-iep-spe-ctr      .
+           if        w-vis-iep-spe-ctr    >    w-prs-spe-fat-nst
+                     go to vis-spe-per-999.
+      *                  *---------------------------------------------*
+      *                  * Determinazione indice per la spesa          *
+      *                  *---------------------------------------------*
+           move      w-prs-spe-fat-npt
+                    (w-vis-iep-spe-ctr)   to   w-vis-iep-spe-inx      .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione                             *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      02                   to   v-car                  .
+           move      01                   to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "BD"                 to   v-edm                  .
+           add       09
+                     w-vis-iep-spe-ctr  giving v-lin                  .
+           move      45                   to   v-pos                  .
+           move      w-pie-spe-per
+                    (1, w-vis-iep-spe-inx)
+                                          to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Riciclo su scansione                        *
+      *                  *---------------------------------------------*
+           go to     vis-spe-per-100.
+       vis-spe-per-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione campo piede : Riepilogo totali            *
+      *    *-----------------------------------------------------------*
+       vis-rie-tot-000.
+      *              *-------------------------------------------------*
+      *              * Totale lordo                                    *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      07                   to   v-lin                  .
+           move      65                   to   v-pos                  .
+           move      w-pie-tot-lor (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Totale netto                                    *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      09                   to   v-lin                  .
+           move      65                   to   v-pos                  .
+           move      w-pie-tot-net (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Totale spese                                    *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      11                   to   v-lin                  .
+           move      65                   to   v-pos                  .
+           move      w-pie-tot-spe (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Totale documento                                *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      w-tes-dec-vpf (1)    to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      13                   to   v-lin                  .
+           move      65                   to   v-pos                  .
+           move      w-pie-tot-doc (1)    to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Totale documento in valuta base                 *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test se da stampare                         *
+      *                  *---------------------------------------------*
+           if        w-tes-sgl-vpf (1)    =    c-sgl
+                     go to vis-rie-tot-999.
+      *                  *---------------------------------------------*
+      *                  * Determinazione                              *
+      *                  *---------------------------------------------*
+           move      w-tes-sgl-vpf (1)    to   w-cvs-vlt-sgl          .
+           move      w-tes-dec-vpf (1)    to   w-cvs-vlt-dec          .
+           move      w-tes-tdc-vpf (1)    to   w-cvs-vlt-tdc          .
+           move      w-tes-cdc-vpf (1)    to   w-cvs-vlt-cdc          .
+           move      w-pie-tot-doc (1)    to   w-cvs-vlt-aav          .
+           perform   cvs-alt-vlb-000      thru cvs-alt-vlb-999        .
+      *                  *---------------------------------------------*
+      *                  * Stampa                                      *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "V"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      c-dec                to   v-dec                  .
+           move      "S"                  to   v-sgn                  .
+           move      "GB"                 to   v-edm                  .
+           move      15                   to   v-lin                  .
+           move      65                   to   v-pos                  .
+           move      w-cvs-vlt-avb        to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-rie-tot-999.
+           exit.
+

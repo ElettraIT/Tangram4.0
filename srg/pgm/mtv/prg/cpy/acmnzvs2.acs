@@ -1,0 +1,74 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice statistico 2    *
+      *    *-----------------------------------------------------------*
+       cmn-zvs-002-opn-000.
+           move      "pgm/mtv/prg/obj/acmnzvs2"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cmn-zvs-002-pth      .
+           move      "OP"                 to   w-cmn-zvs-002-ope      .
+           perform   cmn-zvs-002-cll-000  thru cmn-zvs-002-cll-999    .
+       cmn-zvs-002-opn-999.
+           exit.
+       cmn-zvs-002-cls-000.
+           move      "CL"                 to   w-cmn-zvs-002-ope      .
+           perform   cmn-zvs-002-cll-000  thru cmn-zvs-002-cll-999    .
+           move      "C?"                 to   w-cmn-zvs-002-ope      .
+           perform   cmn-zvs-002-cll-000  thru cmn-zvs-002-cll-999    .
+           if        w-cmn-zvs-002-ope    not  = spaces
+                     go to cmn-zvs-002-cls-999.
+           cancel    w-cmn-zvs-002-pth                                .
+       cmn-zvs-002-cls-999.
+           exit.
+       cmn-zvs-002-foi-000.
+           if        v-key                not  = "INSR"
+                     go to cmn-zvs-002-foi-500.
+           move      "P?"                 to   s-ope                  .
+           move      "pmtv1800"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zvs-002-foi-999.
+           move      "pgm/mtv/prg/obj/pmtv1800"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "I+"                 to   w-cmn-zvs-002-ope      .
+           go to     cmn-zvs-002-foi-999.
+       cmn-zvs-002-foi-500.
+           if        v-key                not  = "FIND"
+                     go to cmn-zvs-002-foi-999.
+           move      "P?"                 to   s-ope                  .
+           move      "pmtv1810"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cmn-zvs-002-foi-999.
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           move      "pgm/mtv/prg/obj/pmtv1810"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+           move      "F+"                 to   w-cmn-zvs-002-ope      .
+           go to     cmn-zvs-002-foi-999.
+       cmn-zvs-002-foi-999.
+           exit.
+       cmn-zvs-002-cll-000.
+           call      w-cmn-zvs-002-pth   using w-cmn-zvs-002
+                                               v
+                                               s                      .
+       cmn-zvs-002-cll-999.
+           exit.
+

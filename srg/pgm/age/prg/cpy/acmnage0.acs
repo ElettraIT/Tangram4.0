@@ -1,0 +1,125 @@
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice agente          *
+      *    *-----------------------------------------------------------*
+       cod-mne-age-opn-000.
+      *              *-------------------------------------------------*
+      *              * Open                                            *
+      *              *-------------------------------------------------*
+           move      "pgm/age/prg/obj/acmnage0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           move      s-pat                to   w-cod-mne-age-pth      .
+           move      "OP"                 to   w-cod-mne-age-ope      .
+           perform   cod-mne-age-cll-000  thru cod-mne-age-cll-999    .
+       cod-mne-age-opn-999.
+           exit.
+       cod-mne-age-cls-000.
+      *              *-------------------------------------------------*
+      *              * Close                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   w-cod-mne-age-ope      .
+           perform   cod-mne-age-cll-000  thru cod-mne-age-cll-999    .
+           move      "C?"                 to   w-cod-mne-age-ope      .
+           perform   cod-mne-age-cll-000  thru cod-mne-age-cll-999    .
+           if        w-cod-mne-age-ope    not  = spaces
+                     go to cod-mne-age-cls-999.
+           cancel    w-cod-mne-age-pth                                .
+       cod-mne-age-cls-999.
+           exit.
+       cod-mne-age-foi-000.
+      *              *-------------------------------------------------*
+      *              * Find o Insr                                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Insr                                        *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se Insr                            *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "INSR"
+                     go to cod-mne-age-foi-500.
+      *                      *-----------------------------------------*
+      *                      * Test se programma attivo                *
+      *                      *-----------------------------------------*
+           move      "P?"                 to   s-ope                  .
+           move      "page2000"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-age-foi-999.
+      *                      *-----------------------------------------*
+      *                      * Chiamata                                *
+      *                      *-----------------------------------------*
+           move      "pgm/age/prg/obj/page2000"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+      *                      *-----------------------------------------*
+      *                      * Rientro da Insr                         *
+      *                      *-----------------------------------------*
+           move      "I+"                 to   w-cod-mne-age-ope      .
+      *                      *-----------------------------------------*
+      *                      * Uscita                                  *
+      *                      *-----------------------------------------*
+           go to     cod-mne-age-foi-999.
+       cod-mne-age-foi-500.
+      *                  *---------------------------------------------*
+      *                  * Find                                        *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se Find                            *
+      *                      *-----------------------------------------*
+           if        v-key                not  = "FIND"
+                     go to cod-mne-age-foi-999.
+      *                      *-----------------------------------------*
+      *                      * Test se programma attivo                *
+      *                      *-----------------------------------------*
+           move      "P?"                 to   s-ope                  .
+           move      "page2010"           to   s-pro                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        s-liv                not  = zero
+                     go to cod-mne-age-foi-999.
+      *                      *-----------------------------------------*
+      *                      * Variabile di i.p.c. a chiamato          *
+      *                      *-----------------------------------------*
+           move      "PV"                 to   s-ope                  .
+           move      "fkselect"           to   s-var                  .
+           move      "+"                  to   s-dop                  .
+           move      "A"                  to   s-tip                  .
+           move      04                   to   s-car                  .
+           move      "SLCT"               to   s-alf                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                      *-----------------------------------------*
+      *                      * Chiamata                                *
+      *                      *-----------------------------------------*
+           move      "pgm/age/prg/obj/page2010"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat                                            .
+           cancel    s-pat                                            .
+      *                      *-----------------------------------------*
+      *                      * Segnale di rientro da Find              *
+      *                      *-----------------------------------------*
+           move      "F+"                 to   w-cod-mne-age-ope      .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     cod-mne-age-foi-999.
+       cod-mne-age-foi-999.
+           exit.
+       cod-mne-age-cll-000.
+      *              *-------------------------------------------------*
+      *              * Chiamata                                        *
+      *              *-------------------------------------------------*
+           call      w-cod-mne-age-pth   using w-cod-mne-age
+                                               v
+                                               s                      .
+       cod-mne-age-cll-999.
+           exit.
+
