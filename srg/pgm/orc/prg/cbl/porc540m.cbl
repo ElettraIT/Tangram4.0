@@ -8,7 +8,7 @@
       *                                   Fase:    orc540              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 14/10/10    *
-      *                       Ultima revisione:    NdK del 25/04/25    *
+      *                       Ultima revisione:    NdK del 17/04/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -573,6 +573,7 @@
       *        * Si/no invio                                           *
       *        *-------------------------------------------------------*
            05  w-rig-snx-inv              pic  x(01)                  .
+           05  w-rig-snx-inv-slc          pic  x(01)                  .
       *        *-------------------------------------------------------*
       *        * Indirizzo mail                                        *
       *        *-------------------------------------------------------*
@@ -3420,6 +3421,10 @@
       *                  * Salvataggio valore precedente               *
       *                  *---------------------------------------------*
            move      w-rig-cod-cli        to   w-sav-cod-cli          .
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione flag di select              *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-rig-snx-inv-slc      .
        acc-cod-cli-100.
       *              *-------------------------------------------------*
       *              * Ripristino valore precedente                    *
@@ -3521,12 +3526,9 @@
                      move  "TAB "         to   v-pfk (10)
            else      move  spaces         to   v-pfk (10)             .
       *                      *-----------------------------------------*
-      *                      * Slct : sempre ammesso, a meno che non   *
-      *                      *        si sia gia' sull'unica riga      *
+      *                      * Slct : sempre ammesso                   *
       *                      *-----------------------------------------*
-           if        w-rlt-sup-max        not  < 2
-                     move  "SLCT"         to   v-pfk (11)
-           else      move  spaces         to   v-pfk (11)             .
+           move      "SLCT"               to   v-pfk (11)             .
       *                      *-----------------------------------------*
       *                      * PF1 : solo piu' di 9 elementi           *
       *                      *-----------------------------------------*
@@ -3596,37 +3598,21 @@
       *              *-------------------------------------------------*
       *              * Se Slct                                         *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
            if        v-key                not  = "SLCT"
                      go to acc-cod-cli-300.
-       acc-cod-cli-255.
-      *                      *-----------------------------------------*
-      *                      * Comodo per selezione                    *
-      *                      *-----------------------------------------*
-           move      v-num                to   w-cnt-slc-rap-num      .
-      *                      *-----------------------------------------*
-      *                      * Se conversione senza errori             *
-      *                      *-----------------------------------------*
-      *                          *-------------------------------------*
-      *                          * Se numero riga minore di 1 oppure   *
-      *                          * maggiore del massimo : reimposta-   *
-      *                          * zione                               *
-      *                          *-------------------------------------*
-           if        w-cnt-slc-rap-num    =    zero       or
-                     w-cnt-slc-rap-num    >    w-rlt-sup-max
-                     go to acc-cod-cli-100.
-      *                          *-------------------------------------*
-      *                          * Se numero riga impostato pari a nu- *
-      *                          * numero riga attuale : reimpostazio- *
-      *                          * ne                                  *
-      *                          *-------------------------------------*
-           if        w-cnt-slc-rap-num    =    w-cnt-cor-nrg-dac
-                     go to acc-cod-cli-100.
-      *                          *-------------------------------------*
-      *                          * Preparazione parametri e uscita     *
-      *                          *-------------------------------------*
-           move      w-cnt-slc-rap-num    to   w-cnt-slc-num-rig      .
-           move      "."                  to   w-cnt-tus-acc-rig      .
-           go to     acc-cod-cli-999.
+      *                  *---------------------------------------------*
+      *                  * Forzatura si/no avviso                      *
+      *                  *---------------------------------------------*
+           if        w-rig-snx-inv        =    "N"
+                     move  "S"            to   w-rig-snx-inv
+           else      move  "N"            to   w-rig-snx-inv          .
+      *                  *---------------------------------------------*
+      *                  * Forzatura flag di select                    *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-rig-snx-inv-slc      .
        acc-cod-cli-300.
       *              *-------------------------------------------------*
       *              * Se Expd                                         *
@@ -3793,6 +3779,13 @@
       *              *-------------------------------------------------*
       *              * Pre-accettazione                                *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Se select da campo precedente : forzatura   *
+      *                  * del tasto 'DO'                              *
+      *                  *---------------------------------------------*
+           if        w-rig-snx-inv-slc    not  = spaces
+                     move  "DO  "         to   v-key
+                     go to acc-snx-inv-800.
        acc-snx-inv-100.
       *              *-------------------------------------------------*
       *              * Accettazione valore                             *
@@ -4265,6 +4258,7 @@
            move      spaces               to   w-rig-dpz-cli          .
            move      spaces               to   w-rig-cod-cli-rag      .
            move      spaces               to   w-rig-snx-inv          .
+           move      spaces               to   w-rig-snx-inv-slc      .
            move      spaces               to   w-rig-ind-eml          .
        nor-nok-rig-999.
            exit.
