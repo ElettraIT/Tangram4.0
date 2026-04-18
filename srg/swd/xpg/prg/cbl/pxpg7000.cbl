@@ -8,7 +8,7 @@
       *                                   Fase:    xpg700              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 14/04/26    *
+      *                       Ultima revisione:    NdK del 18/04/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -1610,6 +1610,7 @@
       *        *-------------------------------------------------------*
       *        * Esportazione automatica o manuale                     *
       *        *  - A : Automatica                                     *
+      *        *  - S : Automatica senza aggiornamento Database        *
       *        *  - M : Manuale                                        *
       *        *-------------------------------------------------------*
            05  rr-aut-man                 pic  x(01)                  .
@@ -1686,11 +1687,13 @@
       *        * Work per : Tipo esportazione                          *
       *        *-------------------------------------------------------*
            05  w-exp-aut-man.
-               10  w-exp-aut-man-num      pic  9(02)       value 02   .
+               10  w-exp-aut-man-num      pic  9(02)       value 03   .
                10  w-exp-aut-man-lun      pic  9(02)       value 40   .
                10  w-exp-aut-man-tbl.
                    15  filler             pic  x(40) value
                           "Automatica, tutti gli archivi           "  .
+                   15  filler             pic  x(40) value
+                          "automatica, ma Senza aggiornare Database"  .
                    15  filler             pic  x(40) value
                           "Manuale, un archivio alla volta         "  .
       *        *-------------------------------------------------------*
@@ -3027,7 +3030,7 @@
            move      "E"                  to   v-tip                  .
            move      w-exp-aut-man-lun    to   v-car                  .
            move      w-exp-aut-man-num    to   v-ldt                  .
-           move      "AM#"                to   v-msk                  .
+           move      "ASM#"               to   v-msk                  .
            move      spaces               to   v-edm                  .
            move      w-exp-aut-man-tbl    to   v-txt                  .
            move      "UP  "               to   v-pfk (01)             .
@@ -3036,11 +3039,15 @@
                      move  "DO  "         to   v-pfk (05)             .
            move      05                   to   v-lin                  .
            move      30                   to   v-pos                  .
+      *
            if        rr-aut-man           =    "A"
                      move  01             to   v-num
-           else if   rr-aut-man           =    "M"
+           else if   rr-aut-man           =    "S"
                      move  02             to   v-num
+           else if   rr-aut-man           =    "M"
+                     move  03             to   v-num
            else      move  zero           to   v-num                  .
+      *
            perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
       *              *-------------------------------------------------*
       *              * Se Exit                                         *
@@ -3055,6 +3062,8 @@
            if        v-num                =    01
                      move  "A"            to   rr-aut-man
            else if   v-num                =    02
+                     move  "S"            to   rr-aut-man
+           else if   v-num                =    03
                      move  "M"            to   rr-aut-man
            else      move  spaces         to   rr-aut-man             .
        acc-aut-man-400.
@@ -3095,11 +3104,15 @@
            move      w-exp-aut-man-tbl    to   v-txt                  .
            move      05                   to   v-lin                  .
            move      30                   to   v-pos                  .
+      *
            if        rr-aut-man           =    "A"
                      move  01             to   v-num
-           else if   rr-aut-man           =    "M"
+           else if   rr-aut-man           =    "S"
                      move  02             to   v-num
+           else if   rr-aut-man           =    "M"
+                     move  03             to   v-num
            else      move  zero           to   v-num                  .
+      *
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
        vis-aut-man-999.
@@ -3279,6 +3292,7 @@
       *              * Controllo su tipo esportazione                  *
       *              *-------------------------------------------------*
            if        rr-aut-man           =    "A" or
+                     rr-aut-man           =    "S" or
                      rr-aut-man           =    "M"
                      go to tdo-ric-sel-999.
            move      "ME"                 to   v-ope                  .
@@ -5046,6 +5060,11 @@ ______*    perform   exe-exp-zmu-000      thru exe-exp-zmu-999        .
       *              *-------------------------------------------------*
       *              * Test se da eseguire                             *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test sul tipo esecuzione                    *
+      *                  *---------------------------------------------*
+           if        rr-aut-man           =    "S"
+                     go to exe-rcs-tbl-900.
       *                  *---------------------------------------------*
       *                  * Test sul tipo di batch                      *
       *                  *---------------------------------------------*
