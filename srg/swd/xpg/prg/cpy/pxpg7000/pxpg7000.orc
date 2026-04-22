@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [orc] Ultimo aggiornamento: 17/09/25                 *
+      *    * Area [orc] Ultimo aggiornamento: 22/04/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [ocf]                                        *
@@ -5246,18 +5246,6 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zcv-des-key       to   w-scr-str-ele          .
-           move      30                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
       *                  * Mnemonico                                   *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
@@ -5479,18 +5467,6 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-zoc-cod-toc       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zoc-des-key       to   w-scr-str-ele          .
-           move      30                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -6136,18 +6112,6 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-zro-des-rsp       to   w-scr-str-ele          .
            move      40                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zro-des-key       to   w-scr-str-ele          .
-           move      30                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
