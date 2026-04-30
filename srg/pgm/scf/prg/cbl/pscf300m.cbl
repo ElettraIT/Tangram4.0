@@ -8,7 +8,7 @@
       *                                   Fase:    scf300              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 29/07/94    *
-      *                       Ultima revisione:    NdK del 08/04/26    *
+      *                       Ultima revisione:    NdK del 29/04/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -557,6 +557,10 @@
       *        * Numero pagamento massimo                              *
       *        *-------------------------------------------------------*
            05  rr-npg-max                 pic  9(11)                  .
+      *        *-------------------------------------------------------*
+      *        * Data valuta beneficiari                               *
+      *        *-------------------------------------------------------*
+           05  rr-dat-vlb                 pic  9(07)                  .
       *        *-------------------------------------------------------*
       *        * Codice fornitore                                      *
       *        *-------------------------------------------------------*
@@ -3387,6 +3391,15 @@
                      go to acc-ric-sel-999.
            if        v-key                =    "UP  "
                      go to acc-ric-sel-500.
+       acc-ric-sel-650.
+      *                  *---------------------------------------------*
+      *                  * Data valuta beneficiario                    *
+      *                  *---------------------------------------------*
+           perform   acc-dat-vlb-000      thru acc-dat-vlb-999        .
+           if        w-cnt-acc-ric-sel    not  = spaces
+                     go to acc-ric-sel-999.
+           if        v-key                =    "UP  "
+                     go to acc-ric-sel-500.
        acc-ric-sel-700.
       *                  *---------------------------------------------*
       *                  * Codice fornitore                            *
@@ -3395,7 +3408,7 @@
            if        w-cnt-acc-ric-sel    not  = spaces
                      go to acc-ric-sel-999.
            if        v-key                =    "UP  "
-                     go to acc-ric-sel-600.
+                     go to acc-ric-sel-650.
        acc-ric-sel-800.
       *                  *---------------------------------------------*
       *                  * Codice dipendenza del fornitore             *
@@ -3515,6 +3528,7 @@
            move      zero                 to   rr-drg-max             .
            move      zero                 to   rr-npg-min             .
            move      zero                 to   rr-npg-max             .
+           move      zero                 to   rr-dat-vlb             .
            move      zero                 to   rr-cod-fnt             .
            move      spaces               to   rr-cod-fnt-rag         .
            move      spaces               to   rr-cod-fnt-via         .
@@ -3574,11 +3588,10 @@
       *              *-------------------------------------------------*
            move      "DS"                 to   v-ope                  .
            move      "A"                  to   v-tip                  .
-           move      28                   to   v-car                  .
-           move      12                   to   v-lin                  .
-           move      01                   to   v-pos                  .
-           move      "                        al :"
-                                          to   v-alf                  .
+           move      04                   to   v-car                  .
+           move      11                   to   v-lin                  .
+           move      44                   to   v-pos                  .
+           move      "al :"               to   v-alf                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *              *-------------------------------------------------*
@@ -3587,7 +3600,7 @@
            move      "DS"                 to   v-ope                  .
            move      "A"                  to   v-tip                  .
            move      28                   to   v-car                  .
-           move      14                   to   v-lin                  .
+           move      13                   to   v-lin                  .
            move      01                   to   v-pos                  .
            move      "Numero pagamento       dal :"
                                           to   v-alf                  .
@@ -3598,10 +3611,21 @@
       *              *-------------------------------------------------*
            move      "DS"                 to   v-ope                  .
            move      "A"                  to   v-tip                  .
+           move      04                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      44                   to   v-pos                  .
+           move      "al :"               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Data valuta beneficiario                        *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
            move      28                   to   v-car                  .
            move      15                   to   v-lin                  .
            move      01                   to   v-pos                  .
-           move      "                        al :"
+           move      "Data valuta beneficiario/i :"
                                           to   v-alf                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
@@ -3928,8 +3952,8 @@
            move      "UP  "               to   v-pfk (01)             .
            move      "DOWN"               to   v-pfk (02)             .
            move      "DO  "               to   v-pfk (05)             .
-           move      12                   to   v-lin                  .
-           move      30                   to   v-pos                  .
+           move      11                   to   v-lin                  .
+           move      49                   to   v-pos                  .
            move      rr-drg-max           to   v-dat                  .
            perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
        acc-drg-max-150.
@@ -3983,7 +4007,7 @@
            move      "P"                  to   v-tip                  .
            move      08                   to   v-car                  .
            move      "<"                  to   v-edm                  .
-           move      14                   to   v-lin                  .
+           move      13                   to   v-lin                  .
            move      30                   to   v-pos                  .
            move      "UP  "               to   v-pfk (01)             .
            move      "DOWN"               to   v-pfk (02)             .
@@ -4074,7 +4098,7 @@
            move      "P"                  to   v-tip                  .
            move      08                   to   v-car                  .
            move      "<"                  to   v-edm                  .
-           move      14                   to   v-lin                  .
+           move      13                   to   v-lin                  .
            move      30                   to   v-pos                  .
            move      rr-npg-min           to   v-num                  .
            call      "swd/mod/prg/obj/mvideo"
@@ -4097,8 +4121,8 @@
            move      "P"                  to   v-tip                  .
            move      08                   to   v-car                  .
            move      "<"                  to   v-edm                  .
-           move      15                   to   v-lin                  .
-           move      30                   to   v-pos                  .
+           move      13                   to   v-lin                  .
+           move      49                   to   v-pos                  .
            move      "UP  "               to   v-pfk (01)             .
            move      "DOWN"               to   v-pfk (02)             .
            move      "FIND"               to   v-pfk (03)             .
@@ -4188,12 +4212,69 @@
            move      "P"                  to   v-tip                  .
            move      08                   to   v-car                  .
            move      "<"                  to   v-edm                  .
-           move      15                   to   v-lin                  .
-           move      30                   to   v-pos                  .
+           move      13                   to   v-lin                  .
+           move      49                   to   v-pos                  .
            move      rr-npg-max           to   v-num                  .
            call      "swd/mod/prg/obj/mvideo"
                                         using  v                      .
        vis-npg-max-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione : Data registrazione minima da ricercare     *
+      *    *-----------------------------------------------------------*
+       acc-dat-vlb-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+       acc-dat-vlb-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      ">"                  to   v-edm                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "DO  "               to   v-pfk (05)             .
+           move      15                   to   v-lin                  .
+           move      30                   to   v-pos                  .
+           move      rr-dat-vlb           to   v-dat                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-dat-vlb-150.
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-acc-ric-sel
+                     go to acc-dat-vlb-999.
+       acc-dat-vlb-200.
+      *              *-------------------------------------------------*
+      *              * Valore impostato in campo di destinazione       *
+      *              *-------------------------------------------------*
+           move      v-dat                to   rr-dat-vlb             .
+       acc-dat-vlb-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-dat-vlb-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+       acc-dat-vlb-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform tdo-ric-sel-000
+                                          thru tdo-ric-sel-999
+                     if      w-cnt-tdo-ric-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-acc-ric-sel
+                             go to acc-dat-vlb-999
+                     else    move  spaces to   w-cnt-tdo-ric-flg
+                             go to acc-dat-vlb-100.
+       acc-dat-vlb-999.
            exit.
 
       *    *===========================================================*
@@ -5131,7 +5212,7 @@
            go to     tdo-ric-sel-900.
        tdo-ric-sel-300.
       *              *-------------------------------------------------*
-      *              * Controllo su numero pgamento minimo e massimo   *
+      *              * Controllo su numero pagamento minimo e massimo  *
       *              *-------------------------------------------------*
            if        rr-npg-min           =    zero or
                      rr-npg-max           =    zero
@@ -5143,6 +5224,17 @@
            perform   box-msg-err-000      thru box-msg-err-999        .
            go to     tdo-ric-sel-900.
        tdo-ric-sel-400.
+      *              *-------------------------------------------------*
+      *              * Controllo su data valuta beneficiari            *
+      *              * ___ PREVEDERE CONTROLLO SU TUTTE LE SCADENZE    *
+      *              *-------------------------------------------------*
+           if        rr-dat-vlb           not  = zero
+                     go to tdo-ric-sel-500.
+           move      "Data valuta beneficiari obbligatoria!             
+      -              "               "    to   w-err-box-err-msg      .
+           perform   box-msg-err-000      thru box-msg-err-999        .
+           go to     tdo-ric-sel-900.
+       tdo-ric-sel-500.
       *              *-------------------------------------------------*
       *              * Fine controlli                                  *
       *              *-------------------------------------------------*
@@ -5403,6 +5495,12 @@
       *              * Normalizzazione flag di uscita                  *
       *              *-------------------------------------------------*
            move      spaces               to   w-cnt-prn-flg-sub      .
+      *              *-------------------------------------------------*
+      *              * Test su data valuta beneficiario                *
+      *              *-------------------------------------------------*
+           if        rf-sfp-dvf-bfc       not  = rr-dat-vlb
+                     go to prn-sel-rec-900.
+       prn-sel-rec-050.
       *              *-------------------------------------------------*
       *              * Test su modalita' e tipo valuta pagamento       *
       *              *-------------------------------------------------*
@@ -6067,10 +6165,6 @@
            call      "swd/mod/prg/obj/msegrt"
                                          using s                      .
       *                      *-----------------------------------------*
-      *                      * Date and time                           *
-      *                      *-----------------------------------------*
-           move      s-sdt                to   r-env-dat-tim          .
-      *                      *-----------------------------------------*
       *                      * Editing anno                            *
       *                      *-----------------------------------------*
            move      "ED"                 to   p-ope                  .
@@ -6431,15 +6525,9 @@
       *                  * FORMATO : AAAA-MM-GG                        *
       *                  *---------------------------------------------*
       *                      *-----------------------------------------*
-      *                      * Date and time da segreteria             *
+      *                      * Data valuta beneficiari                 *
       *                      *-----------------------------------------*
-           move      "DT"                 to   s-ope                  .
-           call      "swd/mod/prg/obj/msegrt"
-                                         using s                      .
-      *                      *-----------------------------------------*
-      *                      * Date and time                           *
-      *                      *-----------------------------------------*
-           move      s-sdt                to   r-env-dat-tim          .
+           move      rr-dat-vlb           to   s-dat                  .
       *                      *-----------------------------------------*
       *                      * Editing anno                            *
       *                      *-----------------------------------------*
