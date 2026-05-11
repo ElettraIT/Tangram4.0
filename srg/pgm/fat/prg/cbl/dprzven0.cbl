@@ -8,7 +8,7 @@
       *                                   Fase:                        *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 11/08/91    *
-      *                       Ultima revisione:    NdK del 26/07/21    *
+      *                       Ultima revisione:    NdK del 11/05/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       * ============================================================== *
@@ -453,6 +453,14 @@
       *    * Determinazione prezzo di listino di vendita               *
       *    *-----------------------------------------------------------*
        dpv-000.
+      *              *-------------------------------------------------*
+      *              * Test se data riferimento prezzo a zero          *
+      *              *-------------------------------------------------*
+           move      "DT"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        d-prz-ven-dat-rfp    =    zero
+                     move  s-dat          to   d-prz-ven-dat-rfp      .
       *              *-------------------------------------------------*
       *              * Bufferizzazione data di riferimento prezzo      *
       *              *-------------------------------------------------*

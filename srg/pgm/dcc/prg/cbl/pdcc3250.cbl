@@ -8,7 +8,7 @@
       *                                   Fase:    dcc325              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 11/08/92    *
-      *                       Ultima revisione:    NdK del 11/11/22    *
+      *                       Ultima revisione:    NdK del 05/05/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -3408,7 +3408,7 @@
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "V"                  to   v-tip                  .
-           move      05                   to   v-car                  .
+           move      06                   to   v-car                  .
            move      w-rig-dec-vlt        to   v-dec                  .
            add       w-rig-dec-prz        to   v-dec                  .
            move      spaces               to   v-sgn                  .

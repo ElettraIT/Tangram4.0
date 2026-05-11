@@ -8,7 +8,7 @@
       *                                   Fase:                        *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 12/08/93    *
-      *                       Ultima revisione:    NdK del 24/04/25    *
+      *                       Ultima revisione:    NdK del 07/05/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       * ============================================================== *
@@ -596,7 +596,7 @@
                10  w-aux-rec-rig-cix      pic  9(03)                  .
                10  w-aux-rec-rig-nli      pic  9(05)                  .
                10  w-aux-rec-rig-crb      pic  9(05)                  .
-               10  w-aux-rec-rig-max      pic  9(05) value 800        .
+               10  w-aux-rec-rig-max      pic  9(05) value 900        .
                10  w-aux-rec-rig-cpb      pic  9(05)                  .
                10  w-aux-rec-rig-cpa      pic  9(05)                  .
                10  w-aux-rec-rig-lt1      pic  x(03)                  .
@@ -616,18 +616,18 @@
                10  w-aux-rec-rig-tor      pic  x(01)                  .
                10  w-aux-rec-rig-dor      pic  x(01)                  .
                10  w-aux-rec-rig-buf
-                               occurs 800.
+                               occurs 900.
                    15  w-aux-rec-rig-key.
                        20  w-aux-rec-rig-kpg
-                                          pic  9(05)                  .
+                                          pic  9(05)       comp-3     .
                        20  w-aux-rec-rig-kal
                                           pic  x(14)                  .
                        20  w-aux-rec-rig-kde
                                           pic  x(20)                  .
                        20  w-aux-rec-rig-kqt
-                                          pic  9(08)                  .
+                                          pic  9(08)       comp-3     .
                        20  w-aux-rec-rig-kim
-                                          pic  9(11)                  .
+                                          pic  9(11)       comp-3     .
                    15  w-aux-rec-rig-prt  pic  9(09)       comp-3     .
                    15  w-aux-rec-rig-prg  pic  9(05)       comp-3     .
                    15  w-aux-rec-rig-alf  pic  x(14)                  .
@@ -1869,6 +1869,9 @@
       *              *-------------------------------------------------*
       *              * Test se almeno due codici da ordinare           *
       *              *-------------------------------------------------*
+           if        w-aux-rec-rig-crb    >    w-aux-rec-rig-max
+                     move  w-aux-rec-rig-max
+                                          to   w-aux-rec-rig-crb      .
            if        w-aux-rec-rig-crb < 2
                      go to esp-srt-999.
        esp-srt-050.
