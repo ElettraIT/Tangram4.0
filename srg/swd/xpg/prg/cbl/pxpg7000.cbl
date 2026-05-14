@@ -8,7 +8,7 @@
       *                                   Fase:    xpg700              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 25/04/26    *
+      *                       Ultima revisione:    NdK del 14/05/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -1733,6 +1733,20 @@
                10  w-let-arc-gxc-des      pic  x(30)                  .
                10  w-let-arc-gxc-prv      pic  x(02)                  .
                10  w-let-arc-gxc-cap      pic  x(05)                  .
+      *        *-------------------------------------------------------*
+      *        * Work per Let su archivio [pdx]                        *
+      *        *-------------------------------------------------------*
+           05  w-let-arc-pdx.
+               10  w-let-arc-pdx-flg      pic  x(01)                  .
+               10  w-let-arc-pdx-rec      pic  9(02)                  .
+               10  w-let-arc-pdx-arc      pic  9(07)                  .
+               10  w-let-arc-pdx-lng      pic  x(03)                  .
+               10  w-let-arc-pdx-pro      pic  9(07)                  .
+               10  w-let-arc-pdx-fmt      pic  x(14)                  .
+               10  w-let-arc-pdx-ctr      pic  9(02)                  .
+               10  w-let-arc-pdx-des.
+                   15  w-let-arc-pdx-rig  occurs 10
+                                          pic  x(40)                  .
 
       *    *===========================================================*
       *    * Work per subroutines di Exe                               *
@@ -3426,6 +3440,10 @@
       *                  * Esportazione [gvs]                          *
       *                  *---------------------------------------------*
            perform   exe-exp-gvs-000      thru exe-exp-gvs-999        .
+      *                  *---------------------------------------------*
+      *                  * Esportazione [epk] - chiavi SDI e EDI       *
+      *                  *---------------------------------------------*
+           perform   exe-exp-epk-000      thru exe-exp-epk-999        .
       *              *=================================================*
       *              * Esportazioni per [cge] archivi                  *
       *              *=================================================*
@@ -3737,10 +3755,6 @@ ______*    perform   exe-exp-ali-000      thru exe-exp-ali-999        .
       *                  * Esportazione [dcx]                          *
       *                  *---------------------------------------------*
            perform   exe-exp-dcx-000      thru exe-exp-dcx-999        .
-      *                  *---------------------------------------------*
-      *                  * Esportazione [epk] - chiavi SDI e EDI       *
-      *                  *---------------------------------------------*
-           perform   exe-exp-epk-000      thru exe-exp-epk-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [dcm]                          *
       *                  *---------------------------------------------*
@@ -7194,6 +7208,114 @@ ______*              "_"        delimited by   size
       *                  *---------------------------------------------*
            go to     let-arc-gxc-999.
        let-arc-gxc-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Routine lettura tabella [pdx] per scansione delle righe   *
+      *    *-----------------------------------------------------------*
+       let-arc-pdx-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione marker di uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-pdx-flg      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione contatore                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-let-arc-pdx-ctr      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione valore in uscita                *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-let-arc-pdx-des      .
+       let-arc-pdx-100.
+      *              *-------------------------------------------------*
+      *              * Start su file [pdx]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "TRCLNG    "         to   f-key                  .
+           move      w-let-arc-pdx-rec    to   rf-pdx-tip-rec         .
+           move      w-let-arc-pdx-arc    to   rf-pdx-cod-arc         .
+           move      w-let-arc-pdx-lng    to   rf-pdx-cod-lng         .
+           move      w-let-arc-pdx-pro    to   rf-pdx-cod-num         .
+           move      w-let-arc-pdx-fmt    to   rf-pdx-for-mat         .
+           move      zero                 to   rf-pdx-num-prg         .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                  *---------------------------------------------*
+      *                  * Test su esito operazione                    *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-arc-pdx-800.
+       let-arc-pdx-200.
+      *              *-------------------------------------------------*
+      *              * Lettura sequenziale file [pdx]                  *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                  *---------------------------------------------*
+      *                  * Test se 'at end'                            *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to let-arc-pdx-800.
+       let-arc-pdx-300.
+      *              *-------------------------------------------------*
+      *              * Test sul massimo                                *
+      *              *-------------------------------------------------*
+           if        rf-pdx-tip-rec       not  = w-let-arc-pdx-rec or
+                     rf-pdx-cod-arc       not  = w-let-arc-pdx-arc or
+                     rf-pdx-cod-lng       not  = w-let-arc-pdx-lng or
+                     rf-pdx-cod-num       not  = w-let-arc-pdx-pro or
+                     rf-pdx-for-mat       not  = w-let-arc-pdx-fmt
+                     go to let-arc-pdx-800.
+       let-arc-pdx-400.
+      *              *-------------------------------------------------*
+      *              * Incremento contatore                            *
+      *              *-------------------------------------------------*
+           add       1                    to   w-let-arc-pdx-ctr      .
+      *              *-------------------------------------------------*
+      *              * Bufferizzazione valori                          *
+      *              *-------------------------------------------------*
+           move      rf-pdx-des-pro       to   w-let-arc-pdx-rig
+                                              (w-let-arc-pdx-ctr)     .
+       let-arc-pdx-600.
+      *              *-------------------------------------------------*
+      *              * Riciclo su lettura                              *
+      *              *-------------------------------------------------*
+           go to     let-arc-pdx-200.
+       let-arc-pdx-800.
+      *              *-------------------------------------------------*
+      *              * Test su contatore elementi letti                *
+      *              *-------------------------------------------------*
+           if        w-let-arc-pdx-ctr    =    zero
+                     go to let-arc-pdx-820
+           else      go to let-arc-pdx-900.
+       let-arc-pdx-820.
+      *                  *---------------------------------------------*
+      *                  * Se nessun elemento rilevato                 *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Flag di nessun elemento rilevato        *
+      *                      *-----------------------------------------*
+           move      "#"                  to   w-let-arc-pdx-flg      .
+      *                      *-----------------------------------------*
+      *                      * Ad uscita                               *
+      *                      *-----------------------------------------*
+           go to     let-arc-pdx-900.
+       let-arc-pdx-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     let-arc-pdx-999.
+       let-arc-pdx-999.
            exit.
 
       *    *===========================================================*

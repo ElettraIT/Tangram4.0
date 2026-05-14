@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [dcp] Ultimo aggiornamento: 04/05/26                 *
+      *    * Area [dcp] Ultimo aggiornamento: 14/05/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [cpv]                                        *
@@ -350,6 +350,16 @@
            call      s-pat               using f
                                                rf-dcp                 .
       *                  *---------------------------------------------*
+      *                  * [pdx]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
+      *                  *---------------------------------------------*
       *                  * Open generica file sequenziale di output    *
       *                  *---------------------------------------------*
            perform   opn-seq-out-000      thru opn-seq-out-999        .
@@ -503,11 +513,40 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
+      *                  * Descrizione per i documenti                 *
       *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se da leggere                      *
+      *                      *-----------------------------------------*
+           if        rf-dcp-des-pdx       =    0
+                     move  rf-dcp-des-pro to   w-scr-str-ele
+                     go to exe-exp-dcp-605.
+      *                      *-----------------------------------------*
+      *                      * Lettura archivio [pdx] per descrizione  *
+      *                      * per i documenti                         *
+      *                      *-----------------------------------------*
+           move      01                   to   w-let-arc-pdx-rec      .
+           move      zero                 to   w-let-arc-pdx-arc      .
+           move      "I  "                to   w-let-arc-pdx-lng      .
+           move      rf-dcp-num-pro       to   w-let-arc-pdx-pro      .
+           move      spaces               to   w-let-arc-pdx-fmt      .
+           perform   let-arc-pdx-000      thru let-arc-pdx-999        .
+      *                          *-------------------------------------*
+      *                          * Test su esito della lettura         *
+      *                          *-------------------------------------*
+           if        w-let-arc-pdx-flg    not  = spaces
+                     move  rf-dcp-des-pro to   w-scr-str-ele
+                     go to exe-exp-dcp-605.
+      *                          *-------------------------------------*
+      *                          * Bufferizzazione descrizione letta   *
+      *                          *-------------------------------------*
+           move      w-let-arc-pdx-des    to   w-scr-str-ele          .
+       exe-exp-dcp-605.
+      *                      *-----------------------------------------*
+      *                      * Emissione                               *
+      *                      *-----------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcp-des-key       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
+           move      80                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -1909,6 +1948,16 @@
                                          using s                      .
            call      s-pat               using f
                                                rf-dcp                 .
+      *                  *---------------------------------------------*
+      *                  * [pdx]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
        exe-exp-dcp-850.
       *              *-------------------------------------------------*
       *              * Visualizzazione nr records letti e scritti      *
@@ -2845,6 +2894,13 @@
       *              *-------------------------------------------------*
       *              * Sel su [lsd]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-exp           =    zero
+                     go to exe-exp-lsd-500.
+           if        rf-lsd-dva-fin       not  > rr-dat-exp
+                     go to exe-exp-lsd-200.
        exe-exp-lsd-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -5160,18 +5216,6 @@
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zp1-des-key       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
@@ -5535,18 +5579,6 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-zp2-mne-gru       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zp2-des-key       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -5941,18 +5973,6 @@
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zp3-des-key       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
@@ -6316,18 +6336,6 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-zps-mne-cls       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zps-des-key       to   w-scr-str-ele          .
-           move      20                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *

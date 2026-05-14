@@ -8,7 +8,7 @@
       *                                   Fase:    eleinv              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/05/26    *
-      *                       Ultima revisione:    NdK del 11/05/26    *
+      *                       Ultima revisione:    NdK del 13/05/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -2283,7 +2283,9 @@ ______*    perform   det-cod-cli-000      thru det-cod-cli-999        .
       *                  * Eventuale aggiornamento per spedizione      *
       *                  * ___ DA MIGLIORARE ___                       *
       *                  *---------------------------------------------*
-           if        w-inp-spd-via        not  = spaces
+           if        w-inp-spd-rag        not  = spaces and
+                     w-inp-spd-via        not  = spaces and
+                     w-inp-spd-loc        not  = spaces
                      move  02             to   rf-oct-tip-ids         .
            if        w-det-dpz-cli-dpz    not  = spaces
                      move  w-det-dpz-cli-dpz
