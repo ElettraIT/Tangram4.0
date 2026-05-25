@@ -24,9 +24,11 @@
       * Convenzioni    :   si presume che sia codificata un'apposita   *
       *                    stampante 'pdf_fat' che memorizza i file in *
       *                    /abd/asc/AZI (default 'doc')                *
+      *                    (xpg420)                                    *
       *                                                                *
       *                    Viene poi precablato un comando per la fase *
       *                    'docpdf' con il relativo modulo grafico     *
+      *                    (xpg440)                                    *
       *                                                                *
       *                    N.B.: assicurarsi che le referenze puntino  *
       *                          alla stessa cartella                  *

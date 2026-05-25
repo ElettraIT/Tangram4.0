@@ -8,7 +8,7 @@
       *                                   Fase:    xpg700              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 14/05/26    *
+      *                       Ultima revisione:    NdK del 25/05/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -1041,7 +1041,7 @@
       *        *-------------------------------------------------------*
       *        * [cpv]                                                 *
       *        *-------------------------------------------------------*
-           copy      "pgm/dcp/fls/rec/rfcpv"                          .
+            copy      "pgm/dcp/fls/rec/rfcpv"                          .
       *        *-------------------------------------------------------*
       *        * [dcp]                                                 *
       *        *-------------------------------------------------------*
@@ -1615,9 +1615,10 @@
       *        *-------------------------------------------------------*
            05  rr-aut-man                 pic  x(01)                  .
       *        *-------------------------------------------------------*
-      *        * Data di esportazione                                  *
+      *        * Date di esportazione                                  *
       *        *-------------------------------------------------------*
-           05  rr-dat-exp                 pic  9(07)                  .
+           05  rr-dat-min                 pic  9(07)                  .
+           05  rr-dat-max                 pic  9(07)                  .
       *        *-------------------------------------------------------*
       *        * Area di esportazione                                  *
       *        *-------------------------------------------------------*
@@ -1657,10 +1658,6 @@
       *    * Work generica per tutto il programma                      *
       *    *-----------------------------------------------------------*
        01  w-gen.
-      *        *-------------------------------------------------------*
-      *        * Data inizio esecuzione programma                      *
-      *        *-------------------------------------------------------*
-           05  w-gen-dat-iep              pic  9(07)                  .
       *        *-------------------------------------------------------*
       *        * Data inizio ciclo notturno                            *
       *        *-------------------------------------------------------*
@@ -2514,7 +2511,8 @@
       *                      * Eventuali forzature per batch           *
       *                      *-----------------------------------------*
            move      "A"                  to   rr-aut-man             .
-           move      zero                 to   rr-dat-exp             .
+           move      w-exe-dat-exe        to   rr-dat-min             .
+           move      w-exe-dat-exe        to   rr-dat-max             .
            move      spaces               to   rr-are-exp             .
            move      spaces               to   rr-arc-exp             .
            move      spaces               to   rr-pre-vis             .
@@ -2534,7 +2532,8 @@
       *                      * Eventuali forzature per batch           *
       *                      *-----------------------------------------*
            move      "A"                  to   rr-aut-man             .
-           move      zero                 to   rr-dat-exp             .
+           move      w-exe-dat-exe        to   rr-dat-min             .
+           move      w-exe-dat-exe        to   rr-dat-max             .
            move      spaces               to   rr-are-exp             .
            move      spaces               to   rr-arc-exp             .
            move      spaces               to   rr-pre-vis             .
@@ -2664,7 +2663,7 @@
       *              *-------------------------------------------------*
       *              * Si/No funzionamento ciclico                     *
       *              *-------------------------------------------------*
-           move      "N"                  to   w-cnt-fun-snx-cic      .
+           move      "S"                  to   w-cnt-fun-snx-cic      .
       *              *-------------------------------------------------*
       *              * Si/No funzionamento automatico                  *
       *              *-------------------------------------------------*
@@ -2771,11 +2770,20 @@
       *                  *---------------------------------------------*
            move      "#"                  to   w-cnt-sts-imp-ric      .
       *                  *---------------------------------------------*
-      *                  * Data esportazione                           *
+      *                  * Data esportazione min                       *
       *                  *---------------------------------------------*
-           perform   acc-dat-exp-000      thru acc-dat-exp-999        .
+           perform   acc-dat-min-000      thru acc-dat-min-999        .
            if        w-cnt-acc-ric-sel    not  = spaces
                      go to acc-ric-sel-999.
+       acc-ric-sel-200.
+      *                  *---------------------------------------------*
+      *                  * Data esportazione max                       *
+      *                  *---------------------------------------------*
+           perform   acc-dat-max-000      thru acc-dat-max-999        .
+           if        w-cnt-acc-ric-sel    not  = spaces
+                     go to acc-ric-sel-999.
+           if        v-key                =    "UP  "
+                     go to acc-ric-sel-100.
        acc-ric-sel-300.
       *                  *---------------------------------------------*
       *                  * Tipo esportazione                           *
@@ -2784,7 +2792,7 @@
            if        w-cnt-acc-ric-sel    not  = spaces
                      go to acc-ric-sel-999.
            if        v-key                =    "UP  "
-                     go to acc-ric-sel-100.
+                     go to acc-ric-sel-200.
        acc-ric-sel-400.
       *                  *---------------------------------------------*
       *                  * Area esportazione                           *
@@ -2890,15 +2898,26 @@
       *              * Tipo esecuzione                                 *
       *              *-------------------------------------------------*
       *              *-------------------------------------------------*
-      *              * Data esportazione                               *
+      *              * Data esportazione min                           *
       *              *-------------------------------------------------*
            move      "DS"                 to   v-ope                  .
            move      "A"                  to   v-tip                  .
            move      28                   to   v-car                  .
            move      04                   to   v-lin                  .
            move      01                   to   v-pos                  .
-           move      "Data iniziale esportazione :"
+           move      "Data esportazione      dal :"
                                           to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Data esportazione max                           *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      04                   to   v-car                  .
+           move      04                   to   v-lin                  .
+           move      41                   to   v-pos                  .
+           move      "al :"               to   v-alf                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *              *-------------------------------------------------*
@@ -2952,17 +2971,17 @@
            exit.
 
       *    *===========================================================*
-      *    * Accettazione : Data esportazione                          *
+      *    * Accettazione : Data esportazione min                      *
       *    *-----------------------------------------------------------*
-       acc-dat-exp-000.
+       acc-dat-min-000.
       *              *-------------------------------------------------*
       *              * Pre-accettazione                                *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
       *                  * Default                                     *
       *                  *---------------------------------------------*
-           move      w-exe-dat-exe        to   rr-dat-exp             .
-       acc-dat-exp-100.
+           move      w-exe-dat-exe        to   rr-dat-min             .
+       acc-dat-min-100.
       *              *-------------------------------------------------*
       *              * Accettazione valore                             *
       *              *-------------------------------------------------*
@@ -2973,29 +2992,29 @@
                      move  "DO  "         to   v-pfk (05)             .
            move      04                   to   v-lin                  .
            move      30                   to   v-pos                  .
-           move      rr-dat-exp           to   v-dat                  .
+           move      rr-dat-min           to   v-dat                  .
            perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
-       acc-dat-exp-150.
+       acc-dat-min-150.
       *              *-------------------------------------------------*
       *              * Se Exit                                         *
       *              *-------------------------------------------------*
            if        v-key                =    "EXIT"
                      move  "E"            to   w-cnt-acc-ric-sel
-                     go to acc-dat-exp-999.
-       acc-dat-exp-200.
+                     go to acc-dat-min-999.
+       acc-dat-min-200.
       *              *-------------------------------------------------*
       *              * Valore impostato in campo di destinazione       *
       *              *-------------------------------------------------*
-           move      v-dat                to   rr-dat-exp             .
-       acc-dat-exp-400.
+           move      v-dat                to   rr-dat-min             .
+       acc-dat-min-400.
       *              *-------------------------------------------------*
       *              * Controllo valore impostato                      *
       *              *-------------------------------------------------*
-       acc-dat-exp-600.
+       acc-dat-min-600.
       *              *-------------------------------------------------*
       *              * Dipendenze dall'impostazione                    *
       *              *-------------------------------------------------*
-       acc-dat-exp-800.
+       acc-dat-min-800.
       *              *-------------------------------------------------*
       *              * Se Do                                           *
       *              *-------------------------------------------------*
@@ -3005,24 +3024,105 @@
                      if      w-cnt-tdo-ric-flg
                                           =    spaces
                              move  "S"    to   w-cnt-acc-ric-sel
-                             go to acc-dat-exp-999
+                             go to acc-dat-min-999
                      else    move  spaces to   w-cnt-tdo-ric-flg
-                             go to acc-dat-exp-100.
-       acc-dat-exp-999.
+                             go to acc-dat-min-100.
+       acc-dat-min-999.
            exit.
 
       *    *===========================================================*
-      *    * Visualizzazione : Data esportazione                       *
+      *    * Visualizzazione : Data esportazione min                   *
       *    *-----------------------------------------------------------*
-       vis-dat-exp-000.
+       vis-dat-min-000.
            move      "DS"                 to   v-ope                  .
            move      "D"                  to   v-tip                  .
            move      04                   to   v-lin                  .
            move      30                   to   v-pos                  .
-           move      rr-dat-exp           to   v-dat                  .
+           move      rr-dat-min           to   v-dat                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
-       vis-dat-exp-999.
+       vis-dat-min-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Accettazione : Data esportazione max                      *
+      *    *-----------------------------------------------------------*
+       acc-dat-max-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Default                                     *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           not  = zero
+                     go to acc-dat-max-100.
+           move      rr-dat-min           to   s-dat                  .
+           move      12                   to   s-mes                  .
+           move      31                   to   s-gio                  .
+           move      s-dat                to   rr-dat-max             .
+           perform   vis-dat-max-000      thru vis-dat-max-999        .
+       acc-dat-max-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           if        w-cnt-sts-imp-ric    not  = spaces
+                     move  "DO  "         to   v-pfk (05)             .
+           move      04                   to   v-lin                  .
+           move      46                   to   v-pos                  .
+           move      rr-dat-max           to   v-dat                  .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-dat-max-150.
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-acc-ric-sel
+                     go to acc-dat-max-999.
+       acc-dat-max-200.
+      *              *-------------------------------------------------*
+      *              * Valore impostato in campo di destinazione       *
+      *              *-------------------------------------------------*
+           move      v-dat                to   rr-dat-max             .
+       acc-dat-max-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+       acc-dat-max-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+       acc-dat-max-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform tdo-ric-sel-000
+                                          thru tdo-ric-sel-999
+                     if      w-cnt-tdo-ric-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-acc-ric-sel
+                             go to acc-dat-max-999
+                     else    move  spaces to   w-cnt-tdo-ric-flg
+                             go to acc-dat-max-100.
+       acc-dat-max-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzazione : Data esportazione max                   *
+      *    *-----------------------------------------------------------*
+       vis-dat-max-000.
+           move      "DS"                 to   v-ope                  .
+           move      "D"                  to   v-tip                  .
+           move      04                   to   v-lin                  .
+           move      46                   to   v-pos                  .
+           move      rr-dat-max           to   v-dat                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-dat-max-999.
            exit.
 
       *    *===========================================================*
@@ -3331,7 +3431,8 @@
       *    *-----------------------------------------------------------*
        nor-ric-sel-000.
            move      spaces               to   rr-aut-man             .
-           move      zero                 to   rr-dat-exp             .
+           move      zero                 to   rr-dat-min             .
+           move      zero                 to   rr-dat-max             .
            move      spaces               to   rr-are-exp             .
            move      spaces               to   rr-arc-exp             .
            move      spaces               to   rr-pre-vis             .
@@ -3917,7 +4018,7 @@ ______*    perform   exe-exp-ali-000      thru exe-exp-ali-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [cpv]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-cpv-000      thru exe-exp-cpv-999        .
+______*    perform   exe-exp-cpv-000      thru exe-exp-cpv-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [dcp]                          *
       *                  *---------------------------------------------*
@@ -3941,7 +4042,7 @@ ______*    perform   exe-exp-ali-000      thru exe-exp-ali-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zcp]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zcp-000      thru exe-exp-zcp-999        .
+______*    perform   exe-exp-zcp-000      thru exe-exp-zcp-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zls]                          *
       *                  *---------------------------------------------*
@@ -5486,10 +5587,10 @@ ______*              "_"        delimited by   size
       *                  *---------------------------------------------*
       *                  * Test se batch 'X'                           *
       *                  *---------------------------------------------*
-           if        w-exe-flg-btc        =    "X"
-                     move  "/abd/asc/tmp/ftx"
-                                          to   f-xxx-ppb
-                     go to pre-bas-pth-999.
+______*    if        w-exe-flg-btc        =    "X"
+______*              move  "/abd/asc/tmp/ftx"
+______*                                   to   f-xxx-ppb
+______*              go to pre-bas-pth-999.
       *                  *---------------------------------------------*
       *                  * In tutti gli altri casi                     *
       *                  *---------------------------------------------*

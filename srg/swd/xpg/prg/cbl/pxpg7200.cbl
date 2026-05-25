@@ -8,7 +8,7 @@
       *                                   Fase:    xpg720              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 20/12/25    *
+      *                       Ultima revisione:    NdK del 17/05/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -4225,7 +4225,7 @@
       *              *-------------------------------------------------*
       *              * Comando di ricostruzione tabella                *
       *              *-------------------------------------------------*
-           perform   exe-rcs-tbl-000      thru exe-rcs-tbl-999        .
+______*    perform   exe-rcs-tbl-000      thru exe-rcs-tbl-999        .
        acc-pre-vis-100.
       *              *-------------------------------------------------*
       *              * Eventuali forzature se esecuzione batch         *
