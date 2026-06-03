@@ -1,5 +1,7 @@
       *    *===========================================================*
-      *    * Area [bol] Ultimo aggiornamento: 20/11/25                 *
+      *    * Area [bol] Ultimo aggiornamento: 25/05/26                 *
+      *    *                                                           *
+      *    * ___ MEMO : bix come bir                                   *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [bie]                                        *
@@ -419,6 +421,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [bit]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
+      *                  *---------------------------------------------*
       *                  * [bir]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -436,7 +448,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-bir-100.
+                     go to exe-exp-bir-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -448,6 +460,56 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-bir-999.
+       exe-exp-bir-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [bit]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-bit-dat-doc         .
+           move      zero                 to   rf-bit-cod-dpz         .
+           move      zero                 to   rf-bit-num-doc         .
+           move      spaces               to   rf-bit-cod-tmb         .
+           move      zero                 to   rf-bit-num-prt         .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bir-800.
+       exe-exp-bir-070.
+      *              *-------------------------------------------------*
+      *              * Next su [bit]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bir-800.
+       exe-exp-bir-080.
+      *              *-------------------------------------------------*
+      *              * Max su [bit]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bir-100.
+           if        rf-bit-dat-doc       >    rr-dat-max
+                     go to exe-exp-bir-800.
        exe-exp-bir-100.
       *              *-------------------------------------------------*
       *              * Start su file [bir]                             *
@@ -455,7 +517,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-bir-num-prt         .
+           move      rf-bit-num-prt       to   rf-bir-num-prt         .
            move      zero                 to   rf-bir-num-prg         .
            move      "pgm/bol/fls/ioc/obj/iofbir"
                                           to   s-pat                  .
@@ -467,7 +529,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bir-800.
+                     go to exe-exp-bir-780.
        exe-exp-bir-200.
       *              *-------------------------------------------------*
       *              * Next su [bir]                                   *
@@ -483,22 +545,20 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bir-800.
+                     go to exe-exp-bir-780.
        exe-exp-bir-300.
       *              *-------------------------------------------------*
       *              * Max su [bir]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-bir-num-prt       not  = rf-bit-num-prt
+                     go to exe-exp-bir-780.
        exe-exp-bir-400.
       *              *-------------------------------------------------*
       *              * Sel su [bir]                                    *
       *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Selezione su data esportazione              *
-      *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
-                     go to exe-exp-bir-500.
-           if        rf-bir-dat-doc       not  > rr-dat-exp
-                     go to exe-exp-bir-200.
        exe-exp-bir-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -569,6 +629,29 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bir-cod-tmb       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo trattamento per le statistiche - SQL   *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+      *
+           if        rf-bir-cod-tmb       =    "BILFS"  or
+                     rf-bir-cod-tmb       =    "BIOFS"  or
+                     rf-bir-cod-tmb       =    "BIRFS"  or
+                     rf-bir-cod-tmb       =    "BIVFS"  or
+                     rf-bir-cod-tmb       =    "BNFFS"  or
+                     rf-bir-cod-tmb       =    "BSOFS"  or
+                     rf-bir-cod-tmb       =    "BVFO "  or
+                     rf-bir-cod-tmb       =    "BVFS "
+                     move  "V"            to   w-scr-str-ele
+           else      move  "N"            to   w-scr-str-ele          .
+      *
+           move      02                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -2082,6 +2165,11 @@
       *              * Riciclo a Next su [bir]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-bir-200.
+       exe-exp-bir-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [bit]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bir-070.
        exe-exp-bir-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -2096,6 +2184,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [bit]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
       *                  *---------------------------------------------*
       *                  * [bir]                                       *
       *                  *---------------------------------------------*
@@ -2201,7 +2299,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bit-dat-doc         .
+           move      rr-dat-min           to   rf-bit-dat-doc         .
            move      zero                 to   rf-bit-cod-dpz         .
            move      zero                 to   rf-bit-num-doc         .
            move      spaces               to   rf-bit-cod-tmb         .
@@ -2237,6 +2335,13 @@
       *              *-------------------------------------------------*
       *              * Max su [bit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bit-400.
+           if        rf-bit-dat-doc       >    rr-dat-max
+                     go to exe-exp-bit-800.
        exe-exp-bit-400.
       *              *-------------------------------------------------*
       *              * Sel su [bit]                                    *
@@ -2262,7 +2367,7 @@
       *                  *---------------------------------------------*
            move      spaces               to   w-out-str-out          .
       *                  *---------------------------------------------*
-      *                  * Protocollo                                  *
+      *                  * Protocollo                              001 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2289,6 +2394,29 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bit-cod-tmb       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo trattamento per le statistiche - SQL   *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+      *
+           if        rf-bit-cod-tmb       =    "BILFS"  or
+                     rf-bit-cod-tmb       =    "BIOFS"  or
+                     rf-bit-cod-tmb       =    "BIRFS"  or
+                     rf-bit-cod-tmb       =    "BIVFS"  or
+                     rf-bit-cod-tmb       =    "BNFFS"  or
+                     rf-bit-cod-tmb       =    "BSOFS"  or
+                     rf-bit-cod-tmb       =    "BVFO "  or
+                     rf-bit-cod-tmb       =    "BVFS "
+                     move  "V"            to   w-scr-str-ele
+           else      move  "N"            to   w-scr-str-ele          .
+      *
+           move      02                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -2408,7 +2536,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Data fattura                                *
+      *                  * Data fattura                            010 *
       *                  *---------------------------------------------*
            move      "D "                 to   w-scr-str-tip          .
            move      rf-bit-fat-dat       to   w-scr-dat-dat          .
@@ -2419,7 +2547,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Numero fattura                              *
+      *                  * Numero fattura                          011 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2441,7 +2569,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Numero progressivo bolla nella fattura      *
+      *                  * Numero progressivo bolla nella fattura  012 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2463,7 +2591,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Si/No documento che accompagna la merce     *
+      *                  * Si/No documento che accompagna la merce 013 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bit-snx-acm       to   w-scr-str-ele          .
@@ -2475,7 +2603,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Dipendenza                                  *
+      *                  * Dipendenza                              014 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2497,7 +2625,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Data documento                              *
+      *                  * Data documento                          015 *
       *                  *---------------------------------------------*
            move      "D "                 to   w-scr-str-tip          .
            move      rf-bit-dat-doc       to   w-scr-dat-dat          .
@@ -2530,7 +2658,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Si/No fattura accompagnatoria               *
+      *                  * Si/No fattura accompagnatoria           017 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bit-snx-fac       to   w-scr-str-ele          .
@@ -2576,7 +2704,7 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Tipo archivio                               *
+      *                  * Tipo archivio                           020 *
       *                  *---------------------------------------------*
            move      "E "                 to   w-scr-str-tip          .
            move      rf-bit-tip-arc       to   w-scr-str-ele          .
@@ -2588,7 +2716,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice archivio                             *
+      *                  * Codice archivio                         021 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2620,84 +2748,6 @@
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
            move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Tipo fornitura                              *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-bit-tip-frn       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice archivio per fatturazione            *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      07                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-bit-arc-plf       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      07                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice dipendenza archivio                  *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-bit-dpz-plf       to   w-scr-str-ele          .
-           move      04                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Tipo fatturazione                           *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-bit-tip-ftz       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Tipo indirizzo                              *
@@ -2758,7 +2808,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Fattura separata                            *
+      *                  * Fattura separata                        031 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bit-fat-sep       to   w-scr-str-ele          .
@@ -2826,7 +2876,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Categoria sconto in riga                    *
+      *                  * Categoria sconto in riga                035 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2884,7 +2934,7 @@
            go to     exe-exp-bit-620.
        exe-exp-bit-628.
       *                  *---------------------------------------------*
-      *                  * Categoria sconto in chiusura                *
+      *                  * Categoria sconto in chiusura            041 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3055,7 +3105,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice CAB                                  *
+      *                  * Codice CAB                              050 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3214,7 +3264,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice agente                               *
+      *                  * Codice agente                           060 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3394,7 +3444,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Importo provvigione a forfait intermediario *
+      *                  * Importo provvigione a forfait interm.   070 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3452,7 +3502,7 @@
            go to     exe-exp-bit-650.
        exe-exp-bit-658.
       *                  *---------------------------------------------*
-      *                  * Sconto chiusura                             *
+      *                  * Sconto chiusura                    080..083 *
       *                  *---------------------------------------------*
            move      rf-bit-tot-scc       to   w-exe-sco-tot          .
            move      rf-bit-per-scc       to   w-exe-sco-per          .
@@ -3465,7 +3515,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Sconto pagamento                            *
+      *                  * Sconto pagamento                   084..087 *
       *                  *---------------------------------------------*
            move      rf-bit-tot-scp       to   w-exe-sco-tot          .
            move      rf-bit-per-scp       to   w-exe-sco-per          .
@@ -3481,7 +3531,7 @@
       *                  * SPESE A PARTE                               *
       *                  *---------------------------------------------*
       *                  *---------------------------------------------*
-      *                  * Iva e contropartita spese incasso           *
+      *                  * Iva e contropartita spese incasso  088..089 *
       *                  *---------------------------------------------*
            move      rf-bit-civ-spi       to   w-exe-iec-iva          .
            move      rf-bit-ccp-spi       to   w-exe-iec-cpt          .
@@ -3492,7 +3542,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Importo spese incasso calcolate             *
+      *                  * Importo spese incasso calcolate         090 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3569,7 +3619,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Trasporto a cura                            *
+      *                  * Trasporto a cura                        095 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3659,7 +3709,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Data inizio trasporto                       *
+      *                  * Data inizio trasporto                   100 *
       *                  *---------------------------------------------*
            move      "D "                 to   w-scr-str-tip          .
            move      rf-bit-dat-itr       to   w-scr-dat-dat          .
@@ -3835,7 +3885,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Numero scadenza                             *
+      *                  * Numero scadenza                         110 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -4009,7 +4059,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Flag bolla chiusa - SQL                     *
+      *                  * Flag bolla chiusa - SQL                 116 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      spaces               to   w-scr-str-ele          .
@@ -4073,7 +4123,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            go to     exe-exp-bit-670.
        exe-exp-bit-678.
       *                  *---------------------------------------------*
-      *                  * Flag di pulizia                             *
+      *                  * Flag di pulizia                         127 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bit-flg-pul       to   w-scr-str-ele          .
@@ -4085,7 +4135,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Data ultima modifica                        *
+      *                  * Data ultima modifica                    128 *
       *                  *---------------------------------------------*
            move      "D "                 to   w-scr-str-tip          .
            move      rf-bit-ide-dat       to   w-scr-dat-dat          .
@@ -4096,7 +4146,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Utente ultima modifica                      *
+      *                  * Utente ultima modifica                  129 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bit-ide-ute       to   w-scr-str-ele          .
@@ -4108,7 +4158,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Fase ultima modifica                        *
+      *                  * Fase ultima modifica                    130 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bit-ide-fas       to   w-scr-str-ele          .
@@ -4262,7 +4312,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bit-dat-doc         .
+           move      rr-dat-min           to   rf-bit-dat-doc         .
            move      zero                 to   rf-bit-cod-dpz         .
            move      zero                 to   rf-bit-num-doc         .
            move      spaces               to   rf-bit-cod-tmb         .
@@ -4298,6 +4348,13 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *              *-------------------------------------------------*
       *              * Max su [bit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bii-400.
+           if        rf-bit-dat-doc       >    rr-dat-max
+                     go to exe-exp-bii-800.
        exe-exp-bii-400.
       *              *-------------------------------------------------*
       *              * Sel su [bit]                                    *
@@ -4595,7 +4652,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bit-dat-doc         .
+           move      rr-dat-min           to   rf-bit-dat-doc         .
            move      zero                 to   rf-bit-cod-dpz         .
            move      zero                 to   rf-bit-num-doc         .
            move      spaces               to   rf-bit-cod-tmb         .
@@ -4631,6 +4688,13 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *              *-------------------------------------------------*
       *              * Max su [bit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bic-400.
+           if        rf-bit-dat-doc       >    rr-dat-max
+                     go to exe-exp-bic-800.
        exe-exp-bic-400.
       *              *-------------------------------------------------*
       *              * Sel su [bit]                                    *
@@ -4905,7 +4969,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bit-dat-doc         .
+           move      rr-dat-min           to   rf-bit-dat-doc         .
            move      zero                 to   rf-bit-cod-dpz         .
            move      zero                 to   rf-bit-num-doc         .
            move      spaces               to   rf-bit-cod-tmb         .
@@ -4941,6 +5005,13 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *              *-------------------------------------------------*
       *              * Max su [bit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bis-400.
+           if        rf-bit-dat-doc       >    rr-dat-max
+                     go to exe-exp-bis-800.
        exe-exp-bis-400.
       *              *-------------------------------------------------*
       *              * Sel su [bit]                                    *
@@ -5328,7 +5399,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bit-dat-doc         .
+           move      rr-dat-min           to   rf-bit-dat-doc         .
            move      zero                 to   rf-bit-cod-dpz         .
            move      zero                 to   rf-bit-num-doc         .
            move      spaces               to   rf-bit-cod-tmb         .
@@ -5364,6 +5435,13 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *              *-------------------------------------------------*
       *              * Max su [bit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-biv-400.
+           if        rf-bit-dat-doc       >    rr-dat-max
+                     go to exe-exp-biv-800.
        exe-exp-biv-400.
       *              *-------------------------------------------------*
       *              * Sel su [bit]                                    *
@@ -5566,6 +5644,16 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *              *-------------------------------------------------*
       *              * Open files                                      *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * [bit]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
       *                  *---------------------------------------------*
       *                  * [bix]                                       *
       *                  *---------------------------------------------*
@@ -5793,6 +5881,16 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [bit]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
       *                  *---------------------------------------------*
       *                  * [bix]                                       *
       *                  *---------------------------------------------*
@@ -7106,6 +7204,29 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
+      *                  * Tipo trattamento per le statistiche - SQL   *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+      *
+           if        rf-zbi-cod-tmb       =    "BILFS"  or
+                     rf-zbi-cod-tmb       =    "BIOFS"  or
+                     rf-zbi-cod-tmb       =    "BIRFS"  or
+                     rf-zbi-cod-tmb       =    "BIVFS"  or
+                     rf-zbi-cod-tmb       =    "BNFFS"  or
+                     rf-zbi-cod-tmb       =    "BSOFS"  or
+                     rf-zbi-cod-tmb       =    "BVFO "  or
+                     rf-zbi-cod-tmb       =    "BVFS "
+                     move  "V"            to   w-scr-str-ele
+           else      move  "N"            to   w-scr-str-ele          .
+      *
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
       *                  * Codice c/merce                              *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
@@ -8383,5 +8504,3 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            perform   wrt-rum-msg-000      thru wrt-rum-msg-999        .
        exe-exp-zgc-999.
            exit.
-
-

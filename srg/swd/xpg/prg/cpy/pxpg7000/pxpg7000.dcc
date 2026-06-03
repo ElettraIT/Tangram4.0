@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [dcc] Ultimo aggiornamento: 25/04/26                 *
+      *    * Area [dcc] Ultimo aggiornamento: 31/05/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [cse] Specifiche per Clienti in e-fatture    *
@@ -397,7 +397,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODCLI    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcc-ide-dat         .
            move      zero                 to   rf-dcc-cod-cli         .
            move      spaces               to   rf-dcc-dpz-cli         .
            move      "pgm/dcc/fls/ioc/obj/iofdcc"
@@ -431,6 +432,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcc]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dcc-400.
+           if        rf-dcc-ide-dat       >    rr-dat-max
+                     go to exe-exp-dcc-800.
        exe-exp-dcc-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcc]                                    *
@@ -804,55 +812,21 @@
            move      01                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
       *                  * CAMPI PROVENIENTI DA 'cli' - fine           *
       *                  *=============================================*
       *                  *---------------------------------------------*
       *                  * Ragione sociale invio documento - parte 1   *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-rs1-doc       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Ragione sociale invio documento - parte 2   *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-rs2-doc       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Note generiche, unite in una unica          *
       *                  *---------------------------------------------*
-           move      120                  to   w-all-str-lun          .
-           move      03                   to   w-all-str-num          .
-           move      rf-dcc-not-g01       to   w-all-str-cat (1)      .
-           move      rf-dcc-not-g02       to   w-all-str-cat (2)      .
-           move      rf-dcc-not-g03       to   w-all-str-cat (3)      .
-           perform   all-str-cat-000      thru all-str-cat-999        .
-      *
-           move      "A "                 to   w-scr-str-tip          .
-           move      w-all-str-alf        to   w-scr-str-ele          .
-           move      120                  to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
+           move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Inoltro documenti                           *
@@ -894,45 +868,18 @@
            move      02                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
       *                  * Codice come fornitori                       *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-noi-fnt       to   w-scr-str-ele          .
-           move      20                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Codice per SDI                              *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-idn-em2       to   w-scr-str-ele          .
-           move      20                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Codice per EDI                              *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-idn-ema       to   w-scr-str-ele          .
-           move      20                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
+           move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Modalita' di stampa della fattura           *
@@ -1180,87 +1127,33 @@
            move      03                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
       *                  * Tipo fornitura abituale                     *
       *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-dcc-tip-frn       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Codice archivio per la fatturazione         *
       *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      07                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-dcc-arc-plf       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      07                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Codice dipendenza per la fatturazione       *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-dpz-plf       to   w-scr-str-ele          .
-           move      04                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Tipo fatturazione                           *
       *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-dcc-tip-ftz       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Modalita' di calcolo importo                *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-dcc-tip-mci       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
+           move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Codice listino                              *
@@ -2474,43 +2367,7 @@
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice del prodotto da esporre              *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-cop-pcl       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Indicatore prodotto da esporre              *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-cop-tdo       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Modalita' di calcolo importo                *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcc-tip-mci       to   w-scr-str-ele          .
-           move      01                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
+           move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Data ultima modifica                        *
@@ -2703,7 +2560,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODCLI    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcc-ide-dat         .
            move      zero                 to   rf-dcc-cod-cli         .
            move      spaces               to   rf-dcc-dpz-cli         .
            move      "pgm/dcc/fls/ioc/obj/iofdcc"
@@ -2737,6 +2595,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcc]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dcd-400.
+           if        rf-dcc-ide-dat       >    rr-dat-max
+                     go to exe-exp-dcd-800.
        exe-exp-dcd-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcc]                                    *
@@ -3760,7 +3625,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODCLI    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcc-ide-dat         .
            move      zero                 to   rf-dcc-cod-cli         .
            move      spaces               to   rf-dcc-dpz-cli         .
            move      "pgm/dcc/fls/ioc/obj/iofdcc"
@@ -3794,6 +3660,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcc]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dcs-400.
+           if        rf-dcc-ide-dat       >    rr-dat-max
+                     go to exe-exp-dcs-800.
        exe-exp-dcs-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcc]                                    *
@@ -4104,7 +3977,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODCLI    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcc-ide-dat         .
            move      zero                 to   rf-dcc-cod-cli         .
            move      spaces               to   rf-dcc-dpz-cli         .
            move      "pgm/dcc/fls/ioc/obj/iofdcc"
@@ -4138,6 +4012,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcc]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dcv-400.
+           if        rf-dcc-ide-dat       >    rr-dat-max
+                     go to exe-exp-dcv-800.
        exe-exp-dcv-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcc]                                    *
@@ -4381,7 +4262,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CLIANN    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcx-ide-dat         .
            move      zero                 to   rf-dcx-cod-cli         .
            move      spaces               to   rf-dcx-dpz-cli         .
            move      zero                 to   rf-dcx-cod-ann         .
@@ -4417,6 +4299,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcx]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dcx-400.
+           if        rf-dcx-ide-dat       >    rr-dat-max
+                     go to exe-exp-dcx-800.
        exe-exp-dcx-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcx]                                    *
@@ -4501,7 +4390,12 @@
       *                  * Codice programma                            *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcx-cod-prg       to   w-scr-str-ele          .
+      *
+           move      rf-dcx-cod-prg
+                    (02 : 06)             to   w-scr-str-ele          .
+           if        rf-dcx-cod-prg       =    "pxpg0012"
+                     move  "xpg012"       to   w-scr-str-ele          .
+      *
            move      08                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
@@ -4556,6 +4450,40 @@
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
            move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice annotazione generica                 *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      03                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-dcx-cod-ang       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      03                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Si/no in stampa, se prevista                *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-dcx-snx-stp       to   w-scr-str-ele          .
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Data ultima modifica                        *

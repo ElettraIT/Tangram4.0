@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [mag] Ultimo aggiornamento: 25/12/25                 *
+      *    * Area [mag] Ultimo aggiornamento: 03/06/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [mau]                                        *
@@ -1639,7 +1639,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "DATREG    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-mmr-dat-reg         .
+           move      rr-dat-min           to   rf-mmr-dat-reg         .
            move      zero                 to   rf-mmr-num-prt         .
            move      zero                 to   rf-mmr-num-prg         .
            move      "pgm/mag/fls/ioc/obj/iofmmr"
@@ -1673,6 +1673,13 @@
       *              *-------------------------------------------------*
       *              * Max su [mmr]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-mmr-400.
+           if        rf-mmr-dat-reg       not  > rr-dat-max
+                     go to exe-exp-mmr-200.
        exe-exp-mmr-400.
       *              *-------------------------------------------------*
       *              * Sel su [mmr]                                    *
@@ -2380,9 +2387,9 @@
       *                  * Preparazione chiave                         *
       *                  *---------------------------------------------*
            move      zero                 to   w-exe-saa-exe          .
-           if        rr-dat-exp           =    zero
+           if        rr-dat-min           =    zero
                      go to exe-exp-mms-120.
-           move      rr-dat-exp           to   s-dat                  .
+           move      rr-dat-min           to   s-dat                  .
            move      s-saa                to   w-exe-saa-exe          .
        exe-exp-mms-120.
       *                  *---------------------------------------------*
@@ -2428,6 +2435,14 @@
       *              *-------------------------------------------------*
       *              * Max su [mms]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-mms-400.
+           move      rr-dat-max           to   s-dat                  .
+           if        rf-mms-ann-ese       not  = s-saa
+                     go to exe-exp-mms-800.
        exe-exp-mms-400.
       *              *-------------------------------------------------*
       *              * Sel su [mms]                                    *
@@ -3019,7 +3034,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "DATREG    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-mmt-dat-reg         .
+           move      rr-dat-min           to   rf-mmt-dat-reg         .
            move      zero                 to   rf-mmt-num-prt         .
            move      "pgm/mag/fls/ioc/obj/iofmmt"
                                           to   s-pat                  .
@@ -3052,6 +3067,13 @@
       *              *-------------------------------------------------*
       *              * Max su [mmt]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-mmt-400.
+           if        rf-mmt-dat-reg       not  > rr-dat-max
+                     go to exe-exp-mmt-200.
        exe-exp-mmt-400.
       *              *-------------------------------------------------*
       *              * Sel su [mmt]                                    *
@@ -3664,7 +3686,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "ESECOD    "         to   f-key                  .
-           move      zero                 to   rf-mmv-ann-ese         .
+           move      w-exe-saa-exe        to   rf-mms-ann-ese         .
            move      zero                 to   rf-mmv-tip-mag         .
            move      zero                 to   rf-mmv-num-mag         .
            move      "pgm/mag/fls/ioc/obj/iofmmv"
@@ -3698,6 +3720,14 @@
       *              *-------------------------------------------------*
       *              * Max su [mmv]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-mmv-400.
+           move      rr-dat-max           to   s-dat                  .
+           if        rf-mmv-ann-ese       not  = s-saa
+                     go to exe-exp-mmv-800.
        exe-exp-mmv-400.
       *              *-------------------------------------------------*
       *              * Sel su [mmv]                                    *
@@ -4118,10 +4148,22 @@
       *              *-------------------------------------------------*
       *              * Start su file [mmv]                             *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Preparazione chiave                         *
+      *                  *---------------------------------------------*
+           move      zero                 to   w-exe-saa-exe          .
+           if        rr-dat-min           =    zero
+                     go to exe-exp-mml-120.
+           move      rr-dat-min           to   s-dat                  .
+           move      s-saa                to   w-exe-saa-exe          .
+       exe-exp-mml-120.
+      *                  *---------------------------------------------*
+      *                  * Start                                       *
+      *                  *---------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "ESECOD    "         to   f-key                  .
-           move      zero                 to   rf-mmv-ann-ese         .
+           move      w-exe-saa-exe        to   rf-mmv-ann-ese         .
            move      zero                 to   rf-mmv-tip-mag         .
            move      zero                 to   rf-mmv-num-mag         .
            move      "pgm/mag/fls/ioc/obj/iofmmv"
@@ -5071,7 +5113,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "DPMGDS    "         to   f-key                  .
-           move      zero                 to   rf-mmz-ann-ese         .
+           move      w-exe-saa-exe        to   rf-mms-ann-ese         .
            move      zero                 to   rf-mmz-cod-dpz         .
            move      zero                 to   rf-mmz-tip-mag         .
            move      zero                 to   rf-mmz-num-mag         .
@@ -5112,6 +5154,14 @@
       *              *-------------------------------------------------*
       *              * Max su [mmz]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-mmz-400.
+           move      rr-dat-max           to   s-dat                  .
+           if        rf-mmz-ann-ese       not  = s-saa
+                     go to exe-exp-mmz-800.
        exe-exp-mmz-400.
       *              *-------------------------------------------------*
       *              * Sel su [mmz]                                    *

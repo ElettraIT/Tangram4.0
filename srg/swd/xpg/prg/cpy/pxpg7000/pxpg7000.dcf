@@ -1,4 +1,7 @@
       *    *===========================================================*
+      *    * Area [dcf] Ultimo aggiornamento: 27/05/26                 *
+      *    *===========================================================*
+      *    *===========================================================*
       *    * Esportazione [aaf]                                        *
       *    *-----------------------------------------------------------*
        exe-exp-aaf-000.
@@ -74,7 +77,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "PRFNFM    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-aaf-ide-dat         .
            move      zero                 to   rf-aaf-tip-mag         .
            move      zero                 to   rf-aaf-num-pro         .
            move      zero                 to   rf-aaf-cod-dcf         .
@@ -110,6 +114,13 @@
       *              *-------------------------------------------------*
       *              * Max su [aaf]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-aaf-400.
+           if        rf-aaf-ide-dat       >    rr-dat-max
+                     go to exe-exp-aaf-800.
        exe-exp-aaf-400.
       *              *-------------------------------------------------*
       *              * Sel su [aaf]                                    *
@@ -929,7 +940,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "PRFNFM    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-aaf-ide-dat         .
            move      zero                 to   rf-aaf-tip-mag         .
            move      zero                 to   rf-aaf-num-pro         .
            move      zero                 to   rf-aaf-cod-dcf         .
@@ -965,6 +977,13 @@
       *              *-------------------------------------------------*
       *              * Max su [aaf]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-aap-400.
+           if        rf-aaf-ide-dat       >    rr-dat-max
+                     go to exe-exp-aap-800.
        exe-exp-aap-400.
       *              *-------------------------------------------------*
       *              * Sel su [aaf]                                    *
@@ -1357,7 +1376,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "NUMPRO    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-aaq-ide-dat         .
            move      zero                 to   rf-aaq-tip-mag         .
            move      zero                 to   rf-aaq-num-pro         .
            move      "pgm/dcf/fls/ioc/obj/iofaaq"
@@ -1391,6 +1411,13 @@
       *              *-------------------------------------------------*
       *              * Max su [aaq]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-aaq-400.
+           if        rf-aaq-ide-dat       >    rr-dat-max
+                     go to exe-exp-aaq-800.
        exe-exp-aaq-400.
       *              *-------------------------------------------------*
       *              * Sel su [aaq]                                    *
@@ -2046,6 +2073,20 @@
            call      s-pat               using f
                                                rf-dcf                 .
       *                  *---------------------------------------------*
+      *                  * [fnt]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+      *                  *---------------------------------------------*
+      *                  * Open modulo accettazione codice CIN         *
+      *                  *---------------------------------------------*
+           perform   cod-cod-cin-opn-000  thru cod-cod-cin-opn-999    .
+      *                  *---------------------------------------------*
       *                  * Open generica file sequenziale di output    *
       *                  *---------------------------------------------*
            perform   opn-seq-out-000      thru opn-seq-out-999        .
@@ -2071,7 +2112,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODFNT    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcf-ide-dat         .
            move      zero                 to   rf-dcf-cod-fnt         .
            move      spaces               to   rf-dcf-dpz-fnt         .
            move      "pgm/dcf/fls/ioc/obj/iofdcf"
@@ -2105,6 +2147,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcf]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dcf-400.
+           if        rf-dcf-ide-dat       >    rr-dat-max
+                     go to exe-exp-dcf-800.
        exe-exp-dcf-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcf]                                    *
@@ -2157,22 +2206,6 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Ragione sociale in uppercase                *
-      *                  *---------------------------------------------*
-           inspect   rf-dcf-rag-key
-                                replacing all  """"
-                                          by   "'"                    .
-      *
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcf-rag-key       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
       *                  * Ragione sociale                             *
       *                  *---------------------------------------------*
            inspect   rf-dcf-rag-soc
@@ -2220,6 +2253,71 @@
       *                  *---------------------------------------------*
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *=============================================*
+      *                  * NUOVI CAMPI PER DATABASE                    *
+      *                  *                                             *
+      *                  * ___ MIGLIORABILE ___                        *
+      *                  *                                             *
+      *                  * - Localita' estere                          *
+      *                  * - Frazioni e/o localita'                    *
+      *                  *---------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su codice nazione                      *
+      *                  *---------------------------------------------*
+           if        rf-dcf-cod-naz       not  = "IT "
+                     move  spaces         to   w-let-arc-gxc-cap
+                     move  spaces         to   w-let-arc-gxc-des
+                     move  spaces         to   w-let-arc-gxc-prv
+                     go to exe-exp-dcf-610.
+      *                  *---------------------------------------------*
+      *                  * Lettura file [gxc]                          *
+      *                  *---------------------------------------------*
+           move      "C"                  to   w-let-arc-gxc-tip      .
+           move      rf-dcf-cod-cmn       to   w-let-arc-gxc-cmn      .
+           move      zero                 to   w-let-arc-gxc-fzn      .
+           move      zero                 to   w-let-arc-gxc-lct      .
+           perform   let-arc-gxc-000      thru let-arc-gxc-999        .
+       exe-exp-dcf-610.
+      *                  *---------------------------------------------*
+      *                  * Localita' - CAP                             *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-let-arc-gxc-cap    to   w-scr-str-ele          .
+           move      05                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Localita' - Comune                          *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-let-arc-gxc-des    to   w-scr-str-ele          .
+           move      40                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Localita' - Provincia                       *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-let-arc-gxc-prv    to   w-scr-str-ele          .
+           move      40                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * NUOVI CAMPI PER DATABASE - fine             *
+      *                  *=============================================*
+       exe-exp-dcf-615.
       *                  *---------------------------------------------*
       *                  * Nazione                                     *
       *                  *---------------------------------------------*
@@ -2293,17 +2391,52 @@
            move      v-edt                to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *=============================================*
+      *                  * CAMPI PROVENIENTI DA 'cli'                  *
+      *                  *---------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice Iva                                  *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      05                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-cli-cod-iva       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      05                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Ragione sociale invio documento - parte 1   *
+      *                  * Partita Iva                                 *
       *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      11                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-cli-prt-iva       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
            move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcf-rs1-doc       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      11                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -2311,16 +2444,63 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Ragione sociale invio documento - parte 2   *
+      *                  * Codice fiscale                              *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcf-rs2-doc       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
+           move      rf-cli-cod-fis       to   w-scr-str-ele          .
+           move      16                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
            move      "AN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Sottoconto                                  *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "9"                  to   v-edm                  .
+           move      rf-cli-cod-cge       to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *
+           move      "N "                 to   w-scr-str-tip          .
+           move      v-edt                to   w-scr-str-ele          .
+           move      07                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Si/no elenco Iva                            *
+      *                  *---------------------------------------------*
+           move      "N "                 to   w-scr-str-tip          .
+      *
+           if        rf-cli-snx-a13       =    "S"
+                     move  "1"            to   w-scr-str-ele
+           else      move  "0"            to   w-scr-str-ele          .
+      *
+           move      01                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * CAMPI PROVENIENTI DA 'cli' - fine           *
+      *                  *=============================================*
+      *                  *---------------------------------------------*
+      *                  * Ragione sociale invio documento - parte 1   *
+      *                  *---------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Ragione sociale invio documento - parte 2   *
+      *                  *---------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Inoltro documenti                           *
@@ -2364,19 +2544,7 @@
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice assegnato a noi                      *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-dcf-noi-cli       to   w-scr-str-ele          .
-           move      15                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
+           move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Tipo assoggettamento iva                    *
@@ -2420,52 +2588,14 @@
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
+           move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Periodicita' di fatturazione automatica     *
       *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-dcf-per-fat       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Tipo raggruppamento bolle                   *
       *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-dcf-rag-bft       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Valuta base                                 *
       *                  *---------------------------------------------*
@@ -2800,6 +2930,42 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-dcf-ccc-app       to   w-scr-str-ele          .
            move      12                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Codice IBAN                                 *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test se valore determinabile            *
+      *                      *-----------------------------------------*
+           if        rf-dcf-cod-abi       =    zero   or
+                     rf-dcf-cod-cab       =    zero   or
+                     rf-dcf-ccc-app       =    spaces or
+                     rf-dcf-cin-ita       =    spaces
+                     move  spaces         to   w-cod-cod-cin-edt
+                     go to exe-exp-dcf-645.
+      *                      *-----------------------------------------*
+      *                      * Determinazione ed editing IBAN          *
+      *                      *-----------------------------------------*
+           move      "EI"                 to   w-cod-cod-cin-ope      .
+           move      "IT"                 to   w-cod-cod-cin-naz      .
+           move      rf-dcf-cin-eur       to   w-cod-cod-cin-chd      .
+           move      rf-dcf-cin-ita       to   w-cod-cod-cin-cod      .
+           move      rf-dcf-cod-abi       to   w-cod-cod-cin-abi      .
+           move      rf-dcf-cod-cab       to   w-cod-cod-cin-cab      .
+           move      rf-dcf-ccc-app       to   w-cod-cod-cin-ccc      .
+           perform   cod-cod-cin-cll-000  thru cod-cod-cin-cll-999    .
+       exe-exp-dcf-645.
+      *                      *-----------------------------------------*
+      *                      * Emissione                               *
+      *                      *-----------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      w-cod-cod-cin-edt    to   w-scr-str-ele          .
+           move      40                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -3168,6 +3334,20 @@
                                          using s                      .
            call      s-pat               using f
                                                rf-dcf                 .
+      *                  *---------------------------------------------*
+      *                  * [fnt]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+      *                  *---------------------------------------------*
+      *                  * Close modulo accettazione codice CIN        *
+      *                  *---------------------------------------------*
+           perform   cod-cod-cin-cls-000  thru cod-cod-cin-cls-999    .
        exe-exp-dcf-850.
       *              *-------------------------------------------------*
       *              * Visualizzazione nr records letti e scritti      *
@@ -3262,7 +3442,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODFNT    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcf-ide-dat         .
            move      zero                 to   rf-dcf-cod-fnt         .
            move      spaces               to   rf-dcf-dpz-fnt         .
            move      "pgm/dcf/fls/ioc/obj/iofdcf"
@@ -3296,6 +3477,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcf]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dfd-400.
+           if        rf-dcf-ide-dat       >    rr-dat-max
+                     go to exe-exp-dfd-800.
        exe-exp-dfd-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcf]                                    *
@@ -3916,7 +4104,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODFNT    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcf-ide-dat         .
            move      zero                 to   rf-dcf-cod-fnt         .
            move      spaces               to   rf-dcf-dpz-fnt         .
            move      "pgm/dcf/fls/ioc/obj/iofdcf"
@@ -3950,6 +4139,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcf]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dfs-400.
+           if        rf-dcf-ide-dat       >    rr-dat-max
+                     go to exe-exp-dfs-800.
        exe-exp-dfs-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcf]                                    *
@@ -4260,7 +4456,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODFNT    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcf-ide-dat         .
            move      zero                 to   rf-dcf-cod-fnt         .
            move      spaces               to   rf-dcf-dpz-fnt         .
            move      "pgm/dcf/fls/ioc/obj/iofdcf"
@@ -4294,6 +4491,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcf]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dfv-400.
+           if        rf-dcf-ide-dat       >    rr-dat-max
+                     go to exe-exp-dfv-800.
        exe-exp-dfv-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcf]                                    *
@@ -4537,7 +4741,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "FNTANN    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dfx-ide-dat         .
            move      zero                 to   rf-dfx-cod-fnt         .
            move      spaces               to   rf-dfx-dpz-fnt         .
            move      zero                 to   rf-dfx-cod-ann         .
@@ -4573,6 +4778,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dfx]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dfx-400.
+           if        rf-dfx-ide-dat       >    rr-dat-max
+                     go to exe-exp-dfx-800.
        exe-exp-dfx-400.
       *              *-------------------------------------------------*
       *              * Sel su [dfx]                                    *
@@ -5820,7 +6032,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODPDT    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-pdt-ide-dat         .
            move      zero                 to   rf-pdt-cod-pdt         .
            move      "pgm/dcf/fls/ioc/obj/iofpdt"
                                           to   s-pat                  .
@@ -5853,6 +6066,13 @@
       *              *-------------------------------------------------*
       *              * Max su [pdt]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-pdt-400.
+           if        rf-pdt-ide-dat       >    rr-dat-max
+                     go to exe-exp-pdt-800.
        exe-exp-pdt-400.
       *              *-------------------------------------------------*
       *              * Sel su [pdt]                                    *
@@ -7316,7 +7536,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "CODFOP    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-yfp-ide-dat         .
            move      zero                 to   rf-yfp-cod-fop         .
            move      "pgm/dcf/fls/ioc/obj/iofyfp"
                                           to   s-pat                  .
@@ -7349,6 +7570,13 @@
       *              *-------------------------------------------------*
       *              * Max su [yfp]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-yfp-400.
+           if        rf-yfp-ide-dat       >    rr-dat-max
+                     go to exe-exp-yfp-800.
        exe-exp-yfp-400.
       *              *-------------------------------------------------*
       *              * Sel su [yfp]                                    *
@@ -7401,18 +7629,6 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-yfp-cod-mne       to   w-scr-str-ele          .
            move      10                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-yfp-des-key       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -9018,18 +9234,6 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-yst-mne-cls       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-yst-des-key       to   w-scr-str-ele          .
-           move      20                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *

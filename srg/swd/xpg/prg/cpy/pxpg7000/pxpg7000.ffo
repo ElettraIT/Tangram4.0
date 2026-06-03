@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [ffo] Ultimo aggiornamento: 24/02/26                 *
+      *    * Area [ffo] Ultimo aggiornamento: 31/05/26                 *
       *    *===========================================================*
 
       *    *===========================================================*
@@ -119,9 +119,9 @@
       *                  *---------------------------------------------*
       *                  * Selezione su data esportazione              *
       *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
+           if        rr-dat-max           =    zero
                      go to exe-exp-ffr-500.
-           if        rf-ffr-dat-reg       not  > rr-dat-exp
+           if        rf-ffr-dat-reg       not  > rr-dat-max
                      go to exe-exp-ffr-200.
        exe-exp-ffr-500.
       *              *-------------------------------------------------*
@@ -1760,7 +1760,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-fft-dat-reg         .
+           move      rr-dat-min           to   rf-fft-dat-reg         .
            move      zero                 to   rf-fft-cod-dpz         .
            move      spaces               to   rf-fft-cod-tmf         .
            move      zero                 to   rf-fft-num-prt         .
@@ -1795,6 +1795,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fft-100.
+           if        rf-fft-dat-reg       >    rr-dat-max
+                     go to exe-exp-fft-800.
        exe-exp-fft-400.
       *              *-------------------------------------------------*
       *              * Sel su [fft]                                    *

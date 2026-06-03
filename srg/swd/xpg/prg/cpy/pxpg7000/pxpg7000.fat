@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [fat] Ultimo aggiornamento: 15/06/25                 *
+      *    * Area [fat] Ultimo aggiornamento: 31/05/26                 *
       *    *===========================================================*
 
       *    *===========================================================*
@@ -79,7 +79,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "DATSYS    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-ddx-ide-dat         .
+           move      rr-dat-min           to   rf-ddx-ide-dat         .
            move      zero                 to   rf-ddx-num-dst         .
            move      zero                 to   rf-ddx-num-prg         .
            move      "pgm/fat/fls/ioc/obj/iofddx"
@@ -689,6 +689,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [fit]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
+      *                  *---------------------------------------------*
       *                  * [fir]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -706,7 +716,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-fir-100.
+                     go to exe-exp-fir-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -718,17 +728,64 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-fir-999.
+       exe-exp-fir-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [fit]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-fit-dat-doc         .
+           move      zero                 to   rf-fit-cod-dpz         .
+           move      zero                 to   rf-fit-num-doc         .
+           move      spaces               to   rf-fit-cod-tmo         .
+           move      zero                 to   rf-fit-num-prt         .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-fir-800.
+       exe-exp-fir-070.
+      *              *-------------------------------------------------*
+      *              * Next su [fit]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-fir-800.
+       exe-exp-fir-080.
+      *              *-------------------------------------------------*
+      *              * Max su [bit]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fir-100.
+           if        rf-fit-dat-doc       >    rr-dat-max
+                     go to exe-exp-fir-800.
        exe-exp-fir-100.
       *              *-------------------------------------------------*
       *              * Start su file [fir]                             *
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "DATPRO    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-fir-dat-doc         .
-           move      zero                 to   rf-fir-tip-mag         .
-           move      zero                 to   rf-fir-num-pro         .
-           move      zero                 to   rf-fir-num-prt         .
+           move      "NUMPRT    "         to   f-key                  .
+           move      rf-fit-num-prt       to   rf-fir-num-prt         .
            move      zero                 to   rf-fir-num-prg         .
            move      "pgm/fat/fls/ioc/obj/ioffir"
                                           to   s-pat                  .
@@ -740,7 +797,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-fir-800.
+                     go to exe-exp-fir-780.
        exe-exp-fir-200.
       *              *-------------------------------------------------*
       *              * Next su [fir]                                   *
@@ -756,22 +813,20 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-fir-800.
+                     go to exe-exp-fir-780.
        exe-exp-fir-300.
       *              *-------------------------------------------------*
       *              * Max su [fir]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-fir-num-prt       not  = rf-fit-num-prt
+                     go to exe-exp-fir-780.
        exe-exp-fir-400.
       *              *-------------------------------------------------*
       *              * Sel su [fir]                                    *
       *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Selezione su data esportazione              *
-      *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
-                     go to exe-exp-fir-500.
-           if        rf-fir-dat-doc       not  > rr-dat-exp
-                     go to exe-exp-fir-200.
        exe-exp-fir-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -2239,6 +2294,11 @@
       *              * Riciclo a Next su [fir]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-fir-200.
+       exe-exp-fir-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [fit]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-fir-070.
        exe-exp-fir-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -2253,6 +2313,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [fit]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
       *                  *---------------------------------------------*
       *                  * [fir]                                       *
       *                  *---------------------------------------------*
@@ -2358,7 +2428,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-fit-dat-doc         .
+           move      rr-dat-min           to   rf-fit-dat-doc         .
            move      zero                 to   rf-fit-cod-dpz         .
            move      zero                 to   rf-fit-num-doc         .
            move      spaces               to   rf-fit-cod-tmo         .
@@ -2394,12 +2464,19 @@
       *              *-------------------------------------------------*
       *              * Max su [fit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fit-400.
+           if        rf-fit-dat-doc       >    rr-dat-max
+                     go to exe-exp-fit-800.
        exe-exp-fit-400.
       *              *-------------------------------------------------*
       *              * Sel su [fit]                                    *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
-      *                  * Test se protocollo a zero                   *
+      *                  * Test se protocollo a zero (per errori)      *
       *                  *---------------------------------------------*
            if        rf-fit-num-prt       =    zero
                      go to exe-exp-fit-200.
@@ -2639,62 +2716,6 @@
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-fit-dpz-cli       to   w-scr-str-ele          .
-           move      04                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Tipo fornitura                              *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-fit-tip-frn       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice archivio per fatturazione            *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      07                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-fit-cli-plf       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      07                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice dipendenza archivio                  *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-fit-dpc-plf       to   w-scr-str-ele          .
            move      04                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
@@ -4033,7 +4054,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-fit-dat-doc         .
+           move      rr-dat-min           to   rf-fit-dat-doc         .
            move      zero                 to   rf-fit-cod-dpz         .
            move      zero                 to   rf-fit-num-doc         .
            move      spaces               to   rf-fit-cod-tmo         .
@@ -4069,6 +4090,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fii-400.
+           if        rf-fit-dat-doc       >    rr-dat-max
+                     go to exe-exp-fii-800.
        exe-exp-fii-400.
       *              *-------------------------------------------------*
       *              * Sel su [fit]                                    *
@@ -4366,7 +4394,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-fit-dat-doc         .
+           move      rr-dat-min           to   rf-fit-dat-doc         .
            move      zero                 to   rf-fit-cod-dpz         .
            move      zero                 to   rf-fit-num-doc         .
            move      spaces               to   rf-fit-cod-tmo         .
@@ -4402,6 +4430,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fic-400.
+           if        rf-fit-dat-doc       >    rr-dat-max
+                     go to exe-exp-fic-800.
        exe-exp-fic-400.
       *              *-------------------------------------------------*
       *              * Sel su [fit]                                    *
@@ -4676,7 +4711,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-fit-dat-doc         .
+           move      rr-dat-min           to   rf-fit-dat-doc         .
            move      zero                 to   rf-fit-cod-dpz         .
            move      zero                 to   rf-fit-num-doc         .
            move      spaces               to   rf-fit-cod-tmo         .
@@ -4712,6 +4747,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fis-400.
+           if        rf-fit-dat-doc       >    rr-dat-max
+                     go to exe-exp-fis-800.
        exe-exp-fis-400.
       *              *-------------------------------------------------*
       *              * Sel su [fit]                                    *
@@ -5099,7 +5141,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-fit-dat-doc         .
+           move      rr-dat-min           to   rf-fit-dat-doc         .
            move      zero                 to   rf-fit-cod-dpz         .
            move      zero                 to   rf-fit-num-doc         .
            move      spaces               to   rf-fit-cod-tmo         .
@@ -5135,6 +5177,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fit]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fiv-400.
+           if        rf-fit-dat-doc       >    rr-dat-max
+                     go to exe-exp-fiv-800.
        exe-exp-fiv-400.
       *              *-------------------------------------------------*
       *              * Sel su [fit]                                    *
@@ -6709,9 +6758,9 @@
       *                  *---------------------------------------------*
       *                  * Selezione su data esecuzione                *
       *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
+           if        rr-dat-max           =    zero
                      go to exe-exp-idv-500.
-           move      rr-dat-exp           to   s-dat                  .
+           move      rr-dat-max           to   s-dat                  .
            move      s-saa                to   w-det-sec-ann-esa      .
            move      rf-idv-prt-dsr
                     (01 : 03)             to   w-det-sec-ann-csa      .

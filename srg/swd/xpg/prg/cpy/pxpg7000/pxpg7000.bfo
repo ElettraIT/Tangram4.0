@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [bfo] Ultimo aggiornamento: 26/05/25                 *
+      *    * Area [bfo] Ultimo aggiornamento: 31/05/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [bfe]                                        *
@@ -1076,6 +1076,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [bft]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
       *                  * [bfr]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -1093,7 +1103,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-bfr-100.
+                     go to exe-exp-bfr-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -1105,6 +1115,55 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-bfr-999.
+       exe-exp-bfr-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [bft]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
+           move      zero                 to   rf-bft-cod-dpz         .
+           move      spaces               to   rf-bft-cod-tmb         .
+           move      zero                 to   rf-bft-num-prt         .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bft-800.
+       exe-exp-bfr-070.
+      *              *-------------------------------------------------*
+      *              * Next su [bft]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bfr-800.
+       exe-exp-bfr-080.
+      *              *-------------------------------------------------*
+      *              * Max su [bft]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bfr-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bfr-800.
        exe-exp-bfr-100.
       *              *-------------------------------------------------*
       *              * Start su file [bfr]                             *
@@ -1112,7 +1171,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-bfr-num-prt         .
+           move      rf-bft-num-prt       to   rf-bfr-num-prt         .
            move      zero                 to   rf-bfr-num-prg         .
            move      "pgm/bfo/fls/ioc/obj/iofbfr"
                                           to   s-pat                  .
@@ -1124,7 +1183,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bfr-800.
+                     go to exe-exp-bfr-780.
        exe-exp-bfr-200.
       *              *-------------------------------------------------*
       *              * Next su [bfr]                                   *
@@ -1140,22 +1199,20 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bfr-800.
+                     go to exe-exp-bfr-780.
        exe-exp-bfr-300.
       *              *-------------------------------------------------*
       *              * Max su [bfr]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-bfr-num-prt       not  = rf-bft-num-prt
+                     go to exe-exp-bfr-780.
        exe-exp-bfr-400.
       *              *-------------------------------------------------*
       *              * Sel su [bfr]                                    *
       *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Selezione su data esportazione              *
-      *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
-                     go to exe-exp-bfr-500.
-           if        rf-bfr-dat-reg       not  > rr-dat-exp
-                     go to exe-exp-bfr-200.
        exe-exp-bfr-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -1226,6 +1283,22 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bfr-cod-tmb       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo trattamento per le statistiche - SQL   *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+      *
+           if        rf-bfr-cod-tmb       =    "BRVE "
+                     move  "RV"           to   w-scr-str-ele
+           else      move  "A"            to   w-scr-str-ele          .
+      *
+           move      02                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -2496,6 +2569,11 @@
       *              * Riciclo a Next su [bfr]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-bfr-200.
+       exe-exp-bfr-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [bit]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bfr-070.
        exe-exp-bfr-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -2510,6 +2588,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [bft]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
       *                  *---------------------------------------------*
       *                  * [bfr]                                       *
       *                  *---------------------------------------------*
@@ -2615,7 +2703,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bft-dat-reg         .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
            move      zero                 to   rf-bft-cod-dpz         .
            move      spaces               to   rf-bft-cod-tmb         .
            move      zero                 to   rf-bft-num-prt         .
@@ -2650,6 +2738,13 @@
       *              *-------------------------------------------------*
       *              * Max su [bft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bft-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bft-800.
        exe-exp-bft-400.
       *              *-------------------------------------------------*
       *              * Sel su [bft]                                    *
@@ -2702,6 +2797,22 @@
            move      "A "                 to   w-scr-str-tip          .
            move      rf-bft-cod-tmb       to   w-scr-str-ele          .
            move      05                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo trattamento per le statistiche - SQL   *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+      *
+           if        rf-bft-cod-tmb       =    "BRVE "
+                     move  "RV"           to   w-scr-str-ele
+           else      move  "A"            to   w-scr-str-ele          .
+      *
+           move      02                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -3893,7 +4004,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bft-dat-reg         .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
            move      zero                 to   rf-bft-cod-dpz         .
            move      spaces               to   rf-bft-cod-tmb         .
            move      zero                 to   rf-bft-num-prt         .
@@ -3928,6 +4039,13 @@
       *              *-------------------------------------------------*
       *              * Max su [bft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bfi-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bfi-800.
        exe-exp-bfi-400.
       *              *-------------------------------------------------*
       *              * Sel su [bft]                                    *
@@ -4202,7 +4320,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bft-dat-reg         .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
            move      zero                 to   rf-bft-cod-dpz         .
            move      spaces               to   rf-bft-cod-tmb         .
            move      zero                 to   rf-bft-num-prt         .
@@ -4237,6 +4355,13 @@
       *              *-------------------------------------------------*
       *              * Max su [bft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bfc-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bfc-800.
        exe-exp-bfc-400.
       *              *-------------------------------------------------*
       *              * Sel su [bft]                                    *
@@ -4511,7 +4636,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bft-dat-reg         .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
            move      zero                 to   rf-bft-cod-dpz         .
            move      spaces               to   rf-bft-cod-tmb         .
            move      zero                 to   rf-bft-num-prt         .
@@ -4546,6 +4671,13 @@
       *              *-------------------------------------------------*
       *              * Max su [bft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bfz-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bfz-800.
        exe-exp-bfz-400.
       *              *-------------------------------------------------*
       *              * Sel su [bft]                                    *
@@ -4935,7 +5067,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-bft-dat-reg         .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
            move      zero                 to   rf-bft-cod-dpz         .
            move      spaces               to   rf-bft-cod-tmb         .
            move      zero                 to   rf-bft-num-prt         .
@@ -4970,6 +5102,13 @@
       *              *-------------------------------------------------*
       *              * Max su [bft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bfv-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bfv-800.
        exe-exp-bfv-400.
       *              *-------------------------------------------------*
       *              * Sel su [bft]                                    *
@@ -5173,6 +5312,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [bft]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
       *                  * [bfx]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -5190,7 +5339,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-bfx-100.
+                     go to exe-exp-bfx-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -5202,6 +5351,55 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-bfx-999.
+       exe-exp-bfx-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [bft]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
+           move      zero                 to   rf-bft-cod-dpz         .
+           move      spaces               to   rf-bft-cod-tmb         .
+           move      zero                 to   rf-bft-num-prt         .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bft-800.
+       exe-exp-bfx-070.
+      *              *-------------------------------------------------*
+      *              * Next su [bft]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bfx-800.
+       exe-exp-bfx-080.
+      *              *-------------------------------------------------*
+      *              * Max su [bft]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bfx-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bfx-800.
        exe-exp-bfx-100.
       *              *-------------------------------------------------*
       *              * Start su file [bfx]                             *
@@ -5209,7 +5407,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-bfx-num-prt         .
+           move      rf-bft-num-prt       to   rf-bfx-num-prt         .
            move      zero                 to   rf-bfx-num-prg         .
            move      zero                 to   rf-bfx-tip-rec         .
            move      "pgm/bfo/fls/ioc/obj/iofbfx"
@@ -5222,7 +5420,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bfx-800.
+                     go to exe-exp-bfx-780.
        exe-exp-bfx-200.
       *              *-------------------------------------------------*
       *              * Next su [bfx]                                   *
@@ -5238,11 +5436,16 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bfx-800.
+                     go to exe-exp-bfx-780.
        exe-exp-bfx-300.
       *              *-------------------------------------------------*
       *              * Max su [bfx]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-bfx-num-prt       not  = rf-bft-num-prt
+                     go to exe-exp-bfx-780.
        exe-exp-bfx-400.
       *              *-------------------------------------------------*
       *              * Sel su [bfx]                                    *
@@ -5385,6 +5588,11 @@
       *              * Riciclo a Next su [bfx]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-bfx-200.
+       exe-exp-bfx-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [bft]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bfx-070.
        exe-exp-bfx-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -5399,6 +5607,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [bft]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
       *                  *---------------------------------------------*
       *                  * [bfx]                                       *
       *                  *---------------------------------------------*
@@ -5679,6 +5897,22 @@
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
            move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Tipo trattamento per le statistiche - SQL   *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+      *
+           if        rf-ybf-cod-tmb       =    "BRVE "
+                     move  "RV"           to   w-scr-str-ele
+           else      move  "A"            to   w-scr-str-ele          .
+      *
+           move      02                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Codice c/merce                              *

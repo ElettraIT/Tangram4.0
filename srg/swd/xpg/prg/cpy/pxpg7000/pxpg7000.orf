@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [orf] Ultimo aggiornamento: 27/10/25                 *
+      *    * Area [orf] Ultimo aggiornamento: 31/05/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [ofr]                                        *
@@ -42,6 +42,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [oft]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *                  *---------------------------------------------*
       *                  * [ofr]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -59,7 +69,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-ofr-100.
+                     go to exe-exp-ofr-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -71,6 +81,56 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-ofr-999.
+       exe-exp-ofr-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [oft]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-oft-dat-doc         .
+           move      zero                 to   rf-oft-cod-dpz         .
+           move      zero                 to   rf-oft-num-doc         .
+           move      spaces               to   rf-oft-tmo-orf         .
+           move      zero                 to   rf-oft-num-prt         .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ofr-800.
+       exe-exp-ofr-070.
+      *              *-------------------------------------------------*
+      *              * Next su [oft]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ofr-800.
+       exe-exp-ofr-080.
+      *              *-------------------------------------------------*
+      *              * Max su [oft]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ofr-100.
+           if        rf-oft-dat-doc       >    rr-dat-max
+                     go to exe-exp-ofr-800.
        exe-exp-ofr-100.
       *              *-------------------------------------------------*
       *              * Start su file [ofr]                             *
@@ -78,7 +138,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-ofr-num-prt         .
+           move      rf-oft-num-prt       to   rf-ofr-num-prt         .
            move      zero                 to   rf-ofr-num-prg         .
            move      "pgm/orf/fls/ioc/obj/iofofr"
                                           to   s-pat                  .
@@ -90,7 +150,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ofr-800.
+                     go to exe-exp-ofr-780.
        exe-exp-ofr-200.
       *              *-------------------------------------------------*
       *              * Next su [ofr]                                   *
@@ -106,22 +166,20 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ofr-800.
+                     go to exe-exp-ofr-780.
        exe-exp-ofr-300.
       *              *-------------------------------------------------*
       *              * Max su [ofr]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-ofr-num-prt       not  = rf-oft-num-prt
+                     go to exe-exp-ofr-780.
        exe-exp-ofr-400.
       *              *-------------------------------------------------*
       *              * Sel su [ofr]                                    *
       *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Selezione su data esportazione              *
-      *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
-                     go to exe-exp-ofr-500.
-           if        rf-ofr-dat-doc       not  > rr-dat-exp
-                     go to exe-exp-ofr-200.
        exe-exp-ofr-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -1390,6 +1448,11 @@
       *              * Riciclo a Next su [ofr]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-ofr-200.
+       exe-exp-ofr-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [oft]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ofr-070.
        exe-exp-ofr-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -1404,6 +1467,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [oft]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/orf/fls/ioc/obj/iofoft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oft                 .
       *                  *---------------------------------------------*
       *                  * [ofr]                                       *
       *                  *---------------------------------------------*
@@ -1509,7 +1582,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-oft-dat-doc         .
+           move      rr-dat-min           to   rf-oft-dat-doc         .
            move      zero                 to   rf-oft-cod-dpz         .
            move      zero                 to   rf-oft-num-doc         .
            move      spaces               to   rf-oft-tmo-orf         .
@@ -1545,6 +1618,13 @@
       *              *-------------------------------------------------*
       *              * Max su [oft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-oft-100.
+           if        rf-oft-dat-doc       >    rr-dat-max
+                     go to exe-exp-oft-800.
        exe-exp-oft-400.
       *              *-------------------------------------------------*
       *              * Sel su [oft]                                    *
@@ -2821,7 +2901,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-oft-dat-doc         .
+           move      rr-dat-min           to   rf-oft-dat-doc         .
            move      zero                 to   rf-oft-cod-dpz         .
            move      zero                 to   rf-oft-num-doc         .
            move      spaces               to   rf-oft-tmo-orf         .
@@ -2857,6 +2937,13 @@
       *              *-------------------------------------------------*
       *              * Max su [oft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ofs-100.
+           if        rf-oft-dat-doc       >    rr-dat-max
+                     go to exe-exp-ofs-800.
        exe-exp-ofs-400.
       *              *-------------------------------------------------*
       *              * Sel su [oft]                                    *
@@ -3257,7 +3344,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-oft-dat-doc         .
+           move      rr-dat-min           to   rf-oft-dat-doc         .
            move      zero                 to   rf-oft-cod-dpz         .
            move      zero                 to   rf-oft-num-doc         .
            move      spaces               to   rf-oft-tmo-orf         .
@@ -3293,6 +3380,13 @@
       *              *-------------------------------------------------*
       *              * Max su [oft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ofv-100.
+           if        rf-oft-dat-doc       >    rr-dat-max
+                     go to exe-exp-ofv-800.
        exe-exp-ofv-400.
       *              *-------------------------------------------------*
       *              * Sel su [oft]                                    *

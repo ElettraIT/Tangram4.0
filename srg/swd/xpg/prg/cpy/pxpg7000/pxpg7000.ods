@@ -1,5 +1,7 @@
       *    *===========================================================*
-      *    * Area [ods] Ultimo aggiornamento: 17/09/25                 *
+      *    * Area [ods] Ultimo aggiornamento: 31/05/26                 *
+      *    *                                                           *
+      *    * ___ MEMO : osx come osr                                   *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [osk]                                        *
@@ -520,6 +522,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [ost]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
+      *                  *---------------------------------------------*
       *                  * [osr]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -537,7 +549,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-osr-100.
+                     go to exe-exp-osr-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -549,6 +561,54 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-osr-999.
+       exe-exp-osr-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [ost]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-ost-ide-dat         .
+           move      zero                 to   rf-ost-dat-doc         .
+           move      zero                 to   rf-ost-num-prt         .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-osr-800.
+       exe-exp-osr-070.
+      *              *-------------------------------------------------*
+      *              * Next su [ost]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-osr-800.
+       exe-exp-osr-080.
+      *              *-------------------------------------------------*
+      *              * Max su [ost]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-osr-100.
+           if        rf-ost-ide-dat       >    rr-dat-max
+                     go to exe-exp-osr-800.
        exe-exp-osr-100.
       *              *-------------------------------------------------*
       *              * Start su file [osr]                             *
@@ -556,7 +616,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-osr-num-prt         .
+           move      rf-ost-num-prt       to   rf-osr-num-prt         .
            move      zero                 to   rf-osr-num-prg         .
            move      "pgm/ods/fls/ioc/obj/iofosr"
                                           to   s-pat                  .
@@ -568,7 +628,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-osr-800.
+                     go to exe-exp-osr-780.
        exe-exp-osr-200.
       *              *-------------------------------------------------*
       *              * Next su [osr]                                   *
@@ -584,22 +644,20 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-osr-800.
+                     go to exe-exp-osr-780.
        exe-exp-osr-300.
       *              *-------------------------------------------------*
       *              * Max su [osr]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-osr-num-prt       not  = rf-ost-num-prt
+                     go to exe-exp-osr-780.
        exe-exp-osr-400.
       *              *-------------------------------------------------*
       *              * Sel su [osr]                                    *
       *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Selezione su data esportazione              *
-      *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
-                     go to exe-exp-osr-500.
-           if        rf-osr-dat-doc       not  > rr-dat-exp
-                     go to exe-exp-osr-200.
        exe-exp-osr-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -2062,6 +2120,11 @@
       *              * Riciclo a Next su [osr]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-osr-200.
+       exe-exp-osr-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [ost]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-osr-070.
        exe-exp-osr-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -2076,6 +2139,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [ost]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
       *                  *---------------------------------------------*
       *                  * [osr]                                       *
       *                  *---------------------------------------------*
@@ -2181,7 +2254,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "DATSYS    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-oft-ide-dat         .
+           move      rr-dat-min           to   rf-ost-ide-dat         .
            move      zero                 to   rf-ost-dat-doc         .
            move      zero                 to   rf-ost-num-prt         .
            move      "pgm/ods/fls/ioc/obj/iofost"
@@ -2215,10 +2288,22 @@
       *              *-------------------------------------------------*
       *              * Max su [ost]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ost-100.
+           if        rf-ost-ide-dat       >    rr-dat-max
+                     go to exe-exp-ost-800.
        exe-exp-ost-400.
       *              *-------------------------------------------------*
       *              * Sel su [ost]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su codice dipendenza (ERRATA)     *
+      *                  *---------------------------------------------*
+           if        rf-ost-cod-dpz       not  = 01
+                     go to exe-exp-ost-200.
        exe-exp-ost-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -2240,7 +2325,7 @@
       *                  *---------------------------------------------*
            move      spaces               to   w-out-str-out          .
       *                  *---------------------------------------------*
-      *                  * Protocollo                                  *
+      *                  * Protocollo                              001 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2262,7 +2347,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Tipo movimento                              *
+      *                  * Tipo movimento                          002 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-cod-tms       to   w-scr-str-ele          .
@@ -2274,7 +2359,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Dipendenza                                  *
+      *                  * Dipendenza                              003 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2296,18 +2381,18 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Data documento                              *
+      *                  * Data documento                          004 *
       *                  *---------------------------------------------*
            move      "D "                 to   w-scr-str-tip          .
            move      rf-ost-dat-doc       to   w-scr-dat-dat          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  * S-e-p-a-r-a-t-o-r-i                     004 *
       *                  *---------------------------------------------*
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Tipo archivio                               *
+      *                  * Tipo archivio                           005 *
       *                  *---------------------------------------------*
            move      "E "                 to   w-scr-str-tip          .
            move      rf-ost-tip-arc       to   w-scr-str-ele          .
@@ -2319,7 +2404,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice archivio                             *
+      *                  * Codice archivio                         006 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2341,7 +2426,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice dipendenza archivio                  *
+      *                  * Codice dipendenza archivio              007 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-dpz-arc       to   w-scr-str-ele          .
@@ -2353,85 +2438,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Tipo fornitura                              *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-ost-tip-frn       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice archivio per fatturazione            *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      07                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-ost-arc-plf       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      07                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice dipendenza archivio                  *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-ost-dpz-plf       to   w-scr-str-ele          .
-           move      04                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Tipo fatturazione                           *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-ost-tip-ftz       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Tipo indirizzo                              *
+      *                  * Tipo indirizzo                          008 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2453,7 +2460,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice lingua per il documento              *
+      *                  * Codice lingua per il documento          009 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-cod-lng       to   w-scr-str-ele          .
@@ -2465,7 +2472,7 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Valuta per la fatturazione                  *
+      *                  * Valuta per la fatturazione         010..013 *
       *                  *---------------------------------------------*
            move      rf-ost-sgl-vpf       to   w-exe-sgl-vlt          .
            move      rf-ost-dec-vpf       to   w-exe-dec-vlt          .
@@ -2478,7 +2485,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Iva e contropartita generali                *
+      *                  * Iva e contropartita generali            014 *
       *                  *---------------------------------------------*
            move      rf-ost-ass-iva       to   w-exe-iec-iva          .
            move      rf-ost-ctp-ven       to   w-exe-iec-cpt          .
@@ -2489,7 +2496,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Fattura separata                            *
+      *                  * Fattura separata                       016  *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-fat-sep       to   w-scr-str-ele          .
@@ -2501,7 +2508,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Inoltro documenti                           *
+      *                  * Inoltro documenti                       017 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2523,7 +2530,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Inoltro pagamenti                           *
+      *                  * Inoltro pagamenti                       018 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2545,7 +2552,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice listino                              *
+      *                  * Codice listino                          019 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-cod-lst       to   w-scr-str-ele          .
@@ -2557,7 +2564,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Categoria sconto in riga                    *
+      *                  * Categoria sconto in riga               020  *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2579,7 +2586,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Ciclo di scansione                          *
+      *                  * Ciclo di scansione                 021..025 *
       *                  *---------------------------------------------*
            move      zero                 to   w-exe-ctr-001          .
        exe-exp-ost-620.
@@ -2615,7 +2622,7 @@
            go to     exe-exp-ost-620.
        exe-exp-ost-628.
       *                  *---------------------------------------------*
-      *                  * Categoria sconto in chiusura                *
+      *                  * Categoria sconto in chiusura            026 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2637,7 +2644,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * % sconto chiusura                           *
+      *                  * % sconto chiusura                       027 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2659,7 +2666,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Categoria provvigioni                       *
+      *                  * Categoria provvigioni                   028 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2681,7 +2688,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Ciclo di scansione                          *
+      *                  * Ciclo di scansione                 029..031 *
       *                  *---------------------------------------------*
            move      zero                 to   w-exe-ctr-001          .
        exe-exp-ost-630.
@@ -2720,7 +2727,7 @@
       *                  * VOCI DESCRITTIVE A PARTE                    *
       *                  *---------------------------------------------*
       *                  *---------------------------------------------*
-      *                  * Codice forma di pagamento                   *
+      *                  * Codice forma di pagamento               032 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2742,7 +2749,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * % sconto pagamento                          *
+      *                  * % sconto pagamento                      033 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2764,7 +2771,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice ABI                                  *
+      *                  * Codice ABI                              034 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2786,7 +2793,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice CAB                                  *
+      *                  * Codice CAB                              035 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2808,7 +2815,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice conto corrente                       *
+      *                  * Codice conto corrente                   036 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-ccc-app       to   w-scr-str-ele          .
@@ -2856,7 +2863,7 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice addeosto spese bollo                 *
+      *                  * Codice addeosto spese bollo             040 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-add-spb       to   w-scr-str-ele          .
@@ -2868,7 +2875,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Incasso preferenziale                       *
+      *                  * Incasso preferenziale                   041 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2945,7 +2952,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice agente                               *
+      *                  * Codice agente                           045 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -2967,7 +2974,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Flag di significativita' dati provvigionali *
+      *                  * Flag di significativita' dati provvig.  046 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3045,7 +3052,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Categoria di provvigione agente             *
+      *                  * Categoria di provvigione agente         050 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3125,7 +3132,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Importo provvigione a forfait intermediario *
+      *                  * Importo provvigione a forfait interm.   055 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3147,7 +3154,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Ciclo di scansione                          *
+      *                  * Ciclo di scansione                 056..064 *
       *                  *---------------------------------------------*
            move      zero                 to   w-exe-ctr-001          .
        exe-exp-ost-650.
@@ -3183,7 +3190,7 @@
            go to     exe-exp-ost-650.
        exe-exp-ost-658.
       *                  *---------------------------------------------*
-      *                  * Sconto chiusura                             *
+      *                  * Sconto chiusura                         065 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3227,7 +3234,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Sconto pagamento                            *
+      *                  * Sconto pagamento                        067 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3249,7 +3256,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * % sconto pagamento                          *
+      *                  * % sconto pagamento                      068 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3274,7 +3281,7 @@
       *                  * SPESE A PARTE                               *
       *                  *---------------------------------------------*
       *                  *---------------------------------------------*
-      *                  * Totale documento, in valuta                 *
+      *                  * Totale documento, in valuta             069 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3296,7 +3303,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Trasporto a cura                            *
+      *                  * Trasporto a cura                        070 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3364,7 +3371,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Peso totale                                 *
+      *                  * Peso totale                             074 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3419,7 +3426,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice vettore                              *
+      *                  * Codice vettore                          077 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3485,7 +3492,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice annotazioni                          *
+      *                  * Codice annotazioni                      080 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3507,7 +3514,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Numero di stampe eseguite                   *
+      *                  * Numero di stampe eseguite               081 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3529,7 +3536,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Flag di ordine completamente chiuso         *
+      *                  * Flag di spedizione completamente chiusa 082 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-flg-sch       to   w-scr-str-ele          .
@@ -3541,7 +3548,7 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Ciclo di scansione                          *
+      *                  * Ciclo di scansione                 083..089 *
       *                  *---------------------------------------------*
            move      zero                 to   w-exe-ctr-001          .
        exe-exp-ost-660.
@@ -3567,7 +3574,7 @@
            go to     exe-exp-ost-660.
        exe-exp-ost-668.
       *                  *---------------------------------------------*
-      *                  * Ciclo di scansione                          *
+      *                  * Ciclo di scansione                 090..092 *
       *                  *---------------------------------------------*
            move      zero                 to   w-exe-ctr-001          .
        exe-exp-ost-670.
@@ -3593,7 +3600,7 @@
            go to     exe-exp-ost-670.
        exe-exp-ost-678.
       *                  *---------------------------------------------*
-      *                  * Flag di pulizia                             *
+      *                  * Flag di pulizia                         093 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-flg-pul       to   w-scr-str-ele          .
@@ -3605,7 +3612,7 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Flag di regime fiscale particolare          *
+      *                  * Flag di regime fiscale particolare      094 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-flg-rfp       to   w-scr-str-ele          .
@@ -3617,7 +3624,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Numero protocollo di magazzino              *
+      *                  * Numero protocollo di magazzino          095 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3639,7 +3646,7 @@
            move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Codice responsabile di magazzino            *
+      *                  * Codice responsabile di magazzino        096 *
       *                  *---------------------------------------------*
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
@@ -3661,7 +3668,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Tipo movimento per la bollettazione di      *
+      *                  * Tipo movimento per la bollettazione di  097 *
       *                  * default                                     *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
@@ -3674,7 +3681,7 @@
            move      "AN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Data ultima modifica                        *
+      *                  * Data ultima modifica                    098 *
       *                  *---------------------------------------------*
            move      "D "                 to   w-scr-str-tip          .
            move      rf-ost-ide-dat       to   w-scr-dat-dat          .
@@ -3685,7 +3692,7 @@
            move      "NA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Utente ultima modifica                      *
+      *                  * Utente ultima modifica                  099 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-ide-ute       to   w-scr-str-ele          .
@@ -3697,7 +3704,7 @@
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Fase ultima modifica                        *
+      *                  * Fase ultima modifica                    100 *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-ost-ide-fas       to   w-scr-str-ele          .

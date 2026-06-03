@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [orc] Ultimo aggiornamento: 22/04/26                 *
+      *    * Area [orc] Ultimo aggiornamento: 31/05/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [ocf]                                        *
@@ -851,9 +851,9 @@
       *                  *---------------------------------------------*
       *                  * Selezione su data esportazione              *
       *                  *---------------------------------------------*
-           if        rr-dat-exp           =    zero
+           if        rr-dat-max           =    zero
                      go to exe-exp-ocr-500.
-           if        rf-ocr-dat-doc       not  > rr-dat-exp
+           if        rf-ocr-dat-doc       not  > rr-dat-max
                      go to exe-exp-ocr-200.
        exe-exp-ocr-500.
       *              *-------------------------------------------------*
@@ -2464,7 +2464,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-oct-dat-doc         .
+           move      rr-dat-min           to   rf-oct-dat-doc         .
            move      zero                 to   rf-oct-cod-dpz         .
            move      zero                 to   rf-oct-num-doc         .
            move      spaces               to   rf-oct-tmo-orc         .
@@ -2500,6 +2500,13 @@
       *              *-------------------------------------------------*
       *              * Max su [oct]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-oct-100.
+           if        rf-oct-dat-doc       >    rr-dat-max
+                     go to exe-exp-oct-800.
        exe-exp-oct-400.
       *              *-------------------------------------------------*
       *              * Sel su [oct]                                    *
@@ -2704,84 +2711,6 @@
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
            move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Tipo fornitura                              *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-oct-tip-frn       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice archivio per fatturazione            *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      07                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-oct-arc-plf       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      07                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Codice dipendenza archivio                  *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-oct-dpz-plf       to   w-scr-str-ele          .
-           move      04                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AN"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Tipo fatturazione                           *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   v-ope                  .
-           move      "N"                  to   v-tip                  .
-           move      02                   to   v-car                  .
-           move      zero                 to   v-dec                  .
-           move      spaces               to   v-sgn                  .
-           move      "9"                  to   v-edm                  .
-           move      rf-oct-tip-ftz       to   v-num                  .
-           call      "swd/mod/prg/obj/mvideo"
-                                         using v                      .
-      *
-           move      "N "                 to   w-scr-str-tip          .
-           move      v-edt                to   w-scr-str-ele          .
-           move      02                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "NN"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Tipo indirizzo                              *
@@ -4146,7 +4075,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-oct-dat-doc         .
+           move      rr-dat-min           to   rf-oct-dat-doc         .
            move      zero                 to   rf-oct-cod-dpz         .
            move      zero                 to   rf-oct-num-doc         .
            move      spaces               to   rf-oct-tmo-orc         .
@@ -4182,6 +4111,13 @@
       *              *-------------------------------------------------*
       *              * Max su [oct]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ocs-100.
+           if        rf-oct-dat-doc       >    rr-dat-max
+                     go to exe-exp-ocs-800.
        exe-exp-ocs-400.
       *              *-------------------------------------------------*
       *              * Sel su [oct]                                    *
@@ -4580,7 +4516,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "IDEDOC    "         to   f-key                  .
-           move      rr-dat-exp           to   rf-oct-dat-doc         .
+           move      rr-dat-min           to   rf-oct-dat-doc         .
            move      zero                 to   rf-oct-cod-dpz         .
            move      zero                 to   rf-oct-num-doc         .
            move      spaces               to   rf-oct-tmo-orc         .
@@ -4616,6 +4552,13 @@
       *              *-------------------------------------------------*
       *              * Max su [oct]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ocv-100.
+           if        rf-oct-dat-doc       >    rr-dat-max
+                     go to exe-exp-ocv-800.
        exe-exp-ocv-400.
       *              *-------------------------------------------------*
       *              * Sel su [oct]                                    *
