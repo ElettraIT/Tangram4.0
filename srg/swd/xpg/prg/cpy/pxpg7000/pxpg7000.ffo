@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [ffo] Ultimo aggiornamento: 31/05/26                 *
+      *    * Area [ffo] Ultimo aggiornamento: 07/06/26                 *
       *    *===========================================================*
 
       *    *===========================================================*
@@ -43,6 +43,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [fft]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
+      *                  *---------------------------------------------*
       *                  * [ffr]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -60,7 +70,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-ffr-100.
+                     go to exe-exp-ffr-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -72,6 +82,55 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-ffr-999.
+       exe-exp-ffr-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [fft]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-fft-dat-reg         .
+           move      zero                 to   rf-fft-cod-dpz         .
+           move      spaces               to   rf-fft-cod-tmf         .
+           move      zero                 to   rf-fft-num-prt         .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ffr-800.
+       exe-exp-ffr-070.
+      *              *-------------------------------------------------*
+      *              * Next su [fft]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ffr-800.
+       exe-exp-ffr-080.
+      *              *-------------------------------------------------*
+      *              * Max su [fit]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ffr-100.
+           if        rf-fft-dat-reg       >    rr-dat-max
+                     go to exe-exp-ffr-800.
        exe-exp-ffr-100.
       *              *-------------------------------------------------*
       *              * Start su file [ffr]                             *
@@ -79,7 +138,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-ffr-num-prt         .
+           move      rf-fft-num-prt       to   rf-ffr-num-prt         .
            move      zero                 to   rf-ffr-num-prg         .
            move      "pgm/ffo/fls/ioc/obj/iofffr"
                                           to   s-pat                  .
@@ -91,7 +150,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ffr-800.
+                     go to exe-exp-ffr-780.
        exe-exp-ffr-200.
       *              *-------------------------------------------------*
       *              * Next su [ffr]                                   *
@@ -107,22 +166,20 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ffr-800.
+                     go to exe-exp-ffr-780.
        exe-exp-ffr-300.
       *              *-------------------------------------------------*
       *              * Max su [ffr]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-ffr-num-prt       not  = rf-fft-num-prt
+                     go to exe-exp-ffr-780.
        exe-exp-ffr-400.
       *              *-------------------------------------------------*
       *              * Sel su [ffr]                                    *
       *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Selezione su data esportazione              *
-      *                  *---------------------------------------------*
-           if        rr-dat-max           =    zero
-                     go to exe-exp-ffr-500.
-           if        rf-ffr-dat-reg       not  > rr-dat-max
-                     go to exe-exp-ffr-200.
        exe-exp-ffr-500.
       *              *-------------------------------------------------*
       *              * Incremento numero records letti                 *
@@ -304,10 +361,8 @@
       *                  *---------------------------------------------*
       *                  * Codice lingua per il documento              *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-ffr-cod-lng       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+           move      rf-ffr-cod-lng       to   w-exe-cod-lng          .
+           perform   exe-gen-lng-000      thru exe-gen-lng-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
@@ -1346,6 +1401,11 @@
       *              * Riciclo a Next su [ffr]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-ffr-200.
+       exe-exp-ffr-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [fft]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ffr-070.
        exe-exp-ffr-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -1360,6 +1420,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [fft]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
       *                  *---------------------------------------------*
       *                  * [ffr]                                       *
       *                  *---------------------------------------------*
@@ -1429,6 +1499,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [fft]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
+      *                  *---------------------------------------------*
       *                  * [ffx]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -1446,7 +1526,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-ffx-100.
+                     go to exe-exp-ffx-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -1458,6 +1538,55 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-ffx-999.
+       exe-exp-ffx-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [fft]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-fft-dat-reg         .
+           move      zero                 to   rf-fft-cod-dpz         .
+           move      spaces               to   rf-fft-cod-tmf         .
+           move      zero                 to   rf-fft-num-prt         .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ffx-800.
+       exe-exp-ffx-070.
+      *              *-------------------------------------------------*
+      *              * Next su [fft]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ffx-800.
+       exe-exp-ffx-080.
+      *              *-------------------------------------------------*
+      *              * Max su [fit]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ffx-100.
+           if        rf-fft-dat-reg       >    rr-dat-max
+                     go to exe-exp-ffx-800.
        exe-exp-ffx-100.
       *              *-------------------------------------------------*
       *              * Start su file [ffx]                             *
@@ -1465,7 +1594,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-ffx-num-prt         .
+           move      rf-fft-num-prt       to   rf-ffx-num-prt         .
            move      zero                 to   rf-ffx-num-prg         .
            move      zero                 to   rf-ffx-tip-rec         .
            move      "pgm/ffo/fls/ioc/obj/iofffx"
@@ -1478,7 +1607,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ffx-800.
+                     go to exe-exp-ffx-780.
        exe-exp-ffx-200.
       *              *-------------------------------------------------*
       *              * Next su [ffx]                                   *
@@ -1494,11 +1623,16 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ffx-800.
+                     go to exe-exp-ffx-780.
        exe-exp-ffx-300.
       *              *-------------------------------------------------*
       *              * Max su [ffx]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-ffx-num-prt       not  = rf-fft-num-prt
+                     go to exe-exp-ffx-780.
        exe-exp-ffx-400.
       *              *-------------------------------------------------*
       *              * Sel su [ffx]                                    *
@@ -1641,6 +1775,11 @@
       *              * Riciclo a Next su [ffx]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-ffx-200.
+       exe-exp-ffx-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [fft]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ffx-070.
        exe-exp-ffx-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -1655,6 +1794,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [fft]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/ffo/fls/ioc/obj/ioffft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fft                 .
       *                  *---------------------------------------------*
       *                  * [ffx]                                       *
       *                  *---------------------------------------------*
@@ -2055,10 +2204,8 @@
       *                  *---------------------------------------------*
       *                  * Codice lingua per il documento              *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-fft-cod-lng       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+           move      rf-fft-cod-lng       to   w-exe-cod-lng          .
+           perform   exe-gen-lng-000      thru exe-gen-lng-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
@@ -3176,7 +3323,10 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "NUMPRT    "         to   f-key                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-fft-dat-reg         .
+           move      zero                 to   rf-fft-cod-dpz         .
+           move      spaces               to   rf-fft-cod-tmf         .
            move      zero                 to   rf-fft-num-prt         .
            move      "pgm/ffo/fls/ioc/obj/ioffft"
                                           to   s-pat                  .
@@ -3209,6 +3359,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ffi-100.
+           if        rf-fft-dat-reg       >    rr-dat-max
+                     go to exe-exp-ffi-800.
        exe-exp-ffi-400.
       *              *-------------------------------------------------*
       *              * Sel su [fft]                                    *
@@ -3540,7 +3697,10 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "NUMPRT    "         to   f-key                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-fft-dat-reg         .
+           move      zero                 to   rf-fft-cod-dpz         .
+           move      spaces               to   rf-fft-cod-tmf         .
            move      zero                 to   rf-fft-num-prt         .
            move      "pgm/ffo/fls/ioc/obj/ioffft"
                                           to   s-pat                  .
@@ -3573,6 +3733,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ffs-100.
+           if        rf-fft-dat-reg       >    rr-dat-max
+                     go to exe-exp-ffs-800.
        exe-exp-ffs-400.
       *              *-------------------------------------------------*
       *              * Sel su [fft]                                    *
@@ -3961,7 +4128,10 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "NUMPRT    "         to   f-key                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-fft-dat-reg         .
+           move      zero                 to   rf-fft-cod-dpz         .
+           move      spaces               to   rf-fft-cod-tmf         .
            move      zero                 to   rf-fft-num-prt         .
            move      "pgm/ffo/fls/ioc/obj/ioffft"
                                           to   s-pat                  .
@@ -3994,6 +4164,13 @@
       *              *-------------------------------------------------*
       *              * Max su [fft]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ffv-100.
+           if        rf-fft-dat-reg       >    rr-dat-max
+                     go to exe-exp-ffv-800.
        exe-exp-ffv-400.
       *              *-------------------------------------------------*
       *              * Sel su [fft]                                    *

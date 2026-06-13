@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [dcp] Ultimo aggiornamento: 15/05/26                 *
+      *    * Area [dcp] Ultimo aggiornamento: 08/06/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [cpv]                                        *
@@ -387,7 +387,8 @@
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
-           move      "NUMPRO    "         to   f-key                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-dcp-ide-dat         .
            move      zero                 to   rf-dcp-num-pro         .
            move      "pgm/dcp/fls/ioc/obj/iofdcp"
                                           to   s-pat                  .
@@ -420,6 +421,13 @@
       *              *-------------------------------------------------*
       *              * Max su [dcp]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su data esportazione              *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-dcp-400.
+           if        rf-dcp-ide-dat       >    rr-dat-max
+                     go to exe-exp-dcp-800.
        exe-exp-dcp-400.
       *              *-------------------------------------------------*
       *              * Sel su [dcp]                                    *
@@ -4337,10 +4345,8 @@
       *                  *---------------------------------------------*
       *                  * Lingua                                      *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-pdx-cod-lng       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+           move      rf-pdx-cod-lng       to   w-exe-cod-lng          .
+           perform   exe-gen-lng-000      thru exe-gen-lng-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
@@ -4647,10 +4653,8 @@
       *                  *---------------------------------------------*
       *                  * Codice lingua                               *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zcp-cod-lng       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+           move      rf-zcp-cod-lng       to   w-exe-cod-lng          .
+           perform   exe-gen-lng-000      thru exe-gen-lng-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*

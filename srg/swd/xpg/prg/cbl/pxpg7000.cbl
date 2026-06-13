@@ -8,7 +8,7 @@
       *                                   Fase:    xpg700              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 27/05/26    *
+      *                       Ultima revisione:    NdK del 12/06/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -3074,6 +3074,14 @@
            move      12                   to   s-mes                  .
            move      31                   to   s-gio                  .
            move      s-dat                to   rr-dat-max             .
+      *                  *---------------------------------------------*
+      *                  * Date and time da segreteria                 *
+      *                  *---------------------------------------------*
+           move      "DT"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+           if        rr-dat-max           >    s-dat
+                     move  s-dat          to   rr-dat-max             .
            perform   vis-dat-max-000      thru vis-dat-max-999        .
        acc-dat-max-100.
       *              *-------------------------------------------------*
@@ -3149,7 +3157,7 @@
       *                  *---------------------------------------------*
       *                  * Default                                     *
       *                  *---------------------------------------------*
-           move      "A"                  to   rr-aut-man             .
+           move      "S"                  to   rr-aut-man             .
        acc-aut-man-100.
       *              *-------------------------------------------------*
       *              * Accettazione valore                             *

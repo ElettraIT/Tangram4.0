@@ -1,7 +1,5 @@
       *    *===========================================================*
-      *    * Area [bol] Ultimo aggiornamento: 25/05/26                 *
-      *    *                                                           *
-      *    * ___ MEMO : bix come bir                                   *
+      *    * Area [bol] Ultimo aggiornamento: 12/06/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [bie]                                        *
@@ -762,10 +760,8 @@
       *                  *---------------------------------------------*
       *                  * Codice lingua per il documento              *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-bir-cod-lng       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+           move      rf-bir-cod-lng       to   w-exe-cdc-vlt          .
+           perform   exe-gen-vlt-000      thru exe-gen-vlt-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
@@ -2774,10 +2770,8 @@
       *                  *---------------------------------------------*
       *                  * Codice lingua per il documento              *
       *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-bit-cod-lng       to   w-scr-str-ele          .
-           move      03                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+           move      rf-bit-cod-lng       to   w-exe-cdc-vlt          .
+           perform   exe-gen-vlt-000      thru exe-gen-vlt-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
@@ -5672,7 +5666,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-bix-100.
+                     go to exe-exp-bix-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -5684,6 +5678,56 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-bix-999.
+       exe-exp-bix-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [bit]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-bit-dat-doc         .
+           move      zero                 to   rf-bit-cod-dpz         .
+           move      zero                 to   rf-bit-num-doc         .
+           move      spaces               to   rf-bit-cod-tmb         .
+           move      zero                 to   rf-bit-num-prt         .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bix-800.
+       exe-exp-bix-070.
+      *              *-------------------------------------------------*
+      *              * Next su [bit]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/bol/fls/ioc/obj/iofbit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bit                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bix-800.
+       exe-exp-bix-080.
+      *              *-------------------------------------------------*
+      *              * Max su [bit]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bix-100.
+           if        rf-bit-dat-doc       >    rr-dat-max
+                     go to exe-exp-bix-800.
        exe-exp-bix-100.
       *              *-------------------------------------------------*
       *              * Start su file [bix]                             *
@@ -5691,7 +5735,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-bix-num-prt         .
+           move      rf-bit-num-prt       to   rf-bix-num-prt         .
            move      zero                 to   rf-bix-num-prg         .
            move      zero                 to   rf-bix-tip-rec         .
            move      "pgm/bol/fls/ioc/obj/iofbix"
@@ -5704,7 +5748,7 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bix-800.
+                     go to exe-exp-bix-780.
        exe-exp-bix-200.
       *              *-------------------------------------------------*
       *              * Next su [bix]                                   *
@@ -5720,11 +5764,16 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bix-800.
+                     go to exe-exp-bix-780.
        exe-exp-bix-300.
       *              *-------------------------------------------------*
       *              * Max su [bix]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-bix-num-prt       not  = rf-bit-num-prt
+                     go to exe-exp-bix-780.
        exe-exp-bix-400.
       *              *-------------------------------------------------*
       *              * Sel su [bix]                                    *
@@ -5867,6 +5916,11 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *              * Riciclo a Next su [bix]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-bix-200.
+       exe-exp-bix-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [bit]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bix-070.
        exe-exp-bix-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -6080,18 +6134,6 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "A "                 to   w-scr-str-tip          .
            move      rf-vet-cod-mne       to   w-scr-str-ele          .
            move      10                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Ragione sociale in uppercase                *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-vet-rag-key       to   w-scr-str-ele          .
-           move      40                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -6558,18 +6600,6 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zab-des-key       to   w-scr-str-ele          .
-           move      20                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
       *                  * Descrizione aggiuntiva                      *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
@@ -6815,18 +6845,6 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
            move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zba-des-key       to   w-scr-str-ele          .
-           move      30                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
       *                  * Mnemonico                                   *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
@@ -7065,18 +7083,6 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *                  *                                             *
       *                  * N.B.: soppresso                             *
       *                  *---------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zbi-des-key       to   w-scr-str-ele          .
-           move      30                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Descrizione                                 *
       *                  *---------------------------------------------*
@@ -8041,18 +8047,6 @@ ______*    move      rf-bit-dat-rsc       to   w-scr-dat-dat          .
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
            move      rf-zct-des-ctr       to   w-scr-str-ele          .
-           move      20                   to   w-scr-lun-ele          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * S-e-p-a-r-a-t-o-r-i                         *
-      *                  *---------------------------------------------*
-           move      "AA"                 to   w-scr-str-tip          .
-           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
-      *                  *---------------------------------------------*
-      *                  * Descrizione in uppercase                    *
-      *                  *---------------------------------------------*
-           move      "A "                 to   w-scr-str-tip          .
-           move      rf-zct-des-key       to   w-scr-str-ele          .
            move      20                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
