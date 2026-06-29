@@ -8,7 +8,7 @@
       *                                   Fase:    orf330              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 29/06/93    *
-      *                       Ultima revisione:    NdK del 16/12/22    *
+      *                       Ultima revisione:    NdK del 29/06/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -513,6 +513,14 @@
       *        * Data consegna prevista max                            *
       *        *-------------------------------------------------------*
            05  rr-pre-max                 pic  9(07)                  .
+      *        *-------------------------------------------------------*
+      *        * Valori associati al filtro di ordinamento [dcp]       *
+      *        *-------------------------------------------------------*
+           05  rr-fso-dcp                 pic  9(08)                  .
+           05  rr-fso-dcp-alf redefines
+               rr-fso-dcp                 pic  x(08)                  .
+           05  rr-fso-dcp-des             pic  x(40)                  .
+           05  rr-fso-dcp-ord             pic  9(02)                  .
       *        *-------------------------------------------------------*
       *        * Stato degli ordini                                    *
       *        *                                                       *
@@ -1987,6 +1995,18 @@
       *    *-----------------------------------------------------------*
        stp-srt-inp-000.
       *              *-------------------------------------------------*
+      *              * Richiesta tipo ordinamento per [dcp]            *
+      *              *-------------------------------------------------*
+           move      "TO"                 to   f-ope                  .
+           move      rr-fso-dcp-alf       to   f-key                  .
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+       stp-srt-inp-050.
+      *              *-------------------------------------------------*
       *              * Start su file [ofr]                             *
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
@@ -2346,6 +2366,48 @@
       *                          *-------------------------------------*
            go to     stp-srt-inp-190.
        stp-srt-inp-190.
+      *                  *---------------------------------------------*
+      *                  * Selezione su filtro prodotti                *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione anagrafica prodotto     *
+      *                      *-----------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                      *-----------------------------------------*
+      *                      * Lettura anagrafica prodotto             *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRO"             to   f-key                  .
+           move      rf-ofr-num-mag       to   rf-dcp-num-pro         .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                      *-----------------------------------------*
+      *                      * Selezione su record [dcp] letto median- *
+      *                      * te richiamo del filtro di selezione     *
+      *                      *-----------------------------------------*
+           move      "SE"                 to   f-ope                  .
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                          *-------------------------------------*
+      *                          * Se selezione non superata           *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-100.
+       stp-srt-inp-198.
       *              *-------------------------------------------------*
       *              * Fine selezioni sul record                       *
       *              *-------------------------------------------------*

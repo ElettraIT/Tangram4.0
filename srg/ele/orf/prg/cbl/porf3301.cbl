@@ -8,7 +8,7 @@
       *                                   Fase:    orf330              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 29/06/93    *
-      *                       Ultima revisione:    NdK del 09/11/09    *
+      *                       Ultima revisione:    NdK del 29/06/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -35,8 +35,8 @@
        Configuration Section.
       *================================================================*
 
-       Source-Computer.     d-K-b-Snc-PD .
-       Object-Computer.     d-K-b-Snc-PD .
+       Source-Computer.     w-i-p-NdK-PD .
+       Object-Computer.     w-i-p-NdK-PD .
 
        Special-Names.       Decimal-Point is comma .
 
@@ -479,64 +479,38 @@
       *        *-------------------------------------------------------*
            05  rr-dpz-fnt-loc             pic  x(40)                  .
       *        *-------------------------------------------------------*
-      *        * Data emissione min                                    *
+      *        * Data emissione minima da ricercare                    *
       *        *-------------------------------------------------------*
-           05  rr-emi-min                 pic  9(07)                  .
+           05  rr-dem-min                 pic  9(07)                  .
       *        *-------------------------------------------------------*
-      *        * Data emissione max                                    *
+      *        * Data emissione massima da ricercare                   *
       *        *-------------------------------------------------------*
-           05  rr-emi-max                 pic  9(07)                  .
+           05  rr-dem-max                 pic  9(07)                  .
       *        *-------------------------------------------------------*
-      *        * Data consegna richiesta min                           *
+      *        * Data consegna prevista massima da ricercare           *
       *        *-------------------------------------------------------*
-           05  rr-ric-min                 pic  9(07)                  .
+           05  rr-dcn-prv                 pic  9(07)                  .
       *        *-------------------------------------------------------*
-      *        * Data consegna richiesta max                           *
+      *        * Valori associati al filtro di ordinamento [dcp]       *
       *        *-------------------------------------------------------*
-           05  rr-ric-max                 pic  9(07)                  .
-      *        *-------------------------------------------------------*
-      *        * Data consegna prevista min                            *
-      *        *-------------------------------------------------------*
-           05  rr-pre-min                 pic  9(07)                  .
-      *        *-------------------------------------------------------*
-      *        * Data consegna prevista max                            *
-      *        *-------------------------------------------------------*
-           05  rr-pre-max                 pic  9(07)                  .
+           05  rr-fso-dcp                 pic  9(08)                  .
+           05  rr-fso-dcp-alf redefines
+               rr-fso-dcp                 pic  x(08)                  .
+           05  rr-fso-dcp-des             pic  x(40)                  .
+           05  rr-fso-dcp-ord             pic  9(02)                  .
       *        *-------------------------------------------------------*
       *        * Stato degli ordini                                    *
-      *        *                                                       *
       *        * - 01 : Solo quelli da evadere                         *
       *        * - 02 : Solo quelli gia' evasi                         *
       *        * - 03 : Tutti                                          *
       *        *-------------------------------------------------------*
            05  rr-sts-orf                 pic  9(02)                  .
       *        *-------------------------------------------------------*
-      *        * Opzioni di stampa                                     *
-      *        *                                                       *
-      *        *  - Spaces : No                                        *
-      *        *  - X      : Si                                        *
+      *        * Si/No solo quelli da confermare                       *
+      *        * - 01 : No                                             *
+      *        * - 02 : Si                                             *
       *        *-------------------------------------------------------*
-           05  rr-opz-stp.
-      *            *---------------------------------------------------*
-      *            * Riepilogo ordini                                  *
-      *            *---------------------------------------------------*
-               10  rr-opz-stp-rie         pic  x(01)                  .
-      *            *---------------------------------------------------*
-      *            * Solo ordini da confermare                         *
-      *            *---------------------------------------------------*
-               10  rr-opz-stp-soc         pic  x(01)                  .
-      *            *---------------------------------------------------*
-      *            * Totali volume                                     *
-      *            *---------------------------------------------------*
-               10  rr-opz-stp-vol         pic  x(01)                  .
-      *        *-------------------------------------------------------*
-      *        * Tipo destinazione merce                               *
-      *        *                                                       *
-      *        * - 01 : Tutte                                          *
-      *        * - 02 : alla dipendenza emittente                      *
-      *        * - 03 : ad una dipendenza                              *
-      *        *-------------------------------------------------------*
-           05  rr-tip-ids                 pic  9(02)                  .
+           05  rr-snx-sdc                 pic  9(02)                  .
 
       *    *===========================================================*
       *    * Work-area per routine stp-srt-inp-000/999                 *
@@ -1976,6 +1950,18 @@
       *    *-----------------------------------------------------------*
        stp-srt-inp-000.
       *              *-------------------------------------------------*
+      *              * Richiesta tipo ordinamento per [dcp]            *
+      *              *-------------------------------------------------*
+           move      "TO"                 to   f-ope                  .
+           move      rr-fso-dcp-alf       to   f-key                  .
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+       stp-srt-inp-050.
+      *              *-------------------------------------------------*
       *              * Start su file [ofr]                             *
       *              *-------------------------------------------------*
            move      "SK"                 to   f-ope                  .
@@ -2121,32 +2107,17 @@
       *                  *---------------------------------------------*
       *                  * Selezione su data emissione minima          *
       *                  *---------------------------------------------*
-           if        rf-ofr-dat-doc       <    rr-emi-min
+           if        rf-ofr-dat-doc       <    rr-dem-min
                      go to stp-srt-inp-100.
       *                  *---------------------------------------------*
       *                  * Selezione su data emissione massima         *
       *                  *---------------------------------------------*
-           if        rf-ofr-dat-doc       >    rr-emi-max
-                     go to stp-srt-inp-100.
-      *                  *---------------------------------------------*
-      *                  * Selezione su data consegna richiesta min    *
-      *                  *---------------------------------------------*
-           if        rf-ofr-dcn-ric       <    rr-ric-min
-                     go to stp-srt-inp-100.
-      *                  *---------------------------------------------*
-      *                  * Selezione su data consegna richiesta max    *
-      *                  *---------------------------------------------*
-           if        rf-ofr-dcn-ric       >    rr-ric-max
-                     go to stp-srt-inp-100.
-      *                  *---------------------------------------------*
-      *                  * Selezione su data consegna prevista min     *
-      *                  *---------------------------------------------*
-           if        rf-ofr-dcn-prv       <    rr-pre-min
+           if        rf-ofr-dat-doc       >    rr-dem-max
                      go to stp-srt-inp-100.
       *                  *---------------------------------------------*
       *                  * Selezione su data consegna prevista max     *
       *                  *---------------------------------------------*
-           if        rf-ofr-dcn-prv       >    rr-pre-max
+           if        rf-ofr-dcn-prv       >    rr-dcn-prv
                      go to stp-srt-inp-100.
        stp-srt-inp-150.
       *                  *---------------------------------------------*
@@ -2218,12 +2189,6 @@
       *                  * Selezione su Si/No solo quelli da conferma- *
       *                  * re                                          *
       *                  *---------------------------------------------*
-           if        rr-opz-stp-soc       =    spaces
-                     go to stp-srt-inp-170.
-           if        rf-ofr-cof-dat       =    zero   and
-                     rf-ofr-cof-num       =    spaces
-                     go to stp-srt-inp-170
-           else      go to stp-srt-inp-100.
        stp-srt-inp-170.
       *                  *---------------------------------------------*
       *                  * Selezione su segnale di riga comunque con-  *
@@ -2329,6 +2294,48 @@
       *                          *-------------------------------------*
            go to     stp-srt-inp-190.
        stp-srt-inp-190.
+      *                  *---------------------------------------------*
+      *                  * Selezione su filtro prodotti                *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Normalizzazione anagrafica prodotto     *
+      *                      *-----------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                      *-----------------------------------------*
+      *                      * Lettura anagrafica prodotto             *
+      *                      *-----------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRO"             to   f-key                  .
+           move      rf-ofr-num-mag       to   rf-dcp-num-pro         .
+           move      "pgm/dcp/fls/ioc/obj/iofdcp"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                      *-----------------------------------------*
+      *                      * Selezione su record [dcp] letto median- *
+      *                      * te richiamo del filtro di selezione     *
+      *                      *-----------------------------------------*
+           move      "SE"                 to   f-ope                  .
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                          *-------------------------------------*
+      *                          * Se selezione non superata           *
+      *                          *-------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to stp-srt-inp-100.
+       stp-srt-inp-198.
       *              *-------------------------------------------------*
       *              * Fine selezioni sul record                       *
       *              *-------------------------------------------------*
@@ -2461,18 +2468,6 @@
       *                  *---------------------------------------------*
       *                  * Selezioni su campi di testata               *
       *                  *---------------------------------------------*
-      *                      *-----------------------------------------*
-      *                      * Tipo destinazione merce                 *
-      *                      *-----------------------------------------*
-           if        rr-tip-ids           =    01
-                     go to stp-srt-inp-350.
-           if        rr-tip-ids           =    02  and
-                     rf-oft-tip-ids       =    01
-                     go to stp-srt-inp-350.
-           if        rr-tip-ids           =    03  and
-                     rf-oft-tip-ids       =    03
-                     go to stp-srt-inp-350.
-           go to     stp-srt-inp-800.
        stp-srt-inp-350.
       *                  *---------------------------------------------*
       *                  * Eventuale lettura dipendenza                *
@@ -3137,23 +3132,6 @@
                      go to prn-fin-cic-999.
            if        w-tot-gen-fnt        not  > 1
                      go to prn-fin-cic-999.
-      *                  *---------------------------------------------*
-      *                  * Test se riepilogo mensile                   *
-      *                  *---------------------------------------------*
-           if        rr-opz-stp-rie       =    spaces
-                     go to prn-fin-cic-030.
-       prn-fin-cic-020.
-      *              *-------------------------------------------------*
-      *              * Riepilogo generale                              *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Stampa                                      *
-      *                  *---------------------------------------------*
-           perform   prn-fin-cic-rie-000  thru prn-fin-cic-rie-999    .
-      *                  *---------------------------------------------*
-      *                  * Uscita                                      *
-      *                  *---------------------------------------------*
-           go to     prn-fin-cic-999.
        prn-fin-cic-030.
       *              *-------------------------------------------------*
       *              * Stampa totale generale                          *
@@ -3222,44 +3200,6 @@
       *                      *-----------------------------------------*
       *                      * Stampa volume                           *
       *                      *-----------------------------------------*
-      *                          *-------------------------------------*
-      *                          * Test se da stampare                 *
-      *                          *-------------------------------------*
-           if        rr-opz-stp-vol       =    spaces
-                     go to prn-fin-cic-140.
-           if        w-tot-gen-vol        =    zero
-                     go to prn-fin-cic-140.
-      *                          *-------------------------------------*
-      *                          * Editing totale volume               *
-      *                          *-------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "N"                  to   p-tip                  .
-           move      11                   to   p-car                  .
-           move      05                   to   p-dec                  .
-           move      "S"                  to   p-sgn                  .
-           move      "<BGD"               to   p-edm                  .
-           move      w-tot-gen-vol        to   p-num                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-      *                          *-------------------------------------*
-      *                          * Composizione                        *
-      *                          *-------------------------------------*
-           move      40                   to   w-all-str-lun          .
-           move      02                   to   w-all-str-num          .
-           move      "Volume (MC) :"      to   w-all-str-cat (1)      .
-           move      p-edt                to   w-all-str-cat (2)      .
-           perform   all-str-csb-000      thru all-str-csb-999        .
-      *                          *-------------------------------------*
-      *                          * Stampa                              *
-      *                          *-------------------------------------*
-           move      "PF"                 to   p-ope                  .
-           move      "A"                  to   p-tip                  .
-           move      40                   to   p-car                  .
-           move      p-lnr                to   p-lin                  .
-           move      001                  to   p-pos                  .
-           move      w-all-str-alf        to   p-alf                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
        prn-fin-cic-140.
       *                      *-----------------------------------------*
       *                      * Richiamo routine per stampa valori      *
@@ -3610,23 +3550,10 @@
                      go to prn-fin-lr2-999.
            if        w-tot-fnt-ord        not  > 1
                      go to prn-fin-lr2-999.
-      *                  *---------------------------------------------*
-      *                  * Test se riepilogo mensile                   *
-      *                  *---------------------------------------------*
-           if        rr-opz-stp-rie       =    spaces
-                     go to prn-fin-lr2-030.
        prn-fin-lr2-020.
       *              *-------------------------------------------------*
       *              * Riepilogo per fornitore                         *
       *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Stampa                                      *
-      *                  *---------------------------------------------*
-           perform   prn-fin-lr2-rie-000  thru prn-fin-lr2-rie-999    .
-      *                  *---------------------------------------------*
-      *                  * Uscita                                      *
-      *                  *---------------------------------------------*
-           go to     prn-fin-lr2-999.
        prn-fin-lr2-030.
       *              *-------------------------------------------------*
       *              * Stampa totale per fornitore                     *
@@ -3680,44 +3607,6 @@
       *                      *-----------------------------------------*
       *                      * Stampa volume                           *
       *                      *-----------------------------------------*
-      *                          *-------------------------------------*
-      *                          * Test se da stampare                 *
-      *                          *-------------------------------------*
-           if        rr-opz-stp-vol       =    spaces
-                     go to prn-fin-lr2-140.
-           if        w-tot-fnt-vol        =    zero
-                     go to prn-fin-lr2-140.
-      *                          *-------------------------------------*
-      *                          * Editing totale volume               *
-      *                          *-------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "N"                  to   p-tip                  .
-           move      11                   to   p-car                  .
-           move      05                   to   p-dec                  .
-           move      "S"                  to   p-sgn                  .
-           move      "<BGD"               to   p-edm                  .
-           move      w-tot-fnt-vol        to   p-num                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-      *                          *-------------------------------------*
-      *                          * Composizione                        *
-      *                          *-------------------------------------*
-           move      40                   to   w-all-str-lun          .
-           move      02                   to   w-all-str-num          .
-           move      "Volume (MC) :"      to   w-all-str-cat (1)      .
-           move      p-edt                to   w-all-str-cat (2)      .
-           perform   all-str-csb-000      thru all-str-csb-999        .
-      *                          *-------------------------------------*
-      *                          * Stampa                              *
-      *                          *-------------------------------------*
-           move      "PF"                 to   p-ope                  .
-           move      "A"                  to   p-tip                  .
-           move      40                   to   p-car                  .
-           move      p-lnr                to   p-lin                  .
-           move      001                  to   p-pos                  .
-           move      w-all-str-alf        to   p-alf                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
        prn-fin-lr2-140.
       *                      *-----------------------------------------*
       *                      * Richiamo routine per stampa valori      *
@@ -4139,44 +4028,6 @@
       *                      *-----------------------------------------*
       *                      * Stampa volume                           *
       *                      *-----------------------------------------*
-      *                          *-------------------------------------*
-      *                          * Test se da stampare                 *
-      *                          *-------------------------------------*
-           if        rr-opz-stp-vol       =    spaces
-                     go to prn-fin-lr1-140.
-           if        w-tot-ord-vol        =    zero
-                     go to prn-fin-lr1-140.
-      *                          *-------------------------------------*
-      *                          * Editing totale volume               *
-      *                          *-------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "N"                  to   p-tip                  .
-           move      11                   to   p-car                  .
-           move      05                   to   p-dec                  .
-           move      "S"                  to   p-sgn                  .
-           move      "<BGD"               to   p-edm                  .
-           move      w-tot-ord-vol        to   p-num                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-      *                          *-------------------------------------*
-      *                          * Composizione                        *
-      *                          *-------------------------------------*
-           move      40                   to   w-all-str-lun          .
-           move      02                   to   w-all-str-num          .
-           move      "Volume (MC) :"      to   w-all-str-cat (1)      .
-           move      p-edt                to   w-all-str-cat (2)      .
-           perform   all-str-csb-000      thru all-str-csb-999        .
-      *                          *-------------------------------------*
-      *                          * Stampa                              *
-      *                          *-------------------------------------*
-           move      "PF"                 to   p-ope                  .
-           move      "A"                  to   p-tip                  .
-           move      40                   to   p-car                  .
-           move      p-lnr                to   p-lin                  .
-           move      001                  to   p-pos                  .
-           move      w-all-str-alf        to   p-alf                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
        prn-fin-lr1-140.
       *                      *-----------------------------------------*
       *                      * Richiamo routine per stampa valori      *
@@ -4923,12 +4774,6 @@ ______     move      srt-dcn-ric          to   w-tot-dat-cns          .
                                           into w-cnt-tit-des-tit
                                   with pointer w-int-pag-sta-pnt      .
       *
-           if        rr-opz-stp-soc       =    spaces
-                     go to int-pag-sta-150.
-           string    " IN ATTESA DI CONFERMA"
-                                delimited by   size
-                                          into w-cnt-tit-des-tit
-                                  with pointer w-int-pag-sta-pnt      .
        int-pag-sta-150.
            move      "DT"                 to   s-ope                  .
            call      "swd/mod/prg/obj/msegrt"

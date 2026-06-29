@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [fat] Ultimo aggiornamento: 12/06/26                 *
+      *    * Area [fat] Ultimo aggiornamento: 20/06/26                 *
       *    *===========================================================*
 
       *    *===========================================================*
@@ -5383,6 +5383,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [fit]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
+      *                  *---------------------------------------------*
       *                  * [fix]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -5400,7 +5410,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-fix-100.
+                     go to exe-exp-fix-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -5412,6 +5422,56 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-fix-999.
+       exe-exp-fix-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [fit]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-fit-dat-doc         .
+           move      zero                 to   rf-fit-cod-dpz         .
+           move      zero                 to   rf-fit-num-doc         .
+           move      spaces               to   rf-fit-cod-tmo         .
+           move      zero                 to   rf-fit-num-prt         .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-fix-800.
+       exe-exp-fix-070.
+      *              *-------------------------------------------------*
+      *              * Next su [fit]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-fix-800.
+       exe-exp-fix-080.
+      *              *-------------------------------------------------*
+      *              * Max su [fit]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-fix-100.
+           if        rf-fit-dat-doc       >    rr-dat-max
+                     go to exe-exp-fix-800.
        exe-exp-fix-100.
       *              *-------------------------------------------------*
       *              * Start su file [fix]                             *
@@ -5419,7 +5479,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-fix-num-prt         .
+           move      rf-fit-num-prt       to   rf-fix-num-prt         .
            move      zero                 to   rf-fix-num-prg         .
            move      zero                 to   rf-fix-tip-rec         .
            move      "pgm/fat/fls/ioc/obj/ioffix"
@@ -5432,7 +5492,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-fix-800.
+                     go to exe-exp-fix-780.
        exe-exp-fix-200.
       *              *-------------------------------------------------*
       *              * Next su [fix]                                   *
@@ -5448,11 +5508,16 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-fix-800.
+                     go to exe-exp-fix-780.
        exe-exp-fix-300.
       *              *-------------------------------------------------*
       *              * Max su [fix]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-fix-num-prt       not  = rf-fit-num-prt
+                     go to exe-exp-fix-780.
        exe-exp-fix-400.
       *              *-------------------------------------------------*
       *              * Sel su [fix]                                    *
@@ -5595,6 +5660,11 @@
       *              * Riciclo a Next su [fix]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-fix-200.
+       exe-exp-fix-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [fit]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-fix-070.
        exe-exp-fix-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -5609,6 +5679,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [fit]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/fat/fls/ioc/obj/ioffit"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fit                 .
       *                  *---------------------------------------------*
       *                  * [fix]                                       *
       *                  *---------------------------------------------*

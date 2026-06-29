@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [bfo] Ultimo aggiornamento: 12/06/26                 *
+      *    * Area [bfo] Ultimo aggiornamento: 15/06/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [bfe]                                        *
@@ -49,6 +49,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [bft]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
       *                  * [bfs]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -66,7 +76,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-bfs-100.
+                     go to exe-exp-bfs-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -78,6 +88,55 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-bfs-999.
+       exe-exp-bfs-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [bft]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-bft-dat-reg         .
+           move      zero                 to   rf-bft-cod-dpz         .
+           move      spaces               to   rf-bft-cod-tmb         .
+           move      zero                 to   rf-bft-num-prt         .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bft-800.
+       exe-exp-bfs-070.
+      *              *-------------------------------------------------*
+      *              * Next su [bft]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-bfs-800.
+       exe-exp-bfs-080.
+      *              *-------------------------------------------------*
+      *              * Max su [bft]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-bfs-100.
+           if        rf-bft-dat-reg       >    rr-dat-max
+                     go to exe-exp-bfs-800.
        exe-exp-bfs-100.
       *              *-------------------------------------------------*
       *              * Start su file [bfs]                             *
@@ -85,7 +144,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-bfs-num-prt         .
+           move      rf-bft-num-prt       to   rf-bfs-num-prt         .
            move      zero                 to   rf-bfs-num-prg         .
            move      zero                 to   rf-bfs-num-prr         .
            move      "pgm/bfo/fls/ioc/obj/iofbfs"
@@ -98,7 +157,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bfs-800.
+                     go to exe-exp-bfs-780.
        exe-exp-bfs-200.
       *              *-------------------------------------------------*
       *              * Next su [bfs]                                   *
@@ -114,11 +173,16 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-bfs-800.
+                     go to exe-exp-bfs-780.
        exe-exp-bfs-300.
       *              *-------------------------------------------------*
       *              * Max su [bfs]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-bfs-num-prt       not  = rf-bft-num-prt
+                     go to exe-exp-bfs-780.
        exe-exp-bfs-400.
       *              *-------------------------------------------------*
       *              * Sel su [bfs]                                    *
@@ -364,6 +428,11 @@
       *              * Riciclo a Next su [bfs]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-bfs-200.
+       exe-exp-bfs-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [bit]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-bfs-070.
        exe-exp-bfs-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -378,6 +447,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [bft]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/bfo/fls/ioc/obj/iofbft"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-bft                 .
       *                  *---------------------------------------------*
       *                  * [bfs]                                       *
       *                  *---------------------------------------------*

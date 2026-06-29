@@ -8,7 +8,7 @@
       *                                   Fase:    orf330              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 29/06/93    *
-      *                       Ultima revisione:    NdK del 28/02/01    *
+      *                       Ultima revisione:    NdK del 29/06/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -34,10 +34,10 @@
        Configuration Section.
       *================================================================*
 
-       Source-Computer.        N-d-K-Sia-PD .
-       Object-Computer.        N-d-K-Sia-PD .
+       Source-Computer.     w-i-p-NdK-PD .
+       Object-Computer.     w-i-p-NdK-PD .
 
-       Special-Names.          Decimal-Point     Is Comma .
+       Special-Names.       Decimal-Point is comma .
 
       ******************************************************************
        Data Division.
@@ -226,15 +226,6 @@
                10  w-cnt-stp-esp-fut      pic  x(99)                  .
                10  w-cnt-stp-fnz-spc      pic  x(99)                  .
       *        *-------------------------------------------------------*
-      *        * Work per padding campi alfanumerici con 'z'           *
-      *        *-------------------------------------------------------*
-           05  w-pad-zzz.
-               10  w-pad-zzz-alf.
-                   15  w-pad-zzz-alf-chr
-                                   occurs 20       
-                                          pic  x(01)                  .
-               10  w-pad-zzz-ctr          pic  9(02)                  .
-      *        *-------------------------------------------------------*
       *        * Work per string-unstring record richieste             *
       *        *-------------------------------------------------------*
            05  w-stu-rrr.
@@ -242,16 +233,6 @@
                10  w-stu-rrr-255-byt.
                    15  filler occurs 255  pic  x(01)                  .
                10  w-stu-rrr-sav-pnt      pic  9(05)                  .
-
-      *    *===========================================================*
-      *    * Work-area per test se blanks embedded                     *
-      *    *-----------------------------------------------------------*
-       01  w-bla-emb.
-           05  w-bla-emb-flg              pic  x(01)                  .
-           05  w-bla-emb-str.
-               10  w-bla-emb-chr occurs 40
-                                          pic  x(01)                  .
-           05  w-bla-emb-ctr              pic  9(02)                  .
 
       *    *===========================================================*
       *    * Record files                                              *
@@ -264,6 +245,14 @@
       *        * [dcf]                                                 *
       *        *-------------------------------------------------------*
            copy      "pgm/dcf/fls/rec/rfdcf"                          .
+      *        *-------------------------------------------------------*
+      *        * [zos]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/azi/fls/rec/rfzos"                          .
+      *        *-------------------------------------------------------*
+      *        * [dcp]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/dcp/fls/rec/rfdcp"                          .
 
       *    *===========================================================*
       *    * Work-area richieste per stampa                            *
@@ -318,6 +307,14 @@
       *        *-------------------------------------------------------*
            05  rr-dcn-prv                 pic  9(07)                  .
       *        *-------------------------------------------------------*
+      *        * Valori associati al filtro di ordinamento [dcp]       *
+      *        *-------------------------------------------------------*
+           05  rr-fso-dcp                 pic  9(08)                  .
+           05  rr-fso-dcp-alf redefines
+               rr-fso-dcp                 pic  x(08)                  .
+           05  rr-fso-dcp-des             pic  x(40)                  .
+           05  rr-fso-dcp-ord             pic  9(02)                  .
+      *        *-------------------------------------------------------*
       *        * Stato degli ordini                                    *
       *        * - 01 : Solo quelli da evadere                         *
       *        * - 02 : Solo quelli gia' evasi                         *
@@ -330,6 +327,17 @@
       *        * - 02 : Si                                             *
       *        *-------------------------------------------------------*
            05  rr-snx-sdc                 pic  9(02)                  .
+
+      *    *===========================================================*
+      *    * Work per Let su archivio [zos] per [dcp]                  *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/dcp/prg/cpy/lzosdcp0.ltw"                   .
+
+      *    *===========================================================*
+      *    * Link-area per accettazione codice filtro selezione e or-  *
+      *    * dinamento per file [dcp]                                  *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/dcp/prg/cpy/azosdcp0.acl"                   .
 
       *    *===========================================================*
       *    * Work per subroutines di Let                               *
@@ -679,51 +687,6 @@
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
        vis-tit-pgm-999.
-           exit.
-
-      *    *===========================================================*
-      *    * Test se blanks embedded in w-bla-emb-str                  *
-      *    *-----------------------------------------------------------*
-       tst-bla-emb-000.
-           move      spaces               to   w-bla-emb-flg          .
-           if        w-bla-emb-str        =    spaces
-                     go to tst-bla-emb-999.
-           if        w-bla-emb-chr (1)    =    spaces
-                     move  "#"            to   w-bla-emb-flg
-                     go to tst-bla-emb-999.
-           move      1                    to   w-bla-emb-ctr          .
-       tst-bla-emb-100.
-           add       1                    to   w-bla-emb-ctr          .
-           if        w-bla-emb-ctr        >    40
-                     go to tst-bla-emb-999.
-           if        w-bla-emb-chr
-                    (w-bla-emb-ctr)       not  = spaces
-                     go to tst-bla-emb-100.
-       tst-bla-emb-200.
-           add       1                    to   w-bla-emb-ctr          .
-           if        w-bla-emb-ctr        >    40
-                     go to tst-bla-emb-999.
-           if        w-bla-emb-chr
-                    (w-bla-emb-ctr)       =    spaces
-                     go to tst-bla-emb-200.
-           move      "#"                  to   w-bla-emb-flg          .
-       tst-bla-emb-999.
-           exit.
-
-      *    *===========================================================*
-      *    * Regolarizzazione campo alfanumerico con padding di "z"    *
-      *    *-----------------------------------------------------------*
-       pad-alf-zzz-000.
-           move      20                   to   w-pad-zzz-ctr          .
-       pad-alf-zzz-100.
-           if        w-pad-zzz-ctr        >    zero
-                     if    w-pad-zzz-alf-chr
-                          (w-pad-zzz-ctr) =    spaces
-                           move    "z"    to   w-pad-zzz-alf-chr
-                                              (w-pad-zzz-ctr)
-                           subtract 1     from w-pad-zzz-ctr
-                           go to    pad-alf-zzz-100.
-       pad-alf-zzz-999.
            exit.
 
       *    *===========================================================*
@@ -1122,7 +1085,12 @@
       *              *-------------------------------------------------*
            perform   cod-cod-dcf-opn-000  thru cod-cod-dcf-opn-999    .
       *              *-------------------------------------------------*
-      *              * Open file [fnt]                                 *
+      *              * Open modulo accettazione codice filtro ordina-  *
+      *              * mento e selezione per file [dcp]                *
+      *              *-------------------------------------------------*
+           perform   cod-zos-dcp-opn-000  thru cod-zos-dcp-opn-999    .
+      *              *-------------------------------------------------*
+      *              * [fnt]                                           *
       *              *-------------------------------------------------*
            move      "OP"                 to   f-ope                  .
            move      "pgm/cge/fls/ioc/obj/ioffnt"
@@ -1132,7 +1100,7 @@
            call      s-pat               using f
                                                rf-fnt                 .
       *              *-------------------------------------------------*
-      *              * Open file [dcf]                                 *
+      *              * [dcf]                                           *
       *              *-------------------------------------------------*
            move      "OP"                 to   f-ope                  .
            move      "pgm/dcf/fls/ioc/obj/iofdcf"
@@ -1141,6 +1109,26 @@
                                          using s                      .
            call      s-pat               using f
                                                rf-dcf                 .
+      *              *-------------------------------------------------*
+      *              * [zos]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/azi/fls/ioc/obj/iofzos"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zos                 .
+      *              *-------------------------------------------------*
+      *              * Apertura filtro per selezione ed ordinamento    *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
        rou-opn-fls-999.
            exit.
 
@@ -1159,7 +1147,12 @@
       *              *-------------------------------------------------*
            perform   cod-cod-dcf-cls-000  thru cod-cod-dcf-cls-999    .
       *              *-------------------------------------------------*
-      *              * Close file [fnt]                                *
+      *              * Close modulo accettazione codice filtro ordina- *
+      *              * mento e selezione per file [dcp]                *
+      *              *-------------------------------------------------*
+           perform   cod-zos-dcp-cls-000  thru cod-zos-dcp-cls-999    .
+      *              *-------------------------------------------------*
+      *              * [fnt]                                           *
       *              *-------------------------------------------------*
            move      "CL"                 to   f-ope                  .
            move      "pgm/cge/fls/ioc/obj/ioffnt"
@@ -1169,7 +1162,7 @@
            call      s-pat               using f
                                                rf-fnt                 .
       *              *-------------------------------------------------*
-      *              * Close file [dcf]                                *
+      *              * [dcf]                                           *
       *              *-------------------------------------------------*
            move      "CL"                 to   f-ope                  .
            move      "pgm/dcf/fls/ioc/obj/iofdcf"
@@ -1178,6 +1171,34 @@
                                          using s                      .
            call      s-pat               using f
                                                rf-dcf                 .
+      *              *-------------------------------------------------*
+      *              * [zos]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/azi/fls/ioc/obj/iofzos"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-zos                 .
+      *              *-------------------------------------------------*
+      *              * Close filtro per selezione ed ordinamento       *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+      *                  *---------------------------------------------*
+      *                  * Cancel del modulo utilizzato                *
+      *                  *---------------------------------------------*
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           cancel    s-pat                                            .
        rou-cls-fls-999.
            exit.
 
@@ -1279,6 +1300,16 @@
                      go to acc-ric-sel-999.
            if        v-key                =    "UP  "
                      go to acc-ric-sel-250.
+       acc-ric-sel-285.
+      *                  *---------------------------------------------*
+      *                  * Accettazione codice filtro di ordinamento e *
+      *                  * selezione per file [dcp]                    *
+      *                  *---------------------------------------------*
+           perform   acc-fso-dcp-000      thru acc-fso-dcp-999        .
+           if        w-cnt-acc-ric-sel    not  = spaces
+                     go to acc-ric-sel-999.
+           if        v-key                =    "UP  "
+                     go to acc-ric-sel-275.
        acc-ric-sel-300.
       *                  *---------------------------------------------*
       *                  * Selezione su stato ordini                   *
@@ -1287,7 +1318,7 @@
            if        w-cnt-acc-ric-sel    not  = spaces
                      go to acc-ric-sel-999.
            if        v-key                =    "UP  "
-                     go to acc-ric-sel-275.
+                     go to acc-ric-sel-285.
        acc-ric-sel-400.
       *                  *---------------------------------------------*
       *                  * Si/No solo quelli da confermare             *
@@ -1452,6 +1483,11 @@
       *              *-------------------------------------------------*
            perform   vis-dcn-prv-000      thru vis-dcn-prv-999        .
       *              *-------------------------------------------------*
+      *              * Codice filtro per selezione ed ordinamento per  *
+      *              * file [dcp]                                      *
+      *              *-------------------------------------------------*
+           perform   pmt-fso-dcp-000      thru pmt-fso-dcp-999        .
+      *              *-------------------------------------------------*
       *              * Prompt status ordini da ricercare               *
       *              *-------------------------------------------------*
            perform   pmt-sts-orf-000      thru pmt-sts-orf-999        .
@@ -1548,6 +1584,23 @@
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
        pmt-dcn-prv-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Prompt codice filtro per selezione ed ordinamento per     *
+      *    * file [dcp]                                                *
+      *    *-----------------------------------------------------------*
+       pmt-fso-dcp-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      28                   to   v-car                  .
+           move      17                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "Filtro selezione prodotti  :"
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       pmt-fso-dcp-999.
            exit.
 
       *    *===========================================================*
@@ -2557,6 +2610,159 @@
            exit.
 
       *    *===========================================================*
+      *    * Accettazione campo selezione : Codice filtro per selezio- *
+      *    *                                ne ed ordinamento per il   *
+      *    *                                file [dcp]                 *
+      *    *-----------------------------------------------------------*
+       acc-fso-dcp-000.
+      *              *-------------------------------------------------*
+      *              * Pre-accettazione                                *
+      *              *-------------------------------------------------*
+       acc-fso-dcp-100.
+      *              *-------------------------------------------------*
+      *              * Accettazione valore                             *
+      *              *-------------------------------------------------*
+           move      "AC"                 to   w-cod-zos-dcp-ope      .
+           move      rr-fso-dcp           to   w-cod-zos-dcp-cod      .
+           move      17                   to   w-cod-zos-dcp-lin      .
+           move      30                   to   w-cod-zos-dcp-pos      .
+           move      17                   to   w-cod-zos-dcp-dln      .
+           move      41                   to   w-cod-zos-dcp-dps      .
+           move      "<B"                 to   v-edm                  .
+           move      "UP  "               to   v-pfk (01)             .
+           move      "DOWN"               to   v-pfk (02)             .
+           move      "FIND"               to   v-pfk (03)             .
+           move      "INSR"               to   v-pfk (04)             .
+           move      "DO  "               to   v-pfk (05)             .
+           perform   cod-zos-dcp-cll-000  thru cod-zos-dcp-cll-999    .
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+           perform   cod-zos-dcp-foi-000  thru cod-zos-dcp-foi-999    .
+       acc-fso-dcp-110.
+           perform   cod-zos-dcp-cll-000  thru cod-zos-dcp-cll-999    .
+           if        w-cod-zos-dcp-ope    =    "F+"
+                     go to acc-fso-dcp-115.
+           if        w-cod-zos-dcp-ope    =    "AC"
+                     go to acc-fso-dcp-120.
+           perform   exe-acc-cmp-000      thru exe-acc-cmp-999        .
+       acc-fso-dcp-115.
+           perform   cod-zos-dcp-foi-000  thru cod-zos-dcp-foi-999    .
+           go to     acc-fso-dcp-110.
+       acc-fso-dcp-120.
+           move      w-cod-zos-dcp-cod    to   v-num                  .
+       acc-fso-dcp-150.
+      *              *-------------------------------------------------*
+      *              * Se Exit                                         *
+      *              *-------------------------------------------------*
+           if        v-key                =    "EXIT"
+                     move  "E"            to   w-cnt-acc-ric-sel
+                     go to acc-fso-dcp-999.
+       acc-fso-dcp-200.
+      *              *-------------------------------------------------*
+      *              * Valore impostato in campo di destinazione       *
+      *              *-------------------------------------------------*
+           move      v-num                to   rr-fso-dcp             .
+       acc-fso-dcp-400.
+      *              *-------------------------------------------------*
+      *              * Controllo valore impostato                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Lettura codice filtro selezione e ordina-   *
+      *                  * mento per file [dcp]                        *
+      *                  *---------------------------------------------*
+           move      rr-fso-dcp           to   w-let-fso-dcp-cod      .
+           perform   let-fso-dcp-000      thru let-fso-dcp-999        .
+           move      w-let-fso-dcp-des    to   rr-fso-dcp-des         .
+      *                  *---------------------------------------------*
+      *                  * Visualizzazione descrizione filtro          *
+      *                  *---------------------------------------------*
+           perform   vis-des-fso-000      thru vis-des-fso-999        .
+      *                  *---------------------------------------------*
+      *                  * Se codice filtro non esistente : a reimpo-  *
+      *                  * stazione                                    *
+      *                  *---------------------------------------------*
+           if        w-let-fso-dcp-flg    not  = spaces
+                     go to acc-fso-dcp-100.
+       acc-fso-dcp-600.
+      *              *-------------------------------------------------*
+      *              * Dipendenze dall'impostazione                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Lettura tipo ordinamento dal codice filtro  *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Richiesta tipo ordinamento              *
+      *                      *-----------------------------------------*
+           move      "TO"                 to   f-ope                  .
+           move      rr-fso-dcp-alf       to   f-key                  .
+           move      "pgm/dcp/prg/obj/bzosdcp0"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-dcp                 .
+           if        f-sts                =    "01"
+                     move  01             to   rr-fso-dcp-ord
+           else if   f-sts                =    "02"
+                     move  02             to   rr-fso-dcp-ord
+           else if   f-sts                =    "03"
+                     move  03             to   rr-fso-dcp-ord
+           else if   f-sts                =    "04"
+                     move  04             to   rr-fso-dcp-ord
+           else      move  01             to   rr-fso-dcp-ord         .
+       acc-fso-dcp-800.
+      *              *-------------------------------------------------*
+      *              * Se Do                                           *
+      *              *-------------------------------------------------*
+           if        v-key                =    "DO  "
+                     perform tdo-ric-sel-000
+                                          thru tdo-ric-sel-999
+                     if      w-cnt-tdo-ric-flg
+                                          =    spaces
+                             move  "S"    to   w-cnt-acc-ric-sel
+                             go to acc-fso-dcp-999
+                     else    move  spaces to   w-cnt-tdo-ric-flg
+                             go to acc-fso-dcp-100.
+       acc-fso-dcp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzaz. campo selezione : Codice filtro per selezio- *
+      *    *                                ne ed ordinamento per il   *
+      *    *                                file [dcp]                 *
+      *    *-----------------------------------------------------------*
+       vis-fso-dcp-000.
+           move      "DS"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "<B"                 to   v-edm                  .
+           move      17                   to   v-lin                  .
+           move      30                   to   v-pos                  .
+           move      rr-fso-dcp           to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-fso-dcp-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Visualizzaz. campo selezione : Descrizione codice filtro  *
+      *    *                                per selezione ed ordina-   *
+      *    *                                mento per il [dcp]         *
+      *    *-----------------------------------------------------------*
+       vis-des-fso-000.
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      17                   to   v-lin                  .
+           move      41                   to   v-pos                  .
+           move      rr-fso-dcp-des       to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       vis-des-fso-999.
+           exit.
+
+      *    *===========================================================*
       *    * Accettazione campo selezione : Stato ordini fornitori     *
       *    *-----------------------------------------------------------*
        acc-sts-orf-000.
@@ -3133,6 +3339,17 @@
            move      spaces               to   w-let-arc-dcf-loc      .
        let-arc-dcf-999.
            exit.
+
+      *    *===========================================================*
+      *    * Routine lettura archivio [zos] per [dcp]                  *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/dcp/prg/cpy/lzosdcp0.lts"                   .
+
+      *    *===========================================================*
+      *    * Subroutines per l'accettazione del codice filtro ordina-  *
+      *    * mento e selezione per file [dcp]                          *
+      *    *-----------------------------------------------------------*
+           copy      "pgm/dcp/prg/cpy/azosdcp0.acs"                   .
 
       *    *===========================================================*
       *    * Subroutines per l'accettazione del codice fornitore com-  *
