@@ -2095,6 +2095,15 @@
       *              * Selezione sul record                            *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * Selezione su Si/No solo da confermare       *
+      *                  *---------------------------------------------*
+           if        rr-snx-sdc           =    01
+                     go to stp-srt-inp-141.
+           if        rf-ofr-flg-cnf       not  = " " and
+                     rf-ofr-flg-cnf       not  = "?"
+                     go to stp-srt-inp-100.
+       stp-srt-inp-141.
+      *                  *---------------------------------------------*
       *                  * Selezione su codice dipendenza fornitore    *
       *                  *---------------------------------------------*
            if        rr-cod-fnt           =    zero

@@ -25,8 +25,8 @@
        Configuration Section.
       *================================================================*
 
-       Source-Computer.     d-K-b-Snc-PD .
-       Object-Computer.     d-K-b-Snc-PD .
+       Source-Computer.     w-i-p-NdK-PD .
+       Object-Computer.     w-i-p-NdK-PD .
 
        Special-Names.       Decimal-Point is comma .
 
