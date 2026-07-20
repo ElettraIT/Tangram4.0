@@ -8,7 +8,7 @@
       *                                   Fase:    orc300              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 14/05/92    *
-      *                       Ultima revisione:    NdK del 10/11/22    *
+      *                       Ultima revisione:    NdK del 10/07/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -28,6 +28,8 @@
       *                                                                *
       * Annotazioni     : - Preparazione sperimentale dell'indirizzo   *
       *                     mail per invio tramite il modulo di stampa *
+      *                                                                *
+      *                   - Test ELETTRA per cancellazione             *
       *                                                                *
       *================================================================*
 
@@ -3764,6 +3766,36 @@ ______*                     "Parzialmente seguita     "               .
       *              * Normalizzazione status di uscita                *
       *              *-------------------------------------------------*
            move      spaces               to   w-cnt-pre-snx-del      .
+      *              *-------------------------------------------------*
+      *              * ELETTRA (Giorgio 10/07/26)                      *
+      *              *                                                 *
+      *              * Utenti abilitati alla cancellazione             *
+      *              *                                                 *
+      *              * - Giorgio                                       *
+      *              * - Giulia Scalabrin                              *
+      *              * - Luca Marcolongo                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Codice utente                               *
+      *                  *---------------------------------------------*
+           move      "IG"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
+           if        s-ute                =    "giorgio " or
+                     s-ute                =    "giulia  " or
+                     s-ute                =    "luca"
+                     go to pre-snx-del-999.
+      *                  *---------------------------------------------*
+      *                  * Avviso                                      *
+      *                  *---------------------------------------------*
+           perform   pre-vis-del-000      thru pre-vis-del-999        .
+      *                  *---------------------------------------------*
+      *                  * Flag di status in uscita                    *
+      *                  *---------------------------------------------*
+           move      "#"                  to   w-cnt-pre-snx-del      .
        pre-snx-del-999.
            exit.
 
@@ -14114,10 +14146,124 @@ ______*                     "Parzialmente seguita     "               .
       *    *-----------------------------------------------------------*
        pos-cnf-ann-000.
       *              *-------------------------------------------------*
+      *              * ELETTRA (Giorgio 10/07/26)                      *
+      *              *                                                 *
+      *              * Utenti abilitati alla cancellazione             *
+      *              *                                                 *
+      *              * - Giorgio                                       *
+      *              * - Giulia Scalabrin                              *
+      *              * - Luca Marcolongo                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Codice utente                               *
+      *                  *---------------------------------------------*
+           move      "IG"                 to   s-ope                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
+           if        s-ute                =    "giorgio " or
+                     s-ute                =    "giulia  " or
+                     s-ute                =    "luca"
+                     go to pos-cnf-ann-200.
+      *                  *---------------------------------------------*
+      *                  * Avviso                                      *
+      *                  *---------------------------------------------*
+           perform   pre-vis-del-000      thru pre-vis-del-999        .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     pos-cnf-ann-999.
+       pos-cnf-ann-200.
+      *              *-------------------------------------------------*
       *              * Delete movimento da files                       *
       *              *-------------------------------------------------*
            perform   del-mov-fil-000      thru del-mov-fil-999        .
        pos-cnf-ann-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Presa visione di utente non abilitato                     *
+      *    *-----------------------------------------------------------*
+       pre-vis-del-000.
+      *              *-------------------------------------------------*
+      *              * Box di segnalazione                             *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Salvataggio immagine video                  *
+      *                  *---------------------------------------------*
+           move      "SV"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Video in Off                                *
+      *                  *---------------------------------------------*
+           move      "OF"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Box                                         *
+      *                  *---------------------------------------------*
+           move      "BX"                 to   v-ope                  .
+           move      12                   to   v-lin                  .
+           move      04                   to   v-pos                  .
+           move      14                   to   v-lto                  .
+           move      77                   to   v-pto                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Messaggio nel box                           *
+      *                  *---------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      65                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      06                   to   v-pos                  .
+           move      "Funzione non abilitata! (Digitare 'S' per presa vi
+      -              "sione)"             to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *                  *---------------------------------------------*
+      *                  * Video in On                                 *
+      *                  *---------------------------------------------*
+           move      "ON"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       pre-vis-del-800.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione function key                *
+      *                  *---------------------------------------------*
+           move      spaces               to   v-key                  .
+      *                  *---------------------------------------------*
+      *                  * Accettazione per presa visione              *
+      *                  *---------------------------------------------*
+           move      "AC"                 to   v-ope                  .
+           move      "U"                  to   v-tip                  .
+           move      01                   to   v-car                  .
+           move      13                   to   v-lin                  .
+           move      74                   to   v-pos                  .
+           move      spaces               to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                        using  v                      .
+      *                      *-----------------------------------------*
+      *                      * Test su carattere accettato             *
+      *                      *-----------------------------------------*
+           if        v-alf                not  = "S" and
+                     v-alf                not  = "s"
+                     go to pre-vis-del-800.
+      *                  *---------------------------------------------*
+      *                  * Ripristino immagine video                   *
+      *                  *---------------------------------------------*
+           move      "RS"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       pre-vis-del-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     pre-vis-del-999.
+       pre-vis-del-999.
            exit.
 
       *    *===========================================================*

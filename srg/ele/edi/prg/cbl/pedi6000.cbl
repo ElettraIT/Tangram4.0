@@ -8,7 +8,7 @@
       *                                   Fase:    edi600              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 13/06/23    *
-      *                       Ultima revisione:    NdK del 07/05/24    *
+      *                       Ultima revisione:    NdK del 17/07/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       * ============================================================== *
@@ -529,6 +529,10 @@
       *        * [orc]                                                 *
       *        *-------------------------------------------------------*
            copy      "pgm/orc/fls/rec/rforc"                          .
+      *        *-------------------------------------------------------*
+      *        * [age]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/age/fls/rec/rfage"                          .
       *        *-------------------------------------------------------*
       *        * [cli]                                                 *
       *        *-------------------------------------------------------*
@@ -2853,6 +2857,16 @@
       *              *-------------------------------------------------*
            perform   cod-mne-dcc-opn-000  thru cod-mne-dcc-opn-999    .
       *              *-------------------------------------------------*
+      *              * [age]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/age/fls/ioc/obj/iofage"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-age                 .
+      *              *-------------------------------------------------*
       *              * [cli]                                           *
       *              *-------------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -2995,6 +3009,16 @@
       *              * merciale                                        *
       *              *-------------------------------------------------*
            perform   cod-mne-dcc-cls-000  thru cod-mne-dcc-cls-999    .
+      *              *-------------------------------------------------*
+      *              * [age]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/age/fls/ioc/obj/iofage"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-age                 .
       *              *-------------------------------------------------*
       *              * [cli]                                           *
       *              *-------------------------------------------------*
@@ -6207,13 +6231,13 @@ ______*    string    "elettramaga@gmail.com"
            move      zero                 to   rf-oct-pag-qaf         .
            move      zero                 to   rf-oct-pag-act         .
       *                  *---------------------------------------------*
-      *                  * Codice agente : a zero                      *
+      *                  * Codice agente                               *
       *                  *---------------------------------------------*
-           move      zero                 to   rf-oct-cod-age         .
+           move      rf-dcc-cod-age       to   rf-oct-cod-age         .
       *                  *---------------------------------------------*
-      *                  * Significativita' provvigioni: no            *
+      *                  * Significativita' provvigioni: si            *
       *                  *---------------------------------------------*
-           move      02                   to   rf-oct-fsp-doc         .
+           move      01                   to   rf-oct-fsp-doc         .
       *                  *---------------------------------------------*
       *                  * Provvigioni a forfait in testata            *
       *                  *---------------------------------------------*
@@ -6223,12 +6247,34 @@ ______*    string    "elettramaga@gmail.com"
       *                  *---------------------------------------------*
            move      01                   to   rf-oct-tip-vpa         .
       *                  *---------------------------------------------*
+      *                  * Normalizzazione record [age]                *
+      *                  *---------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/age/fls/ioc/obj/iofage"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-age                 .
+      *                  *---------------------------------------------*
+      *                  * Lettura record [age]                        *
+      *                  *---------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODAGE    "         to   f-key                  .
+           move      rf-dcc-cod-age       to   rf-age-cod-age         .
+           move      "pgm/age/fls/ioc/obj/iofage"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-age                 .
+      *                  *---------------------------------------------*
       *                  * Provvigioni agente : da [age]               *
       *                  *---------------------------------------------*
-           move      zero                 to   rf-oct-cpv-aaa         .
-           move      zero                 to   rf-oct-ppv-aaa (1)     .
-           move      zero                 to   rf-oct-ppv-aaa (2)     .
-           move      zero                 to   rf-oct-ppv-aaa (3)     .
+           move      rf-age-cat-pvg       to   rf-oct-cpv-aaa         .
+           move      rf-age-per-pvg (1)   to   rf-oct-ppv-aaa (1)     .
+           move      rf-age-per-pvg (2)   to   rf-oct-ppv-aaa (2)     .
+           move      rf-age-per-pvg (3)   to   rf-oct-ppv-aaa (3)     .
       *                  *---------------------------------------------*
       *                  * Campi non gestiti                           *
       *                  *---------------------------------------------*
@@ -6768,6 +6814,7 @@ ______*    string    "elettramaga@gmail.com"
       *                  *---------------------------------------------*
       *                  * Determinazione provvigioni                  *
       *                  *---------------------------------------------*
+           perform   det-ppv-rig-000      thru det-ppv-rig-999        .
       *                  *---------------------------------------------*
       *                  * Date di consegna : da [oct]                 *
       *                  *---------------------------------------------*
@@ -7744,6 +7791,95 @@ ______*    string    "elettramaga@gmail.com"
       *                      * tempo prelevato un numero progressivo   *
       *                      *-----------------------------------------*
        rip-orc-ndo-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione percentuali di provvigione in riga con e-  *
+      *    * ventuale aggiustamento flag di significativita' provvi-   *
+      *    * gioni in riga                                             *
+      *    *-----------------------------------------------------------*
+       det-ppv-rig-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione link-area                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Valori diretti da w-tes o w-rig             *
+      *                  *---------------------------------------------*
+           move      "PP"                 to   d-pvg-age-tip-ope      .
+           move      rf-oct-cod-age       to   d-pvg-age-cod-age      .
+           move      01                   to   d-pvg-age-tip-vpa      .
+           move      rf-oct-cpv-aaa       to   d-pvg-age-cpv-aaa      .
+           move      rf-oct-ppv-aaa (1)   to   d-pvg-age-ppv-aaa (1)  .
+           move      rf-oct-ppv-aaa (2)   to   d-pvg-age-ppv-aaa (2)  .
+           move      rf-oct-ppv-aaa (3)   to   d-pvg-age-ppv-aaa (3)  .
+           move      rf-ocr-tip-mag       to   d-pvg-age-tip-mag      .
+           move      rf-ocr-num-pro       to   d-pvg-age-num-mag      .
+           move      rf-oct-cod-lst       to   d-pvg-age-cod-lst      .
+      *                  *---------------------------------------------*
+      *                  * Categoria di provvigione associata al pro-  *
+      *                  * dotto                                       *
+      *                  *---------------------------------------------*
+           move      rf-dcp-cat-pvg       to   d-pvg-age-cpv-aap      .
+      *                  *---------------------------------------------*
+      *                  * Percentuali di provvigione associate al     *
+      *                  * prodotto                                    *
+      *                  *---------------------------------------------*
+           move      rf-dcp-per-pvg (1)   to   d-pvg-age-ppv-aap (1)  .
+           move      rf-dcp-per-pvg (2)   to   d-pvg-age-ppv-aap (2)  .
+           move      rf-dcp-per-pvg (3)   to   d-pvg-age-ppv-aap (3)  .
+           move      rf-oct-cod-arc       to   d-pvg-age-cod-cli      .
+      *                  *---------------------------------------------*
+      *                  * Percentuali di provvigione associate al     *
+      *                  * cliente                                     *
+      *                  *---------------------------------------------*
+           move      rf-dcc-cat-pvg       to   d-pvg-age-cpv-aac      .
+           move      rf-dcc-per-pvg (1)   to   d-pvg-age-ppv-aac (1)  .
+           move      rf-dcc-per-pvg (2)   to   d-pvg-age-ppv-aac (2)  .
+           move      rf-dcc-per-pvg (3)   to   d-pvg-age-ppv-aac (3)  .
+           move      rf-oct-sgl-vpf       to   d-pvg-age-sgl-vpp      .
+           move      rf-ocr-per-scr (1)   to   d-pvg-age-per-scr (1)  .
+           move      rf-ocr-per-scr (2)   to   d-pvg-age-per-scr (2)  .
+           move      rf-ocr-per-scr (3)   to   d-pvg-age-per-scr (3)  .
+           move      rf-ocr-per-scr (4)   to   d-pvg-age-per-scr (4)  .
+           move      rf-ocr-per-scr (5)   to   d-pvg-age-per-scr (5)  .
+           if        rf-oct-ocl-dat        not  = zero
+                     move  rf-oct-ocl-dat  to   d-pvg-age-dat-rif
+           else      move  rf-oct-dat-doc  to   d-pvg-age-dat-rif      .
+       det-ppv-rig-200.
+      *                  *---------------------------------------------*
+      *                  * Valori calcolati                            *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Prezzo lordo standard espresso nella    *
+      *                      * valuta per il prezzo                    *
+      *                      *-----------------------------------------*
+           move      rf-ocr-prz-lrs       to   d-pvg-age-prz-lrs      .
+      *                      *-----------------------------------------*
+      *                      * Prezzo netto standard espresso nella    *
+      *                      * valuta per il prezzo                    *
+      *                      *-----------------------------------------*
+           move      rf-ocr-prz-nts       to   d-pvg-age-prz-nts      .
+      *                      *-----------------------------------------*
+      *                      * Prezzo netto effettivo, gia' espresso   *
+      *                      * nella valuta per il prezzo              *
+      *                      *-----------------------------------------*
+           move      rf-ocr-prz-net       to   d-pvg-age-prz-net      .
+       det-ppv-rig-300.
+      *              *-------------------------------------------------*
+      *              * Richiamo del sottoprogramma                     *
+      *              *-------------------------------------------------*
+           perform   det-pvg-age-cll-000  thru det-pvg-age-cll-999    .
+       det-ppv-rig-400.
+      *              *-------------------------------------------------*
+      *              * Memorizzazione percentuali determinate          *
+      *              *-------------------------------------------------*
+           move      d-pvg-age-per-pvg (1)
+                                          to   rf-ocr-ppv-rig (1)     .
+           move      d-pvg-age-per-pvg (2)
+                                          to   rf-ocr-ppv-rig (2)     .
+           move      d-pvg-age-per-pvg (3)
+                                          to   rf-ocr-ppv-rig (3)     .
+       det-ppv-rig-999.
            exit.
 
       *    *===========================================================*

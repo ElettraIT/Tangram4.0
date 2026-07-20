@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [orc] Ultimo aggiornamento: 11/06/26                 *
+      *    * Area [orc] Ultimo aggiornamento: 19/07/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [ocf]                                        *
@@ -4911,6 +4911,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [oct]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/orc/fls/ioc/obj/iofoct"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oct                 .
+      *                  *---------------------------------------------*
       *                  * [ocx]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -4928,7 +4938,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-ocx-100.
+                     go to exe-exp-ocx-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -4940,6 +4950,56 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-ocx-999.
+       exe-exp-ocx-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [oct]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "IDEDOC    "         to   f-key                  .
+           move      rr-dat-min           to   rf-oct-dat-doc         .
+           move      zero                 to   rf-oct-cod-dpz         .
+           move      zero                 to   rf-oct-num-doc         .
+           move      spaces               to   rf-oct-tmo-orc         .
+           move      zero                 to   rf-oct-num-prt         .
+           move      "pgm/orc/fls/ioc/obj/iofoct"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oct                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ocx-800.
+       exe-exp-ocx-070.
+      *              *-------------------------------------------------*
+      *              * Next su [oct]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/orc/fls/ioc/obj/iofoct"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oct                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-ocx-800.
+       exe-exp-ocx-080.
+      *              *-------------------------------------------------*
+      *              * Max su [oct]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-ocx-100.
+           if        rf-oct-dat-doc       >    rr-dat-max
+                     go to exe-exp-ocx-800.
        exe-exp-ocx-100.
       *              *-------------------------------------------------*
       *              * Start su file [ocx]                             *
@@ -4947,7 +5007,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-ocx-num-prt         .
+           move      rf-oct-num-prt       to   rf-ocx-num-prt         .
            move      zero                 to   rf-ocx-num-prg         .
            move      zero                 to   rf-ocx-tip-rec         .
            move      "pgm/orc/fls/ioc/obj/iofocx"
@@ -4960,7 +5020,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ocx-800.
+                     go to exe-exp-ocx-780.
        exe-exp-ocx-200.
       *              *-------------------------------------------------*
       *              * Next su [ocx]                                   *
@@ -4976,11 +5036,16 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-ocx-800.
+                     go to exe-exp-ocx-780.
        exe-exp-ocx-300.
       *              *-------------------------------------------------*
       *              * Max su [ocx]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-ocx-num-prt       not  = rf-oct-num-prt
+                     go to exe-exp-ocx-780.
        exe-exp-ocx-400.
       *              *-------------------------------------------------*
       *              * Sel su [ocx]                                    *
@@ -5128,6 +5193,11 @@
       *              * Riciclo a Next su [ocx]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-ocx-200.
+       exe-exp-ocx-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [oct]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-ocx-070.
        exe-exp-ocx-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -5142,6 +5212,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [oct]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/orc/fls/ioc/obj/iofoct"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oct                 .
       *                  *---------------------------------------------*
       *                  * [ocx]                                       *
       *                  *---------------------------------------------*
