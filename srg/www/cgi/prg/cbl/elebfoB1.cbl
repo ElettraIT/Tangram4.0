@@ -8,7 +8,7 @@
       *                                   Fase:    elebfo              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 04/07/06    *
-      *                       Ultima revisione:    NdK del 05/05/25    *
+      *                       Ultima revisione:    NdK del 30/07/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -1866,6 +1866,12 @@
            move      "td_nb"              to   h-cla                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+      *              *-------------------------------------------------*
+      *              * Tasto di info                                   *
+      *              *-------------------------------------------------*
+           display   "<button type='button' id='inf' name='inf'>"     .
+           display   "<img src='../icons/info.png' width='70'>"       .
+           display   "</button>"                                      .
       *              *-------------------------------------------------*
       *              * Tasto di reset                                  *
       *              *-------------------------------------------------*
