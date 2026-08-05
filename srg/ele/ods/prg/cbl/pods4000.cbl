@@ -8,7 +8,7 @@
       *                                   Fase:    ods400              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 03/04/95    *
-      *                       Ultima revisione:    NdK del 02/06/25    *
+      *                       Ultima revisione:    NdK del 03/08/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -6634,9 +6634,11 @@ ______*              go to gen-fda-orc-270.
       *                      *-----------------------------------------*
       *                      * Se tipo prodotto diverso ma 'Merce' :   *
       *                      * ci si comporta come tipo riga 'PN'      *
+      *                      *                                         *
+      *                      * CONTROLLO SOPPRESSO (Giorgio 03/08/26)  *
       *                      *-----------------------------------------*
-           if        ky2-tip-pro          not  = 01
-                     go to ass-qta-dsp-500.
+______*    if        ky2-tip-pro          not  = 01
+______*              go to ass-qta-dsp-500.
        ass-qta-dsp-620.
       *                      *-----------------------------------------*
       *                      * Lettura record [ky3] per il prodotto in *

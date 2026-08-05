@@ -8,7 +8,7 @@
       *                                   Fase:    xpg700              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 27/07/26    *
+      *                       Ultima revisione:    NdK del 01/08/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -4111,81 +4111,81 @@ ______*    perform   exe-exp-ztv-000      thru exe-exp-ztv-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [dpm]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-dpm-000      thru exe-exp-dpm-999        .
+______*    perform   exe-exp-dpm-000      thru exe-exp-dpm-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [fmp] ex [zos]                 *
       *                  *---------------------------------------------*
-           perform   exe-exp-fmp-000      thru exe-exp-fmp-999        .
+______*    perform   exe-exp-fmp-000      thru exe-exp-fmp-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zm1]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zm1-000      thru exe-exp-zm1-999        .
+______*    perform   exe-exp-zm1-000      thru exe-exp-zm1-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zm2]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zm2-000      thru exe-exp-zm2-999        .
+______*    perform   exe-exp-zm2-000      thru exe-exp-zm2-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zm3]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zm3-000      thru exe-exp-zm3-999        .
+______*    perform   exe-exp-zm3-000      thru exe-exp-zm3-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zms]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zms-000      thru exe-exp-zms-999        .
+______*    perform   exe-exp-zms-000      thru exe-exp-zms-999        .
       *              *=================================================*
       *              * Esportazioni per [dps]                          *
       *              *=================================================*
       *                  *---------------------------------------------*
       *                  * Esportazione [dps]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-dps-000      thru exe-exp-dps-999        .
+______*    perform   exe-exp-dps-000      thru exe-exp-dps-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [fsl] ex [zos]                 *
       *                  *---------------------------------------------*
-           perform   exe-exp-fsl-000      thru exe-exp-fsl-999        .
+______*    perform   exe-exp-fsl-000      thru exe-exp-fsl-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zs1]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zs1-000      thru exe-exp-zs1-999        .
+______*    perform   exe-exp-zs1-000      thru exe-exp-zs1-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zs2]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zs2-000      thru exe-exp-zs2-999        .
+______*    perform   exe-exp-zs2-000      thru exe-exp-zs2-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zs3]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zs3-000      thru exe-exp-zs3-999        .
+______*    perform   exe-exp-zs3-000      thru exe-exp-zs3-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zss]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zss-000      thru exe-exp-zss-999        .
+______*    perform   exe-exp-zss-000      thru exe-exp-zss-999        .
       *              *=================================================*
       *              * Esportazioni per [mtv]                          *
       *              *=================================================*
       *                  *---------------------------------------------*
       *                  * Esportazione [mtv]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-mtv-000      thru exe-exp-mtv-999        .
+______*    perform   exe-exp-mtv-000      thru exe-exp-mtv-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [fmv] ex [zos]                 *
       *                  *---------------------------------------------*
-           perform   exe-exp-fmv-000      thru exe-exp-fmv-999        .
+______*    perform   exe-exp-fmv-000      thru exe-exp-fmv-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zv1]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zv1-000      thru exe-exp-zv1-999        .
+______*    perform   exe-exp-zv1-000      thru exe-exp-zv1-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zv2]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zv2-000      thru exe-exp-zv2-999        .
+______*    perform   exe-exp-zv2-000      thru exe-exp-zv2-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zv3]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zv3-000      thru exe-exp-zv3-999        .
+______*    perform   exe-exp-zv3-000      thru exe-exp-zv3-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [zvs]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-zvs-000      thru exe-exp-zvs-999        .
+______*    perform   exe-exp-zvs-000      thru exe-exp-zvs-999        .
       *              *=================================================*
       *              * Esportazioni per [orc]                          *
       *              *=================================================*
@@ -4601,49 +4601,49 @@ ______*    perform   exe-exp-zmu-000      thru exe-exp-zmu-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [cdp]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-cdp-000      thru exe-exp-cdp-999        .
+______*    perform   exe-exp-cdp-000      thru exe-exp-cdp-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [ycp]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-ycp-000      thru exe-exp-ycp-999        .
+______*    perform   exe-exp-ycp-000      thru exe-exp-ycp-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [yrc]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-yrc-000      thru exe-exp-yrc-999        .
+______*    perform   exe-exp-yrc-000      thru exe-exp-yrc-999        .
       *              *=================================================*
       *              * Esportazioni per [vdp]                          *
       *              *=================================================*
       *                  *---------------------------------------------*
       *                  * Esportazione [vpr]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-vpr-000      thru exe-exp-vpr-999        .
+______*    perform   exe-exp-vpr-000      thru exe-exp-vpr-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [vpt]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-vpt-000      thru exe-exp-vpt-999        .
+______*    perform   exe-exp-vpt-000      thru exe-exp-vpt-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [vpt] scaglioni [vps]          *
       *                  *---------------------------------------------*
-           perform   exe-exp-vps-000      thru exe-exp-vps-999        .
+______*    perform   exe-exp-vps-000      thru exe-exp-vps-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [yvp]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-yvp-000      thru exe-exp-yvp-999        .
+______*    perform   exe-exp-yvp-000      thru exe-exp-yvp-999        .
       *              *=================================================*
       *              * Esportazioni per [dtp]                          *
       *              *=================================================*
       *                  *---------------------------------------------*
       *                  * Esportazione [lgr]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-lgr-000      thru exe-exp-lgr-999        .
+______*    perform   exe-exp-lgr-000      thru exe-exp-lgr-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [lgt]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-lgt-000      thru exe-exp-lgt-999        .
+______*    perform   exe-exp-lgt-000      thru exe-exp-lgt-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [lgv]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-lgv-000      thru exe-exp-lgv-999        .
+______*    perform   exe-exp-lgv-000      thru exe-exp-lgv-999        .
       *              *=================================================*
       *              * Esportazioni per [sst]                          *
       *              *=================================================*
