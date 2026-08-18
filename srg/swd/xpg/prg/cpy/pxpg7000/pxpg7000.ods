@@ -1,7 +1,5 @@
       *    *===========================================================*
-      *    * Area [ods] Ultimo aggiornamento: 12/06/26                 *
-      *    *                                                           *
-      *    * ___ MEMO : osx come osr                                   *
+      *    * Area [ods] Ultimo aggiornamento: 15/08/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [osk]                                        *
@@ -4508,6 +4506,16 @@
       *              * Open files                                      *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * [ost]                                       *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
+      *                  *---------------------------------------------*
       *                  * [osx]                                       *
       *                  *---------------------------------------------*
            move      "OP"                 to   f-ope                  .
@@ -4525,7 +4533,7 @@
       *                  * Test se errori                              *
       *                  *---------------------------------------------*
            if        g-sts                =    e-not-err
-                     go to exe-exp-osx-100.
+                     go to exe-exp-osx-050.
       *                  *---------------------------------------------*
       *                  * Se errori                                   *
       *                  *---------------------------------------------*
@@ -4537,6 +4545,54 @@
       *                      * Uscita                                  *
       *                      *-----------------------------------------*
            go to     exe-exp-osx-999.
+       exe-exp-osx-050.
+      *              *-------------------------------------------------*
+      *              * Start su file [ost]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "DATSYS    "         to   f-key                  .
+           move      rr-dat-min           to   rf-ost-ide-dat         .
+           move      zero                 to   rf-ost-dat-doc         .
+           move      zero                 to   rf-ost-num-prt         .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a close file              *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-osx-800.
+       exe-exp-osx-070.
+      *              *-------------------------------------------------*
+      *              * Next su [ost]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a close file                  *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to exe-exp-osx-800.
+       exe-exp-osx-080.
+      *              *-------------------------------------------------*
+      *              * Max su [ost]                                    *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su data massima                        *
+      *                  *---------------------------------------------*
+           if        rr-dat-max           =    zero
+                     go to exe-exp-osx-100.
+           if        rf-ost-ide-dat       >    rr-dat-max
+                     go to exe-exp-osx-800.
        exe-exp-osx-100.
       *              *-------------------------------------------------*
       *              * Start su file [osx]                             *
@@ -4544,7 +4600,7 @@
            move      "SK"                 to   f-ope                  .
            move      "NL"                 to   f-cfr                  .
            move      "NUMPRT    "         to   f-key                  .
-           move      zero                 to   rf-osx-num-prt         .
+           move      rf-ost-num-prt       to   rf-osx-num-prt         .
            move      zero                 to   rf-osx-num-prg         .
            move      zero                 to   rf-osx-tip-rec         .
            move      "pgm/ods/fls/ioc/obj/iofosx"
@@ -4557,7 +4613,7 @@
       *                  * Se Start errata : a close file              *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-osx-800.
+                     go to exe-exp-osx-780.
        exe-exp-osx-200.
       *              *-------------------------------------------------*
       *              * Next su [osx]                                   *
@@ -4573,11 +4629,16 @@
       *                  * Se 'at end' : a close file                  *
       *                  *---------------------------------------------*
            if        f-sts                not  = e-not-err
-                     go to exe-exp-osx-800.
+                     go to exe-exp-osx-780.
        exe-exp-osx-300.
       *              *-------------------------------------------------*
       *              * Max su [osx]                                    *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Selezione su protocollo                     *
+      *                  *---------------------------------------------*
+           if        rf-osx-num-prt       not  = rf-ost-num-prt
+                     go to exe-exp-osx-780.
        exe-exp-osx-400.
       *              *-------------------------------------------------*
       *              * Sel su [osx]                                    *
@@ -4720,6 +4781,11 @@
       *              * Riciclo a Next su [osx]                         *
       *              *-------------------------------------------------*
            go to     exe-exp-osx-200.
+       exe-exp-osx-780.
+      *              *-------------------------------------------------*
+      *              * Riciclo a Next su [ost]                         *
+      *              *-------------------------------------------------*
+           go to     exe-exp-osx-070.
        exe-exp-osx-800.
       *              *-------------------------------------------------*
       *              * Close files                                     *
@@ -4734,6 +4800,16 @@
       *                  * Cancellazione modulo utilizzato             *
       *                  *---------------------------------------------*
            cancel    "swd/mod/prg/obj/mcvout"                         .
+      *                  *---------------------------------------------*
+      *                  * [ost]                                       *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
       *                  *---------------------------------------------*
       *                  * [osx]                                       *
       *                  *---------------------------------------------*

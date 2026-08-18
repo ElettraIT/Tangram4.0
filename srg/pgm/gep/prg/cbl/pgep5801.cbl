@@ -8,7 +8,7 @@
       *                                   Fase:    gep580              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 09/07/96    *
-      *                       Ultima revisione:    NdK del 07/06/22    *
+      *                       Ultima revisione:    NdK del 14/08/22    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -964,6 +964,10 @@
       *            * Totali relativi alle scansioni                    *
       *            *---------------------------------------------------*
                10  w-stp-tot-tot-rls occurs 4.
+      *                *-----------------------------------------------*
+      *                * Totale documenti della selezione              *
+      *                *-----------------------------------------------*
+                   15  w-stp-tot-tot-doc  pic  9(07)                  .
       *                *-----------------------------------------------*
       *                * Cumulo precedenti                             *
       *                *-----------------------------------------------*
@@ -4237,6 +4241,8 @@
            add       1                    to   w-stp-tot-tot-ctr      .
            if        w-stp-tot-tot-ctr    >    4
                      go to prn-ini-cic-300.
+           move      zero                 to   w-stp-tot-tot-doc
+                                              (w-stp-tot-tot-ctr)     .
            move      zero                 to   w-stp-tot-tot-pre
                                               (w-stp-tot-tot-ctr)     .
            move      zero                 to   w-stp-tot-tot-mic
@@ -4647,6 +4653,21 @@
                                           to   w-stp-imp-vlb-val      .
            move      spaces               to   w-stp-imp-vlb-rmp      .
            perform   stp-imp-vlb-000      thru stp-imp-vlb-999        .
+      *                  *---------------------------------------------*
+      *                  * Note: numero documenti rilevati             *
+      *                  *---------------------------------------------*
+           move      "PF"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      07                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "B"                  to   p-edm                  .
+           move      p-lnr                to   p-lin                  .
+           move      211                  to   p-pos                  .
+           move      w-stp-tot-tot-doc (1)
+                                          to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
        prn-fin-cic-400.
       *              *-------------------------------------------------*
       *              * Subtotali generali - Ordini spedizione inevasi  *
@@ -4774,6 +4795,21 @@
                                           to   w-stp-imp-vlb-val      .
            move      spaces               to   w-stp-imp-vlb-rmp      .
            perform   stp-imp-vlb-000      thru stp-imp-vlb-999        .
+      *                  *---------------------------------------------*
+      *                  * Note: numero documenti rilevati             *
+      *                  *---------------------------------------------*
+           move      "PF"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      07                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "B"                  to   p-edm                  .
+           move      p-lnr                to   p-lin                  .
+           move      211                  to   p-pos                  .
+           move      w-stp-tot-tot-doc (2)
+                                          to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
        prn-fin-cic-500.
       *              *-------------------------------------------------*
       *              * Subtotali generali - Bolle da fatturare         *
@@ -4901,6 +4937,21 @@
                                           to   w-stp-imp-vlb-val      .
            move      spaces               to   w-stp-imp-vlb-rmp      .
            perform   stp-imp-vlb-000      thru stp-imp-vlb-999        .
+      *                  *---------------------------------------------*
+      *                  * Note: numero documenti rilevati             *
+      *                  *---------------------------------------------*
+           move      "PF"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      07                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "B"                  to   p-edm                  .
+           move      p-lnr                to   p-lin                  .
+           move      211                  to   p-pos                  .
+           move      w-stp-tot-tot-doc (3)
+                                          to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
        prn-fin-cic-600.
       *              *-------------------------------------------------*
       *              * Subtotali generali - Scadenze in portafoglio    *
@@ -5028,6 +5079,21 @@
                                           to   w-stp-imp-vlb-val      .
            move      spaces               to   w-stp-imp-vlb-rmp      .
            perform   stp-imp-vlb-000      thru stp-imp-vlb-999        .
+      *                  *---------------------------------------------*
+      *                  * Note: numero documenti rilevati             *
+      *                  *---------------------------------------------*
+           move      "PF"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      07                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "B"                  to   p-edm                  .
+           move      p-lnr                to   p-lin                  .
+           move      211                  to   p-pos                  .
+           move      w-stp-tot-tot-doc (4)
+                                          to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
        prn-fin-cic-900.
       *              *-------------------------------------------------*
       *              * Interlinea                                      *
@@ -7691,6 +7757,11 @@
            go to     prn-liv-det-ods-620.
        prn-liv-det-ods-800.
       *              *-------------------------------------------------*
+      *              * Incremento numero elementi in tabella ordini di *
+      *              * spedizione inevasi                              *
+      *              *-------------------------------------------------*
+           add       1                    to   w-stp-tot-tot-doc (2)  .
+      *              *-------------------------------------------------*
       *              * Cumulo totali generali                          *
       *              *-------------------------------------------------*
            add       w-stp-ods-cum-pre
@@ -8032,6 +8103,11 @@
            go to     prn-liv-det-bol-620.
        prn-liv-det-bol-800.
       *              *-------------------------------------------------*
+      *              * Incremento numero elementi in tabella bolle da  *
+      *              * fatturare                                       *
+      *              *-------------------------------------------------*
+           add       1                    to   w-stp-tot-tot-doc (3)  .
+      *              *-------------------------------------------------*
       *              * Cumulo totali generali                          *
       *              *-------------------------------------------------*
            add       w-stp-bol-cum-pre
@@ -8316,6 +8392,11 @@ ______*              go to prn-liv-det-gep-200.
            else      add  rf-sdb-imp-sdb  to   w-stp-gep-cum-pre
                                               (w-stp-gep-wrk-ele)     .
        prn-liv-det-gep-800.
+      *              *-------------------------------------------------*
+      *              * Incremento numero elementi in tabella scadenze  *
+      *              * clienti                                         *
+      *              *-------------------------------------------------*
+           add       1                    to   w-stp-tot-tot-doc (4)  .
       *              *-------------------------------------------------*
       *              * Cumulo totali generali                          *
       *              *-------------------------------------------------*
@@ -13555,6 +13636,11 @@ ______*              go to prn-liv-det-gep-200.
                                               (w-stp-orc-wrk-ele)     .
            go to     trt-fin-trc-orc-200.
        trt-fin-trc-orc-800.
+      *              *-------------------------------------------------*
+      *              * Incremento numero elementi in tabella ordini    *
+      *              * inevasi                                         *
+      *              *-------------------------------------------------*
+           add       1                    to   w-stp-tot-tot-doc (1)  .
       *              *-------------------------------------------------*
       *              * Cumulo totali generali                          *
       *              *-------------------------------------------------*
