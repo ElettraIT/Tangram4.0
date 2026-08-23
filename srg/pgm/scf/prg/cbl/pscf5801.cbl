@@ -8,7 +8,7 @@
       *                                   Fase:    scf580              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 09/07/96    *
-      *                       Ultima revisione:    NdK del 11/08/22    *
+      *                       Ultima revisione:    NdK del 18/08/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -4223,7 +4223,7 @@
       *              * Bufferizzazione estremi fornitore               *
       *              *-------------------------------------------------*
            move      w-rot-l01-cod-fnt    to   w-stp-lvf-fnt-cod      .
-           move      rf-fnt-rag-soc       to   w-stp-lvf-fnt-rag      .
+           move      srt-rag-fnt          to   w-stp-lvf-fnt-rag      .
       *              *-------------------------------------------------*
       *              * Normalizzazioni preliminari                     *
       *              *-------------------------------------------------*

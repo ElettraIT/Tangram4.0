@@ -8,7 +8,7 @@
       *                                   Fase:    xpg740              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 24/04/26    *
+      *                       Ultima revisione:    NdK del 23/08/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -2479,7 +2479,7 @@ ______*             "azi zos Tabella filtri di ordinamento selezione ".
       *                  *---------------------------------------------*
       *                  * Esportazione [cmd]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-cmd-000      thru exe-exp-cmd-999        .
+______*    perform   exe-exp-cmd-000      thru exe-exp-cmd-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [uac] da [ute]                 *
       *                  *---------------------------------------------*
