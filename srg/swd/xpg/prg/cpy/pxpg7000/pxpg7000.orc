@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [orc] Ultimo aggiornamento: 03/08/26                 *
+      *    * Area [orc] Ultimo aggiornamento: 01/09/26                 *
       *    *===========================================================*
       
       *    *===========================================================*
@@ -3012,8 +3012,8 @@
            move      "N "                 to   w-scr-str-tip          .
       *
            if        rf-ocr-flg-nbx (1)   not  = spaces
-                     move "1"             to   w-scr-str-ele
-           else      move "0"             to   w-scr-str-ele          .
+                     move "0"             to   w-scr-str-ele
+           else      move "1"             to   w-scr-str-ele          .
       *
            move      01                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .

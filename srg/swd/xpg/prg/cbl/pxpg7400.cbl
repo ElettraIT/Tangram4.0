@@ -8,10 +8,14 @@
       *                                   Fase:    xpg740              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 23/08/26    *
+      *                       Ultima revisione:    NdK del 04/09/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
-      *================================================================*
+      * ============================================================== *
+      *                                                                *
+      *           !!! [cmd] e [tbl] attualmente inibiti !!!            *
+      *                                                                *
+      * ============================================================== *
       *                                                                *
       * Descrizione pgm:   Export dati di sistema per le aziende       *
       *                                                                *
