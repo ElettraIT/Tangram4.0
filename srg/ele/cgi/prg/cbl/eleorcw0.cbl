@@ -8,7 +8,7 @@
       *                                   Fase:    eleinv              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/05/26    *
-      *                       Ultima revisione:    NdK del 31/08/26    *
+      *                       Ultima revisione:    NdK del 08/09/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -422,6 +422,44 @@
       *    * Work-area per determinazione prezzo netto                 *
       *    *-----------------------------------------------------------*
            copy      "swd/std/prg/cpy/wcalprz0.cpw"                   .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Ctl                               *
+      *    *-----------------------------------------------------------*
+       01  w-ctl.
+      *        *-------------------------------------------------------*
+      *        * Work per controllo riferimenti cliente                *
+      *        *-------------------------------------------------------*
+           05  w-ctl-rif-arc.
+      *            *---------------------------------------------------*
+      *            * Flag di esito controllo                           *
+      *            *---------------------------------------------------*
+               10  w-ctl-rif-arc-flg      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Codice dipendenza                                 *
+      *            *---------------------------------------------------*
+               10  w-ctl-rif-arc-dpz      pic  9(02)                  .
+      *            *---------------------------------------------------*
+      *            * Codice archivio                                   *
+      *            *---------------------------------------------------*
+               10  w-ctl-rif-arc-cli      pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Numero documento                                  *
+      *            *---------------------------------------------------*
+               10  w-ctl-rif-arc-num      pic  x(10)                  .
+      *            *---------------------------------------------------*
+      *            * Data documento                                    *
+      *            *---------------------------------------------------*
+               10  w-ctl-rif-arc-dat      pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Date di ricerca                                   *
+      *            *---------------------------------------------------*
+               10  w-ctl-rif-arc-dmi      pic  9(07)                  .
+               10  w-ctl-rif-arc-dma      pic  9(07)                  .
+      *            *---------------------------------------------------*
+      *            * Contatore elementi                                *
+      *            *---------------------------------------------------*
+               10  w-ctl-rif-arc-ctr      pic  9(05)                  .
 
       *    *===========================================================*
       *    * Work area per la definizione dei record del file txt      *
@@ -1194,6 +1232,36 @@
       *                  * Riferimenti ordine                          *
       *                  *---------------------------------------------*
            move      w-inp-num-ord        to   w-gen-buf-rif          .
+      *                  *---------------------------------------------*
+      *                  * Controllo se il numero ordine cliente e'    *
+      *                  * gia' stato inserito nell'anno in corso      *
+      *                  *---------------------------------------------*
+           move      01                   to   w-ctl-rif-arc-dpz      .
+           move      w-det-cod-cli-cod    to   w-ctl-rif-arc-cli      .
+           move      w-gen-buf-dat        to   w-ctl-rif-arc-dat      .
+           move      w-inp-num-ord        to   w-ctl-rif-arc-num      .
+           perform   ctl-rif-arc-000      thru ctl-rif-arc-999        .
+      *                  *---------------------------------------------*
+      *                  * Test su esito controllo                     *
+      *                  *---------------------------------------------*
+      *                      *-----------------------------------------*
+      *                      * Test                                    *
+      *                      *-----------------------------------------*
+           if        w-ctl-rif-arc-flg    =    spaces
+                     go to exe-cph-440.
+      *                  *---------------------------------------------*
+      *                  * Messaggio di errore                         *
+      *                  *---------------------------------------------*
+           move      "false"              to   w-exe-jsn-suc          .
+           move      spaces               to   w-exe-jsn-leo          .
+           move      "CUSTOMER ERROR"     to   w-exe-jsn-err          .
+           move      "Ordine gia' inserito"
+                                          to   w-exe-jsn-msg          .
+      *                  *---------------------------------------------*
+      *                  * Ad uscita                                   *
+      *                  *---------------------------------------------*
+           go to     exe-cph-900.
+       exe-cph-440.
       *                  *---------------------------------------------*
       *                  * Determinazione protocollo ordine cliente    *
       *                  *---------------------------------------------*
@@ -3871,6 +3939,137 @@
        att-orc-ndo-999.
            exit.
            
+      *    *===========================================================*
+      *    * Routine di controllo riferimenti ordine cliente           *
+      *    *-----------------------------------------------------------*
+       ctl-rif-arc-000.
+      *              *-------------------------------------------------*
+      *              * Normalizzazione flag di esito                   *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-ctl-rif-arc-flg      .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione contatore                       *
+      *              *-------------------------------------------------*
+           move      zero                 to   w-ctl-rif-arc-ctr      .
+      *              *-------------------------------------------------*
+      *              * Determinazione date                             *
+      *              *-------------------------------------------------*
+           move      w-ctl-rif-arc-dat    to   w-ctl-rif-arc-dmi      .
+           move      w-ctl-rif-arc-dmi    to   s-dat                  .
+           move      01                   to   s-mes                  .
+           move      01                   to   s-gio                  .
+           move      s-dat                to   w-ctl-rif-arc-dmi      .
+      *
+           move      w-ctl-rif-arc-dat    to   w-ctl-rif-arc-dma      .
+       ctl-rif-arc-050.
+      *              *-------------------------------------------------*
+      *              * Test preliminari                                *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su codice cliente                      *
+      *                  *---------------------------------------------*
+           if        w-ctl-rif-arc-cli    =    zero
+                     go to ctl-rif-arc-999.
+      *                  *---------------------------------------------*
+      *                  * Test su numero ordine cliente               *
+      *                  *---------------------------------------------*
+           if        w-ctl-rif-arc-num    =    spaces
+                     go to ctl-rif-arc-999.
+       ctl-rif-arc-100.
+      *              *-------------------------------------------------*
+      *              * Start su file [oct]                             *
+      *              *-------------------------------------------------*
+           move      "SK"                 to   f-ope                  .
+           move      "NL"                 to   f-cfr                  .
+           move      "DPZARCDAT "         to   f-key                  .
+           move      w-ctl-rif-arc-dpz    to   rf-oct-cod-dpz         .
+           move      "C"                  to   rf-oct-tip-arc         .
+           move      w-ctl-rif-arc-cli    to   rf-oct-cod-arc         .
+           move      w-ctl-rif-arc-dmi    to   rf-oct-dat-doc         .
+           move      zero                 to   rf-oct-num-doc         .
+           move      zero                 to   rf-oct-num-prt         .
+           move      "pgm/orc/fls/ioc/obj/iofoct"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oct                 .
+      *                  *---------------------------------------------*
+      *                  * Se Start errata : a test finale             *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to ctl-rif-arc-800.
+       ctl-rif-arc-200.
+      *              *-------------------------------------------------*
+      *              * Next su [oct]                                   *
+      *              *-------------------------------------------------*
+           move      "RN"                 to   f-ope                  .
+           move      "pgm/orc/fls/ioc/obj/iofoct"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-oct                 .
+      *                  *---------------------------------------------*
+      *                  * Se 'at end' : a test finale                 *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to ctl-rif-arc-800.
+       ctl-rif-arc-300.
+      *              *-------------------------------------------------*
+      *              * Max su [oct], se non superato : a test finale   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test su codice dipendenza                   *
+      *                  *---------------------------------------------*
+           if        rf-oct-cod-dpz       not  = w-ctl-rif-arc-dpz
+                     go to ctl-rif-arc-800.
+      *                  *---------------------------------------------*
+      *                  * Test su tipo archivio                       *
+      *                  *---------------------------------------------*
+           if        rf-oct-tip-arc       not  = "C"
+                     go to ctl-rif-arc-800.
+      *                  *---------------------------------------------*
+      *                  * Test su tipo archivio                       *
+      *                  *---------------------------------------------*
+           if        rf-oct-cod-arc       not  = w-ctl-rif-arc-cli
+                     go to ctl-rif-arc-800.
+      *                  *---------------------------------------------*
+      *                  * Test su date                                *
+      *                  *---------------------------------------------*
+           if        rf-oct-dat-doc       >    w-ctl-rif-arc-dma
+                     go to ctl-rif-arc-800.
+       ctl-rif-arc-400.
+      *              *-------------------------------------------------*
+      *              * Selezione su riferimenti ordine cliente         *
+      *              *-------------------------------------------------*
+           if        rf-oct-ocl-num       not  = w-ctl-rif-arc-num
+                     go to ctl-rif-arc-200.
+       ctl-rif-arc-500.
+      *              *-------------------------------------------------*
+      *              * Incremento contatore                            *
+      *              *-------------------------------------------------*
+           add       1                    to   w-ctl-rif-arc-ctr      .
+       ctl-rif-arc-700.
+      *              *-------------------------------------------------*
+      *              * Riciclo a record [oct] successivo               *
+      *              *-------------------------------------------------*
+           go to     ctl-rif-arc-200.
+       ctl-rif-arc-800.
+      *              *-------------------------------------------------*
+      *              * Determinazione finale                           *
+      *              *-------------------------------------------------*
+           if        w-ctl-rif-arc-ctr    =    zero
+                     go to ctl-rif-arc-999
+           else      go to ctl-rif-arc-900.
+       ctl-rif-arc-900.
+      *              *-------------------------------------------------*
+      *              * Uscita per incongruenza                         *
+      *              *-------------------------------------------------*
+           move      "#"                  to   w-ctl-rif-arc-flg      .
+       ctl-rif-arc-999.
+           exit.
+
       *    *===========================================================*
       *    * Routine lettura archivio [dcp] e [pdx]                    *
       *    *-----------------------------------------------------------*

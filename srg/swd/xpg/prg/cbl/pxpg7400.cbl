@@ -8,12 +8,12 @@
       *                                   Fase:    xpg740              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/09/02    *
-      *                       Ultima revisione:    NdK del 04/09/26    *
+      *                       Ultima revisione:    NdK del 05/09/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       * ============================================================== *
       *                                                                *
-      *           !!! [cmd] e [tbl] attualmente inibiti !!!            *
+      *        !!! [cmd] [tbl] [upr] attualmente inibiti !!!           *
       *                                                                *
       * ============================================================== *
       *                                                                *
@@ -21,7 +21,7 @@
       *                                                                *
       *                   (/abd/ftx/xpg/xxx.txt)                       *
       *                                                                *
-      *                   (Password codificate MD5)                    *
+      *                   (Password codificate MD5)  NO, IN CHIARO!    *
       *                                                                *
       *                    ------------------------------------------- *
       *                                                                *
@@ -2523,7 +2523,7 @@ ______*    perform   exe-exp-tbl-000      thru exe-exp-tbl-999        .
       *                  *---------------------------------------------*
       *                  * Esportazione [upr]                          *
       *                  *---------------------------------------------*
-           perform   exe-exp-upr-000      thru exe-exp-upr-999        .
+______*    perform   exe-exp-upr-000      thru exe-exp-upr-999        .
        exe-exp-fil-600.
       *              *-------------------------------------------------*
       *              * Eventuali forzature se esecuzione batch         *
@@ -3990,19 +3990,24 @@ ______*    perform   exe-exp-tbl-000      thru exe-exp-tbl-999        .
       *                      *-----------------------------------------*
       *                      * Determinazione hash MD5                 *
       *                      *-----------------------------------------*
-           perform   det-md5-pwd-000      thru det-md5-pwd-999        .
+______*    perform   det-md5-pwd-000      thru det-md5-pwd-999        .
       *                      *-----------------------------------------*
       *                      * Bufferizzazione                         *
       *                      *-----------------------------------------*
+______*    move      "A "                 to   w-scr-str-tip          .
+      *
+______*    if        w-det-md5-pwd-md5    =    spaces
+______*              move  w-ute-pwd-ute  to   w-scr-str-ele
+______*              move  08             to   w-scr-lun-ele
+______*    else      move  w-det-md5-pwd-md5
+______*                                   to   w-scr-str-ele
+______*              move  32             to   w-scr-lun-ele          .
+      *                      *-----------------------------------------*
+      *                      * IN CHIARO                               *
+      *                      *-----------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
-      *
-           if        w-det-md5-pwd-md5    =    spaces
-                     move  w-ute-pwd-ute  to   w-scr-str-ele
-                     move  08             to   w-scr-lun-ele
-           else      move  w-det-md5-pwd-md5
-                                          to   w-scr-str-ele
-                     move  32             to   w-scr-lun-ele          .
-      *
+           move      w-ute-pwd-ute        to   w-scr-str-ele          .
+           move      08                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
