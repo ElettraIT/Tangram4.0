@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [dcf] Ultimo aggiornamento: 15/06/26                 *
+      *    * Area [dcf] Ultimo aggiornamento: 25/07/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [aaf]                                        *
@@ -2175,6 +2175,32 @@
       *              * Pulizia preliminare record sequenziale          *
       *              *-------------------------------------------------*
            move      spaces               to   g-rec                  .
+       exe-exp-dcf-580.
+      *              *-------------------------------------------------*
+      *              * Lettura ausiliaria [fnt]                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione [fnt]                       *
+      *                  *---------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
+      *                  *---------------------------------------------*
+      *                  * Lettura [fnt]                               *
+      *                  *---------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODFNT    "         to   f-key                  .
+           move      rf-dcf-cod-fnt       to   rf-fnt-cod-fnt         .
+           move      "pgm/cge/fls/ioc/obj/ioffnt"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-fnt                 .
        exe-exp-dcf-600.
       *              *-------------------------------------------------*
       *              * Composizione record in output                   *
@@ -2204,6 +2230,18 @@
       *                  * S-e-p-a-r-a-t-o-r-i                         *
       *                  *---------------------------------------------*
            move      "NA"                 to   w-scr-str-tip          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * Mnemonico (da 'fnt')                        *
+      *                  *---------------------------------------------*
+           move      "A "                 to   w-scr-str-tip          .
+           move      rf-fnt-cod-mne       to   w-scr-str-ele          .
+           move      10                   to   w-scr-lun-ele          .
+           perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
+      *                  *---------------------------------------------*
+      *                  * S-e-p-a-r-a-t-o-r-i                         *
+      *                  *---------------------------------------------*
+           move      "AA"                 to   w-scr-str-tip          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Ragione sociale                             *
@@ -2392,7 +2430,7 @@
            move      05                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *=============================================*
-      *                  * CAMPI PROVENIENTI DA 'cli'                  *
+      *                  * CAMPI PROVENIENTI DA 'fnt'                  *
       *                  *---------------------------------------------*
       *                  *---------------------------------------------*
       *                  * S-e-p-a-r-a-t-o-r-i                         *
@@ -2408,7 +2446,7 @@
            move      zero                 to   v-dec                  .
            move      spaces               to   v-sgn                  .
            move      "9"                  to   v-edm                  .
-           move      rf-cli-cod-iva       to   v-num                  .
+           move      rf-fnt-cod-iva       to   v-num                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *
@@ -2430,7 +2468,7 @@
            move      zero                 to   v-dec                  .
            move      spaces               to   v-sgn                  .
            move      "9"                  to   v-edm                  .
-           move      rf-cli-prt-iva       to   v-num                  .
+           move      rf-fnt-prt-iva       to   v-num                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *
@@ -2447,7 +2485,7 @@
       *                  * Codice fiscale                              *
       *                  *---------------------------------------------*
            move      "A "                 to   w-scr-str-tip          .
-           move      rf-cli-cod-fis       to   w-scr-str-ele          .
+           move      rf-fnt-cod-fis       to   w-scr-str-ele          .
            move      16                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
@@ -2464,7 +2502,7 @@
            move      zero                 to   v-dec                  .
            move      spaces               to   v-sgn                  .
            move      "9"                  to   v-edm                  .
-           move      rf-cli-cod-cge       to   v-num                  .
+           move      rf-fnt-cod-cge       to   v-num                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *
@@ -2482,14 +2520,14 @@
       *                  *---------------------------------------------*
            move      "N "                 to   w-scr-str-tip          .
       *
-           if        rf-cli-snx-a13       =    "S"
+           if        rf-fnt-snx-a13       =    "S"
                      move  "1"            to   w-scr-str-ele
            else      move  "0"            to   w-scr-str-ele          .
       *
            move      01                   to   w-scr-lun-ele          .
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
-      *                  * CAMPI PROVENIENTI DA 'cli' - fine           *
+      *                  * CAMPI PROVENIENTI DA 'fnt' - fine           *
       *                  *=============================================*
       *                  *---------------------------------------------*
       *                  * Ragione sociale invio documento - parte 1   *
