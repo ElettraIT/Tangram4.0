@@ -8,7 +8,7 @@
       *                                   Fase:    fat300              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 01/09/91    *
-      *                       Ultima revisione:    NdK del 31/10/25    *
+      *                       Ultima revisione:    NdK del 16/09/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -22852,7 +22852,7 @@ ______*                     "Semilavorato        "                    .
       *              * Incremento contatore                            *
       *              *-------------------------------------------------*
            add       1                    to   w-det-snd-dcc-ctr      .
-       det-snd-dcc-300.
+       det-snd-dcc-400.
       *              *-------------------------------------------------*
       *              * Bufferizzazione del primo codice dipendenza     *
       *              *-------------------------------------------------*
