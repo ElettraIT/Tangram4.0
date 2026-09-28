@@ -1,0 +1,64 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per ricevere il file di     *
+# aggiornamento 'aggint.tar' dal server   *
+# pubblico                                *
+#                                         *
+# t_aggint                                *
+#                                         *
+# N.B.: installato nei server dei Clienti *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 31/08/17   *
+#   Ultima revisione:  NdK del 31/08/17   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : password server pubblico     *
+#                                         *
+#-----------------------------------------*
+
+#=========================================*
+# Moduli Perl                             *
+#-----------------------------------------*
+use Net::FTP                              ;
+
+#=========================================*
+# Variabili di connessione                *
+#-----------------------------------------*
+my $hostn = "www17.protec.it"             ;
+my $login = "dkb"                         ;
+my $passw = shift                         ;
+my $outdr = "dkb.it/agg"                  ;
+my $filen = "aggint.tar"                  ;
+my $lpath = "/abd/asc/agg/aggint.tar"     ;
+my $syscm = "/abd/etc/aggint"             ;
+
+#=========================================*
+# Connessione ed invio                    *
+#-----------------------------------------*
+$ftp = Net::FTP->new($hostn, Debug => 0)
+  or die "Errore di collegamento: $@";
+
+$ftp->login($login,$passw)
+  or die "Login fallito: ", $ftp->message;
+
+$ftp->cwd($outdr)
+  or die "Cambio directory fallito: ", $ftp->message;
+
+$ftp->binary
+  or die "Modalita' 'binary' fallita; ", $ftp->message;
+
+$ftp->get($filen, $lpath)
+   or die "Lettura fallita: ", $ftp->message;
+
+#=========================================*
+# Fine connessione                        *
+#-----------------------------------------*
+$ftp->quit                                ;
+
+#=========================================*
+# Caricamento aggiornamento in Tangram    *
+#-----------------------------------------*
+system($syscm)                            ;

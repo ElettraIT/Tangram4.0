@@ -1,0 +1,149 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per importare un file di    *
+# metadati in formato XML, ricevuta da    *
+# SDI                                     *
+#                                         *
+# t_xml_for_sdi {AZI} {FILENAME}          *
+#                                         *
+# N.B.: Utilizzato da 'pfat420b' ___ ?    *
+#                                         *
+# ___ DA COMPLETARE ___                   *
+#                                         *
+# --------------------------------------- *
+#                                         *
+# Versione Fattura PA 1.2.1               *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 14/01/19   *
+#   Ultima revisione:  NdK del __/__/__   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : - Azienda                    *
+#                                         *
+#            - Metadati XML (o 'p7m')     *
+#                                         *
+# --------------------------------------- *
+# ESEMPIO PER DEBUG                       *
+#                                         *
+# wip IT0526289001422002_K24DQ_MT_001.xml *
+#-----------------------------------------*
+
+#=========================================*
+# Moduli Perl                             *
+#-----------------------------------------*
+use File::Basename                        ;
+use XML::Simple                           ;
+
+#=========================================*
+# Valori in input                         *
+#-----------------------------------------*
+my $cod_azi = shift                       ;
+my $fil_inp = shift                       ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$cod_azi || $cod_azi eq "-help")
+{
+    my $sys_clr = "clear"                 ;
+    system($sys_clr)                      ;
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "\n"
+        . "> t_xml_for_sdi {AZI} {FILENAME} "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip - 8 gennaio 2022"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#=========================================*
+# Estrazione nome file                    *
+#-----------------------------------------*
+(my $fil_nam,
+ my $fil_pth,
+ my $fil_ext) = fileparse($fil_inp, qr/\.[^.]*/);
+
+#=========================================*
+# Directory di base                       *
+#-----------------------------------------*
+my $bas_out = '/abd/asc/'                 ;
+my $sdi_dir = '/sdi/'                     ;
+
+#=========================================*
+# Directory di input                      *
+#-----------------------------------------*
+my $fil_pat = $bas_out
+            . $cod_azi
+            . $sdi_dir
+            . $fil_inp                    ;
+
+my $xml_pat = $bas_out
+            . $cod_azi
+            . $sdi_dir
+            . $fil_nam                    ;
+
+#=========================================*
+# Directory di output                     *
+#-----------------------------------------*
+my $pat_out = $bas_out
+            . $cod_azi
+            . $sdi_dir
+            . $fil_nam
+            . ".csv"                      ;
+
+#=========================================*
+# Test preliminare che si tratti di file  *
+# metadati                                *
+# N.B.: deve contenere 3 '_'              *
+#-----------------------------------------*
+
+
+my $und_scr = "_"                         ;
+my @mat_che = $fil_nam =~ /($und_scr)/g   ;
+my $und_cnt = @mat_che                    ;
+
+
+#print "und_cnt = " . $und_cnt . "\n"          ;
+
+if ($und_cnt != 3){exit()}                ;
+
+
+
+my @tst_ele = split (/_/, $fil_nam)       ;
+if ($tst_ele[2] ne "MT"){exit()}          ;
+
+#=========================================*
+# DEBUG                                   *
+#-----------------------------------------*
+# print "fil_inp = " . $fil_inp . "\n"    ;
+# print "fil_nam = " . $fil_nam . "\n"    ;
+# print "fil_pth = " . $fil_pth . "\n"    ;
+# print "fil_ext = " . $fil_ext . "\n\n"  ;
+# print "fil_pat = " . $fil_pat . "\n"    ;
+# print "xml_pat = " . $xml_pat . "\n\n"  ;
+# print "pat_out = " . $pat_out . "\n"    ;
+# exit()                                  ;
+
+#=========================================*
+# Caricamento file                        *
+#-----------------------------------------*
+my $xml = XML::Simple->new()              ;
+my $data = XMLin($fil_pat)                ;
+
+#=========================================*
+# Decodifica nodi                         *
+#=========================================*
+
+#-----------------------------------------*
+# IdentificativoSdI                       *
+#-----------------------------------------*
+my $ide_sdi = $data->{IdentificativoSdI}  ;
+
+print $ide_sdi . "\n"          ;

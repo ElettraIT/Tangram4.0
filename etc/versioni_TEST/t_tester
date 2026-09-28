@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl generico per test script     *
+#                                          *
+# t_tester                                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 25/09/11   *
+#   Ultima revisione:   NdK del 17/05/19   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# N.B.: _________                          *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+
+my $file = '/abd/asc/tmp/FATTURE.csv';
+
+
+open (FILE, "<$file") or die
+         "Impossibile aprire il file"               ;
+
+
+while(my $line = <FILE>) {
+    my @cells = csvsplit($line); # or csvsplit($line, $my_custom_seperator)
+}
+
+
+
+
+sub csvsplit {
+        my $line = shift;
+        my $sep = (shift or ';');
+
+        return () unless $line;
+
+        my @cells;
+        $line =~ s/\r?\n$//;
+
+        my $re = qr/(?:^|$sep)(?:"([^']*)"|([^$sep]*))/;
+
+        while($line =~ /$re/g) {
+                my $value = defined $1 ? $1 : $2;
+                push @cells, (defined $value ? $value : '');
+        }
+print $cells[0] . "\n";
+print $cells[1] . "\n";
+print $cells[2] . "\n";
+
+        return @cells;
+}

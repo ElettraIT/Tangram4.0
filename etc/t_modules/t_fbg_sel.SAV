@@ -1,0 +1,503 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per creazione tabelle MySQL  *
+#                                          *
+# Lettura tabella e scrittura in file      *
+#                                          *
+# Su misura per Foralberg                  *
+#                                          *
+# Utilizzato dai programmi 'gpf810'        *
+#                          'gpf812'        *
+#                                          *
+# Ultima revisione:    NdK del 16/05/05    *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Modulo Perl MIME::Lite                   *
+#------------------------------------------*
+use strict;
+use DBI();
+
+#==========================================*
+# Parametri di connessione                 *
+#------------------------------------------*
+my $dtb = "fbg"                           ;
+my $hst = "localhost"                     ;
+my $usr = "root"                          ;
+my $pwd = "alter1"                        ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtb;host=$hst",
+                       $usr,
+                       $pwd,
+                       {'RaiseError' => 1});
+
+#==========================================*
+# Variabili lette in input                 *
+# ---------------------------------------- *
+#  - $pre : Prefisso univoco               *
+#  - $snv : Si/no Vetrinetta               *
+#------------------------------------------*
+my $pre = $ARGV[0]                        ;
+my $snv = $ARGV[1]                        ;
+
+#==========================================*
+# Open dei file di appoggio                *
+#------------------------------------------*
+my $pth = "/abd/tmp/"                     ;
+my $sep = "."                             ;
+my $tes = "TOrdCli.txt"                   ;
+my $rig = "TOrdCliRig.txt"                ;
+
+open (TESTA, ">$pth$pre$sep$tes") or die
+         "Impossibile aprire il file TESTATE";
+
+open (RIGHE, ">$pth$pre$sep$rig") or die
+         "Impossibile aprire il file RIGHE";
+
+#==========================================*
+# Lettura dati da tabella testate          *
+#------------------------------------------*
+my $sth = ""                              ;
+
+if ($snv eq "N")
+{
+    #--------------------------------------*
+    # Se 'non' Vetrinetta                  *
+    #--------------------------------------*
+    $sth = $dbh->prepare("SELECT 
+                         OctID,
+                         OctAge,
+                         OctCli,
+                         OctScc,
+                         OctSco,
+                         OctNor,
+                         OctDat,
+                         OctDpc,
+                         OctSpe,
+                         s.SpeTan,
+                         OctPag,
+                         OctOpe,
+                         OctComment
+                         FROM TOrdCli t, TOrdCliSpe s
+                         WHERE  t.OctSpe = s.SpeID
+                         AND    t.OctSta = 'X'
+                         AND    t.OctCli != '10007'
+                        ");
+}
+ else
+{
+    #--------------------------------------*
+    # Se Vetrinetta                        *
+    #--------------------------------------*
+    $sth = $dbh->prepare("SELECT 
+                         OctID,
+                         OctAge,
+                         OctCli,
+                         OctScc,
+                         OctSco,
+                         OctNor,
+                         OctDat,
+                         OctDpc,
+                         OctSpe,
+                         s.SpeTan,
+                         OctPag,
+                         OctOpe,
+                         OctComment
+                         FROM TOrdCli t, TOrdCliSpe s
+                         WHERE  t.OctSpe = s.SpeID
+                         AND    t.OctSta = 'X'
+                         AND    t.OctCli = '10007'
+                        ");
+}
+
+$sth->execute();
+
+#==========================================*
+# Ciclo di lettura testate                 *
+#------------------------------------------*
+while (my $ref = $sth->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Variabili di comodo                  *
+    #--------------------------------------*
+    # ID ordine                            *
+    #--------------------------------------*
+    my $oid = sprintf ("%08s",$ref->{'OctID'});
+
+    #--------------------------------------*
+    # Codice agente                        *
+    #--------------------------------------*
+    my $age = ""                          ;
+    if ($ref->{'OctAge'})
+    {
+        $age = sprintf ("%07s",$ref->{'OctAge'});
+    }
+     else
+    {
+        $age = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Codice cliente                       *
+    #--------------------------------------*
+    my $cli = ""                          ;
+    if ($ref->{'OctCli'})
+    {
+        $cli = sprintf ("%07s",$ref->{'OctCli'});
+    }
+     else
+    {
+        $cli = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Sconto cliente                       *
+    #--------------------------------------*
+    my $scc = ""                          ;
+    if ($ref->{'OctScc'})
+    {
+        $scc = sprintf ("%07s",$ref->{'OctScc'});
+    }
+     else
+    {
+        $scc = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Sconto aggiuntivo                    *
+    #--------------------------------------*
+    my $sca = ""                          ;
+    if ($ref->{'OctSco'})
+    {
+        $sca = sprintf ("%07s",$ref->{'OctSco'});
+    }
+     else
+    {
+        $sca = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Numero documento                     *
+    #--------------------------------------*
+    my $ndo = ""                          ;
+    if ($ref->{'OctNor'})
+    {
+        $ndo = sprintf ("% -10s",$ref->{'OctNor'});
+    }
+     else
+    {
+        $ndo = sprintf ("% -10s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Data documento                       *
+    #--------------------------------------*
+    my $ddo = ""                          ;
+    if ($ref->{'OctDat'})
+    {
+        $ddo = sprintf ("% 10s",$ref->{'OctDat'});
+    }
+     else
+    {
+        $ddo = sprintf ("% 10s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Consegna                             *
+    #--------------------------------------*
+    my $tmc = ""                          ;
+    if ($ref->{'OctDpc'})
+    {
+        $tmc = sprintf ("% -20s",$ref->{'OctDpc'});
+    }
+     else
+    {
+        $tmc = sprintf ("% -20s"," ")     ;
+    }
+
+    #--------------------------------------*
+    # Codice spedizione                    *
+    #--------------------------------------*
+    my $sam = ""                          ;
+    if ($ref->{'SpeTan'})
+    {
+        $sam = sprintf ("% -3s",$ref->{'SpeTan'});
+    }
+     else
+    {
+        $sam = sprintf ("% -3s"," ")      ;
+    }
+
+    $sam = substr ($sam, 0, 3)            ;
+
+    #--------------------------------------*
+    # Codice pagamento                     *
+    #--------------------------------------*
+    my $fop = ""                          ;
+    if ($ref->{'OctPag'})
+    {
+        $fop = sprintf ("%07s",$ref->{'OctPag'});
+    }
+     else
+    {
+        $fop = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Responsabile ordine                  *
+    #--------------------------------------*
+    my $rsp = ""                          ;
+    if ($ref->{'OctOpe'})
+    {
+        $rsp = sprintf ("%-10s",$ref->{'OctOpe'});
+    }
+     else
+    {
+        $rsp = sprintf ("%-10s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Tipo vendita diretta / indiretta     *
+    #--------------------------------------*
+    my $tva = ""                          ;
+    if ($ref->{'OctTpa'})
+    {
+        $tva = $ref->{'OctTpa'}           ;
+    }
+     else
+    {
+        $tva = "i"                        ;
+    }
+
+    #--------------------------------------*
+    # Commento                             *
+    #--------------------------------------*
+    my $com = ""                          ;
+    if ($ref->{'OctComment'})
+    {
+        # $com = qq{$ref->{'OctComment'}}   ;
+        # $com = sprintf ("%-120s",qq{$ref->{'OctComment'}});
+        # $com = sprintf ("%-120s",chomp($ref->{'OctComment'}));
+        
+        $com = chomp($ref->{'OctComment'});
+    }
+     else
+    {
+        $com = ""                         ;
+    }
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print TESTA "$oid $age $cli $scc $sca $ndo $ddo $tmc $sam $fop $rsp $tva $com\n";   
+}
+
+$sth->finish();
+
+#==========================================*
+# Lettura dati da tabella righe            *
+#------------------------------------------*
+my $st2 = ""                              ;
+
+if ($snv eq "N")
+{
+    #--------------------------------------*
+    # Se 'non' Vetrinetta                  *
+    #--------------------------------------*
+    $st2 = $dbh->prepare("SELECT * 
+                         FROM TOrdCliRig r, TOrdCli t
+                         WHERE r.OcrIDord = t.OctID
+                         AND   t.OctSta = 'X'
+                         AND   t.OctCli != '10007'
+                         ORDER BY OcrPos
+                        ");
+}
+ else
+{
+    #--------------------------------------*
+    # Se Vetrinetta                        *
+    #--------------------------------------*
+    $st2 = $dbh->prepare("SELECT 
+                         OcrIDord,
+                         OcrArt,
+                         OcrDes,
+                         OcrPCos,
+                         OcrPLis,
+                         OcrScRig,
+                         OcrPNet,
+                         OcrPCes,
+                         OcrMemo,
+                         SUM(OcrQor) as OcrQor
+                         FROM TOrdCliRig r, TOrdCli t
+                         WHERE r.OcrIDord = t.OctID
+                         AND   t.OctSta = 'X'
+                         AND   t.OctCli = '10007'
+                         GROUP BY OcrArt
+                         ORDER BY OcrArt
+                        ");
+}
+
+$st2->execute();
+
+#==========================================*
+# Ciclo di lettura righe                   *
+#------------------------------------------*
+while (my $ref = $st2->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Variabili di comodo                  *
+    #--------------------------------------*
+    my $rid = sprintf ("%08s",$ref->{'OcrIDord'});
+
+    #--------------------------------------*
+    # Codice alfanumerico prodotto         *
+    #--------------------------------------*
+    my $alf = ""                          ;
+    if ($ref->{'OcrArt'})
+    {
+        $alf = sprintf ("%-10s",$ref->{'OcrArt'});
+    }
+     else
+    {
+        $alf = sprintf ("%-10s"," ");
+    }
+
+    #--------------------------------------*
+    # Descrizione                          *
+    #--------------------------------------*
+    my $des = ""                          ;
+    if ($ref->{'OcrDes'})
+    {
+        $des = sprintf ("%-70s",$ref->{'OcrDes'});
+    }
+     else
+    {
+        $des = sprintf ("%-70s"," ");
+    }
+
+    #--------------------------------------*
+    # Costo                                *
+    #--------------------------------------*
+    my $cos = ""                          ;
+    if ($ref->{'OcrPCos'})
+    {
+        $cos = sprintf ("%10s",$ref->{'OcrPCos'});
+    }
+     else
+    {
+        $cos = sprintf ("%10s"," ");
+    }
+
+    #--------------------------------------*
+    # Prezzo di listino                    *
+    #--------------------------------------*
+    my $lst = ""                          ;
+    if ($ref->{'OcrPLis'})
+    {
+        $lst = sprintf ("%10s",$ref->{'OcrPLis'});
+    }
+     else
+    {
+        $lst = sprintf ("%10s"," ");
+    }
+
+    #--------------------------------------*
+    # Sconto base (uguale a sconto riga)   *
+    #--------------------------------------*
+    my $scb = ""                          ;
+    if ($ref->{'OcrScRig'})
+    {
+        $scb = sprintf ("%07s",$ref->{'OcrScRig'});
+    }
+     else
+    {
+        $scb = sprintf ("%07s"," ");
+    }
+
+    #--------------------------------------*
+    # Prezzo netto                         *
+    #--------------------------------------*
+    my $nts = ""                          ;
+    if ($ref->{'OcrPNet'})
+    {
+        $nts = sprintf ("%10s",$ref->{'OcrPNet'});
+    }
+     else
+    {
+        $nts = sprintf ("%10s"," ");
+    }
+
+    #--------------------------------------*
+    # Sconto in riga                       *
+    #--------------------------------------*
+    my $scr = ""                          ;
+    if ($ref->{'OcrScRig'})
+    {
+        $scr = sprintf ("%07s",$ref->{'OcrScRig'});
+    }
+     else
+    {
+        $scr = sprintf ("%07s"," ");
+    }
+
+    #--------------------------------------*
+    # Prezzo di vendita                    *
+    #--------------------------------------*
+    my $ntv = ""                          ;
+    if ($ref->{'OcrPCes'})
+    {
+        $ntv = sprintf ("%10s",$ref->{'OcrPCes'});
+    }
+     else
+    {
+        $ntv = sprintf ("%10s"," ");
+    }
+
+    #--------------------------------------*
+    # Quantita'                            *
+    #--------------------------------------*
+    my $qta = ""                          ;
+    if ($ref->{'OcrQor'})
+    {
+        $qta = sprintf ("%14s",$ref->{'OcrQor'});
+    }
+     else
+    {
+        $qta = sprintf ("%14s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Memo                                 *
+    #--------------------------------------*
+    my $mem = ""                          ;
+    if ($ref->{'OcrMemo'})
+    {
+        $mem = $ref->{'OcrMemo'}          ;
+    }
+     else
+    {
+        $mem = " "                        ;
+    }
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print RIGHE "$rid $alf $des $cos $lst $scb $nts $scr $ntv $qta $mem\n";   
+}
+
+$st2->finish();
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect();
+
+#==========================================*
+# Close dei file di appoggio               *
+#------------------------------------------*
+close TESTA                               ;
+close RIGHE                               ;

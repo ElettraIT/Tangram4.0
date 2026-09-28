@@ -1,0 +1,88 @@
+#!/bin/sh
+
+# tllpi_9600_PS : Tangram Local Line Printer Interface 9600 bauds PostScript
+#
+# Interfaccia per stampanti locali TANGRAM a 9600 bauds 
+#
+# Nota : Questa procedura viene richiamata dal line printer spooler 'lp'
+#        preparando come standard output il /dev/xxxxxx relativo alla
+#        stampante. Inoltre i parametri passati sono i seguenti:
+#          $0 : Nome stesso dell'interfaccia
+#          $1 : Request-ID determinato dal line printer spooler
+#          $2 : User-ID dell'utente che ha eseguito la richiesta
+#          $3 : Titolo da stampare
+#          $4 : Numero di copie richieste in stampa
+#          $5 : Lista delle opzioni
+#          $6 : Lista dei files da stampare, o dei relativi symbolic links 
+
+# Set del baud rate : Viene eseguito un test per vedere se lo standard
+#                     output e' associato ad un terminale. In caso af-
+#                     fermativo viene eseguito un 'stty' adeguato. In 
+#                     caso negativo viene eseguito un set 'raw' come
+#                     per una stampante di tipo grafico.
+
+if [ -t 1 ] 
+	then
+       	    stty raw 9600 -parenb cs8 ixon -istrip clocal <&1 2>/dev/null
+	else
+       	    slp -r 2>/dev/null
+fi
+
+# Set della variabile 'PATH'
+
+PATH="/bin:/usr/bin:/usr/lib"
+export PATH
+
+# Opzione per il numero di copie in variabile 'ncopie'
+
+ncopie=$4
+
+# Opzioni particolari in variabili di comodo
+
+for i in $5
+	do
+		case "$i" in
+     		          *)
+		            ;;
+	       	esac
+	done
+
+# Opzione per la lista dei files da stampare in variabile 'lfiles'
+
+shift         # Shift a sx delle variabili, perdendo Request-ID
+shift         # Shift a sx delle variabili, perdendo User-ID
+shift         # Shift a sx delle variabili, perdendo Titolo da stampare
+shift         # Shift a sx delle variabili, perdendo Numero copie
+shift         # Shift a sx delle variabili, perdendo Lista opzioni
+
+lfiles="$*"   # Assegnazione della variabile 'lfiles'
+
+# Stampa effettiva della lista dei files passati
+
+contatore=1
+while [ $contatore -le $ncopie ]
+	do
+		for filestampa in $lfiles
+		do
+			cat   "$filestampa" 2>/dev/null # Stampa
+			echo  "\004\c"                  # End of Job PS
+		done
+	contatore=`expr $contatore + 1`
+	done
+
+# Rimozione dei files passati
+
+for filestampa in $lfiles
+    do
+	pathdxxx=`dirname  $filestampa`            # Pathname formato dXXXXxxx 
+	nomedxxx=`basename $filestampa`            # Filename formato dXXXXxxx 
+	nomexxxx=`echo $nomedxxx | cut -b 2-`      # Filename formato  XXXXxxx 
+	nomecxxx=c$nomexxxx                        # Filename formato cXXXXxxx 
+	pathcxxx=$pathdxxx/$nomecxxx               # Pathname formato cXXXXxxx 
+	pathfile=`grep "^N" $pathcxxx | cut -b 2-` # Pathname file originale  
+	rm -f $pathfile                            # Rimozione file originale 
+    done
+
+# Uscita
+
+exit 0

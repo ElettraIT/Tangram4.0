@@ -1,0 +1,59 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta con autenti-  *
+# cazione SSL                              *
+#                                          *
+# t_sender_ssl TEST                        *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Mail::Sender                          ;
+
+my $srvr = 'smtp-relay.gmail.com';
+my $user = '';
+my $pass = '';
+my $mitt = 'documenti@elettra.it';
+my $dest = 'wip@wip-info.it';
+my $testo = 'CONTENUTO MESSAGGIO';
+
+    #--------------------------------------*
+    # Invio vero e proprio                 *
+    #--------------------------------------*
+$sender = new Mail::Sender
+{
+    #------------------------------*
+    # Server SMTP                  *
+    #------------------------------*
+    smtp => $srvr,
+    #------------------------------*
+    # Mittente                     *
+    #------------------------------*
+    from => $mitt,
+    #------------------------------*
+    # Gestione errori              *
+    #------------------------------*
+    on_errors => undef,
+}
+        or die "Errore: $Mail::Sender::Error\n";
+    
+    
+    
+    
+            $sender->OpenMultipart({
+            to => $dest,
+           bcc => $mitt,
+       subject => $testo,
+         ctype => 'text/html',
+      encoding => 'quoted-printable'})    ;
+    #--------------------------------------*
+    # Corpo messaggio                      *
+    #--------------------------------------*
+    $sender->Body                         ;
+    $sender->SendEnc($testo)              ;
+    #--------------------------------------*
+    # Close messaggio                      *
+    #--------------------------------------*
+    $sender->Close                        ;

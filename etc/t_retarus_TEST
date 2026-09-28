@@ -1,0 +1,80 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# Retarus                                  *
+#                                          *
+# SU MISURA PER SIRI                       *
+#                                          *
+# t_retaurs_TEST                           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 06/09/25    *
+#   Ultima revisione:  NdK del 06/09/25    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = '94.199.91.48'                 ;
+my $user = 'siri_vishay'                  ;
+my $pass = 'q7nw3hefzuwfzhwx'             ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$host || !$user || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_retaurs_TEST "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+# my $path = "/productive/ordrsp_in"        ;
+my $path = "/test/ordrsp_in"            ;
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+my %args = (user => $user,
+        password => $pass,
+#           more => '-v'
+            port => 22)                   ;
+
+my $sftp = Net::SFTP::Foreign->new($host, %args)
+   or die "Connessione SFTP fallita"      ;
+
+#==========================================*
+# Directory di input                       *
+#------------------------------------------*
+$sftp->setcwd($path)
+  or die "Cambio directory non riuscito! ";
+my $file = "RSP_YAG_20220922_A001DDB6.CSV.ok";
+
+$sftp->get($file, $file);
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+

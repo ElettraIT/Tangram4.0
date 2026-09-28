@@ -1,0 +1,68 @@
+     ############ /abd/etc/newsap
+     #
+     # Procedura per la creazione delle directores /abd/srg/xxx e
+     #                                             /abd/ogt/xxx
+     #
+     # Input : $1:Sigla nuovo sistema applicativo xxx
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                # Errore per il comando 'newsap' #               " ;
+       echo "                ----------------------------------               " ;
+       echo "                                                                 " ;
+       echo " Il comando puo' essere eseguito solamente dall'utente 'master'  " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# Controllo sul numero di parametri in input per la procedura
+###
+
+case $# in
+       1)
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "         # Errore nei parametri per il comando 'newsap' #        " ;
+          echo "         ------------------------------------------------        " ;
+          echo "                                                                 " ;
+          echo " Errore : E' richiesto un parametro per la sigla del nuovo       " ;
+          echo "          sistema applicativo che si vuole creare.               " ;
+          echo "                                                                 " ;
+          echo "          Non e' ammesso omettere il parametro, ne' fornire      " ;
+          echo "          piu' di un parametro.                                  " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+	  ;;
+     esac
+
+######
+# - Creazione directory /abd/srg/xxx
+###
+
+mkdir         /abd/srg/$1                    # /abd/srg/xxx
+chmod  0750   /abd/srg/$1
+
+######
+# - Creazione directory /abd/ogt/xxx
+###
+
+/abd/etc/inssap $1                           # /abd/ogt/xxx
+
+######
+# - Fine procedura
+###

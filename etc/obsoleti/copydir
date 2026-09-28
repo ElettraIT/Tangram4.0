@@ -1,0 +1,48 @@
+     ############ /abd/etc/copydir
+     #
+     # Procedura per la duplicazione dei contenuti di una directory
+     #
+     # Nota : directories di origine e di destinazione devono preesistere
+     #
+     # Input : $1:Directory di origine
+     #
+     #         $2:Directory di destinazione
+     #
+     ######
+     
+######
+# Controllo sul numero di parametri
+###
+
+case $# in
+       2)
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "         # Errore nei parametri per il comando 'copydir' #       " ;
+          echo "         -------------------------------------------------       " ;
+          echo "                                                                 " ;
+          echo " Errore : Sono richiesti due parametri :                         " ;
+          echo "                                                                 " ;
+          echo "          1. parametro : Pathname della directory di origine     " ;
+          echo "                                                                 " ;
+          echo "          2. parametro : Pathname della directory di destinazione" ;
+          echo "                                                                 " ;
+          echo "          Non e' ammesso omettere nessuno dei due parametri,     " ;
+          echo "          ne' fornire piu' di due parametri.                     " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+         ;;
+     esac
+
+######
+# - Esecuzione del copy directories
+###
+umask 000
+cd $1 ; tar -cf - . | (cd $2 ; tar -xvf -)
+
+######
+# - Fine procedura
+###

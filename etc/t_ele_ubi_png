@@ -1,0 +1,130 @@
+#!/usr/bin/perl -w
+#===============================================================*
+#                                                               *
+# Creazione barcode 128 per ubicazioni da file sequenziale      *
+# generato in Tangram con .k [zub]                              *
+#                                                               *
+# Ad hoc per ELETTRA                                            *
+#                                                               *
+#                   ------------------------------------------- *
+#                    Versione originale:    001 del 05/05/2023  *
+#                      Ultima revisione:    NdK del 05/05/2023  *
+#                   ------------------------------------------- *
+#                                Autore:    Nicola de Kunovich  *
+# ------------------------------------------------------------- *
+#                                                               *
+# Parametri in input : (nessuno)                                *
+#                                                               *
+# ------------------------------------------------------------- *
+#                                                               *
+# Parametri di configurazione barcode                           *
+#                                                               *
+# width            undef    Width of the image (*)              *
+# height           undef    Height of the image (*)             *
+# border           2        Size of the black border around     *
+# scale            2        How many pixels for the smallest    *
+# font             "large"  Font (**) for the text at bottom    *
+# show_text        1        True/False: display the text        *
+# font_margin      2        Pixels above, below, and to left    *
+# font_align       "left"   Align "left", "right", or "center"  *
+# transparent_text 1/0(***) True/False: use transparent back?   *
+# top_margin       0        No. of pixels above the barcode     *
+# bottom_margin    0        No. of pixels below the barcode     *
+# left_margin      0        No. of pixels to the left           *
+# right_margin     0        No. of pixels to the right          *
+# padding          20       Size of whitespace before & after   *
+#                                                               *
+#===============================================================*
+
+#===============================================================*
+# Moduli Perl                                                   *
+#---------------------------------------------------------------*
+use Barcode::Code128                                           ;
+
+#===============================================================*
+# Variabili statiche                                            *
+#---------------------------------------------------------------*
+#   *-----------------------------------------------------------*
+#   * Percorsi file                                             *
+#   *-----------------------------------------------------------*
+    my $pth_csv = "/abd/asc/tmp/elezub.sqz"                    ;
+    my $pth_ubi = "/abd/asc/bcd/ubi/"                          ;
+
+#===============================================================*
+# Trattamento file sequenziale                                  *
+#---------------------------------------------------------------*
+#   *-----------------------------------------------------------*
+#   * Open e Close file in input                                *
+#   *-----------------------------------------------------------*
+    open (I_FILE, "$pth_csv") or die
+         "Impossibile aprire il file '$pth_csv'"               ;
+    my   @linea = <I_FILE>                                     ;
+    close I_FILE                                               ;
+
+#   *-----------------------------------------------------------*
+#   * Ciclo di scansione                                        *
+#   *-----------------------------------------------------------*
+foreach $linea (@linea)
+{
+#       *-------------------------------------------------------*
+#       * Estrazione codice                                     *
+#       *-------------------------------------------------------*
+        my   $cod_ubi = substr($linea, 2, 7)                   ;
+        
+             $cod_ubi =~ s/\s*$//                              ;
+       
+#       *-------------------------------------------------------*
+#       * Emissione file                                        *
+#       *-------------------------------------------------------*
+        &emi_fil ($cod_ubi)                                    ;
+}
+
+#===============================================================*
+# SUBROUTINES                                                   *
+#===============================================================*
+
+#===============================================================*
+# Emissione file                                                *
+#---------------------------------------------------------------*
+sub emi_fil
+{
+#   *-----------------------------------------------------------*
+#   * Nome file                                                 *
+#   *-----------------------------------------------------------*
+    my $fil_nam = shift                                        ;
+#   *-----------------------------------------------------------*
+#   * Generazione file                                          *
+#   *-----------------------------------------------------------*
+    &gen_png ($fil_nam)                                        ;
+}
+
+#===============================================================*
+# Generazione PNG                                               *
+#---------------------------------------------------------------*
+sub gen_png
+{
+#   *-----------------------------------------------------------*
+#   * Valore in input                                           *
+#   *-----------------------------------------------------------*
+    my $val_cmp = shift                                        ;
+#   *-----------------------------------------------------------*
+#   * Parametri barcode                                         *
+#   *-----------------------------------------------------------*
+    my $fil_png = $pth_ubi . $val_cmp . ".png"                 ;
+    my $object = Barcode::Code128->new()                       ;
+       $object->code('A')                                      ;
+       $object->option("show_text", 1)                         ;
+       $object->option("height", 50)                           ;
+       $object->option("border", 0)                            ;
+       $object->option("font", "giant")                        ;
+       $object->option("font_align", "center")                 ;
+       $object->option("transparent_text", 1)                  ;
+#   *-----------------------------------------------------------*
+#   * Apertura e generazione del file PNG                       *
+#   *-----------------------------------------------------------*
+    open(PNG, ">", $fil_png) || die("Non posso aprire $fil_png: $!");
+    binmode(PNG)                                               ;
+    print PNG $object->png($val_cmp)                           ;
+    close(PNG)                                                 ;
+}
+

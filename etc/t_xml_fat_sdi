@@ -1,0 +1,297 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per importare una notifica  *
+# di scarto in formato XML, ricevuta da   *
+# SDI                                     *
+#                                         *
+# t_xml_fat_sdi {AZI} {FILENAME}          *
+#                                         *
+# N.B.: Utilizzato da 'pfat420b'          *
+#                                         *
+# --------------------------------------- *
+#                                         *
+# Versione Fattura PA 1.2.1               *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 14/01/19   *
+#   Ultima revisione:  NdK del 16/06/23   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : - Azienda                    *
+#                                         *
+#            - notifica XML (o 'p7m')     *
+#                                         *
+# --------------------------------------- *
+# ESEMPIO PER DEBUG                       *
+#                                         *
+# . nob IT00227840287_B0012_NS_001.xml    *
+#                                         *
+#-----------------------------------------*
+
+#=========================================*
+# Moduli Perl                             *
+#-----------------------------------------*
+use File::Basename                        ;
+use XML::Simple                           ;
+
+#=========================================*
+# Valori in input                         *
+#-----------------------------------------*
+my $cod_azi = shift                       ;
+my $fil_inp = shift                       ;
+
+#=========================================*
+# Estrazione nome file                    *
+#-----------------------------------------*
+(my $fil_nam,
+ my $fil_pth,
+ my $fil_ext) = fileparse($fil_inp, qr/\.[^.]*/);
+
+#=========================================*
+# Directory di base                       *
+#-----------------------------------------*
+my $bas_out = '/abd/asc/'                 ;
+my $sdi_dir = '/sdi/'                     ;
+
+#=========================================*
+# Directory di input                      *
+#-----------------------------------------*
+my $fil_pat = $bas_out
+            . $cod_azi
+            . $sdi_dir
+            . $fil_inp                    ;
+
+my $xml_pat = $bas_out
+            . $cod_azi
+            . $sdi_dir
+            . $fil_nam                    ;
+
+#=========================================*
+# Directory di output                     *
+#-----------------------------------------*
+my $pat_out = $bas_out
+            . $cod_azi
+            . $sdi_dir
+            . $fil_nam
+            . ".csv"                      ;
+
+#=========================================*
+# Eventuale estrazione preliminare se     *
+# estensione 'p7m'                        *
+#-----------------------------------------*
+if ($fil_ext eq ".p7m")
+{
+    #-------------------------------------*
+    # Comando di estrazione               *
+    #-------------------------------------*
+    my $sys_cmd = "openssl smime -verify "
+                . "-noverify -in $fil_pat "
+                . "-inform DER -out "
+                . $xml_pat               ;
+    #-------------------------------------*
+    # Esecuzione                          *
+    #-------------------------------------*
+    system($sys_cmd . "  >/dev/null 2>&1");
+}
+ else
+{
+    #-------------------------------------*
+    # Se non firmato                      *
+    #-------------------------------------*
+    $xml_pat = $fil_pat                   ;
+}
+
+#=========================================*
+# DEBUG                                   *
+#-----------------------------------------*
+# print "fil_inp = " . $fil_inp . "\n"    ;
+# print "fil_nam = " . $fil_nam . "\n"    ;
+# print "fil_pth = " . $fil_pth . "\n"    ;
+# print "fil_ext = " . $fil_ext . "\n\n"  ;
+# print "fil_pat = " . $fil_pat . "\n"    ;
+# print "xml_pat = " . $xml_pat . "\n\n"  ;
+# print "pat_out = " . $pat_out . "\n"    ;
+# exit()                                  ;
+
+#=========================================*
+# Open del file di output                 *
+#-----------------------------------------*
+open (OUTFILE, ">$pat_out") or die
+         "Impossibile aprire il file"     ;
+
+#=========================================*
+# Caricamento file                        *
+#-----------------------------------------*
+my $xml = XML::Simple->new()              ;
+my $data = XMLin($xml_pat)                ;
+
+#=========================================*
+# Decodifica nodi                         *
+#=========================================*
+
+#=========================================*
+# Emittente                               *
+#-----------------------------------------*
+#-----------------------------------------*
+# Tipo record                             *
+#-----------------------------------------*
+my $tip_rec = "T"                         ;
+
+#-----------------------------------------*
+# NomeFile                                *
+#-----------------------------------------*
+my $nom_fil = $data->{NomeFile}           ;
+
+&pmt_val ($tip_rec,
+        "NomeFile",
+          $nom_fil)                       ;
+#-----------------------------------------*
+# DataOraRicezione                        *
+#-----------------------------------------*
+my $dat_ric = substr($data->{DataOraRicezione},0,10);
+$dat_ric = &trt_dat ($dat_ric)            ;
+&pmt_val ($tip_rec,
+        "DataOraRicezione",
+          $dat_ric)                       ;
+          
+#-----------------------------------------*
+# Tipo record                             *
+#-----------------------------------------*
+$tip_rec = "R"                           ;
+
+#-----------------------------------------*
+# Test se una o piu' righe di errore      *
+#-----------------------------------------*
+if (ref($data->{ListaErrori}
+             ->{Errore}) =~ /ARRAY/)
+{
+    #-------------------------------------*
+    # Se piu' righe di errore             *
+    #-------------------------------------*
+    foreach $e (@{$data->{ListaErrori}
+                       ->{Errore}})
+    {
+        #---------------------------------*
+        # Codice errore                   *
+        #---------------------------------*
+        &pmt_val ($tip_rec,
+                    "Codice",
+                    $e->{Codice})    ;
+        #---------------------------------*
+        # Descrizione errore              *
+        #---------------------------------*
+        &pmt_val ($tip_rec,
+                    "Descrizione",
+                    $e->{Descrizione})    ;
+        #---------------------------------*
+        # Suggerimento errore             *
+        #---------------------------------*
+        &pmt_val ($tip_rec,
+                    "Suggerimento",
+                    $e->{Suggerimento})    ;
+    }
+}
+ else
+{
+    #=====================================*
+    # Se una sola riga di dettaglio       *
+    #-------------------------------------*
+    #-------------------------------------*
+    # Prompt comune dettaglio linee       *
+    #-------------------------------------*
+    $row_pmt = $data->{ListaErrori}
+                       ->{Errore};
+    #-------------------------------------*
+    # Codice                              *
+    #-------------------------------------*
+    $val_dat = $row_pmt->{Codice}    ;
+    &pmt_val ($tip_rec,
+         "Codice",
+              $val_dat)                   ;
+    #-------------------------------------*
+    # Descrizione                         *
+    #-------------------------------------*
+    $val_dat = $row_pmt->{Descrizione}    ;
+    &pmt_val ($tip_rec,
+         "Descrizione",
+              $val_dat)                   ;
+    #-------------------------------------*
+    # Suggerimento                        *
+    #-------------------------------------*
+    $val_dat = $row_pmt->{Suggerimento}    ;
+    &pmt_val ($tip_rec,
+         "Suggerimento",
+              $val_dat)                   ;
+}
+
+#=========================================*
+# Close file di output                    *
+#-----------------------------------------*
+close (OUTFILE)                           ;
+
+#=========================================*
+# Subroutines                             *
+#=========================================*
+
+#=========================================*
+# Trattamento date                        *
+#-----------------------------------------*
+sub trt_dat
+{
+    #-------------------------------------*
+    # Valore in input                     *
+    #-------------------------------------*
+    my $date = shift                      ;
+    #-------------------------------------*
+    # Scomposizione data                  *
+    #-------------------------------------*
+    my @adate = split (/-/, $date)        ;
+    #-------------------------------------*
+    # Formato 'GG/MM/AAAA'                *
+    #-------------------------------------*
+    my $annox = $adate[0]                 ;
+    my $annow = substr($annox,2,2)        ;
+    my $ndate = $adate[2]
+             . "/"
+             . sprintf("%02d", $adate[1])
+             . "/"
+             . sprintf("%02d",$annow)     ;
+    #-------------------------------------*
+    # Valore in output                    *
+    #-------------------------------------*
+    return $ndate                         ;
+}
+
+#=========================================*
+# Composizione prompt, valore ed eventua- *
+# le descrizione                          *
+#-----------------------------------------*
+sub pmt_val
+{
+    #-------------------------------------*
+    # Valori in input                     *
+    #-------------------------------------*
+    my $tip = shift                       ;
+    my $pmt = shift                       ;
+    my $val = shift                       ;
+    #-------------------------------------*
+    # Trattamento valore                  *
+    #-------------------------------------*
+    if (!$val){return}                    ;
+    #-------------------------------------*
+    # Pulizia return e newline            *
+    #-------------------------------------*
+    $val =~ s/\r//g                       ;
+    $val =~ s/\n//g                       ;
+    #-------------------------------------*
+    # Composizione stringa                *
+    #-------------------------------------*
+    my $lin = sprintf "%-25s ; %-s", $pmt, $val;
+    #-------------------------------------*
+    # Output stringa                      *
+    #-------------------------------------*
+    print OUTFILE $tip . ";" . $lin . "\n";
+}
+

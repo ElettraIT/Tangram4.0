@@ -1,0 +1,409 @@
+     ############ /abd/etc/lnkazi
+     #
+     # Procedura di condivisione degli archivi statici tra due aziende
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+x=`whoami`
+if [ $x != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'lnkazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Il comando puo' essere eseguito solamente dall'utente 'master'   " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Note operative per l'accettazione della sigla azienda originale
+###
+
+clear;
+echo    "======================================================================" ;
+echo    "    ISTITUZIONE DELLA CONDIVISIONE ARCHIVI STATICI TRA DUE AZIENDE    " ;
+echo    "----------------------------------------------------------------------" ;
+echo    "                                                                      " ;
+echo    "Note operative  : Digitare la sigla dell'azienda che deve fornire     " ;
+echo    "                  gli archivi statici originali.                      " ;
+echo    "                                                                      " ;
+echo    "           Nota : Rispondere a vuoto se si vuole uscire immediatamen- " ;
+echo    "                  te dalla procedura.                                 " ;
+echo    "                                                                      " ;
+/abd/etc/echonnl "--------------> : " ;
+
+######
+# - Accettazione sigla azienda originale
+###
+
+read    a;
+
+######
+# - Una linea di separazione
+###
+
+echo    "                                                                      " ;
+
+######
+# - Test se impostazione a vuoto
+###
+
+if [ -z "$a" ]
+   then
+      exit 0;
+   fi
+
+######
+# - Test che esista la directory in /abd/azi per l'azienda digitata
+###
+
+if [ ! -d /abd/azi/$a ]
+   then
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'lnkazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Non esiste un'azienda con la sigla '$a'                          " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Note operative per l'accettazione della sigla azienda che mutua gli archivi
+###
+
+echo    "                                                                      " ;
+echo    "Note operative  : Digitare la sigla dell'azienda che deve mutuare     " ;
+echo    "                  gli archivi statici da quelli originali.            " ;
+echo    "                                                                      " ;
+echo    "           Nota : Rispondere a vuoto se si vuole uscire immediatamen- " ;
+echo    "                  te dalla procedura.                                 " ;
+echo    "                                                                      " ;
+/abd/etc/echonnl "--------------> : " ;
+
+######
+# - Accettazione sigla azienda che mutua gli archivi
+###
+
+read    b;
+
+######
+# - Una linea di separazione
+###
+
+echo    "                                                                      " ;
+
+######
+# - Test se impostazione a vuoto
+###
+
+if [ -z "$b" ]
+   then
+      exit 0;
+   fi
+
+######
+# - Test che esista la directory in /abd/azi per l'azienda digitata
+###
+
+if [ ! -d /abd/azi/$b ]
+   then
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'lnkazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Non esiste un'azienda con la sigla '$b'                          " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Posizionamento sulla directory di destinazione
+###
+
+######
+# - Esecuzione dei simbolic links effettivi, per aree gestionali
+###
+
+
+## PGM ## Inter-aree gestionali
+
+f="enc" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Encoding automatici
+
+f="prs" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Personalizzazioni
+
+f="ref" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Referenze
+
+f="sce" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Scelte
+
+f="tbl" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tabelle
+
+
+## ABI ## Gestione dati anagrafici banche in Italia
+
+
+## AGE ## Gestione agenti
+
+f="age" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. agenti
+
+f="zoa" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi operazione gestione agenti
+
+f="zpv" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. categorie di provvigione
+
+f="zpx" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. provvigioni incrociate
+
+
+## AZI ## Dati anagrafici generali azienda
+
+f="zos" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. filtri ordinamento e selezione
+
+
+## BFO ## Gestione bolle fornitori
+
+f="ybf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi movimento bolle fornitori
+
+
+## BOL ## Gestione bolle clienti
+
+f="vet" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. vettori
+
+f="zab" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. aspetto esteriore dei beni
+
+f="zba" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. annotazioni a piede bolla
+
+f="zbi" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi movimento bolle clienti
+
+f="zct" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. causali del trasporto
+
+
+## CDP ## Gestione commesse di produzione
+
+f="ycp" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi movimento commesse di produzione
+
+f="yrc" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. responsabili di commessa
+
+
+## CGE ## Contabilita' generale, clienti, fornitori, iva
+
+f="cdb" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classificatori di bilancio
+
+f="cli" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. contabile clienti
+
+f="fnt" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. contabile fornitori
+
+f="lic" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. lettere intenti clienti
+
+f="pdc" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. piano dei conti
+
+f="zcc" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. causali contabilita' generale
+
+
+## DCC ## Gestione dati commerciali clienti
+
+f="dcc" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. commerciale clienti
+
+f="vlt" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. cambi per valute
+
+f="zbo" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. addebito spese bollo cliento
+
+f="zcs" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. categorie sconto
+
+f="zdf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi descrizioni per fatturazione clienti
+
+f="zfp" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. forme di pagamento clienti
+
+f="zin" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. addebito spese incasso clienti
+
+f="zln" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. lingue per fatturazione
+
+f="zsf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. spese per fatturazione clienti
+
+f="zst" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi statistiche clienti
+
+f="zsx" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. sconti incrociati
+
+f="zvf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. valori descrizioni per fatturazione clienti
+
+f="zvl" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. valute per fatturazione
+
+
+## DCF ## Gestione dati commerciali fornitori
+
+f="aaf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. dati acquisto prodotto/fornitore
+
+f="aaq" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. dati generali acquisto prodotto
+
+f="dcf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. dati commerciali fornitori 
+
+f="pdt" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. produttori 
+
+f="ybo" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. addebito spese bollo fornitori
+
+f="ydf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi descrizioni per fatturazione fornitori
+
+f="yfp" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. forme di pagamento fornitori
+
+f="yin" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. addebito spese incasso fornitori
+
+f="ysf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. spese per fatturazione fornitori
+
+f="yst" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi statistiche fornitori
+
+f="yvf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. valori descrizioni per fatturazione fornitori
+
+
+## DCP ## Gestione dati commerciali prodotti di vendita
+
+f="dcp" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. commerciale prodotti
+
+f="lst" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. listini prodotti
+
+f="pdx" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. estensioni a descrizioni prodotti
+
+f="zls" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi listino per fatturazione
+
+f="zp1" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi merceologiche prodotti
+
+f="zp2" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. gruppi merceologici prodotti
+
+f="zp3" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. sottogruppi merceologici prodotti
+
+f="zps" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi statistiche prodotti
+
+f="ztv" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi variante per prodotti
+
+f="zum" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. unita' di misura
+
+
+## DPM ## Gestione dati anagrafici materie prime
+
+f="dpm" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. dati produzione materie prime
+
+f="zm1" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi merceologiche materie prime
+
+f="zm2" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. gruppi merceologici materie prime
+
+f="zm3" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. sottogruppi merceologici materie prime
+
+f="zms" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi statistiche materie prime
+
+
+## DPS ## Gestione dati anagrafici semilavorati
+
+f="dps" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. dati produzione semilavorati
+
+f="zs1" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi merceologiche semilavorati
+
+f="zs2" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. gruppi merceologici semilavorati
+
+f="zs3" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. sottogruppi merceologici semilavorati
+
+f="zss" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi statistiche semilavorati
+
+
+## DTP ## Gestione dati tecnici di produzione, distinte base
+
+f="lgr" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. distinte base, righe
+
+f="lgt" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. distinte base, testate
+
+f="lgv" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. distinte base, sub-distinte virtuali
+
+
+## FAB ## Determinazione fabbisogni
+
+f="ztf" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi determinazione fabbisogni
+
+
+## FAT ## Fatturazione a clienti
+
+f="zac" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. descrizioni addebiti/commenti codificati
+
+f="zfi" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi movimento fatturazione clienti
+
+
+## GEO ## Gestione dati geografici
+
+
+## GEP ## Gestione portafoglio attivo
+
+f="cbp" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. casse, banche, c/c postali
+
+f="gep" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. distinte base, sub-distinte virtuali
+
+f="zop" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi operazione gestione portafoglio
+
+f="zpg" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. codici di pagamento
+
+f="zsb" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. calcolo spese bollo su effetti
+
+
+## IIC ## Gestione iva intracomunitaria
+
+
+## MAG ## Gestione magazzino
+
+f="mau" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. ubicazioni magazzino per dipendenza
+
+f="zmc" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. causali per gestione magazzino
+
+f="zmd" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. dislocazioni per gestione magazzino
+
+f="zmm" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. conti merce per gestione magazzino
+
+f="zmu" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi ubicazione per dipendenza
+
+
+## MTV ## Gestione dati anagrafici materiali vari
+
+f="mtv" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## An. dati anagrafici materiali vari
+
+f="zv1" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi merceologiche materiali vari
+
+f="zv2" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. gruppi merceologici materiali vari
+
+f="zv3" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. sottogruppi merceologici materiali vari
+
+f="zvs" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. classi statistiche materiali vari
+
+
+## ORC ## Gestione ordini clienti
+
+f="zcv" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. descrizioni condizioni di vendita
+
+f="zoc" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi movimento ordini clienti
+
+
+## ORF ## Gestione ordini fornitori
+
+f="yca" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. descrizioni condizioni di acquisto
+
+f="yof" ; ln -s /abd/azi/$a/$f /abd/azi/$b/$f ; ## Tb. tipi movimento ordini fornitori
+
+
+## OSC ## Gestione ordini di spedizione
+
+
+## SCF ## Gestione scadenze fornitori
+
+
+## SVF ## Statistiche sul fatturato
+
+
+## VDP ## Gestione versamenti da produzione
+
+######
+# - Fine procedura
+###

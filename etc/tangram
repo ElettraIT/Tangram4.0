@@ -1,0 +1,127 @@
+     ############ /abd/etc/tangram
+     #
+     # Procedura per l'esecuzione di 'Tangram' in foreground
+     #
+     # Ultimo aggiornamento : 28/07/22
+     #
+     ############
+
+######
+# Preparazione esecuzione
+###
+
+#
+# Set della nuova umask
+#
+umask 022;
+
+#
+# Posizionamento sulla directory di base per oggetti
+#
+cd /abd/ogt;
+
+######
+# Preparazione variabili per Acucobol
+###
+
+#
+# Tipo di terminale
+#
+A_TERM="vt300"; export A_TERM;
+
+#
+# File di terminal capabilities
+#
+A_TERMCAP="../run/runcbltec"; export A_TERMCAP;
+
+#
+# File di configurazione Runtime Acucobol
+#
+A_CONFIG="../run/runcblcfg"; export A_CONFIG;
+
+######
+# Preparazione variabili per esecuzione 'TANGRAM'
+###
+
+#
+# Directory di base 'abd'
+#
+V_WIP_HOME="/abd"; export V_WIP_HOME;
+
+#
+# Real User-Id
+#
+V_WIP_USER="`whoami`"; export V_WIP_USER;
+
+#
+# Codice del terminale
+#
+wip_vx71="`tty`";
+wip_vx72="`basename $wip_vx71`";
+
+#
+# Indirizzo IP o, in alternativa, codice terminale
+#
+
+V_WIP_TTYC=$REMOTEHOST;
+
+if [ "$V_WIP_TTYC" == "" ]
+   then V_WIP_TTYC=$wip_vx72;
+elif [ "$V_WIP_TTYC" == "." ]
+   then V_WIP_TTYC=$wip_vx72;
+fi
+
+export V_WIP_TTYC;
+
+#
+# Tipo di terminale utilizzato
+#
+V_WIP_TERM="vt300"; export V_WIP_TERM;
+
+#
+# Tipo di runtime utilizzato : Acucobol
+#
+V_WIP_RUNT="00"; export V_WIP_RUNT;
+
+#
+# Process-ID unico
+#
+V_WIP_GETP="`/abd/run/getpid`"; export V_WIP_GETP;
+
+#
+# Variabile per tipo Desk Accessory
+#
+V_WIP_SUBT=""; export V_WIP_SUBT;
+
+#
+# Codice Azienda (solo batch)
+#
+V_WIP_AZIE=""; export V_WIP_AZIE;
+
+#
+# Codice Utente (solo batch)
+#
+V_WIP_UTEN=""; export V_WIP_UTEN;
+
+#
+# Parametri (solo cgi)
+#
+V_WIP_PRMS=""; export V_WIP_PRMS;
+
+#
+# Variabili POST (solo cgi)
+#
+V_WIP_POST=""; export V_WIP_POST;
+
+######
+# Lancio del runtime Acucobol
+###
+
+#
+# Esecuzione TANGRAM in foreground
+#
+/abd/run/runcbl -x swd/xpg/prg/obj/pxpg0000 "$V_WIP_HOME" "$V_WIP_USER" "$V_WIP_TTYC" "$V_WIP_TERM" "$V_WIP_RUNT" "$V_WIP_GETP" "$V_WIP_SUBT" "$V_WIP_AZIE" "$V_WIP_UTEN" "$V_WIP_PRMS" "$V_WIP_POST";
+
+######
+# - Fine procedura
+###

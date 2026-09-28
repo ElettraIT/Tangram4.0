@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per invio di Fax tramite il *
+# Fax Server Hylafax                      *
+#                                         *
+# t_hfax                                  *
+#                                         *
+#-----------------------------------------*
+
+#=========================================*
+# Modulo Perl Hylafax::Client             *
+#-----------------------------------------*
+use Fax::Hylafax::Client qw(sendfax)      ;
+
+#=========================================*
+# Variabili statiche                      *
+# --------------------------------------- *
+#  - Nome host                            *
+#  - Nome utente                          *
+#-----------------------------------------*
+$host = 'localhost'                       ;
+$user = 'master'                          ;
+$covr = '/abd/asc/mod/cover.ps'           ;
+
+#=========================================*
+# Variabili lette in input                *
+# --------------------------------------- *
+#  - $mitt : E-mail mittente              *
+#  - $dnum : Numero di fax                *
+#  - $stim : Ora di invio                 *
+#            Formato : YYYYMMDDHHMM       *
+#  - $pdoc : Pathname documento           *
+#-----------------------------------------*
+$mitt = $ARGV[0]                          ;
+$dnum = $ARGV[1]                          ;
+$stim = $ARGV[2]                          ;
+$pdoc = $ARGV[3]                          ;
+
+#=========================================*
+# Invio vero e proprio                    *
+#-----------------------------------------*
+my $fax = sendfax(
+     host          => $host,
+     user          => $user,
+     dialstring    => $dnum,
+     docfile       => $pdoc,
+     coverfile     => $covr,
+     notifyaddr    => $mitt,
+     sendtime      => $stim,
+     notify        => 'done',
+     maxtries      => '3',
+     maxdials      => '3',
+     pagewidth     => '210',
+     pagelength    => '297',
+     lasttime      => '000159'
+);

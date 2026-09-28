@@ -1,0 +1,39 @@
+#!/usr/bin/perl -w
+
+# FUNZIONA !!! - attenzione pero' alle librerie XSLT ...
+#
+# Trasforma da XML a HTML e il risultato in PDF con i tool di sistema ...
+# 08/11/2017
+
+
+use File::Basename                        ;
+
+
+my $path = shift;
+
+
+    #--------------------------------------*
+    # Estrazione nome allegato             *
+    #--------------------------------------*
+       (my $fil_nam,
+        my $fil_pat,
+        my $fil_ext) = fileparse($path, qr/\.[^.]*/);
+
+
+
+# per trasformare il risultato in PostScript
+my $syscm = 'html2ps -o '
+          . $fil_nam
+          . '.ps '
+          . $fil_nam
+          . '.html';
+
+system($syscm)                            ;
+
+# per trasformare il risultato in PDF
+$syscm = 'ps2pdf ' 
+       . $fil_nam
+       . '.ps ' 
+       . $fil_nam
+       . '.pdf';
+system($syscm)                            ;

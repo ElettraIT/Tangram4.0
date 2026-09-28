@@ -1,0 +1,155 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl su misura                    *
+#                                          *
+# t_zat_cre_pro                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 09/11/11   *
+#   Ultima revisione:   NdK del 17/06/13   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Il modulo legge il sequenziale prodotto  *
+# da Tangram con 'gpz710' ed emette un     *
+# file nel formato CSV da esportare via    *
+# SFTP ad un Server esterno                *
+#                                          *
+# N.B.: 'pgpz7100' in crontab              *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Basename                        ;
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $host = "195.138.243.55"               ;
+my $user = 'gestionale'                   ;
+my $cert = "/home/master/.ssh/id_rsa"     ;
+
+my $base = '/abd/asc/exp/web/'            ;
+my $bcsv = '/home/gestionale/import/'     ;
+my $dftx = '/abd/ftx/zatti_tc/'           ;
+
+my $fdcp = 'zat_dcp.csv'                  ;
+
+my $ndcp = 'prodotti'                     ;
+my $subd = 'new'                          ;
+
+#==========================================*
+# Variabili di trattamento DATA e ORA      *
+#------------------------------------------*
+#                                          *
+# Utilizzo variabile 'localtime'           *
+#                                          *
+# - 0 : Secondi                            *
+# - 1 : Minuti                             *
+# - 2 : Ora                                *
+# - 3 : Giorno                             *
+# - 4 : Mese                               *
+# - 5 : Anno (Secolo - anno di 3 cifre)    *
+# - 6 : Giorno della settimana             *
+# - 7 : Giorno nell'anno (0..364)          *
+# - 8 : Giorno o notte (true - false)      *
+#------------------------------------------*
+    #--------------------------------------*
+    # Data di sistema (hh) - Ore           *
+    #--------------------------------------*
+    my $ora = sprintf("%02d",
+                     (localtime)[2])      ;
+    #--------------------------------------*
+    # Data di sistema (mm) - Minuti        *
+    #--------------------------------------*
+    my $min = sprintf("%02d",
+                     (localtime)[1])      ;
+    #--------------------------------------*
+    # Data di sistema (AAAA) - Anno (est.) *
+    #--------------------------------------*
+    my $ann = sprintf("%04d",
+                     (localtime)[5]+1900) ;
+    #--------------------------------------*
+    # Data di sistema (AA) - Anno (abbr.)  *
+    #--------------------------------------*
+    my $ana = sprintf("%02d",
+                     (localtime)[5] % 100);    
+    #--------------------------------------*
+    # Data di sistema (MM) - Mese          *
+    #--------------------------------------*
+    my $mes = sprintf("%02d",
+                     (localtime)[4]+1)    ;
+    #--------------------------------------*
+    # Data di sistema (GG) - Giorno        *
+    #--------------------------------------*
+    my $gio = sprintf("%02d",
+                     (localtime)[3])      ;
+
+#==========================================*
+# Messaggi di inizio e fine procedura      *
+#------------------------------------------*
+BEGIN
+{
+    print "Inizio invio prodotti ...\n"   ;
+}
+
+END
+{
+    print "... invio eseguito\n"          ;
+}
+
+#==========================================*
+# Creazione cartella di destinazione       *
+#                                          *
+# Formato nome : xxxx_AAAA_MM_GG.csv       *
+#------------------------------------------*
+
+    #--------------------------------------*
+    # Nome file completo: prodotti         *
+    #--------------------------------------*
+    my $prod = $ndcp
+             . "_"
+             . $ann
+             . "_"
+             . $mes
+             . "_"
+             . $gio
+             . "-"
+             . $ora
+             . "_"
+             . $min
+             . ".csv"                     ;
+    
+    #--------------------------------------*
+    # Preparazione argomenti per chiamata  *
+    #--------------------------------------*
+    my %args = (user => $user,
+            key_path => $cert,
+                more => [qw(-o PreferredAuthentications=publickey)]
+        );
+
+    #--------------------------------------*
+    # Chiamata                             *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Invio file: prodotti                 *
+    #--------------------------------------*
+    my $send = $dftx . $fdcp              ;
+    
+    $sftp->put($send, $bcsv
+                    . $ndcp
+                    . "/"
+                    . $subd
+                    . "/"
+                    . $prod)
+    or die "invio fallito: " . $sftp->error;
+
+#------------------------------------------*
+# Fine procedura                           *
+#==========================================*

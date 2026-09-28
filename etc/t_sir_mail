@@ -1,0 +1,140 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per invio posta MIME::Lite  *
+#                                         *
+# t_sir_mail                              *
+#                                         *
+# SU MISURA PER SIRI                      *
+#                                         *
+# ___ DA COMPLETARE ___                   *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 01/04/04   *
+#   Ultima revisione:  NdK del 03/07/18   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : Percorso lista indirizzi     *
+#                                         *
+#=========================================*
+
+#=========================================*
+# Moduli Perl utilizzati                  *
+#-----------------------------------------*
+use MIME::Lite                            ;
+use Net::SMTP_auth                        ;
+use strict                                ;
+use warnings                              ;
+
+#=========================================*
+# Variabili di configurazione             *
+#-----------------------------------------*
+my $smtphost = 'out1.netclean.it'         ;
+my $smtpport = 25                         ;
+my $smtpuser = 'siri-el'                  ;
+my $smtppass = 'SIR-iel_71'               ;
+
+my $msgFrom    = 'invoice@siri-el.com'    ;
+my $msgSubject = 'Messaggio di prova'     ;
+
+
+my $msgTo      = 'kunovich@protec.it';
+
+
+
+# #################################################################
+# Lets build the MulitPart MIME Message
+# #################################################################
+# Create the Message
+my $msg = MIME::Lite::->new(
+	'To'      => $msgTo,
+	'From'    => $msgFrom,
+	'Subject' => $msgSubject,
+	'Type'    => 'multipart/alternative',
+);
+
+# Create the text part
+my $text_part = MIME::Lite::->new(
+	'Type' => 'text/plain',
+	'Data' => 'Hi\nThis is a test message',
+);
+ 
+# Create the HTML part
+my $html_part = MIME::Lite::->new(
+	'Type' => 'multipart/related',
+);
+
+$html_part->attach(
+	'Type' => 'text/html',
+	'Data' => '
+	
+<h4 style="font-size: 10pt; font-family: Verdana,sans-serif;">
+Gentile Cliente,<br>
+in allegato alla presente inviamo la copia (in formato PDF) della
+fattura relativa alle prestazioni da noi fornite.<br>
+Il presente invio SOSTITUISCE INTEGRALMENTE quello effettuato tramite
+il servizio postale.<br>
+La trasmissione delle fatture in forma elettronica è regolata dalla
+normativa in vigore.<br>
+<br>
+Restando a disposizione per eventuali chiarimenti, porgiamo cordiali
+saluti.<br>
+<br>
+<hr>
+<center>
+<table border="0" cellpadding="1" cellspacing="1" width="100%">
+  <tbody>
+    <tr>
+      <td align="right"><b>dKb snc</b></td>
+      <td rowspan="4" align="center"><img src="http://www.dkb.it/img/mix/Logo50.jpg" width="100"></td>
+      <td>telefono +39 <b>049 8808091</b></td>
+    </tr>
+    <tr>
+      <td align="right">Via Alberto Da Osa 5</td>
+      <td>fax +39 <b>049 8808091</b></td>
+    </tr>
+    <tr>
+      <td align="right">35124 PADOVA - ITALIA</td>
+      <td>P.IVA e C.F. 01296490285</td>
+    </tr>
+    <tr>
+      <td align="right"><a href="http://www.dkb.it">www.dkb.it</a></td>
+      <td><a href="mailto:dkb@dkb.it">dkb@dkb.it</a></td>
+    </tr>
+  </tbody>
+</table>
+</center>
+</h4>
+<hr>
+<h6 style="font-size: 6pt; font-family: Verdana,sans-serif;"> Invio automatico - Sistema Gestionale TANGRAM &copy </h6>
+<a href="http://www.adobe.com/it/products/acrobat/readstep2.html">
+    <img src="http://www.adobe.com/images/shared/download_buttons/get_adobe_reader.gif">
+</a>
+	
+',
+);
+
+# Now lets attach the text and html parts to the message
+$msg->attach($text_part);
+$msg->attach($html_part);
+
+my $email = $msg->as_string();
+
+# #################################################################
+# Lets sent the Message
+# #################################################################
+
+my $smtp = Net::SMTP_auth->new($smtphost, Port=>$smtpport) or die "Can't connect";
+$smtp->auth('PLAIN', $smtpuser, $smtppass) or die "Can't authenticate:".$smtp->message();
+
+$smtp->mail($msgFrom) or die "Error:".$smtp->message();
+$smtp->recipient($msgTo) or die "Error:".$smtp->message();
+
+$smtp->data() or die "Error:".$smtp->message();
+$smtp->datasend($email) or die "Error:".$smtp->message();
+$smtp->dataend() or die "Error:".$smtp->message();
+$smtp->quit or die "Error:".$smtp->message();
+
+exit 0;	
+	

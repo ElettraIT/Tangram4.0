@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta Mail::Sender  *
+#                                          *
+# t_sender_test                            *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Mail::Sender                          ;
+
+my $host = 'smtp.zatti.it'                ;
+my $mitt = 'zatti@zatti.it'               ;
+my $dest = 'dkb@dkb.it'                   ;
+my $user = 'zatti@zatti.it'               ;
+my $pass = 'chopper1957'                  ;
+
+$sender = new Mail::Sender {
+        smtp => $host,
+        from => $mitt,
+        auth => 'LOGIN',
+        authid => $user,
+        authpwd => $pass,
+        on_errors => undef,
+}
+        or die "Non posso creare il messaggio: $Mail::Sender::Error\n";
+$sender->Open({
+        to => $dest,
+        subject => 'Messaggio di prova t_sender',
+})
+        or die "Non riesco ad aprire: $sender->{'error_msg'}\n";
+$sender->SendLineEnc("Prova\nCiao");
+$sender->Close()
+        or die "Errore: $sender->{'error_msg'}\n";
+

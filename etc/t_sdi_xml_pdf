@@ -1,0 +1,108 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per aggiungere un allegato  *
+# PDF Base64 ad una Fattura Elettronica   *
+# gia' preparata presumendo che anche il  *
+# PDF sia gia' stato preparato            *
+# --------------------------------------- *
+# Versione originale:  001 del 21/05/26   *
+#   Ultima revisione:  NdK del 21/05/26   *
+#=========================================*
+use strict;
+use warnings;
+use MIME::Base64 qw(encode_base64);
+use XML::LibXML;
+
+#=========================================*
+# 1. Configurazione dei percorsi dei file *
+#                                         *
+# ATTUALMENTE PATH FISSI DI PROVA !!!     *
+#-----------------------------------------*
+my $xml_input_file  = '/abd/asc/ele/fat/xml/2026/IT00629080284_I0154.xml';
+my $pdf_input_file  = '/abd/asc/ele/pdf/ele_26_154.pdf';
+my $xml_output_file = '/abd/asc/ele/fat/xml/2026/new_IT00629080284_I0154.xml';
+my $pdf_name_in_xml = 'ele_26_154.pdf';
+
+#=========================================*
+# 2. Lettura e codifica del file PDF in   *
+#    Base64                               *
+#-----------------------------------------*
+open(my $pdf_fh, '<:raw', $pdf_input_file)
+    or die "Impossibile aprire il PDF '$pdf_input_file': $!";
+
+my $pdf_content;
+{
+    local $/;
+    $pdf_content = <$pdf_fh>;
+}
+close($pdf_fh);
+
+#=========================================*
+# Converte in Base64 senza ritorni a capo *
+#-----------------------------------------*
+my $pdf_base64 = encode_base64($pdf_content, '');
+
+#=========================================*
+# 3. Parsing del file XML originale       *
+#-----------------------------------------*
+my $dom = XML::LibXML->load_xml(
+    location => $xml_input_file
+);
+
+#=========================================*
+# 4. Individua il nodo <FatturaElettroni- *
+#    caBody>                              *
+#-----------------------------------------*
+my ($body_node) = $dom->findnodes('//*[local-name()="FatturaElettronicaBody"]');
+
+die "Nodo FatturaElettronicaBody non trovato nel file XML\n"
+    unless $body_node;
+
+#=========================================*
+# 5. Rimuove eventuali blocchi <Allegati> *
+#    gia' presenti nel body per evitare   *
+#    duplicati se lo script viene esegui- *
+#    to più volte                         *
+#-----------------------------------------*
+foreach my $old_allegato ($body_node->findnodes('./*[local-name()="Allegati"]')) {
+    $body_node->removeChild($old_allegato);
+}
+
+#=========================================*
+# 6. Creazione della struttura <Allegati> *
+#-----------------------------------------*
+my $allegati_node = $dom->createElement('Allegati');
+
+my $nome_node = $dom->createElement('NomeAttachment');
+$nome_node->appendText($pdf_name_in_xml);
+$allegati_node->appendChild($nome_node);
+
+my $formato_node = $dom->createElement('FormatoAttachment');
+$formato_node->appendText('PDF');
+$allegati_node->appendChild($formato_node);
+
+my $attachment_node = $dom->createElement('Attachment');
+$attachment_node->appendText($pdf_base64);
+$allegati_node->appendChild($attachment_node);
+
+#=========================================*
+# 7. Inserimento del blocco <Allegati>    *
+#    dentro <FatturaElettronicaBody>      *
+#    Deve stare prima della chiusura di   *
+#    </FatturaElettronicaBody>            *
+#-----------------------------------------*
+$body_node->appendChild($allegati_node);
+
+#=========================================*
+# 8. Salvataggio del nuovo file XML       *
+#-----------------------------------------*
+open(my $xml_out_fh, '>:encoding(UTF-8)', $xml_output_file)
+    or die "Impossibile scrivere il file finale '$xml_output_file': $!";
+
+print $xml_out_fh $dom->toString(1);
+close($xml_out_fh);
+
+#=========================================*
+# 9. Output facoltativo                   *
+#-----------------------------------------*
+print "Operazione completata con successo! Creato il file: $xml_output_file\n";

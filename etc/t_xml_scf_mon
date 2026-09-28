@@ -1,0 +1,364 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per monitorare una directory *
+#                                          *
+# monitor_dir_0                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 05/02/19   *
+#   Ultima revisione:   wip del 05/02/19   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ___ FUNZIONA MA NON UTILIZZATO ___       *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use strict                                ;
+use warnings                              ;
+use File::Copy                            ;
+use File::Monitor                         ;
+use File::Basename                        ;
+use XML::Simple                           ;
+use utf8                                  ;
+use Unicode::Normalize                    ;
+use Time::HiRes qw {usleep}               ;
+
+#==========================================*
+# Configurazione                           *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_xml_scf_mon.ini";
+my %cnf_ele = do $cfg_bas                 ;
+my $pth_scf = $cnf_ele{pth_scf}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_tmp = $cnf_ele{pth_tmp}           ;
+my $exe_sys = $cnf_ele{exe_sys}           ;
+
+my $cod_azi = shift                       ;
+
+my $dir_xml = $pth_bas
+            . $cod_azi
+            . "/"
+            . $pth_scf                    ;
+
+#==========================================*
+# Monitor                                  *
+#------------------------------------------*
+my $monitor = File::Monitor->new()        ;
+$monitor->watch(
+{
+    name        => $dir_xml,
+    recurse     => 1,
+    callback    => {files_created => \&add_fil},
+}
+);
+
+#==========================================*
+# Scan                                     *
+#------------------------------------------*
+$monitor->scan                            ;
+
+#==========================================*
+# Loop                                     *
+#------------------------------------------*
+while (1)
+{
+    $monitor->scan                        ;
+    sleep(2)                              ;
+}
+
+#=========================================*
+# Subroutines                             *
+#=========================================*
+
+#=========================================*
+# Subroutine trattamento file aggiunto    *
+#-----------------------------------------*
+sub add_fil
+{
+    my ($wch_nam, $event, $change) = @_; 
+
+    my @new_fil = $change->files_created;
+    for my $pth_new (@new_fil)
+    {
+        my ($fil_bas, $fname, $fil_ext) = fileparse($pth_new, qr/\.[^.]*/);
+        
+        my $fil_bs1 = substr($fil_bas, 0, 1);
+        my $fil_bs2 = substr($fil_bas, 0, 2);
+        
+        
+        if ($fil_ext eq '.xml' || $fil_ext eq '.p7m')
+        {
+            if ($fil_bs1 ne "." && $fil_bs2 ne "._")
+            {
+                &new_doc($pth_new)        ;
+            }
+        }
+    }
+}
+
+#==========================================*
+# Trattamento nuovo documento              *
+#------------------------------------------*
+sub new_doc 
+{
+    #--------------------------------------*
+    # File in input                        *
+    #--------------------------------------*
+    my $pth_fil = shift                   ;
+    #--------------------------------------*
+    # Estrazione nome file                 *
+    #--------------------------------------*
+    (my $fil_nam,
+     my $fil_pat,
+     my $fil_ext) = fileparse($pth_fil, qr/\.[^.]*/);
+    #--------------------------------------*
+    # Percorso temporaneo                  *
+    #--------------------------------------*
+    my $fil_pth = $pth_fil                ;
+    my $new_pth = $pth_tmp
+                . $fil_nam
+                . $fil_ext                ;
+    #--------------------------------------*
+    # Copia del file nella cartella dei    *
+    # file temporanei                      *
+    #--------------------------------------*
+    copy($fil_pth, $new_pth) or die
+	 "Copia del file $fil_pth fallita: $!"  ;
+    #--------------------------------------*
+    # Eventuale estrazione preliminare se  *
+    # estensione 'p7m'                     *
+    #--------------------------------------*
+    if ($fil_ext eq ".p7m")
+    {
+        #------------------------------*
+        # Nuovo path                   *
+        #------------------------------*
+        my $new_xml = $pth_tmp . $fil_nam;
+        #------------------------------*
+        # Comando di estrazione        *
+        #------------------------------*
+        my $sys_cmd = "openssl smime -verify "
+            . "-noverify -in $new_pth "
+            . "-inform DER -out "
+            . $new_xml                ;
+        #------------------------------*
+        # Esecuzione                   *
+        #------------------------------*
+        system($sys_cmd . "  >/dev/null 2>&1");
+        #------------------------------*
+        # Assegnazione nome file       *
+        #------------------------------*
+        $fil_pth = $new_xml           ;
+    }
+    #----------------------------------*
+    # Lettura dati singolo file        *
+    #----------------------------------*
+    my @rea_dat = &rea_doc($fil_pth)  ;
+    
+    
+    if ($fil_ext eq ".xml")
+    {
+        $fil_nam = $fil_nam . $fil_ext;
+    }
+    #----------------------------------*
+    # Scrittura su file di output      *
+    #----------------------------------*
+    &car_dat($fil_nam, @rea_dat)      ;
+}
+
+#==========================================*
+# Determinazione dati dal documento        *
+#------------------------------------------*
+sub rea_doc 
+{
+    #--------------------------------------*
+    # File in input                        *
+    #--------------------------------------*
+    my $pth_rea = shift                   ;
+    #--------------------------------------*
+    # Caricamento file                     *
+    #--------------------------------------*
+    my $xml = XML::Simple->new()          ;
+    my $data = XMLin($pth_rea)            ;
+    #--------------------------------------*
+    # Partita Iva cedente                  *
+    #--------------------------------------*
+    my $pmt_doc = $data->{FatturaElettronicaHeader}
+                       ->{CedentePrestatore}
+                       ->{DatiAnagrafici}
+                       ->{IdFiscaleIVA}   ;
+    my $prt_iva = $pmt_doc->{IdCodice}    ;
+    #--------------------------------------*
+    # Ragione sociale cedente              *
+    #--------------------------------------*
+       $pmt_doc = $data->{FatturaElettronicaHeader}
+                       ->{CedentePrestatore}
+                       ->{DatiAnagrafici}
+                       ->{Anagrafica}     ;
+    my $rag_soc = $pmt_doc->{Denominazione};
+    #
+    if($rag_soc)
+    {
+        my $rag_wrk = NFKD($rag_soc)      ;
+           $rag_wrk =~ s/\p{NonspacingMark}//g;
+           $rag_soc = $rag_wrk            ;
+    }
+     else
+    {
+           $rag_soc = "???"               ;
+    }
+    #--------------------------------------*
+    # Cognome cedente (se persona fisica)  *
+    #--------------------------------------*
+       $pmt_doc = $data->{FatturaElettronicaHeader}
+                       ->{CedentePrestatore}
+                       ->{DatiAnagrafici}
+                       ->{Anagrafica}     ;
+    my $cog_nom = $pmt_doc->{Cognome}     ;
+    #
+    if($cog_nom)
+    {
+        my $cog_wrk = NFKD($cog_nom)      ;
+           $cog_wrk =~ s/\p{NonspacingMark}//g;
+           $cog_nom = $cog_wrk            ;
+    }
+     else
+    {
+           $cog_nom = "???"               ;
+    }
+    #--------------------------------------*
+    # Utilizzare o l'uno o l'altro         *
+    # ___                                  *
+    #--------------------------------------*
+    if($cog_nom && $rag_soc eq "???")
+    {
+        $rag_soc = $cog_nom               ;
+    }
+    #--------------------------------------*
+    # Riempimento con '_'                  *
+    #--------------------------------------*
+    $rag_soc=~s/ /_/g                     ;    
+    #--------------------------------------*
+    # Data documento                       *
+    #--------------------------------------*
+       $pmt_doc = $data->{FatturaElettronicaBody}
+                       ->{DatiGenerali}
+                       ->{DatiGeneraliDocumento};
+    my $dat_doc = $pmt_doc->{Data}        ;
+    my $dat_fmt = &dat_out($dat_doc)      ;
+    #--------------------------------------*
+    # Numero documento                     *
+    #--------------------------------------*
+       $pmt_doc = $data->{FatturaElettronicaBody}
+                       ->{DatiGenerali}
+                       ->{DatiGeneraliDocumento};
+    my $num_doc = $pmt_doc->{Numero}      ;
+    #--------------------------------------*
+    # Valori restituiti                    *
+    #--------------------------------------*
+    my @val_dat                           ;
+    push (@val_dat, $prt_iva)             ;
+    push (@val_dat, $dat_fmt)             ;
+    push (@val_dat, $num_doc)             ;
+    push (@val_dat, $rag_soc)             ;
+    return @val_dat                       ;
+    #--------------------------------------*
+    # Fine subroutine 'rea_doc'            *
+    #======================================*
+}
+
+#=========================================*
+# Subroutine per caricamento dati in      *
+# Tangram                                 *
+#-----------------------------------------*
+sub car_dat
+{
+    #--------------------------------------*
+    # Dati in input                        *
+    #--------------------------------------*
+    my $wrt_fil = shift                   ;
+    my @wrt_dat = @_                      ;
+    #--------------------------------------*
+    # Normalizzazione preliminare          *
+    #--------------------------------------*
+    my $wrt_idx = ''                      ;
+    my $wrt_val = ''                      ;
+    my $sys_cmd = ''                      ;
+    my $inx = 0                           ;
+    #--------------------------------------*
+    # Ciclo di scrittura                   *
+    #                                      *
+    # '1' = filename                       *
+    # '2' = filename + data documento      *
+    # '3' = filename + numero documento    *
+    # '4' = filename + partita iva         *
+    # '5' = filename + ragione sociale     *
+    #--------------------------------------*
+    foreach $inx (1..5)
+    {
+        if ($inx == 1)
+        {
+            $wrt_idx = $wrt_fil           ;
+            $wrt_val = ''                 ;
+        }
+         elsif ($inx == 2)
+        {
+            $wrt_idx = $wrt_fil           ;
+            $wrt_val = $wrt_dat[1]        ;
+        }
+         elsif ($inx == 3)
+        {
+            $wrt_idx = $wrt_fil           ;
+            $wrt_val = $wrt_dat[2]        ;
+        }
+         elsif ($inx == 4)
+        {
+            $wrt_idx = $wrt_fil           ;
+            $wrt_val = $wrt_dat[0]        ;
+        }
+         elsif ($inx == 5)
+        {
+            $wrt_idx = $wrt_fil           ;
+            $wrt_val = $wrt_dat[3]        ;
+        }
+        #---------------------------------*
+        # Esecuzione                      *
+        #---------------------------------*
+        $sys_cmd = "$exe_sys $cod_azi $inx#$wrt_idx#$wrt_val";
+        
+        print $sys_cmd . "\n";
+        
+        system($sys_cmd . "  >/dev/null 2>&1");
+    }
+}
+
+#=========================================*
+# Trattamento date in output              *
+#-----------------------------------------*
+sub dat_out
+{
+    #-------------------------------------*
+    # Valore in input                     *
+    #-------------------------------------*
+    my $dato = shift                      ;
+    #-------------------------------------*
+    # Data - formato TANGRAM              *
+    #-------------------------------------*
+    my @dats = split(/-/, $dato)          ;
+    my $gior = $dats[2]                   ;
+    my $mese = $dats[1]                   ;
+    my $anno = $dats[0]-1900              ;
+    my $dout = $anno . $mese . $gior      ;
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $dout                          ;
+}
+

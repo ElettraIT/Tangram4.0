@@ -1,0 +1,81 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per spostare i file XML da   *
+# cartella 'lat' a 'lat_conservazione'     *
+#                                          *
+# t_nob_lat_lst                            *
+#                                          *
+# SU MISURA PER NOBILI                     *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 31/01/19   *
+#   Ultima revisione:   wip del 31/01/19   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Copy                            ;
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di lavoro                      *
+#------------------------------------------*
+my $dir_xml = "/abd/asc/nob/lat/"         ;
+my $dir_new = "/abd/asc/nob/lat_conservazione/";
+        
+#==========================================*
+# Ciclo di scansione cartella              *
+#------------------------------------------*
+opendir(DIR, $dir_xml)                    ;
+my @dir=grep { !/^\.+$/ } readdir(DIR)    ;
+closedir(DIR)                             ;
+
+#==========================================*
+# Scansione elenco dei file                *
+#------------------------------------------*
+foreach my $fil_dir (@dir)
+{
+    #--------------------------------------*
+    # Skip directory                       *
+    #--------------------------------------*
+    if(-d $fil_dir)
+    { next;}                              ;
+    #--------------------------------------*
+    # Skip dei file "."                    *
+    #--------------------------------------*
+    if($fil_dir eq "." || $fil_dir eq "..")
+    { next;}                              ;
+    #--------------------------------------*
+    # Skip dei file che iniziano  "._"     *
+    #--------------------------------------*
+    my $prffil = substr($fil_dir,0,2)     ;
+    if($prffil eq "._")
+    { next;}                              ;
+    #--------------------------------------*
+    # Test che non sia una directory il    *
+    # file trattato                        *
+    #--------------------------------------*
+    if (! -d $fil_dir)
+    {
+        #----------------------------------*
+        # Creazione path completi          *
+        #----------------------------------*
+        my $fil_pth = $dir_xml . $fil_dir ;
+        my $new_pth = $dir_new . $fil_dir ;
+        #----------------------------------*
+        # Spostamento                      *
+        #----------------------------------*
+	 move($fil_pth, $new_pth) or die
+	     "Spostamento file fallita: $!";
+    }
+}
+

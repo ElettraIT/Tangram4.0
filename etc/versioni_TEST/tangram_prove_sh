@@ -1,0 +1,150 @@
+     ############ /abd/etc/tangram
+     #
+     # Procedura per l'esecuzione di 'Tangram' in foreground
+     #
+     # Ultimo aggiornamento : 26/11/10
+     #
+     ############
+
+######
+# Preparazione esecuzione
+###
+
+#
+# Set della nuova umask
+#
+umask 022;
+
+#
+# Posizionamento sulla directory di base per oggetti
+#
+cd /abd/ogt;
+
+######
+# Preparazione variabili per Acucobol
+###
+
+#
+# Tipo di terminale
+#
+A_TERM="vt300"; export A_TERM;
+
+#
+# File di terminal capabilities
+#
+A_TERMCAP="../run/runcbltec"; export A_TERMCAP;
+
+#
+# File di configurazione Runtime Acucobol
+#
+A_CONFIG="../run/runcblcfg"; export A_CONFIG;
+
+######
+# Preparazione variabili per esecuzione 'TANGRAM'
+###
+
+#
+# Directory di base 'abd'
+#
+V_DKB_HOME="/abd"; export V_DKB_HOME;
+
+#
+# Real User-Id
+#
+V_DKB_USER="`whoami`"; export V_DKB_USER;
+
+#
+# Codice del terminale
+#
+dkb_vx71="`tty`";
+dkb_vx72="`basename $dkb_vx71`";
+
+#
+# Indirizzo IP o, in alternativa, codice terminale
+#
+
+V_DKB_TTYC=$REMOTEHOST;
+
+if [ "$V_DKB_TTYC" == "" ]
+   then V_DKB_TTYC=$dkb_vx72;
+elif [ "$V_DKB_TTYC" == "." ]
+   then V_DKB_TTYC=$dkb_vx72;
+fi
+
+export V_DKB_TTYC;
+
+#
+# Tipo di terminale utilizzato
+#
+V_DKB_TERM="vt300"; export V_DKB_TERM;
+
+#
+# Tipo di runtime utilizzato : Acucobol
+#
+V_DKB_RUNT="00"; export V_DKB_RUNT;
+
+#
+# Process-ID unico
+#
+V_DKB_GETP="`/abd/run/getpid`"; export V_DKB_GETP;
+
+#
+# Variabile per tipo Desk Accessory
+#
+V_DKB_SUBT=""; export V_DKB_SUBT;
+
+#
+# Codice Azienda (solo batch)
+#
+V_DKB_AZIE=""; export V_DKB_AZIE;
+
+#
+# Codice Utente (solo batch)
+#
+V_DKB_UTEN=""; export V_DKB_UTEN;
+
+#
+# Parametri (solo cgi)
+#
+V_DKB_PRMS=""; export V_DKB_PRMS;
+
+#
+# Variabili POST (solo cgi)
+#
+V_DKB_POST=""; export V_DKB_POST;
+
+######
+# Lancio del runtime Acucobol
+###
+
+#
+# Esecuzione TANGRAM in foreground
+#
+/abd/run/runcbl -x swd/xpg/prg/obj/pxpg0000 "$V_DKB_HOME" "$V_DKB_USER" "$V_DKB_TTYC" "$V_DKB_TERM" "$V_DKB_RUNT" "$V_DKB_GETP" "$V_DKB_SUBT" "$V_DKB_AZIE" "$V_DKB_UTEN" "$V_DKB_PRMS" "$V_DKB_POST";
+
+######
+# - DEBUG
+######
+#echo "$V_DKB_HOME";
+#echo "$V_DKB_USER";
+#echo "$V_DKB_TTYC";
+#echo "$V_DKB_TERM";
+#echo "$V_DKB_RUNT";
+#echo "$V_DKB_GETP";
+#echo "$V_DKB_SUBT";
+#echo "$V_DKB_AZIE";
+#echo "$V_DKB_UTEN";
+#echo "$V_DKB_PRMS";
+#echo "$V_DKB_POST";
+#echo "$REMOTEHOST";
+#echo "$dkb_vx73";
+######
+# - PROVE
+######
+# a=`who -u`;
+# b=${a:54:11};
+# echo $b;
+
+######
+# - Fine procedura
+###

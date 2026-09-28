@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+# 2. Invio di posta funzionante con : Perl
+
+use strict;
+# use Net::SMTP;
+use Mail::Sendmail;
+use Net::SMTP::SSL;
+
+my $message = "From: zatti\@zatti.it\nTo:dkb\@dkb.it\nSubject: Prova di Nicola\n\nTest\n\n";
+print "Message:\n";
+print $message;
+print "\n";
+
+my $DEBUG = 1;
+
+my $ServerName = "smtp.zatti.it";
+# my $ServerName = "smtps.aruba.it";
+my $ServerAccount = "zatti\@zatti.it";
+my $ServerPwd = "chopper1957";
+my $MailFrom = "zatti\@zatti.it";
+my $MailTo = "dkb\@dkb.it";
+
+print "Server variables assigned\n";
+
+my $smtp = Net::SMTP::SSL->new($ServerName, Port => 465, User => $ServerAccount, Password => $ServerPwd, Debug => 1);
+die "Couldn't connect to server" unless $smtp;
+print "Server connection opened\n";
+
+if ( !$smtp->auth($ServerAccount, $ServerPwd) ) {
+print "authentication failed or not needed\n";
+}
+
+if ( !$smtp->mail( $MailFrom ) ) {
+print "sender not accepted\n";
+exit 1;
+}
+
+if (!$smtp->to( $MailTo ) ) {
+print "address not accepted\n";
+exit 1;
+}
+
+print "Server variables checked\n";
+
+my $maildata = $message;
+$smtp->data();
+$smtp->datasend( $maildata );
+$smtp->dataend();
+$smtp->quit();
+$smtp->quit;
+
+print "Finished sending email\n";

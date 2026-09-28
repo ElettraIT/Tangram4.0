@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+# 8.6.1998, Sampo Kellomaki <sampo@iki.fi>
+# Get a page via HTTP and print some info about it.
+# Demonstrates how to generate password header
+
+use Net::SSLeay  qw(get_https make_headers);
+use MIME::Base64;
+
+$user = "admin.zatti";
+$pass = "e624910749";
+$site = "florissima.dyndns.org";
+$port = "443";
+$path = "/florissima/getimage?class=de.florissima.data.erp.items.FlArtikel&id=101051019&thumbnail=false";
+
+($page, $result, %headers) =
+    get_https($site, $port, $path,
+	      make_headers('Authorization' =>
+			   'Basic ' . MIME::Base64::encode("$user:$pass"))
+	      );
+
+print "Result was `$result'\n";
+foreach $h (sort keys %headers) {
+    print "Header `$h'\tvalue `$headers{$h}'\n";
+}
+
+print "=================== Parameters ==================\n";
+
+print $user . "\n";
+print $pass . "\n";
+print $site . "\n";
+print $port . "\n";
+print $path . "\n";
+
+print "=================== Page follows =================\n";
+
+
+print $page;

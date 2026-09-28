@@ -1,0 +1,154 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl - SU MISURA PER ZATTI        *
+#                                          *
+# t_zat_gtv710                             *
+#                                          *
+# Script di appoggio per il programma      *
+# batch di caricamento ordini da termina-  *
+# lino Raccolta Ordini                     *
+#                                          *
+# Agenti 1, 19, 25, 31, 34, 35, 44, 45     *
+#                                          *
+# Ultimo aggiornamento 18/05/06            *
+#                                          *
+# OBSOLETO                                 *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Net::FTP                              ;
+use MIME::Lite                            ;
+
+#==========================================*
+# Variabili statiche                       *
+# ---------------------------------------- *
+#  - Pathname di base per i file           *
+#  - Server di posta                       *
+#------------------------------------------*
+$pth = '/abd/asc/imp/'                    ;
+$isp = 'mail.191.biz'                     ;
+
+#==========================================*
+# Connessione al server                    *
+#------------------------------------------*
+$ftp = Net::FTP->new("192.168.253.1", Debug => 0)
+  or die "Connessione al server non riuscita";
+
+#==========================================*
+# Login                                    *
+#------------------------------------------*
+$ftp->login("master",'alter1')
+  or die "Login non riuscito ", $ftp->message;
+
+#==========================================*
+# Cambio direttorio                        *
+#------------------------------------------*
+$ftp->cwd("/srv/www/utente/t4p_web/")
+  or die "Cambiamento directory non riuscito ", $ftp->message;
+
+#==========================================*
+# Comando 'binary'                         *
+#------------------------------------------*
+eval {$ftp->binary or die "Comando 'binary' non riuscito ", $ftp->message;};
+
+#==========================================*
+# Lettura file 'DOCUM'                     *
+#                                          *
+# Uno per ciascun agente                   *
+#                                          *
+# Agenti 1, 19, 25, 31, 34, 35, 44, 45     *
+#------------------------------------------*
+
+$age = "001"                              ;
+&esegui                                   ;
+$age = "019"                              ;
+&esegui                                   ;
+$age = "025"                              ;
+&esegui                                   ;
+$age = "031"                              ;
+&esegui                                   ;
+$age = "034"                              ;
+&esegui                                   ;
+$age = "035"                              ;
+&esegui                                   ;
+$age = "044"                              ;
+&esegui                                   ;
+$age = "045"                              ;
+&esegui                                   ;
+
+#==========================================*
+# Fine FTP                                 *
+#------------------------------------------*
+$ftp->quit;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+
+#==========================================*
+# Subroutine per esecuzione                *
+#------------------------------------------*
+sub esegui
+{
+#   *--------------------------------------*
+#   * Test se trovato il file              *
+#   *--------------------------------------*
+    eval {$ftp->get("DOCUM." 
+         . $age, $pth . "DOCUM." 
+         . $age) or die "Lettura " 
+         . $age . " fallita ", $ftp->message;};
+#   *--------------------------------------*
+#   * Test                                 *
+#   *--------------------------------------*
+    if ($@ eq "")
+    {
+#       *----------------------------------*
+#       * Rinomina file in server remoto   *
+#       *----------------------------------*
+#        eval {$ftp->rename("DOCUM." 
+#             . $age,"DOCUM." 
+#             . $age . ".SAV") or die "Rename $age fallita ", $ftp->message;};
+#       *----------------------------------*
+#       * Notifica                         *
+#       *                                  *
+#       * Attualmente inibita              *
+#       *----------------------------------*
+####    &mail                             ;
+#       *----------------------------------*
+#       * Esecuzione modulo Tangram        *
+#       *----------------------------------*
+        my $command = "/abd/etc/pgtv7100 " .$age   ;
+        system ($command);
+    }
+}
+
+#==========================================*
+# Subroutine per e-mail                    *
+#------------------------------------------*
+sub mail
+{
+    my $sbj = "Ordine da " . $age         ;
+    $msg = MIME::Lite->new(
+        From    =>'dkb@dkb.it',
+        To      =>'dkb@dkb.it',
+        Subject =>$sbj,
+        Type    =>'multipart/mixed'
+    );
+
+    open (DOCUM, "<$pth" . "DOCUM." . $age) or die "Impossibile aprire il file " . $pth . "DOCUM." . $age;
+    @testo=<DOCUM>                        ;
+    close DOCUM                           ;
+    $testo = qq{@testo}                   ;
+
+    $msg->attach(Type => 'text/html',
+                 Data => $testo
+                 );
+    $msg->send('smtp', $isp, Timeout=>60);
+}
+
+
+
+

@@ -1,0 +1,51 @@
+#!/usr/bin/perl -w
+
+# non funsia : ma per prove dati e non immagine
+
+use strict;
+use WWW::Mechanize;
+use HTTP::Cookies;
+
+my $url = "https://florissima.dyndns.org/florissima/partner/items/listItems.do?javascript=true";
+my $username = "admin.zatti";
+my $password = "e624910749";
+my $mech = WWW::Mechanize->new();
+$mech->cookie_jar(HTTP::Cookies->new());
+$mech->get($url);
+$mech->form_name('LOGIN');
+$mech->field(j_username => $username);
+$mech->field(j_password => $password);
+$mech->click();
+#$mech->follow_link(text => "Anmelden", n => 1);
+
+# PRODOTTO : 101048019
+
+my $item = "101048019";
+my $outfile = "/abd/asc/tmp/101048019.txt";
+$url = "https://florissima.dyndns.org/florissima/partner/items/viewItemDetails.do?id=" . $item . "&javascript=true";
+$mech->get($url);
+
+
+    my $c = $mech->content;
+
+    $c =~ m{<A NAME=.tabA.>(.*?)</TABLE>}s
+      or die "Can't find the population table\n";
+    my $t = $1;
+    my @outer = $t =~ m{<TR.*?>(.*?)</TR>}gs;
+    shift @outer;
+    foreach my $r (@outer) {
+      my @bits = $r =~ m{<TD.*?>(.*?)</TD>}gs;
+      for (my $x = 0; $x < @bits; $x++) {
+        my $b = $bits[$x];
+        my @v = split /\s*<BR>\s*/, $b;
+        foreach (@v) { s/^\s+//; s/\s+$// }
+        print @v;
+      }
+    }
+
+
+my $output_page = $mech->content();
+open(OUTFILE, ">$outfile");
+print OUTFILE "$output_page";
+close(OUTFILE);
+

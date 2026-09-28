@@ -1,0 +1,133 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per generare un file 'html'  *
+# da un file 'xml'                         *
+#                                          *
+# t_xml2html                               *
+#                                          *
+# N.B.: Utilizzato da 'pfat420c'           *
+#                e da 'pscf420c'           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 01/06/21    *
+#   Ultima revisione:  NdK del 20/06/22    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#                                          *
+#            - Area gestionale (fat,       *
+#                               scf,       *
+#                               est)       *
+#                                          *
+#            - Anno documento (AAAA)       *
+#                                          *
+#            - percorso file 'xml'         *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use File::Basename                        ;
+use XML::LibXSLT                          ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $cod_azi = shift                       ;
+my $are_ges = shift                       ;
+my $ann_doc = shift                       ;
+my $pth_xml = shift                       ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$cod_azi || $cod_azi eq "-help")
+{
+    system ("clear")                      ;
+    print "\n"
+        . "============================="
+        . "\n"
+        . "USO     :"
+        . "\n"
+        . "> t_xml2html azi"
+        . " area_gestionale "
+        . " anno_documento "
+        . " percorso_file.xml"
+        . "\n"
+        . "\n"
+        . "-----------------------------"
+        . "\n"
+        . "RELEASE : 02/03/2022"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "============================="
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di configurazione base         *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/"
+            . "t_xml2html.ini"            ;
+#
+my %cnf_ele = do $cfg_bas                 ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_arc = $cnf_ele{pth_arc}           ;
+my $fat_xsl = $cnf_ele{fat_xsl}           ;
+my $for_xsl = $cnf_ele{for_xsl}           ;
+my $pth_xsl = ""                          ;
+
+#==========================================*
+# Foglio di Stile in base all'area         *
+#------------------------------------------*
+if($are_ges eq 'fat')
+    {$pth_xsl = $fat_xsl;}
+else
+    {$pth_xsl = $for_xsl;}                ;
+
+#==========================================*
+# Estrazione nome file                     *
+#------------------------------------------*
+(my $fil_nam,
+ my $fil_pat,
+ my $fil_ext) = fileparse($pth_xml, qr/\.[^.]*/);
+
+#==========================================*
+# File di output                           *
+#------------------------------------------*
+my $out_htm = $pth_bas
+            . $cod_azi
+            . "/"
+            . $are_ges
+            . "/"
+            . $pth_arc
+            . "/"
+            . $ann_doc
+            . "/"
+            . $fil_nam
+            . ".html"                     ;
+
+#==========================================*
+# DEBUG                                    *
+#------------------------------------------*
+# print "out_htm = " . $out_htm . "\n"    ;
+# print "pth_xsl = " . $pth_xsl . "\n"    ;
+
+#==========================================*
+# Generazione 'html'                       *
+#------------------------------------------*
+my $new_xsl = XML::LibXSLT->new           ;
+my $new_htm = $new_xsl->parse_stylesheet_file($pth_xsl);
+my $res_htm = $new_htm->transform_file($pth_xml);
+   $new_htm->output_file($res_htm, $out_htm);
+   
+

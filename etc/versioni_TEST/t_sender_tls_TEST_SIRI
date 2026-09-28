@@ -1,0 +1,61 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta con autenti-  *
+# cazione TLS                              *
+#                                          *
+# t_sender_tls TEST                        *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Net::SMTP::TLS;
+
+my $srvr = 'siriel-com01b.mail.protection.outlook.com';
+my $user = 'siri-el';
+my $pass = 'SIR-iel_71';
+my $mitt = 'fatture@siri-el.com';
+my $dest = 'wip@wip-info.it.it';
+my $testo = 'CONTENUTO MESSAGGIO';
+
+
+
+    #--------------------------------------*
+    # Normalizzazione preliminare          *
+    #--------------------------------------*
+    my $smtp                              ;
+
+    #--------------------------------------*
+    # Invio vero e proprio                 *
+    #--------------------------------------*
+    if (not $smtp = Net::SMTP::TLS->new($srvr,
+                              Port => 25,
+                              User  => $user,
+                              Password=> $pass,
+                              Debug => 1))
+       {
+           die "Connessione al server "
+             . "fallita\n"                ;
+       }
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+    $smtp->auth($user, $pass)
+     || die "Autenticazione fallita!\n"   ;
+
+    $smtp->mail($mitt)                    ;
+    $smtp->to($dest)                      ;
+    $smtp->data();
+    $smtp->datasend("To: " . $dest . "\n")  ;
+    $smtp->datasend("Subject: PROVA\n")   ;
+
+    #--------------------------------------*
+    # Chiusura invio                       *
+    #--------------------------------------*
+    $smtp->datasend("\n")                 ;
+    $smtp->datasend("Content-Type: text/html; charset=UTF-8\n\n");
+    $smtp->datasend($testo . "\n")        ;
+    $smtp->dataend()                      ;
+    $smtp->quit                           ;

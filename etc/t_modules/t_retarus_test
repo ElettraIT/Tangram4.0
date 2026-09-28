@@ -1,0 +1,194 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# Retarus                                  *
+#                                          *
+# t_retaurs_test PER FARE PROVE ____       *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 13/04/07    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - host di ricevimento         *
+#                                          *
+#            - username                    *
+#                                          *
+#            - password                    *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::FTP                              ;
+use MIME::Lite                            ;
+use DBI()                                 ;
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $host = shift                           ;
+my $user = shift                           ;
+my $pass = shift                           ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$host || !$user || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_retaurs_in HOST "
+        . "USERNAME "
+        . "PASSWORD "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $path = "/abd/asc/exp"                 ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dhst = "localhost"                    ;
+my $dusr = "root"                         ;
+my $dpwd = "alter1"                       ;
+my $dtbs = "siri"                         ;
+my $dtab = "retarus"                      ;
+
+#==========================================*
+# Parametri di posta                       *
+#------------------------------------------*
+$isps = "192.1.1.2"                       ;
+my $mitt = 'invoice@siri-el.com'          ;
+my $dest = 'purchase@siri-el.com'         ;
+my $desb = 'dkb@dkb.it'                   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtbs;host=$dhst",
+                       $dusr,
+                       $dpwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+my $ftp = Net::FTP->new($host, Debug => 0)
+  or die "Cannot connect to : $@";
+
+#==========================================*
+# Login                                    *
+#------------------------------------------*
+$ftp->login($user,$pass)
+  or die "Cannot login ", $ftp->message;
+
+#==========================================*
+# Directory di input                       *
+#------------------------------------------*
+$ftp->cwd($path)
+  or die "Cannot change "
+       . "working "
+       . "directory ", $ftp->message      ;
+
+#==========================================*
+# Recupero dei file remoti                 *
+#------------------------------------------*
+for (grep /\.CSV$/, $ftp->ls)
+{
+    #--------------------------------------*
+    # Lettura elemento                     *
+    #--------------------------------------*
+    my $sel = "SELECT path
+                      FROM "
+                    . $dtab
+                    . " WHERE path = '"
+                    . $_
+                    . "' AND  flag = ''"  ;
+    my $sth = $dbh->prepare($sel)         ;
+                      
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth->execute()                       ;
+
+    #--------------------------------------*
+    # Test su esito lettura                *
+    #--------------------------------------*
+    $row = $sth->rows                     ;
+
+    #--------------------------------------*
+    # Record non trovati                   *
+    #--------------------------------------*
+    if ($row == 0)
+    {
+        #----------------------------------*
+        # Recupero dei file remoti         *
+        #----------------------------------*
+        $ftp->get($_, "/abd/asc/imp/" . $_)
+              for grep /\.CSV$/, $ftp->ls ;
+        #----------------------------------*
+        # Aggiornamento database           *
+        #----------------------------------*
+        my $ins = "INSERT INTO "
+                . $dtab
+                . " VALUES ('"
+                . $_
+                . "', '', NOW(),"
+                . " '', '', '', '')";
+        my $sth = $dbh->prepare($ins)     ;
+        #----------------------------------*
+        # Esecuzione                       *
+        #----------------------------------*
+        $sth->execute()                   ;
+        #----------------------------------*
+        # Chiusura operazioni su database  *
+        #----------------------------------*
+        $sth->finish()                    ;
+        #----------------------------------*
+        # Messaggio di posta               *
+        #----------------------------------*
+        &messaggio($_)                    ;
+    }
+    #--------------------------------------*
+    # Fine ciclo di lettura                *
+    #--------------------------------------*
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$ftp->quit                                ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#=========================================*
+# Trattamento messaggio di posta          *
+#-----------------------------------------*
+sub messaggio 
+{
+    #--------------------------------------*
+    # Messaggio di posta                   *
+    #--------------------------------------*
+    $msg = MIME::Lite->new(           From     =>$mitt,           To       =>$dest,           Bcc      =>$desb,           Subject  =>'Nuova conferma ordine',           Data     =>"Conferma " . $_ )  ;
+    #--------------------------------------*
+    # Invio                                *
+    #--------------------------------------*
+    $msg->send('smtp', $isps, Timeout=>60);
+}

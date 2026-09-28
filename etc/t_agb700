@@ -1,0 +1,170 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per creazione tabelle MySQL *
+#                                         *
+# t_agb700                                *
+#                                         *
+# SU MISURA PER SIRI                      *
+#                                         *
+# Richiamato da 'pagb7000'                *
+#                                         *
+# Ultimo aggiornamento 23/03/07           *
+#-----------------------------------------*
+
+#=========================================*
+# Modulo Perl MIME::Lite                  *
+#-----------------------------------------*
+use strict                                ;
+use DBI()                                 ;
+
+#=========================================*
+# Variabili lette in input                *
+# --------------------------------------- *
+#  - $hstn : Hostname                     *
+#  - $usrn : Username                     *
+#  - $pass : Password                     *
+#  - $dtbs : Database                     *
+#  - $area : Area gestionale              *
+#  - $tbla : Tabella                      *
+#-----------------------------------------*
+my $hstn = $ARGV[0];
+my $usrn = $ARGV[1];
+my $pass = $ARGV[2];
+my $dtbs = $ARGV[3];
+my $area = $ARGV[4];
+my $tbla = $ARGV[5];
+
+#=========================================*
+# Connessione al database                 *
+#-----------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtbs;host=$hstn","$usrn","$pass",
+                       {RaiseError => 1,
+                        PrintError => 0});
+
+#=========================================*
+# Pulizia preliminare                     *
+#-----------------------------------------*
+if (esiste_tabella($dbh, $tbla))
+    {$dbh->do("TRUNCATE TABLE $tbla")}
+
+#=========================================*
+# I passaggio                             *
+#-----------------------------------------*
+my $sth = $dbh->prepare("
+INSERT INTO   $tbla
+             (order_cons_prev,
+              doc_num,
+              data_ord,
+              codice_prod,
+              cons_ric,
+              cons_prev,
+              flag_conf,
+              cod_for,
+              ana_cli_for,
+              valuta,
+              valore_ord,
+              quant_ord)
+SELECT        data_cons_prev_for,
+              ord_for_anag.doc_num,
+              ord_for_anag.data_ord,
+              ord_for_prod.codice_prod,
+              data_cons_ric_for,
+              data_cons_prev_for,
+              flag_conf_for,
+              cod_for,
+              rag_soc_for,
+              ord_for_prod.valuta_for,
+              ord_for_prod.valore_ord_for,
+              quant_ord_for
+FROM          ord_for_anag, 
+              ord_for_prod
+WHERE         ord_for_anag.doc_num = ord_for_prod.doc_num
+");
+#-----------------------------------------*
+# Esecuzione                              *
+#-----------------------------------------*
+$sth->execute();
+
+#=========================================*
+# II passaggio                            *
+#-----------------------------------------*
+$sth = $dbh->prepare("
+INSERT INTO   pro_disp_prod
+             (doc_num,
+              data_ord,
+              codice_prod,
+              cons_ric,
+              cons_prev,
+              flag_conf,
+              cod_cli,
+              ana_cli_for,
+              rif_ord_cli,
+              data_ord_cli,
+              quant_imp,
+              valuta,
+              valore_ord,
+              cod_agente)
+SELECT        ord_cli_prod.doc_num,
+              data_ord,
+              ord_cli_prod.codice_prod,
+              data_cons_ric_cli,
+              data_cons_prev_cli,
+              flag_conf_cli,
+              cod_cli,
+              rag_soc_cli,
+              rif_ord_cli,
+              data_ord_cli,
+              quant_ord_cli,
+              valuta,
+              valore_ord,
+              cod_agente
+FROM          ord_cli_anag, 
+              ord_cli_prod
+WHERE         ord_cli_anag.doc_num = ord_cli_prod.doc_num
+");
+#-----------------------------------------*
+# Esecuzione                              *
+#-----------------------------------------*
+$sth->execute();
+
+
+#=========================================*
+# Scansione di conversione data           *
+#-----------------------------------------*
+$sth = $dbh->prepare("SELECT id,cons_ric FROM pro_disp_prod");
+#-----------------------------------------*
+# Esecuzione                              *
+#-----------------------------------------*
+$sth->execute();
+
+while (my $ref = $sth->fetchrow_hashref())
+{
+    my $the_id   = $ref->{'id'}           ;
+    my $new_date = $ref->{'cons_ric'}     ;
+
+    $dbh->do("UPDATE $tbla
+                 SET order_cons_prev = '$new_date' 
+               WHERE id = '$the_id'")     ; 
+}
+$sth->finish();
+
+#=========================================*
+# Disconnessione dal database             *
+#-----------------------------------------*
+$dbh->disconnect();
+
+#=========================================*
+# Controllo esistenza tabella             *
+#-----------------------------------------*
+sub esiste_tabella
+{
+    my $dbh = shift                       ;
+    my $tabella = shift                   ;
+    eval
+    {
+        $dbh->selectall_arrayref(
+            qq{SELECT * FROM pro_disp_prod
+               WHERE 1 = 0})              ;
+    };
+    return !$@                            ;
+}

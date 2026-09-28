@@ -1,0 +1,271 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per cancellazione file       *
+# presso Metel                             *
+#                                          *
+# t_ele_edi_del                            *
+#                                          *
+# (Richiamato da 'edi600')                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 11/08/23    *
+#   Ultima revisione:  NdK del 05/10/23    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - file da cancellare          *
+#                                          *
+#            - utente TANGRAM              *
+#                                          *
+#            - cliente                     *
+#                                          *
+#            - cliente RIF                 *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Descrizione modulo:                      *
+#                                          *
+# Concellazione dei files prelevati via    *
+# FTP ed aggiornamento del Database rela-  *
+# tivo                                     *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Configurazione : - 't_ele_edi_imp.ini'   *
+#                  - 'dtb.ini'             *
+#                                          *
+# File di Log    : - 't_ele_edi_del.log'   *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+use DBI()                                 ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $file = shift                          ;
+my $utet = shift                          ;
+my $buyr = shift                          ;
+my $nrif = shift                          ;
+
+#==========================================*
+# Parametri di configurazione              *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_ele_edi_imp.ini";
+my %cnf_ele = do $cfg_bas                 ;
+#
+my $hst_ftp = $cnf_ele{hst_ftp}           ;
+my $hst_usr = $cnf_ele{hst_usr}           ;
+my $hst_pwd = $cnf_ele{hst_pwd}           ;
+my $pth_inp = $cnf_ele{pth_inp}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+$theTime = &sys_tim                       ;
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = $pth_bas
+            . 'log/t_ele_edi_del.log'     ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+#
+my $dtb_azi = "ele"                       ;
+my $dtb_tbl = "metel"                     ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtb_azi;host=$dtb_hst",
+                       $dtb_usr,
+                       $dtb_pwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Flag di trattamento eseguito             *
+#------------------------------------------*
+my $upd = "UPDATE "
+        . $dtb_tbl
+        . " SET "
+        . " flag = '#', "
+        . " trtd = NOW(), "
+        . " utet = '"
+        . $utet
+        . "', buyr = '"
+        . $buyr
+        . "', nrif = '"
+        . $nrif
+        . "'"
+        . " WHERE path = '"
+        . $file
+        . "' LIMIT 1"                     ;
+                
+my $sth = $dbh->prepare($upd)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+        
+#==========================================*
+# Cancellazione file remoto                *
+#==========================================*
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+my %args = (user => $hst_usr,
+        password => $hst_pwd,
+            port => 22)                   ;
+
+my $sftp = Net::SFTP::Foreign->new($hst_ftp, %args)
+   or &log_msg("Connessione SFTP fallita") ;
+
+#------------------------------------------*
+# Directory di input                       *
+#------------------------------------------*
+$sftp->setcwd($pth_inp)
+  or &log_msg("Cambio directory non "
+            . "riuscito")                 ;
+
+#==========================================*
+# Cancellazione                            *
+#------------------------------------------*
+if ($file)
+{
+    $sftp->remove($file)
+      or &log_msg("Cancellazione "
+                 . $file
+                 . "fallita")             ;
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# Subroutines                              *
+#==========================================*
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+     $daylightSavings) = localtime()      ;
+    #--------------------------------------*
+    # Correttivi                           *
+    #--------------------------------------*
+    my $anno = 1900 + $yearOffset         ;
+    #
+    my $mese = $month + 1                 ;
+    my $mesx = sprintf ("%02d", $mese)    ;
+    #
+    my $gior = $dayOfMonth                ;
+    my $giox = sprintf ("%02d", $gior)    ;
+    #
+    my $orax = sprintf ("%02d", $hour)    ;
+    my $minx = sprintf ("%02d", $minute)  ;
+    my $secx = sprintf ("%02d", $second)  ;
+    #--------------------------------------*
+    # Data in output                       *
+    #--------------------------------------*
+    $sysTime = "$anno $mesx $giox "
+             . "$orax:$minx:$secx"        ;
+    return $sysTime                       ;
+#------------------------------------------*
+# Data di sistema per LOG             FINE *
+#==========================================*
+}
+
+#==========================================*
+# Emissione LOG                            *
+#------------------------------------------*
+sub log_msg 
+{
+    #--------------------------------------*
+    # Testo messaggio in input             *
+    #--------------------------------------*
+    my $msg_txt = shift                   ;
+    #--------------------------------------*
+    # Test se presente $msg_txt            *
+    #--------------------------------------*
+    if (!$msg_txt)
+        {my $msg_txt = ''}                ;
+    #--------------------------------------*
+    # Test se presente $fil_nam            *
+    #--------------------------------------*
+    if (!$fil_nam)
+        {my $fil_nam = ''}                ;
+    #--------------------------------------*
+    # Fincatura per il LOG                 *
+    #--------------------------------------*
+    print LOG_FIL "----------------------"
+                . "----------------------"
+                . "----------------------"
+                . "\n"                    ;
+    #--------------------------------------*
+    # Messaggio per il LOG                 *
+    #--------------------------------------*
+    print LOG_FIL $theTime
+	         . " - File: "
+	         . $fil_nam
+	         . " : "
+	         . $msg_txt
+                . "\n"                    ;
+#------------------------------------------*
+# Emissione LOG                       FINE *
+#==========================================*
+}
+
+
+
+

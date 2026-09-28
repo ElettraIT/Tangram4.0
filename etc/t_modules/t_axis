@@ -1,0 +1,116 @@
+#!/usr/bin/perl -w
+#========================================================================*
+#                                                                        *
+# Script per catturare una immagine da net-camera e inviarla con FTP     *
+#                                                                        *
+#========================================================================*
+
+#=========================================*
+# Cattura del file dalla net-camera       *
+#-----------------------------------------*
+#    *------------------------------------*
+#    * Moduli Perl                        *
+#    *------------------------------------*
+use strict                                ;
+use Net::HTTP                             ;
+
+#    *------------------------------------*
+#    * Variabili di lavoro                *
+#    *------------------------------------*
+my $hst = "10.1.1.250";
+my $res = "640x480"                       ;
+my $cam = "1"                             ;
+my $uag = "Mozilla/5.0"                   ;
+my $prv = "www9.protec.it"                ;
+my $cwd = "dkb.it/img/axs"                ;
+my $usr = "dkb"                           ;
+my $pwd = 'cavallo'                       ;
+my $pth = "/abd/asc/tmp/"                 ;
+my $ext = ".jpg"                          ;
+my $min = (localtime)[1]                  ;
+my $mnx = sprintf ("%02d",$min)           ;
+my $fln = $mnx  . $ext                    ;
+
+#    *------------------------------------*
+#    * Collegamento a net-camera          *
+#    *------------------------------------*
+my $s = Net::HTTP->new(Host => $hst) || die $@;
+
+#    *------------------------------------*
+#    * Richiesta immagine a net-camera    *
+#    *------------------------------------*
+$s->write_request(GET => "/axis-cgi/jpg/"
+                       . "image.cgi?"
+                       . "resolution="
+                       . "$res&camera=$cam",
+                       'User-Agent' => $uag);
+
+my($code, $mess, %h) = $s->read_response_headers;
+
+#    *------------------------------------*
+#    * Open del file di appoggio          *
+#    *------------------------------------*
+open (IMMAGINE, ">$pth$fln") or die
+         "Impossibile aprire il file Immagine";
+
+#    *------------------------------------*
+#    * Ciclo di scrittura                 *
+#    *------------------------------------*
+while (1) {
+   my $buf;
+   my $n = $s->read_entity_body($buf, 1024);
+   die "read failed: $!" unless defined $n;
+   last unless $n                         ;
+   print IMMAGINE $buf                    ;   
+}
+
+#    *------------------------------------*
+#    * Close del file di appoggio         *
+#    *------------------------------------*
+close IMMAGINE                            ;
+
+#=========================================*
+# Invio del file al provider              *
+#-----------------------------------------*
+#    *------------------------------------*
+#    * Moduli Perl                        *
+#    *------------------------------------*
+use Net::FTP                              ;
+
+#    *------------------------------------*
+#    * Connessione FTP al provider        *
+#    *------------------------------------*
+my $ftp = Net::FTP->new($prv, Debug => 0)
+  or die "Cannot connect to some.host.name: $@";
+
+#    *------------------------------------*
+#    * Login di accesso                   *
+#    *------------------------------------*
+$ftp->login($usr, $pwd)
+  or die "Impossibile fare il login ",
+          $ftp->message                   ;
+
+#    *------------------------------------*
+#    * Percorso di destinazione           *
+#    *------------------------------------*
+$ftp->cwd($cwd)
+  or die "Percorso errato ",
+          $ftp->message                   ;
+
+#    *------------------------------------*
+#    * Modalita'                          *
+#    *------------------------------------*
+$ftp->binary
+  or die "Cannot make binary ", $ftp->message;
+
+#    *------------------------------------*
+#    * Percorso di partenza               *
+#    *------------------------------------*
+$ftp->put("$pth$fln")
+  or die "Spedizione fallita ",
+          $ftp->message                   ;
+
+#    *------------------------------------*
+#    * Fine trasmissione                  *
+#    *------------------------------------*
+$ftp->quit                                ;

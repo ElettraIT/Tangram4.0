@@ -1,0 +1,57 @@
+#!/usr/bin/perl -w
+########################################################################
+# FUNZIONA !!! - attenzione pero' alle librerie XSLT ...
+#
+# Trasforma da XML a HTML e il risultato in PDF con i tool di sistema ...
+# 08/11/2017
+########################################################################
+# 23/07/21 - Problemi con i file HTML creati da XML + XSL: non applica
+#            correttamente gli stili CSS
+########################################################################
+
+
+
+
+use XML::LibXSLT;
+use XML::LibXML;
+
+my $path = '/abd/asc/cfg/';
+my $path2 = '/abd/asc/wip/tmp/';
+
+my $XML_FILENAME = '/abd/asc/wip/fat/xml/2021/ITDKNNCL59B26G224X_D0012.xml';
+my $XSL_FILENAME = $path . 'FoglioStileAssoSoftware.xsl';
+
+my $xml_parser  = XML::LibXML->new;
+my $xslt_parser = XML::LibXSLT->new;
+
+my $xml         = $xml_parser->parse_file($XML_FILENAME);
+my $xsl         = $xml_parser->parse_file($XSL_FILENAME);
+
+my $stylesheet  = $xslt_parser->parse_stylesheet($xsl);
+my $results     = $stylesheet->transform($xml);
+my $output      = $stylesheet->output_string($results);
+
+my $OUT          = 'ITDKNNCL59B26G224X_D0012';
+my $HTM_FILENAME = $path2 . $OUT . ".html";
+my $PPS_FILENAME = $path2 . $OUT . ".ps";
+
+
+# the main command and of course the easiest one
+$stylesheet->output_file($results, $HTM_FILENAME);
+
+
+# per trasformare il risultato in PostScript
+my $syscm = 'html2ps ' . $HTM_FILENAME . ' > ' . $PPS_FILENAME;
+
+
+print $syscm . "\n";
+
+system($syscm)                            ;
+
+exit();
+
+
+
+# per trasformare il risultato in PDF
+$syscm = 'ps2pdf ' . $path2 . $OUT . '.ps ' . $path2 . $OUT . '.pdf';
+system($syscm)                            ;

@@ -1,0 +1,328 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per generare un file 'html'  *
+# da un file 'xml' con il foglio di stile  *
+#                                          *
+# t_xml2html_gen                           *
+#                                          *
+# N.B.: Utilizzato da 'pedi6000'           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 17/08/23    *
+#   Ultima revisione:  NdK del 20/08/23    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - path file 'xml'             *
+#                                          *
+#            - sigla azienda               *
+#                                          *
+#            - mnemonico cliente           *
+#                                          *
+# ---------------------------------------- *
+# Per creare il database                   *
+#                                          *
+# CREATE TABLE `{AZI}`.`msg` (             *
+# `path` varchar(80) NOT NULL default '',  *
+# `line` varchar(10) NOT NULL default '',  *
+# `mesg` varchar(80) NOT NULL default '',  *
+# `vala` varchar(40) NOT NULL default '',  *
+# `valb` varchar(40) NOT NULL default '',  *
+# KEY `path` (`path`)                      *
+# ) ENGINE = MYISAM;                       *
+#==========================================*
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+use File::Basename                        ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $pth_xml = shift                       ;
+my $cod_azi = shift                       ;
+my $mne_cli = shift                       ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dtb_azi = $cod_azi                    ;
+#
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+#
+my $dtb_msg = "msg"                       ;
+
+#==========================================*
+# Estrazione nome file                     *
+#------------------------------------------*
+(my $fil_nam,
+ my $fil_pat,
+ my $fil_ext) = fileparse($pth_xml, qr/\.[^.]*/);
+
+#==========================================*
+# File di input                            *
+#------------------------------------------*
+my $inp_xml = $fil_nam
+            . $fil_ext                    ;
+
+#==========================================*
+# File di output                           *
+#------------------------------------------*
+my $out_htm = $fil_pat
+            . $fil_nam
+            . ".html"                     ;
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+my $theTime = &sys_tim                    ;
+#------------------------------------------*
+# Data di sistema - Giorno                 *
+#------------------------------------------*
+my $gio_lct = (localtime)[3]              ;
+my $gio_wrk = int($gio_lct)               ;
+my $gio_fmt = sprintf ("%02d",$gio_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Mese                   *
+#------------------------------------------*
+my $mes_lct = (localtime)[4]              ;
+my $mes_wrk = int($mes_lct)               ;
+   $mes_wrk = $mes_wrk + 1                ;
+my $mes_fmt = sprintf ("%02d",$mes_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Anno                   *
+#------------------------------------------*
+my $ann_lct = (localtime)[5]              ;
+my $ann_wrk = int($ann_lct)               ;
+   $ann_wrk = $ann_wrk + 1900             ;
+my $ann_fmt = sprintf ("%04d",$ann_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Ora                    *
+#------------------------------------------*
+my $ora_lct = (localtime)[2]              ;
+my $ora_wrk = int($ora_lct)               ;
+my $ora_fmt = sprintf ("%02d",$ora_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Minuti                 *
+#------------------------------------------*
+my $min_lct = (localtime)[1]              ;
+my $min_wrk = int($min_lct)               ;
+my $min_fmt = sprintf ("%02d",$min_wrk)   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dtb_con = DBI->connect("DBI:"
+                         . "mysql:database="
+                         . "$dtb_azi;"
+                         . "host=$dtb_hst",
+                                  $dtb_usr,
+                                  $dtb_pwd,
+                          {RaiseError => 1,
+                           PrintError => 0});
+
+#==========================================*
+# Inizializzazione file 'html'             *
+#------------------------------------------*
+&ini_htm                                  ;
+
+#==========================================*
+# Close file file 'HTML'                   *
+#------------------------------------------*
+&cls_htm                                  ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Open e inizializzazione file 'html'      *
+#------------------------------------------*
+sub ini_htm
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (IND_HTM, ">$out_htm") or die 
+        "Impossibile aprire '$out_htm'"   ;
+    #--------------------------------------*
+    # Trattamento data di sistema          *
+    #--------------------------------------*
+    my $dat_sys = $gio_fmt
+                . "/"
+                . $mes_fmt
+                . "/"
+                . $ann_fmt                ;
+    #--------------------------------------*
+    # Intestazione 'html'                  *
+    #--------------------------------------*
+    &wrt_ind ("<!DOCTYPE html>")          ;
+    #--------------------------------------*
+    # 'head'                               *
+    #--------------------------------------*
+    &wrt_ind ("<head></head>")            ;
+    #--------------------------------------*
+    # Body                                 *
+    #--------------------------------------*
+    &wrt_ind ("<body bgcolor=#FFFFFF "
+            . "style=color:#333333;"
+            . "font-size:18px;"
+            . "font-family:Arial;>")      ;
+    &wrt_ind ("<center>")                 ;
+    &wrt_ind ("<br>")                     ;
+    &wrt_ind ("<b>Documento '"
+            . $inp_xml
+            . "' caricato il "
+            . $dat_sys
+            . " alle "
+            . $ora_fmt
+            . ":"
+            . $min_fmt)                   ;
+    &wrt_ind ("<br>")                     ;
+    &wrt_ind ("<br>")                     ;
+    &wrt_ind ("ricevuto da '"
+            . $mne_cli
+            . "'"
+            . "</b>")                     ;
+    &wrt_ind ("<br>")                     ;
+    &wrt_ind ("<br>")                     ;
+    #--------------------------------------*
+    # Tabella per rullino messaggi         *
+    #--------------------------------------*
+    &wrt_ind ("<table id=\"tabella\" width=100% "
+            . "border='1' "
+            . "bordercolor=#CCCCCC "
+            . "cellspacing='1' "
+            . "cellpadding='2'>")         ;
+    #--------------------------------------*
+    # Intestazione tabella 'index.html'    *
+    #--------------------------------------*
+    &wrt_ind ("<tr bgcolor='red' "
+            . "style=color:#FFFFFF;>")    ;
+    &wrt_ind ("<th>NR LINEA</th>")        ;
+    &wrt_ind ("<th>MESSAGGIO</th>")       ;
+    &wrt_ind ("</tr>")                    ;
+    #--------------------------------------*
+    # Lettura database                     *
+    #--------------------------------------*
+    my $sel_dtb = "SELECT * FROM "
+                . $dtb_msg
+                . " WHERE path = '"
+                . $inp_xml
+                . "'"                     ;
+    my $sth_dtb = $dtb_con->prepare($sel_dtb);
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth_dtb->execute()                   ;
+    #--------------------------------------*
+    # Ciclo di lettura rullino             *
+    #--------------------------------------*
+    while (my $ref = $sth_dtb->fetchrow_hashref())
+    {
+        #----------------------------------*
+        # Inizio riga                      *
+        #----------------------------------*
+        &wrt_ind ("<tr>")                 ;
+        #----------------------------------*
+        # Numero linea                     *
+        #----------------------------------*
+        my $lin_msg = $ref->{'line'}      ;
+        #----------------------------------*
+        # Test del messaggio               *
+        #----------------------------------*
+        my $txt_msg = sprintf ("%80s",$ref->{'mesg'});
+        #----------------------------------*
+        # Colonna 'linea'                  *
+        #----------------------------------*
+        &wrt_ind ("<td>"
+                 . $lin_msg
+                 . "</td>")               ;
+        #----------------------------------*
+        # Colonna 'messaggio'              *
+        #----------------------------------*
+        &wrt_ind ("<td>"
+                 . $txt_msg
+                 . "</td>")               ;
+        #----------------------------------*
+        # Fine riga                        *
+        #----------------------------------*
+        &wrt_ind ("</tr>")                ;
+    }    
+    #--------------------------------------*
+    # Chiusura operazioni su database      *
+    #--------------------------------------*
+    $sth_dtb->finish()                    ;
+}
+
+#==========================================*
+# Chiusura file 'html'                     *
+#------------------------------------------*
+sub cls_htm
+{
+    #--------------------------------------*
+    # Chiusura rullino 'html'              *
+    #--------------------------------------*
+    &wrt_ind ("</table>")                 ;
+    &wrt_ind ("</center>")                ;
+    &wrt_ind ("</body>")                  ;
+    &wrt_ind ("</html>")                  ;
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close IND_HTM                         ;
+}
+
+#==========================================*
+# Scrittura su file 'html'                 *
+#------------------------------------------*
+sub wrt_ind
+{
+    #--------------------------------------*
+    # Stringa in input                     *
+    #--------------------------------------*
+    my $str_wrt = shift                   ;
+    #--------------------------------------*
+    # Scrittura                            *
+    #--------------------------------------*
+    print IND_HTM $str_wrt . "\n"         ;
+}
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my @months   = qw(Gen Feb Mar Apr Mag Giu Lug Ago Set Ott Nov Dic);
+    my @weekDays = qw(Dom Lun Mar Mer Gio Ven Sab Dom);
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+$daylightSavings) = localtime()           ;
+     my $year = 1900 + $yearOffset        ;
+     $sysTime = "$hour:$minute:$second, "
+              . "$weekDays[$dayOfWeek] "
+              . "$months[$month] "
+              . "$dayOfMonth, $year"      ;
+    return $sysTime                       ;
+}
+

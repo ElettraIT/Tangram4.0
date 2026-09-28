@@ -1,0 +1,226 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per creazione tabelle MySQL  *
+#                                          *
+# t_mysql                                  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 01/01/05   *
+#   Ultima revisione:   NdK del 14/06/24   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - Database                    *
+#            - Area gestionale             *
+#            - Tabella                     *
+#                                          *
+# (Configurazione: - 'dtb.ini')            *
+#                                          *
+# (LOG           : - 't_mysql.log'         *
+#                                          *
+# ---------------------------------------- *
+# N.B.: i campi in input sono separati da  *
+#       spazio                             *
+# ---------------------------------------- *
+# MEMO: prevedere una versione con passag- *
+#       gio di parametri del database e    *
+#       non tramite 'dtb.ini'              *
+#------------------------------------------*
+
+#==========================================*
+# Modulo Perl MIME::Lite                   *
+#------------------------------------------*
+use DBI()                                 ;
+
+#==========================================*
+# Variabili statiche                       *
+# ---------------------------------------- *
+#  - Pathname di base per i file 'sql'     *
+#  - Pathname di base per i file 'txt'     *
+#------------------------------------------*
+$base = '/abd/sql/'                       ;
+$txtf = '/abd/ftx/'                       ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$ARGV[0] || $ARGV[0] eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_mysql DATABASE "
+        . "AREA_TANGRAM "
+        . "TABELLA "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip - 14/03/2022"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+$dtbs = shift                             ;
+$area = shift                             ;
+$tbla = shift                             ;
+
+#==========================================*
+# PER TABELLA 'are_tbl'                    *
+#------------------------------------------*
+# $tbls = shift                             ;
+# $tbla = $area . "_" . $tbls               ;
+
+#==========================================*
+# Data di sistema                          *
+#------------------------------------------*
+my @months   = qw(Gen Feb Mar Apr Mag Giu Lug Ago Set Ott Nov Dic);
+my @weekDays = qw(Dom Lun Mar Mer Gio Ven Sab Dom);
+my ($second,
+    $minute,
+      $hour,
+$dayOfMonth,
+     $month,
+$yearOffset,
+ $dayOfWeek,
+ $dayOfYear,
+$daylightSavings) = localtime()           ;
+    $year = 1900 + $yearOffset            ;
+    $theTime = "$hour:$minute:$second, $weekDays[$dayOfWeek] $months[$month] $dayOfMonth, $year";
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $hstn = $cnf_dtb{dtb_hst}              ;
+my $usrn = $cnf_dtb{dtb_usr}              ;
+my $pass = $cnf_dtb{dtb_pwd}              ;
+
+#==========================================*
+# Altre variabili                          *
+#------------------------------------------*
+$file = ''                                ;
+$impr = "$txtf$dtbs/$tbla.txt"            ;
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = '/abd/asc/log/t_mysql.log'  ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Sub-routine per lettura tabella di       *
+# definizione 'sql' dl file                *
+#------------------------------------------*
+&let_tbl                                  ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtbs;host=$hstn","$usrn","$pass",
+                       {RaiseError => 1,
+                        PrintError => 0});
+
+#==========================================*
+# Intestazione LOG                         *
+#------------------------------------------*
+print LOG_FIL "==========================\n"; 
+print LOG_FIL "Data     : " . $theTime . "\n"; 
+print LOG_FIL "Database : " . $dtbs    . "\n"; 
+
+#==========================================*
+# Valutazione preliminare se DROP tabella  *
+# da eseguire                              *
+#------------------------------------------*
+if (tbl_sts($dbh, $tbla))
+    {
+        $dbh->do("DROP TABLE $tbla")      ;
+        print LOG_FIL "DROP TABLE $tbla \n";
+    }
+
+#==========================================*
+# Creazione tabella                        *
+#------------------------------------------*
+$dbh->do("CREATE TABLE IF NOT  
+          EXISTS $tbla ($file)")          ;
+
+#==========================================*
+# Comando di caricamento                   *
+#------------------------------------------*
+$dbh->do("LOAD DATA INFILE \'$impr\'
+          INTO TABLE $tbla
+          FIELDS TERMINATED BY ','
+          ENCLOSED BY '\\\''
+          ESCAPED BY '\\\\'
+          LINES TERMINATED BY '\\n'")     ;
+
+print LOG_FIL "LOAD DATA INTO TABLE $tbla \n";
+
+#==========================================*
+# Disconnetti dal database                 *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Apertura file contenente tabella         *
+#------------------------------------------*
+sub let_tbl
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (TABELLA, "$base$area/$tbla.sql")
+          or print LOG_FIL
+         "Impossibile aprire il file '$tbla'";
+    @tabella=<TABELLA>                    ;
+    close TABELLA                         ;
+    #--------------------------------------*
+    # Compattazione testo letto            *
+    #--------------------------------------*
+    $file = qq{@tabella}                  ;
+}
+
+#==========================================*
+# Controllo esistenza tabella              *
+#------------------------------------------*
+sub tbl_sts
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $dbh = shift                       ;
+    my $tab = shift                       ;
+    #--------------------------------------*
+    # Verifica tramite lettura             *
+    #--------------------------------------*
+    eval
+    {
+        $dbh->selectall_arrayref(
+            qq{SELECT * FROM $tab
+               WHERE 1 = 0})              ;
+    };
+    #--------------------------------------*
+    # Valore di uscuta                     *
+    #--------------------------------------*
+    return !$@                            ;
+}
+

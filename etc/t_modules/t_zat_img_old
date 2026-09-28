@@ -1,0 +1,183 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per FTP                      *
+#                                          *
+# t_zat_img                                *
+#                                          *
+# Per aggiornare le foto modificate        *
+#                                          *
+# Ultimo aggiornamento 06/04/05            *
+#------------------------------------------*
+
+#==========================================*
+# Modulo Perl Net::FTP                     *
+#------------------------------------------*
+use Net::FTP;
+
+#==========================================*
+# Modulo Perl DBD::MySQL di DBI            *
+#------------------------------------------*
+use DBI();
+
+#==========================================*
+# Variabili lette in input                 *
+# ---------------------------------------- *
+#  - $hst : Host                           *
+#  - $usr : User                           *
+#  - $pwd : Password                       *
+#------------------------------------------*
+my $hst = shift                           ;
+my $usr = shift                           ;
+my $pwd = shift                           ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $dtb = "zat"                           ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtb;host=$hst",
+                       $usr,
+                       $pwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $bas1 = "/abd/web/img/";
+my $bas2 = "/abd/asc/img/";
+
+#==========================================*
+# Scansione directory di base              *
+#------------------------------------------*
+for($inx=0; $inx<100; $inx++)
+{
+    #--------------------------------------*
+    # Variabili di lavoro                  *
+    #--------------------------------------*
+    my $ind = sprintf ("%02d",$inx);
+    my $dir1 = $bas1 . $ind . "/";
+    my $dir2 = $bas2 . $ind . "/";
+    
+    #--------------------------------------*
+    # Open directory                       *
+    #--------------------------------------*
+    opendir (DIR1,$dir1);
+    
+    #--------------------------------------*
+    # Ciclo interno alla directory         *
+    #--------------------------------------*
+    foreach $name (sort readdir(DIR1))
+    {
+
+        #----------------------------------*
+        # Variabili di comodo              *
+        #----------------------------------*
+        my $file1 = $dir1 . $name;
+        my $file2 = $dir2 . $name;
+        #----------------------------------*
+        my @time = stat($file1)           ;            
+        my $time1 = $time[9]              ;            
+        
+        @time = stat($file2)              ;            
+        my $time2 = $time[9]              ;            
+        #----------------------------------*
+        my $type = -f $file1;
+
+        #----------------------------------*
+        # Test che non sia una directory   *
+        #----------------------------------*
+        if (! -d $file1)
+        {
+
+            #------------------------------*
+            # Lettura tabella              *
+            #------------------------------*
+            my $img = substr($name,0,6);
+            my $sth = $dbh->prepare("SELECT img_dtm FROM img WHERE img_ide = '" . $img . "'");
+            $sth->execute();
+
+            my $ref = $sth->fetchrow_hashref();
+            
+            my $dtm = $ref->{'img_dtm'}   ;
+            
+
+            #------------------------------*
+            # Se lettura OK                *
+            #------------------------------*
+            if ($dtm)
+            {
+                if ($dtm ne $time1)
+                {
+                    &update_rec($img, $time1);
+#                    &ftp_file($dir2, $file1, $file2);
+                }
+            } else
+            #------------------------------*
+            # Se lettura non OK            *
+            #------------------------------*
+            {
+                &insert_rec($img, $time1);
+#                &ftp_file($dir2, $file1, $file2);
+            }
+        }
+    }
+    
+    #--------------------------------------*
+    # Close directory                      *
+    #--------------------------------------*
+    closedir (DIR1);
+}
+
+#==========================================*
+# Chiusura connessione                     *
+#------------------------------------------*
+$ftp->quit;
+
+#==========================================*
+# Subroutine di scrittura                  *
+#------------------------------------------*
+sub insert_rec
+{
+    my $cod = shift                       ;
+    my $tim = shift                       ;
+    $dbh->do("INSERT INTO img (img_ide, img_dtm) VALUES ('$cod', '$tim')");
+}
+
+#==========================================*
+# Subroutine di modifica                   *
+#------------------------------------------*
+sub update_rec
+{
+    my $cod = shift                       ;
+    my $tim = shift                       ;
+    $dbh->do("UPDATE img SET img_dtm = '$tim' WHERE img_ide = '$tim'");
+}
+
+#==========================================*
+# Subroutine di trasferimento              *
+#------------------------------------------*
+sub ftp_file
+{
+    my $dir = shift                       ;
+    my $fl1 = shift                       ;
+    my $fl2 = shift                       ;
+    #--------------------------------------*
+    # Posizionamento                       *
+    #--------------------------------------*
+    $ftp->cwd($dir)
+       or die "Cambio directory fallita ", $ftp->message;
+    #--------------------------------------*
+    # Trasferimento                        *
+    #--------------------------------------*
+    $ftp->put($fl1, $fl2)
+       or die "Put fallita ", $ftp->message;
+}
+
+
+

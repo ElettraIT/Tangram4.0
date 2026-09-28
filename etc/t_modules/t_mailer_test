@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per invio posta MIME::Lite  *
+#                                         *
+# t_mailer_test                           *
+#-----------------------------------------*
+
+#=========================================*
+# Modulo Perl MIME::Lite                  *
+#-----------------------------------------*
+use MIME::Lite                            ;
+
+#=========================================*
+# Variabili statiche                      *
+#-----------------------------------------*
+my $mitt = 'fatture@elettromat.it'        ;
+my $dest = 'dkb@dkb.it'                   ;
+my $host = 'smtp.guttadauro.net'          ;
+my $user = 'fatture@elettromat.it'        ;
+my $pass = 'fastway'                      ;
+
+    #-------------------------------------*
+    # Invio vero e proprio                *
+    #-------------------------------------*
+    $msg = MIME::Lite->new
+    (
+        #---------------------------------*
+        # Mittente                        *
+        #---------------------------------*
+        From    =>$mitt,
+        #---------------------------------*
+        # Destinatario                    *
+        #---------------------------------*
+        To      =>$dest,
+        #---------------------------------*
+        # Copia per il mittente: sempre   *
+        #---------------------------------*
+        Bcc     =>$mitt,
+        #---------------------------------*
+        # Oggetto                         *
+        #---------------------------------*
+        Subject =>'Prova di invio MIME',
+        #---------------------------------*
+        # Tipo messaggio                  *
+        #---------------------------------*
+        Data    =>"Testo del messaggio",
+    );
+    
+$msg->send('smtp',
+           $host, 
+           Timeout=>60,
+           AuthUser=>$user,
+           AuthPass=>$pass,
+           Debug=>1); 

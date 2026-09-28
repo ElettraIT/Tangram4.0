@@ -1,0 +1,104 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per FTP                      *
+#                                          *
+# t_zat_img                                *
+#                                          *
+# Per controllare le foto modificate       *
+#                                          *
+# Ultimo aggiornamento 29/08/08            *
+#                                          *
+# N.B.: in Crontab nel server Web          *
+#------------------------------------------*
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $bas = "/abd/web/img/"                 ;
+
+#==========================================*
+# Scansione directory di base              *
+#------------------------------------------*
+for($inx=0; $inx<100; $inx++)
+{
+    #--------------------------------------*
+    # Variabili di lavoro                  *
+    #--------------------------------------*
+    my $ind = sprintf ("%02d",$inx)       ;
+    my $dir = $bas . $ind . "/"           ;
+    
+    #--------------------------------------*
+    # Open directory                       *
+    #--------------------------------------*
+    opendir (DIR,$dir)                    ;
+    
+    #--------------------------------------*
+    # Ciclo interno alla directory         *
+    #--------------------------------------*
+    foreach $nam (sort readdir(DIR))
+    {
+        #----------------------------------*
+        # Variabili di comodo              *
+        #                                  *
+        # Si utilizza la funzione stat che *
+        # ritorna informazioni sul file in *
+        # forma di array                   *
+        #----------------------------------*
+        my $fil = $dir . $nam             ;
+        my @time = stat($fil)             ;            
+        my $tim = $time[9]                ;            
+        my $type = -f $fil                ;
+        
+        my $prova = localtime($tim)       ;            
+        
+
+        #----------------------------------*
+        # Test che non sia una directory   *
+        #----------------------------------*
+        if (! -d $fil)
+        {
+            #------------------------------*
+            # Estrazione della data        *
+            #------------------------------*
+            my $anno = 1900+(localtime($tim))[5];
+            my $mese = (localtime($tim))[4]  ;
+            my $gior = (localtime($tim))[3]  ;
+        
+            my $ann  = sprintf ("%04d",$anno);
+            my $mes  = sprintf ("%02d",$mese);
+            my $gio  = sprintf ("%02d",$gior);
+        
+            my $data = $ann . "-"
+                     . $mes . "-"
+                     . $gio                  ;
+
+            #------------------------------*
+            # Test sulla data              *
+            #------------------------------*
+            if (($data eq "2008-07-25")
+             || ($data eq "2008-07-26")
+             || ($data eq "2008-07-27")
+             || ($data eq "2008-07-28")
+             || ($data eq "2008-07-29")
+             || ($data eq "2008-07-30")
+             || ($data eq "2008-07-31")
+             || ($data eq "2008-08-03")
+             || ($data eq "2008-08-25")
+             || ($data eq "2008-08-27")
+             || ($data eq "2008-08-28"))
+            {
+                    print "$nam $data\n";
+            }
+        }
+    }
+    
+    #--------------------------------------*
+    # Close directory                      *
+    #--------------------------------------*
+    closedir (DIR);
+}
+
+#==========================================*
+# Chiusura connessione                     *
+#------------------------------------------*
+

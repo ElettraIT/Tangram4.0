@@ -1,0 +1,139 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl formattazione file di testo  *
+#                                          *
+# t_meteo                                  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 25/09/11   *
+#   Ultima revisione:   NdK del 04/02/14   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# N.B.: in crontab                         *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Net::HTTP                             ;
+use Net::FTP                              ;
+
+#==========================================*
+# Elaborazione della data - NON UTILIZZATA *
+#------------------------------------------*
+    #--------------------------------------*
+    # Data di sistema (AAAA) - Anno (est.) *
+    #--------------------------------------*
+    my $ann = sprintf("%04d",
+                     (localtime)[5]+1900) ;
+    #--------------------------------------*
+    # Data di sistema (MM) - Mese          *
+    #--------------------------------------*
+    my $mes = sprintf("%02d",
+                     (localtime)[4]+1)    ;
+    #--------------------------------------*
+    # Data di sistema (GG) - Giorno        *
+    #--------------------------------------*
+    my $gio = sprintf("%02d",
+                     (localtime)[3])      ;
+
+my $dat = $ann  . $mes . $gio             ;
+
+#==========================================*
+# Elaborazione della data - NON UTILIZZATA *
+#                                          *
+# Fine                                     *
+#------------------------------------------*
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+#my $req = "/upload_teolo/bollettini_meteo"
+#        . "/meteoveneto/ct1.jpg"          ;
+
+my $req = "/previsioni/it/images/"
+        . "map_MV_1.png?rand="
+        . "6465ebc4ccbcaf84e6f055ba0793e01d";
+
+#==========================================*
+# Richiesta HTTP                           *
+#------------------------------------------*
+my $s = Net::HTTP->new(Host => "www.arpa.veneto.it") || die $@;
+
+$s->write_request(GET => $req, 'User-Agent' => "Mozilla/5.0");
+
+my($code, $mess, %h) = $s->read_response_headers;
+
+#==========================================*
+# Open Immagine                            *
+#------------------------------------------*
+open (IMMAGINE, ">/abd/asc/tmp/ct1.jpg") or die
+         "Impossibile aprire il file Immagine";
+
+#==========================================*
+# Scrittura Immagine                       *
+#------------------------------------------*
+while (1) {
+   my $buf                                ;
+   my $n = $s->read_entity_body($buf, 1024);
+   die "Lettura fallita: $!" unless defined $n;
+   last unless $n                         ;
+   print IMMAGINE $buf                    ;   
+}
+
+#==========================================*
+# Close Immagine                           *
+#------------------------------------------*
+close IMMAGINE                            ;
+
+#==========================================*
+# Invio finale del file al Server          *
+#------------------------------------------*
+&ftpf                                     ;
+
+#==========================================*
+# Subroutine di trasferimento del file     *
+#------------------------------------------*
+sub ftpf
+{
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    $ftp = Net::FTP->new("www17.protec.it", Debug => 0)
+       or die "Impossibile connetersi a Protec: $@";
+
+    #--------------------------------------*
+    # Login connessione                    *
+    #--------------------------------------*
+    $ftp->login("dkb",'cavallo')
+       or die "Login non riuscito", $ftp->message;
+
+    #--------------------------------------*
+    # Posizionamento cartella destinazione *
+    #--------------------------------------*
+    $ftp->cwd("dkb.it/img/mix")
+       or die "Cambio "
+            . "directory non riuscito", $ftp->message ;
+
+    #--------------------------------------*
+    # Modalita' Binary                     *
+    #--------------------------------------*
+    $ftp->binary
+       or die "Modalita binary non riuscita ", $ftp->message;
+
+    #--------------------------------------*
+    # Trasferimento                        *
+    #--------------------------------------*
+    $ftp->put("/abd/asc/tmp/ct1.jpg")
+       or die "Invio fallito ", $ftp->message;
+
+    #--------------------------------------*
+    # Chiusura FTP                         *
+    #--------------------------------------*
+    $ftp->quit                            ;
+}
+
+

@@ -1,0 +1,181 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per creazione tabelle MySQL *
+# t_ele_ass_ocp                           *
+# SU MISURA PER ELETTRA                   *
+# Ultimo aggiornamento 27/07/25           *
+#-----------------------------------------*
+
+use strict;
+use DBI();
+
+#=========================================*
+# Parametri di connessione al database    *
+#-----------------------------------------*
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini";
+my %cnf_dtb = do $cfg_dtb;
+my $hstn    = $cnf_dtb{dtb_hst};
+my $usrn    = $cnf_dtb{dtb_usr};
+my $pass    = $cnf_dtb{dtb_pwd};
+
+my $dtbs = "ele";
+my $tbla = "ass_ocp";
+
+#=========================================*
+# Stringa in input                        *
+#-----------------------------------------*
+my $strn = shift;
+
+my @rec_ins = split(/;/, $strn);
+my $dat_ela = $rec_ins[0];
+my $num_prt = $rec_ins[1];
+my $num_prg = $rec_ins[2];
+my $prg_frm = $rec_ins[3];
+
+my $qta_ass = $rec_ins[4];
+my $dat_ass = $rec_ins[5];
+my $dcn_ric = $rec_ins[6];
+my $dcn_prv = $rec_ins[7];
+my $dcn_cnf = $rec_ins[8];
+my $num_mag = $rec_ins[9];
+my $cod_cli = $rec_ins[10];
+my $dat_doc = $rec_ins[11];
+my $num_doc = $rec_ins[12];
+
+#=========================================*
+# Connessione al database                 *
+#-----------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtbs;host=$hstn", $usrn, $pass, {
+    RaiseError  => 1,
+    PrintError  => 0
+});
+
+#=========================================*
+# Formattazione elementi ricevuti         *
+#-----------------------------------------*
+my $ela_cnv = convert_date($dat_ela);
+my $ass_cnv = convert_date($dat_ass);
+my $qta_cnv = clean_number($qta_ass);
+my $dat_cnv = convert_date($dat_doc);
+my $ric_cnv = convert_date($dcn_ric);
+my $prv_cnv = convert_date($dcn_prv);
+my $cnf_cnv = convert_date($dcn_cnf);
+
+
+#   DEBUG 
+#   print "ela_cnv = " . $ela_cnv . "\n"    ;
+#   print "ass_cnv = " . $ass_cnv . "\n"    ;
+#   print "qta_cnv = " . $qta_cnv . "\n"    ;
+#   print "dat_cnv = " . $dat_cnv . "\n\n"    ;
+#   print "ric_cnv = " . $ric_cnv . "\n\n"    ;
+#   print "prv_cnv = " . $prv_cnv . "\n"    ;
+#   print "cnf_cnv = " . $cnf_cnv . "\n"    ;
+#   exit()                                  ;
+
+#=========================================*
+# Controllo esistenza record e confronto  *
+#-----------------------------------------*
+my $chk_sql = "SELECT qta_ass, dat_ass
+               FROM $tbla
+               WHERE num_prt = ? AND num_prg = ? AND prg_frm = ?";
+my $chk_sth = $dbh->prepare($chk_sql);
+$chk_sth->execute($num_prt, $num_prg, $prg_frm);
+
+my ($old_qta, $old_dat_ass) = $chk_sth->fetchrow_array();
+$chk_sth->finish();
+
+if (defined $old_qta) {
+    # record esiste → confronto
+    my $do_update = 0;
+
+    # normalizza per confronto
+    my $old_qta_clean = clean_number($old_qta);
+    my $old_dat_clean = $old_dat_ass; # già in formato YYYY-MM-DD in DB
+
+    if ($old_qta_clean ne $qta_cnv || $old_dat_clean ne $ass_cnv) {
+        $do_update = 1;
+    }
+
+    if ($do_update) {
+        my $upd_sql = "UPDATE $tbla SET "
+                    . "dat_ela = ?, "
+                    . "qta_ass = ?, "
+                    . "dat_ass = ?, "
+                    . "dcn_ric = ?, "
+                    . "dcn_prv = ?, "
+                    . "dcn_cnf = ?, "
+                    . "num_mag = ?, "
+                    . "cod_cli = ?, "
+                    . "dat_doc = ?, "
+                    . "num_doc = ? "
+                    . "WHERE num_prt = ? AND num_prg = ? AND prg_frm = ?";
+        my $upd_sth = $dbh->prepare($upd_sql);
+        $upd_sth->execute($ela_cnv, $qta_cnv, $ass_cnv,
+                          $ric_cnv, $prv_cnv, $cnf_cnv,
+                          $num_mag, $cod_cli, $dat_cnv,
+                          $num_doc, $num_prt, $num_prg, $prg_frm);
+    }
+}
+else {
+    # record non esiste → insert
+    my $ins_sql = "INSERT INTO $tbla "
+                . "(dat_ela,"
+                . " num_prt,"
+                . " num_prg,"
+                . " prg_frm,"
+                . " qta_ass,"
+                . " dat_ass,"
+                . " dcn_ric,"
+                . " dcn_prv,"
+                . " dcn_cnf,"
+                . " num_mag,"
+                . " cod_cli,"
+                . " dat_doc,"
+                . " num_doc)"
+                . " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    my $ins_sth = $dbh->prepare($ins_sql);
+    $ins_sth->execute($ela_cnv,
+                      $num_prt,
+                      $num_prg,
+                      $prg_frm,
+                      $qta_cnv,
+                      $ass_cnv,
+                      $ric_cnv,
+                      $prv_cnv,
+                      $cnf_cnv,
+                      $num_mag,
+                      $cod_cli, 
+                      $dat_cnv,
+                      $num_doc);
+    $ins_sth->finish(); 
+}
+
+#=========================================*
+# Disconnessione dal database             *
+#-----------------------------------------*
+$dbh->disconnect();
+
+#=========================================*
+# Conversione date                        *
+#-----------------------------------------*
+sub convert_date {
+    my ($raw_date) = @_;
+    unless ($raw_date =~ /^(\d{3})(\d{2})(\d{2})$/) {
+        warn "Formato data non valido: $raw_date\n";
+        return undef;
+    }
+    my ($yy, $mm, $dd) = ($1, $2, $3);
+    my $year = 1900 + $yy;
+    $year += 100 if $year < 2000;
+    return sprintf("%04d-%02d-%02d", $year, $mm, $dd);
+}
+
+#=========================================*
+# Conversione quantita'                   *
+#-----------------------------------------*
+sub clean_number {
+    my ($raw_num) = @_;
+    $raw_num =~ s/^0+//;
+    $raw_num =~ s/0+$//;
+    return $raw_num eq '' ? '0' : $raw_num;
+}

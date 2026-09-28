@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+# Legge da HTTP, scrive su file e invia tramite FTP
+
+use Net::SSLeay qw(get_https post_https sslcat make_headers make_form);
+
+   my $user = "admin.zatti";
+   my $pass = "e624910749";
+
+  ($page) = get_https('florissima.dyndns.org', 443, '/');        # 1
+
+  ($page, $response, %reply_headers)
+         = get_https('florissima.dyndns.org', 443, '/',                   # 2
+                make_headers(User-Agent => 'Cryptozilla/5.0b1',
+                             Referer    => 'https://florissima.dyndns.org'
+                ));
+
+  ($page, $result, %headers)                                     # 2b
+         = get_https('florissima.dyndns.org', 443, '/protected.html',
+              make_headers(Authorization =>
+                           'Basic ' . MIME::Base64::encode("$user:$pass",''))
+              );
+
+  ($page, $response, %reply_headers)
+         = post_https('florissima.dyndns.org', 443, '/foo.cgi', '',       # 3
+                make_form(OK   => '1',
+                          name => 'Sampo'
+                ));
+
+  $reply = sslcat($host, $port, $request);                       # 4
+
+  ($reply, $err, $server_cert) = sslcat($host, $port, $request); # 5
+
+  $Net::SSLeay::trace = 2;  # 0=no debugging, 1=ciphers, 2=trace, 3=dump data

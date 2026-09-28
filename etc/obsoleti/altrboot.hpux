@@ -1,0 +1,53 @@
+     ############ altrboot
+     #
+     # Procedura di boot per l' ambiente TANGRAM
+     #
+     # da posizionare in 'sbin/init.d' e creando un link
+     # file in /sbin/rc2.d con il nome 'S990altrboot'
+     #
+     ######
+     
+######
+# - Inizializzazione valore di ritorno a zero
+###
+
+returnvalue=0 ;
+
+######
+# - Esecuzione a seconda del parametro passato da /sbin/rc
+###
+
+case $1 in
+start_msg)
+      print "Startup Sistema Informativo TANGRAM" ;
+      ;;
+stop_msg)
+      ;;
+stop)
+      ;;
+start)
+      echo "Cancellazione dei files di /abd/tmp:" ;
+          ls -lia /abd/tmp ;
+          cd /abd/tmp ;
+          /bin/find . ! -name . type f -exec rm {} \;
+      echo "Cancellazione dei files di /abd/spl:" ;
+          ls -lia /abd/spl ;
+          cd /abd/spl ;
+          /bin/find . ! -name . type f -exec rm {} \;
+      echo "Cancellazione dei files di /abd/srt:" ;
+          ls -lia /abd/srt ;
+          cd /abd/srt ;
+          /bin/find . ! -name . type f -exec rm {} \;
+
+      ;;
+*)
+      echo "usage: $0 {start|stop|start_msg|stop_msg} ;
+      returnvalue=1 ;
+      ;;
+esac
+
+######
+# - Fine procedura
+###
+
+exit $returnvalue ;

@@ -1,0 +1,239 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per cancellare testate e     *
+# righe documenti ricevuti in formato      *
+# 'xml'                                    *
+#                                          *
+# Nome del modulo: t_xml_for_pul           *
+#                                          *
+# N.B.: Utilizzato da 'pscf9100'           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 26/08/2024 *
+#   Ultima revisione:   wip del 26/08/2024 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input       : - codice azienda        *
+#                  - data nel formato      *
+#                    AAAA-MM-GG            *
+#                                          *
+# (Configurazione: - 't_xml_for.ini'       *
+#                  - 'dtb.ini')            *
+#                                          *
+# (LOG           : - 't_xml_for_pul.log'   *
+#                                          *
+#==========================================*
+use DBI()                                 ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $cod_azi = shift                       ;
+my $dat_exe = shift                       ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$cod_azi || $cod_azi eq "-help")
+{
+    my $sys_clr = "clear"                 ;
+    system($sys_clr)                      ;
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_xml_for_pul {AZI} {DATA} "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip - 26 agosto 2024"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Test su data in input                    *
+#------------------------------------------*
+if (!$dat_exe)
+{
+    my $sys_clr = "clear"                 ;
+    system($sys_clr)                      ;
+    print "\n"
+        . "Manca la data massima di cancellazione! (AAAA-MM-GG)"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+$theTime = &sys_tim                       ;
+#------------------------------------------*
+# Data di sistema - Giorno                 *
+#------------------------------------------*
+my $gio_lct = (localtime)[3]              ;
+my $gio_wrk = int($gio_lct)               ;
+my $gio_fmt = sprintf ("%02d",$gio_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Mese                   *
+#------------------------------------------*
+my $mes_lct = (localtime)[4]              ;
+my $mes_wrk = int($mes_lct)               ;
+   $mes_wrk = $mes_wrk + 1                ;
+my $mes_fmt = sprintf ("%02d",$mes_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Anno                   *
+#------------------------------------------*
+my $ann_lct = (localtime)[5]              ;
+my $ann_wrk = int($ann_lct)               ;
+   $ann_wrk = $ann_wrk + 1900             ;
+my $ann_fmt = sprintf ("%04d",$ann_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Ora                    *
+#------------------------------------------*
+my $ora_lct = (localtime)[2]              ;
+my $ora_wrk = int($ora_lct)               ;
+my $ora_fmt = sprintf ("%02d",$ora_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Minuti                 *
+#------------------------------------------*
+my $min_lct = (localtime)[1]              ;
+my $min_wrk = int($min_lct)               ;
+my $min_fmt = sprintf ("%02d",$min_wrk)   ;
+
+#------------------------------------------*
+# Parametri di base                        *
+#------------------------------------------*
+my $pth_bas = '/abd/asc/'                 ;
+#------------------------------------------*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dtb_azi = $cod_azi                    ;
+#
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+#
+my $dtb_tes = "xml_for"                   ;
+my $dtb_rig = "xml_frr"                   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dtb_con = DBI->connect("DBI:"
+                         . "mysql:database="
+                         . "$dtb_azi;"
+                         . "host=$dtb_hst",
+                                  $dtb_usr,
+                                  $dtb_pwd,
+                          {RaiseError => 1,
+                           PrintError => 0});
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = $pth_bas
+            . 'log/t_xml_for_pul.log'     ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+#------------------------------------------*
+# Intestazione LOG                         *
+#------------------------------------------*
+print LOG_FIL "===============================\n"; 
+print LOG_FIL "Azienda            : " . $cod_azi . "\n"; 
+print LOG_FIL "Data richiesta     : " . $dat_exe . "\n"; 
+print LOG_FIL "-------------------------------\n"; 
+print LOG_FIL "Data esecuzione    : " . $theTime . "\n"; 
+
+#==========================================*
+# Cancellazione testate                    *
+#------------------------------------------*
+my $del_tes = "DELETE FROM `"
+            . $dtb_tes
+            . "` WHERE `dat_imp` < '"
+            . $dat_exe
+            . "'"                         ;
+my $sth_tes = $dtb_con->prepare($del_tes) ;
+#------------------------------------------*
+# Esecuzione                               *
+#------------------------------------------*
+$sth_tes->execute()                       ;
+#------------------------------------------*
+# Scrittura file di LOG                    *
+#------------------------------------------*
+my $row_tes = $sth_tes->rows              ;
+print LOG_FIL "Testate cancellate : "
+	      . $row_tes
+             . "\n"                       ;
+
+#==========================================*
+# Cancellazione righe                      *
+#------------------------------------------*
+my $del_rig = "DELETE FROM `"
+            . $dtb_rig
+            . "` WHERE `dat_imp` < '"
+            . $dat_exe
+            . "'"                         ;
+my $sth_rig = $dtb_con->prepare($del_rig) ;
+#------------------------------------------*
+# Esecuzione                               *
+#------------------------------------------*
+$sth_rig->execute()                       ;
+
+#------------------------------------------*
+# Scrittura file di LOG                    *
+#------------------------------------------*
+my $row_rig = $sth_rig->rows              ;
+print LOG_FIL "Righe cancellate   : "
+	      . $row_rig
+             . "\n"                       ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+print LOG_FIL "===============================\n"; 
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my @months   = qw(Gen Feb Mar Apr Mag Giu Lug Ago Set Ott Nov Dic);
+    my @weekDays = qw(Dom Lun Mar Mer Gio Ven Sab Dom);
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+$daylightSavings) = localtime()           ;
+     my $year = 1900 + $yearOffset        ;
+     $sysTime = "$hour:$minute:$second, "
+              . "$weekDays[$dayOfWeek] "
+              . "$months[$month] "
+              . "$dayOfMonth, $year"      ;
+    return $sysTime                       ;
+}
+

@@ -1,0 +1,14 @@
+#!/usr/bin/perl -w
+use Text::CSV;
+
+ my @rows;
+ my $csv = Text::CSV->new ( { binary => 1 } )  # should set binary attribute.
+                 or die "Cannot use CSV: ".Text::CSV->error_diag ();
+ 
+ open my $fh, "<:encoding(iso-8859-1)", "importazione.csv" or die "importazione.csv: $!";
+ while ( my $row = $csv->getline( $fh ) )
+ {
+     push @rows, $row;
+ }
+ $csv->eof or $csv->error_diag();
+ close $fh;

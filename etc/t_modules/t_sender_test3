@@ -1,0 +1,37 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta Mail::Sender  *
+#                                          *
+# t_sender_test                            *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Mail::Sender                          ;
+
+my $host = 'smtp.guttadauro.net'          ;
+my $mitt = 'fatture@elettromat.it'        ;
+my $dest = 'dkb@dkb.it'                   ;
+my $user = 'fatture@elettromat.it'        ;
+my $pass = 'fastway'                      ;
+
+$sender = new Mail::Sender {
+        smtp => $host,
+        from => $mitt,
+        auth => 'CRAM-MD5',
+        authid => $user,
+        authpwd => $pass,
+        on_errors => undef,
+}
+        or die "Non posso creare il messaggio: $Mail::Sender::Error\n";
+$sender->Open({
+        to => $dest,
+        subject => 'Messaggio di prova t_sender',
+})
+        or die "Non riesco ad aprire: $sender->{'error_msg'}\n";
+$sender->SendLineEnc("Prova\nCiao");
+$sender->Close()
+        or die "Errore: $sender->{'error_msg'}\n";
+

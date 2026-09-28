@@ -1,0 +1,112 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# Retarus                                  *
+#                                          *
+# t_nobili_sel                             *
+#                                          *
+# (Richiamato da 'aut600')                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 17/02/11    *
+#   Ultima revisione:  NdK del 07/03/11    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Descrizione modulo:                      *
+#                                          *
+# Lettura del Database MySQL relativo per  *
+# generare una lista di documenti da trat- *
+# tare                                     *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $pth = "/abd/asc/imp/"                 ;
+my $nam = "LISTA_NOB"                     ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dhst = "localhost"                    ;
+my $dusr = "root"                         ;
+# my $dpwd = "alter1"                       ;
+my $dpwd = "loppio2"                      ;
+my $dtbs = "nob"                          ;
+my $dtab = "retarus"                      ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtbs;host=$dhst",
+                       $dusr,
+                       $dpwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Open dei file di appoggio                *
+#------------------------------------------*
+open (LISTA, ">$pth$nam") or die
+        "Impossibile aprire il file $nam";
+
+#==========================================*
+# Lettura dati da tabella                  *
+#------------------------------------------*
+my $sel = "SELECT path FROM "
+       . $dtab
+       . " WHERE flag = ' '"              ;
+my $sth = $dbh->prepare($sel)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Ciclo di lettura testate                 *
+#------------------------------------------*
+while (my $ref = $sth->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Codice cliente                       *
+    #--------------------------------------*
+    my $file = ""                         ;
+    if ($ref->{'path'})
+    {
+        $file = $ref->{'path'}            ;
+    }
+     else
+    {
+        $file = " "                       ;
+    }
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print LISTA "$file\n"                 ;   
+}
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close del file di appoggio               *
+#------------------------------------------*
+close LISTA                               ;

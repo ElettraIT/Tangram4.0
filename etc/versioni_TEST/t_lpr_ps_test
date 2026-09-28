@@ -1,0 +1,58 @@
+#!/usr/bin/perl -w
+
+use PostScript::Simple                    ;
+use Barcode::Code128 'FNC1';
+
+
+
+    #--------------------------------------*
+    # File di output Postscript            *
+    #--------------------------------------*
+    my $out = "/abd/asc/tmp/t_lpr_ps_test.ps"    ;
+
+
+    #--------------------------------------*
+    # Nuova pagina Postscript              *
+    #--------------------------------------*
+    $p = new PostScript::Simple(papersize => "A4",
+                                colour => 1,
+                                eps => 0,
+                                units => "in");
+    $p->newpage                           ;
+    $p->setfont("Times-Roman", 12)        ;
+
+    #--------------------------------------*
+    # Inclusione logo                      *
+    #--------------------------------------*
+    
+  $code = new Barcode::Code128;
+  $code->text(FNC1.'10001');
+  open(PNG, ">/abd/asc/tmp/code128.png") or die "Can't write code128.png: $!\n";
+  binmode(PNG);
+  print PNG $code->png("CODE 128");
+  close(PNG);    
+    
+    
+    
+    
+    
+#    my $logo = "/abd/asc/PRV_perl/barcode/eps/qr.eps";
+#    my $logo = "/abd/asc/bcd/01/010000.eps";
+    my $logo = "/abd/asc/ele/fat/arc/2021/IT00629080284_D0001.ps";
+    $e = new PostScript::Simple::EPS(file => $logo);
+#    $e->scale(0.010)                      ;
+#    $p->importeps($e, 0.1,-0.7)           ;
+    $p->importeps($e, 0.1,-0.7)           ;
+
+    #--------------------------------------*
+    # Generazione file Postscript          *
+    #--------------------------------------*
+    $p->output($out)                      ;
+
+    #--------------------------------------*
+    # Stampa file Postscript               *
+    #--------------------------------------*
+
+
+#   my $printer = "hp"                   ;
+#   system("cat $out | lpr -P$printer")   ;

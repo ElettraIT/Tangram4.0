@@ -1,0 +1,383 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per invio posta MIME::Lite  *
+#                                         *
+# t_mailer                                *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 01/04/04   *
+#   Ultima revisione:  NdK del 03/07/18   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : - utente Tangram             *
+#                                         *
+#            - server di posta SMTP       *
+#                                         *
+#            - mail mittente              *
+#                                         *
+#            - indirizzo mail o nome file *
+#              lista di indirizzi         *
+#                                         *
+#            - file messaggio (opzionale) *
+#                                         *
+#            - file allegato  (opzionale) *
+#                                         *
+#            - nome allegato  (opzionale) *
+#                                         *
+#            - Soggetto       (opzionale) *
+#                                         *
+#            - si/no ricevuta (opzionale) *
+#                                         *
+#            - ID account     (opzionale) *
+#                                         *
+#            - PW account     (opzionale) *
+#                                         *
+# --------------------------------------- *
+#                                         *
+# N.B.: i campi in input sono separati da *
+#       virgola ','                       *
+#                                         *
+#-----------------------------------------*
+
+#=========================================*
+# Modulo Perl MIME::Lite                  *
+#-----------------------------------------*
+use MIME::Lite                            ;
+use Net::SMTP_auth                        ;
+
+#=========================================*
+# Variabili statiche                      *
+# --------------------------------------- *
+#  - Pathname di base per i file          *
+#  - Nome file contenente il soggetto     *
+#-----------------------------------------*
+$base = '/abd/asc/'                       ;
+$temp = '/tmp/'                           ;
+#$apdf = '/pdf/out/'                      ;
+$sogg = 'sogg.txt'                        ;
+
+#=========================================*
+# Variabili lette in input                *
+#-----------------------------------------*
+
+#    *------------------------------------*
+#    * Lettura variabile in input         *
+#    *------------------------------------*
+$inpt = $ARGV[0]                          ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$ARGV[0] || $ARGV[0] eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_mailer UTENTE tangram,"
+        . "SERVER_SMTP,"
+        . "MITTENTE,"
+        . "FILE_LISTA,"
+        . "FILE_MESS(opz),"
+        . "FILE_ATTACH(opz),"
+        . "FILENAME_ATTACH(opz),"
+        . "FILE_SOGG(opz),"
+        . "SI/NO_RICEVUTA(opz),"
+        . "ID_USER(opz),"
+        . "PWD_USER(opz),"
+        . "\n"
+        . "\n"
+        . "Release : 17/01/2013"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#    *------------------------------------*
+#    * Separazione dei componenti (,)     *
+#    *------------------------------------*
+@vars = split(/,/, $inpt)                 ;
+
+#    *====================================*
+#    * Utente Tangram                     *
+#    *------------------------------------*
+$user = $vars[0]                          ;
+#    *------------------------------------*
+#    * Server di posta                    *
+#    *------------------------------------*
+$isps = $vars[1]                          ;
+#    *------------------------------------*
+#    * Mittente                           *
+#    *------------------------------------*
+$mitt = $vars[2]                          ;
+#    *------------------------------------*
+#    * Destinatari / destinatario         *
+#    *------------------------------------*
+$indi = $vars[3]                          ;
+#    *------------------------------------*
+#    * File contenente il messaggio       *
+#    *------------------------------------*
+$mess = $vars[4]                          ;
+#    *------------------------------------*
+#    * File attachement       (opzionale) *
+#    *------------------------------------*
+$attp = $vars[5]                          ;
+#    *------------------------------------*
+#    * Nome attachement       (opzionale) *
+#    *------------------------------------*
+$atta = $vars[6]                          ;
+#    *------------------------------------*
+#    * Soggetto manuale       (opzionale) *
+#    *------------------------------------*
+$msog = $vars[7]                          ;
+#    *------------------------------------*
+#    * Si/no ricevuta         (opzionale) *
+#    *------------------------------------*
+$snxr = $vars[8]                          ;
+#    *------------------------------------*
+#    * ID account             (opzionale) *
+#    *------------------------------------*
+$uidx = $vars[9]                          ;
+#    *------------------------------------*
+#    * PW account             (opzionale) *
+#    *------------------------------------*
+$pwdx = $vars[10]                         ;
+
+#    *====================================*
+#    * Debug (da scommentare)             *
+#    *------------------------------------*
+#    print $vars[0] . "\n";
+#    print $vars[1] . "\n";
+#    print $vars[2] . "\n";
+#    print $vars[3] . "\n";
+#    print $vars[4] . "\n";
+#    print $vars[5] . "\n";
+#    print $vars[6] . "\n";
+#    print $vars[7] . "\n";
+#    print $vars[8] . "\n";
+#    print $vars[9] . "\n";
+#    print $vars[10] . "\n";
+#    exit ();
+
+#=========================================*
+# Normalizzazioni                         *
+#-----------------------------------------*
+    #-------------------------------------*
+    # Pathname file testo                 *
+    #-------------------------------------*
+if (!$mess) { $mess = 'mess.txt';}
+    #-------------------------------------*
+    # Pathname file lista indirizzi       *
+    #-------------------------------------*
+if (!$indi) { $indi = 'mail.001';}
+    #-------------------------------------*
+    # Si/no ricevuta                      *
+    #-------------------------------------*
+if (!$snxr) { $snxr = "N";}
+
+#=========================================*
+# Sub-routine per lettura soggetto        *
+#-----------------------------------------*
+&soggetto                                 ;
+
+#=========================================*
+# Sub-routine per lettura testo           *
+#-----------------------------------------*
+&messaggio                                ;
+
+#=========================================*
+# Sub-routine di spedizione               *
+#-----------------------------------------*
+&spedisci                                 ;
+
+#******************************************
+# SUB-ROUTINES                            *
+#******************************************
+
+#=========================================*
+# Spedizione                              *
+#-----------------------------------------*
+sub spedisci 
+{
+    #-------------------------------------*
+    # Se passata una lista                *
+    #-------------------------------------*
+    if ($indi !~ /\@/)
+         {&lista;}
+    #-------------------------------------*
+    # Se passato un singolo indirizzo     *
+    #-------------------------------------*
+    else {$indirizzo=$indi;
+          &send};
+}
+
+#=========================================*
+# Singolo invio con MIME::Lite            *
+#-----------------------------------------*
+sub send
+{
+    #-------------------------------------*
+    # Invio vero e proprio                *
+    #-------------------------------------*
+      $msg = MIME::Lite->new
+    (
+        #---------------------------------*
+        # Mittente                        *
+        #---------------------------------*
+        'From'  =>$mitt,
+        #---------------------------------*
+        # Destinatario e mittente         *
+        #---------------------------------*
+        #To      =>$indirizzo,
+        'To'     =>[$indirizzo, $mitt],
+        #---------------------------------*
+        # Copia per il mittente: sempre   *
+        #                                 *
+        # N.B.: non va in MIME::Lite!     *
+        #---------------------------------*
+        #Bcc     =>$mitt,
+        #---------------------------------*
+        # Oggetto                         *
+        #---------------------------------*
+        'Subject' =>@subject,
+        #---------------------------------*
+        # Tipo messaggio                  *
+        #---------------------------------*
+        Type    =>'multipart/alternative',
+    );
+    
+    #-------------------------------------*
+    # Eventuale ricevuta di ritorno       *
+    #-------------------------------------*
+    if ($snxr eq "S")
+        {
+            &rerc;
+        }
+
+    $msg->attach
+    (
+        Type    => 'text/html',
+        Data    => $testo
+    );
+
+    #-------------------------------------*
+    # Eventuale attachement               *
+    #-------------------------------------*
+    if ($atta)
+        {
+            $msg->attach
+                (Type        => 'application/pdf',
+                 Path        => $attp,
+                 Filename    => $atta,
+                 Disposition => 'attachment'
+                );
+        }
+
+    #-------------------------------------*
+    # Spedizione in funzione della        *
+    # eventuale autenticazione            *
+    #-------------------------------------*
+    if ($pwdx)
+    {
+        #---------------------------------*
+        # Uso di SMTP_auth                *
+        #---------------------------------*
+        my $smtp = Net::SMTP_auth -> new($isps, debug=>1);
+        
+        $smtp -> auth( 'PLAIN', $uidx, $pwdx);
+    
+        $smtp->mail($mitt)                ;
+        $smtp->recipient($indirizzo)      ;
+        $smtp -> data()                   ;
+                
+        $smtp -> datasend( $msg->as_string());
+        $smtp -> dataend()                ;
+        $smtp -> quit                     ;
+    }
+     else
+    {
+        $msg->send('smtp',
+                   $isps,
+                   Timeout=>60);
+    }
+}
+
+#=========================================*
+# Trattamento soggetto                    *
+#-----------------------------------------*
+sub soggetto 
+{
+#    *------------------------------------*
+#    * Se non passato un soggetto manuale *
+#    * si legge il file                   *
+#    *------------------------------------*
+    if (!$msog)
+         {&read_sog;}
+#    *------------------------------------*
+#    * Se passato un soggetto manuale     *
+#    *------------------------------------*
+    else {@subject=qq{$msog};};
+}
+
+#=========================================*
+# Apertura file contenente il soggetto    *
+#-----------------------------------------*
+sub read_sog
+{
+    open (SOGGETTO, "$base$user$temp$sogg")or die
+         "Impossibile aprire il file '$sogg'";
+    @subject=<SOGGETTO>;
+    close SOGGETTO;
+}
+
+#=========================================*
+# Apertura file contenente il messaggio   *
+#-----------------------------------------*
+sub messaggio
+{
+    #-------------------------------------*
+    # Open                                *
+    #-------------------------------------*
+    open (MESSAGE, "$base$user$temp$mess")
+          or die
+         "Impossibile aprire il file '$mess'";
+    @message=<MESSAGE>;
+    close MESSAGE;
+    #-------------------------------------*
+    # Compattazione testo letto           *
+    #-------------------------------------*
+    $testo = qq{@message};
+}
+
+#=========================================*
+# Invio ad una lista                      *
+#-----------------------------------------*
+sub lista
+{
+    open (INDIRIZZI, "$base$temp$indi")or die
+        "Impossibile aprire il file indirizzi";
+    @indirizzo = <INDIRIZZI>;
+    foreach $indirizzo (@indirizzo)
+    {
+        if ($indirizzo !~ /\@/)
+            {next}
+            else {&send};
+    }
+    close (INDIRIZZI);
+}
+
+#=========================================*
+# Ricevuta di ritorno                     *
+#                                         *
+# (rivedere ID)                           *
+#                                         *
+#-----------------------------------------*
+sub rerc
+{
+    $msg->add("Disposition-Notification-To:" =>$mitt );
+#   $msg->add("Message-ID:" =>'123456789');
+}

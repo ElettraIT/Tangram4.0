@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per dezippare                *
+#                                          *
+# t_zip_ext                                *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 20/02/18   *
+#   Ultima revisione:   NdK del 16/05/23   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : (nessun input)                *
+#                                          *
+# ---------------------------------------- *
+# N.B.: su misura per ELETTRA              *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Archive::Zip                          ;
+use File::Basename                        ;
+
+#==========================================*
+# Composizione directory da leggere        *
+#------------------------------------------*
+my $dire = "/abd/asc/ele/scf/imp/"        ;
+
+#==========================================*
+# Normalizzazioni                          *
+#------------------------------------------*
+my $elim = ""                             ;
+
+#==========================================*
+# Open directory                           *
+#------------------------------------------*
+opendir (DIR,$dire)                       ;
+    
+#==========================================*
+# Ciclo interno alla directory             *
+#------------------------------------------*
+LINE: foreach $elem (sort readdir(DIR))
+{
+    #--------------------------------------*
+    # Esclusione 'albero' directory        *
+    #--------------------------------------*
+    if ($elem eq "." || $elem eq "..")
+       {next(LINE)}                       ;
+    #--------------------------------------*
+    # Pulizia fine riga                    *
+    #--------------------------------------*
+    chomp ($elem)                         ;
+    #--------------------------------------*
+    # Esclusione files di sistema          *
+    #--------------------------------------*
+    next if $elem =~ /^\./                ;
+    #--------------------------------------*
+    # Esclusione estensioni diverse        *
+    #--------------------------------------*
+    my ($name,
+        $path,
+        $suff) = fileparse($elem, '\.[^\.]*');
+        if ($suff ne ".zip")
+           {next(LINE);}                  ;
+    #--------------------------------------*
+    # Nome file completo                   *
+    #--------------------------------------*
+    $unzf = $dire . $elem                 ;
+    #--------------------------------------*
+    # Estrazione                           *
+    #--------------------------------------*
+    my $zip = Archive::Zip->new($unzf);
+    foreach my $member ($zip->members)
+    {
+        #----------------------------------*
+        # Non direcory                     *
+        #----------------------------------*
+        next if $member->isDirectory      ;
+        #----------------------------------*
+        # Estrazione estensione dei files  *
+        # all'interno del file zip         *
+        #----------------------------------*
+        
+        $elim = $unzf;
+        #----------------------------------*
+        # Estrazione estensione dei files  *
+        # all'interno del file zip         *
+        #----------------------------------*
+        my ($name,
+            $path,
+            $suff) = fileparse($member->fileName, '\.[^\.]*');
+        #----------------------------------*
+        # Solo 'xml' o 'p7m'               *
+        #----------------------------------*
+        if ($suff ne ".xml" && $suff ne ".p7m")
+               {next;}                    ;
+        #----------------------------------*
+        # Estrazione 'xml' o 'p7m'         *
+        #----------------------------------*
+        (my $extractName = $member->fileName) =~ s{.*/}{};
+        $member->extractToFileNamed("$dire$extractName");
+    }
+}
+
+#==========================================*
+# Close directory                          *
+#------------------------------------------*
+closedir (DIR)                            ;
+
+#==========================================*
+# Rimozione file ZIP                       *
+#------------------------------------------*
+if ($elim ne "")
+{
+    my $sys_clr = "rm " . $unzf           ;
+    system($sys_clr)                      ;
+}
+        
+        
+
+
+
+

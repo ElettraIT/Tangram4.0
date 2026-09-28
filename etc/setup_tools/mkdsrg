@@ -1,0 +1,75 @@
+     ############ /abd/etc/mkdsrg
+     #
+     # Procedura di creazione della subdirectory 'srg' di '/abd'
+     #
+     # Input : $1:Pathname completo per la directory al cui interno deve
+     #                     essere creata la subdirectory 'srg'
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                # Errore per il comando 'mkdsrg' #               " ;
+       echo "                ----------------------------------               " ;
+       echo "                                                                 " ;
+       echo " Il comando puo' essere eseguito solamente dall'utente 'master'  " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# Controllo sul numero di parametri
+###
+
+case $# in
+       1)
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "          # Errore nei parametri per il comando 'mkdsrg' #       " ;
+          echo "         -------------------------------------------------       " ;
+          echo "                                                                 " ;
+          echo " Errore : E' richiesto in input il parametro per il pathname     " ;
+          echo "          della directory al cui interno deve essere creata      " ;
+	  echo "          la subdirectory 'srg'.                                 " ;
+          echo "                                                                 " ;
+          echo "          Non e' ammesso omettere il parametro, ne' fornirne     " ;
+          echo "          piu' di uno.                                           " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+	  ;;
+     esac
+
+######
+# - Creazione directory 'srg'
+###
+
+mkdir           $1/srg
+chmod  0750     $1/srg
+
+######
+# - Simbolic link, se necessario, a '/abd/srg'
+###
+
+case $1 in
+     /abd)
+          ;;
+        *)
+          ln -s $1/srg /abd/srg ;
+	  ;;
+     esac
+
+######
+# - Fine procedura
+###

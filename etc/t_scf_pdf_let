@@ -1,0 +1,72 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per caricamento file PDF da  *
+# apposito archivio a cartella utente      *
+#                                          *
+# t_scf_pdf_let                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 06/02/18    *
+#   Ultima revisione:  NdK del 06/02/18    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - utente                      *
+#            - azienda                     *
+#            - secolo-anno                 *
+#            - protocollo Iva              *
+#            - giornale Iva                *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# N.B.: chiamato dal programma 'pscf301j'  *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $uten = shift                          ;
+my $azie = shift                          ;
+my $psaa = shift                          ;
+my $prti = shift                          ;
+my $ngio = shift                          ;
+
+#==========================================*
+# Assemblaggio nome file da caricare       *
+#                                          *
+# Formato: G_PROTOCOLLO.pdf                *
+#------------------------------------------*
+if (!$ngio){$ngio = ""}
+my $sgio = ""                             ;
+if ($ngio ne "") {$sgio = "_"}            ;
+
+my $fnam = $psaa
+         . "_"
+         . $ngio 
+         . $sgio
+         . $prti
+         . ".pdf"                         ;
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $patb = "/abd/asc/"                    ;
+my $cmnd = "cp "
+         . $patb
+         . $azie
+         . "/scf/"
+         . $psaa
+         . "/"
+         . $fnam
+         . " "
+         . $patb
+         . $uten
+         . "/pdf/out"                     ;
+
+#==========================================*
+# Esecuzione comando                       *
+#------------------------------------------*
+system($cmnd)                             ;
+

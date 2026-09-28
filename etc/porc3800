@@ -1,0 +1,123 @@
+#!/bin/sh
+
+      #================================================================#
+      #                                                                #
+      # Catalogo:          Sistema applicativo:    ele                 #
+      #                        Area gestionale:    orc                 #
+      #                                Settore:    mov                 #
+      #                                   Fase:    orc380              #
+      #                    ------------------------------------------- #
+      #                     Versione originale:    001 del 16/07/24    #
+      #                       Ultima revisione:    NdK del 16/07/24    #
+      #                    ------------------------------------------- #
+      #                                 Autore:    Nicola de Kunovich  #
+      #================================================================#
+      #                                                                #
+      # Descrizione pgm:   Batch per Ordini inevasi a fronte entrate   #
+      #                    prodotti                                    #
+      #                                                                #
+      #                    SU MISURA PER ELETTRA                       #
+      #                                                                #
+      #                    QUESTA VERSIONE LEGGE IL TIPO BATCH COME    #
+      #                    VARIABILE PASSATA                           #
+      #                                                                #
+      #================================================================#
+
+######
+# Preparazione esecuzione
+###
+
+#
+# Set della nuova umask
+#
+umask 022;
+
+#
+# Posizionamento sulla directory di base per oggetti
+#
+cd /abd/ogt;
+
+######
+# Preparazione variabili per Acucobol
+###
+
+#
+# Tipo di terminale
+#
+A_TERM="none"; export A_TERM;
+
+#
+# File di terminal capabilities
+#
+A_TERMCAP="../run/webtermcap"; export A_TERMCAP;
+
+#
+# File di configurazione Runtime Acucobol
+#
+A_CONFIG="../run/webcblcfg"; export A_CONFIG;
+
+######
+# Preparazione variabili per esecuzione 'TANGRAM'
+###
+
+#
+# Variabili di configurazione
+#
+V_WIP_AZIE="ele"; export V_WIP_AZIE;
+V_WIP_UTEN="master"; export V_WIP_UTEN;
+V_WIP_PRMS="ele/orc/prg/obj/porc3800"; export V_WIP_PRMS;
+
+#
+# Directory di base 'abd'
+#
+V_WIP_HOME="/abd"; export V_WIP_HOME;
+
+#
+# Real User-Id
+#
+V_WIP_USER="`whoami`"; export V_WIP_USER;
+
+#
+# Codice del terminale
+#
+dkb_tty="`tty`";
+# V_WIP_TTYC="`basename $dkb_tty`"; export V_WIP_TTYC;
+V_WIP_TTYC="0"; export V_WIP_TTYC;
+
+#
+# Tipo di terminale utilizzato
+#
+V_WIP_TERM="vt300"; export V_WIP_TERM;
+
+#
+# Tipo di runtime utilizzato : Acucobol
+#
+V_WIP_RUNT="00"; export V_WIP_RUNT;
+
+#
+# Process-ID unico
+#
+V_WIP_GETP="`/abd/run/getpid`"; export V_WIP_GETP;
+
+#
+# Altre variabili
+#
+V_WIP_SUBT=""; export V_WIP_SUBT;
+
+######
+# Lancio del runtime Acucobol
+###
+
+#
+# Parametro POST passato 
+#
+V_WIP_POST=$1; export V_WIP_POST;
+
+#
+# Esecuzione TANGRAM in foreground
+#
+/abd/run/runcbl -x swd/xpg/prg/obj/pxpgcg00 "$V_WIP_HOME" "$V_WIP_USER" "$V_WIP_TTYC" "$V_WIP_TERM" "$V_WIP_RUNT" "$V_WIP_GETP" "$V_WIP_SUBT" "$V_WIP_AZIE" "$V_WIP_UTEN" "$V_WIP_PRMS" "$V_WIP_POST";
+
+######
+# - Fine procedura
+###

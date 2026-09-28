@@ -1,0 +1,91 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per traduzione MD5 della     *
+# password utente                          *
+#                                          *
+# t_md5_pwd                                *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 25/03/25    *
+#   Ultima revisione:  NdK del 25/03/25    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input   : - password da criptare      *
+#                                          *
+# ATTENZIONE : la stringa in input NON de- *
+#              ve terminare con il carat-  *
+#              tere '&' che viene inter-   *
+#              pretato come parte del      *
+#              comando.                    *
+#                                          *
+#              In input deve essere passa- *
+#              to convenzionalmente il ca- *
+#              rattere '@' che viene sos-  *
+#              tituito da '&' in fase di   *
+#              encripting.                 *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Digest::MD5 qw(md5_hex)               ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $pwd = shift                           ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$pwd || $pwd eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_md5 password (sostituire eventuali & con @)"
+        . "\n"
+        . "\n"
+        . "Release : 25/03/25"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Sub-routine di traduzione                *
+#------------------------------------------*
+&md5f($pwd)                               ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# Subroutine di traduzione                 *
+#------------------------------------------*
+sub md5f
+{
+    #--------------------------------------*
+    # Valore in input                      *
+    #--------------------------------------*
+    my $pww = shift                       ;
+    #--------------------------------------*
+    # Test se presente carattere '@'       *
+    #--------------------------------------*
+    $pww =~ s/@/&/g                       ;
+    #--------------------------------------*
+    # Cript della password                 *
+    #--------------------------------------*
+    my $md5p = md5_hex($pww)              ;
+    #--------------------------------------*
+    # Visualizzazione risultato            *
+    #--------------------------------------*
+    print $md5p . "\n"                    ;
+}

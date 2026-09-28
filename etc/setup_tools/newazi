@@ -1,0 +1,220 @@
+     ############ /abd/etc/newazi
+     #
+     # Procedura di creazione di una nuova azienda all'interno di '/abd/azi'
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'newazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Il comando puo' essere eseguito solamente dall'utente 'master'   " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Note operative per l'accettazione della sigla azienda
+###
+
+clear;
+echo    "======================================================================" ;
+echo    "                  ISTITUZIONE DI UNA NUOVA AZIENDA                    " ;
+echo    "----------------------------------------------------------------------" ;
+echo    "                                                                      " ;
+echo    "Note operative  : Digitare la sigla della nuova azienda che si vuole  " ;
+echo    "                  istituire.                                          " ;
+echo    "                                                                      " ;
+echo    "           Nota : Rispondere a vuoto se si vuole uscire immediatamen- " ;
+echo    "                  te dalla procedura.                                 " ;
+echo    "                                                                      " ;
+/abd/etc/echonnl "--------------> : " ;
+
+######
+# - Accettazione sigla nuova azienda
+###
+
+read    altervx10;
+
+######
+# - Una linea di separazione
+###
+
+echo    "                                                                      " ;
+
+######
+# - Test se impostazione a vuoto
+###
+
+if [ -z "$altervx10" ]
+   then
+      exit 0;
+   fi
+
+######
+# - Test che non esista gia' una directory in /abd/azi per l'azienda digitata
+###
+
+if [ -d /abd/azi/$altervx10 ]
+   then
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'newazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Esiste gia' un'azienda con la sigla '$altervx10'                 " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Test che non esista gia' un simbolic link in /abd/azi per l'azienda digitata
+###
+
+if [ -f /abd/azi/$altervx10 ]
+   then
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'newazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Esiste gia' un'azienda con la sigla '$altervx10'                 " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Ulteriori note operative per l'accettazione del pathname per l'azienda
+###
+
+echo    "Note operative  : Digitare il pathname della directory al cui interno " ;
+echo    "                  deve essere creata la subdirectory '$altervx10' per " ;
+echo    "                  gli archivi della nuova azienda.                    " ;
+echo    "                                                                      " ;
+echo    "           Nota : Rispondere a vuoto per posizionare la subdirectory  " ;
+echo    "                  '$altervx10' alla sua normale collocazione, vale a  " ;
+echo    "                  dire con pathname '/abd/azi/$altervx10'.            " ;
+echo    "                                                                      " ;
+echo    "           Nota : Digitare 'stop' se si vuole uscire immediatamente   " ;
+echo    "                  dalla procedura.                                    " ;
+echo    "                                                                      " ;
+echo    "                                                                      " ;
+/abd/etc/echonnl "--------------> : " ;
+
+######
+# - Accettazione pathname della directory
+###
+
+read    altervx11;
+
+
+######
+# - Una linea di separazione
+###
+
+echo    "                                                                      " ;
+
+######
+# - Normalizzazione pathname accettato
+###
+
+
+if [ -z "$altervx11" ]
+   then
+      altervx11="/abd/azi";
+   fi
+
+######
+# - Test se 'stop'
+###
+
+if [ $altervx11 = "stop" ]
+   then
+       exit 0;
+   fi
+
+######
+# - Test che la directory madre esista
+###
+
+if [ ! -d $altervx11 ]
+   then
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'newazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "La directory '$altervx11' non esiste.                            " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Test che non esista gia' la subdirectory
+###
+
+if [ -d $altervx11/$altervx10 ]
+   then
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'newazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Esiste gia' la subdirectory con la sigla '$altervx11/$altervx10' " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Test che non esista gia' un simbolic link in /abd/azi per l'azienda digitata
+###
+
+if [ -f $altervx11/$altervx10 ]
+   then
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'newazi' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo "Esiste gia' un'azienda con la sigla '$altervx10'                 " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# - Creazione subdirectory per nuova azienda
+###
+
+mkdir $altervx11/$altervx10;
+chmod 0750 $altervx11/$altervx10;
+
+######
+# - Simbolic link, se necessario, a '/abd/azi/xxx'
+###
+
+case $altervx11 in
+     /abd/azi)
+              ;;
+            *)
+              ln -s $altervx11/$altervx10 /abd/azi/$altervx10 ;
+             ;;
+     esac
+
+######
+# - Fine procedura
+###

@@ -1,0 +1,108 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file di      *
+# backup da server TANGRAM                 *
+#                                          *
+# t_wip_sftp_bkc                           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 11/01/2022  *
+#   Ultima revisione:  NdK del 11/01/2022  *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In crontab, nel MAC, alle 21:30          *
+#                                          *
+# ___NON IN FUNZIONE ___                   *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = "10.1.10.2"                    ;
+my $user = 'master'                       ;
+my $pass = 'loppio2'                      ;
+
+#==========================================*
+# Data di sistema - Anno                   *
+#------------------------------------------*
+my $ann = (localtime)[5]                  ;
+my $anu = int($ann)                       ;
+   $anu = $anu + 1900                     ;
+my $anx = sprintf ("%04d",$anu)           ;
+#------------------------------------------*
+# Data di sistema - Mese                   *
+#------------------------------------------*
+my $mes = (localtime)[4]                  ;
+my $meu = int($mes)                       ;
+   $meu = $meu + 1                        ;
+my $mex = sprintf ("%02d",$meu)           ;
+#------------------------------------------*
+# Data di sistema - Giorno                 *
+#------------------------------------------*
+my $gio = (localtime)[3]                  ;
+my $gix = sprintf ("%02d",$gio)           ;
+#------------------------------------------*
+# Data di sistema - Formato: AAAAMMGG      *
+#------------------------------------------*
+my $dat = $anx  . $mex . $gix             ;
+
+#==========================================*
+# Cartelle utilizzate                      *
+#------------------------------------------*
+my $path = "/abd/asc/tmp/"                ;
+my $file = "SRG_ETC_" . $dat . ".TAR.gz"  ;
+
+my $locl = "/Users/Nicola/Library/Mobile "
+         . "Documents/com~apple~CloudDocs"
+         . "/Documenti/1_TANGRAM/abd_salvati/"
+         . $file                          ;
+
+#my $locl = "/Users/Nicola/Documents/"
+#         . "0_TANGRAM/Comandi_Perl_MAC/"
+#         . $file                          ;
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+    #--------------------------------------*
+    # Preparazione argomenti per chiamata  *
+    #--------------------------------------*
+    my %args = (user => $user,
+            password => $pass,
+                more => [-o => 'KexAlgorithms=+diffie-hellman-group1-sha1'],            
+                )                         ;
+
+    #--------------------------------------*
+    # Chiamata                             *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Posizionamento directory             *
+    #--------------------------------------*
+    $sftp->setcwd($path)
+        or die "Cambio directory "
+       . "non "
+       . "riuscito" . $sftp->error        ;
+
+    #--------------------------------------*
+    # Recupero backup                      *
+    #--------------------------------------*
+    $sftp->get($file, $locl)
+        or die "Recupero file "
+       . "non "
+       . "riuscito" . $sftp->error        ;
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+

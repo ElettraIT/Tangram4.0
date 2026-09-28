@@ -1,0 +1,95 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl formattazione file di testo  *
+#                                          *
+# t_format_cbl                             *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 20/02/11   *
+#   Ultima revisione:   NdK del 17/06/11   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Il modulo legge una lista di indirizzi   *
+# mail e genera un file con sintassi cobol *
+# nel formato tabella per le ricerche con  *
+# 'search'                                 *
+#                                          *
+# MEMO: il file originale deve essere in   *
+#       formato Unix LF                    *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Basename                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/tmp/'                ;
+my $outp = 'cobol.txt'                    ;
+
+#==========================================*
+# Variabili in input                       *
+#------------------------------------------*
+my $inpt = shift                          ;
+
+#==========================================*
+# Sub-routine di scansione file in Input   *
+#------------------------------------------*
+&input_file                               ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# File in Input                            *
+#------------------------------------------*
+sub input_file
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (OUTFILE, ">$base$outp") or die
+         "Impossibile aprire il file "
+       . "$base$outp"                     ;
+
+    open (INPFILE, "$base$inpt") or die
+         "Impossibile aprire il file "
+       . "$base$inpt"                     ;
+
+    #--------------------------------------*
+    # Ciclo di scansione file              *
+    #--------------------------------------*
+
+    @stri = <INPFILE>                     ;
+
+    foreach $stri (@stri)
+    {
+    
+        chomp($stri)                      ;
+        $strn = sprintf("% -40s", $stri)  ;
+        
+        print OUTFILE "         "
+                    . "          "
+                    . "15  filler"
+                    . "            "
+                    . " pic  x(40)"
+                    . " value\n"
+                    . "         "
+                    . "           "
+                    . "\"$strn"
+                    . "\"        .\n"     ;   
+    }
+
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close (INPFILE)                       ;
+    close (OUTFILE)                       ;
+}
+

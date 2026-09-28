@@ -1,0 +1,55 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per decodificare un base64  *
+# contenuto in un file p7m                *
+#                                         *
+# Creato da ChatGPT                       *
+#                                         *
+# FUNZIONA! - 05/05/2025                  *
+#=========================================*
+
+use strict;
+use warnings;
+use MIME::Base64;
+use File::Temp qw(tempfile);
+
+my $input_file = shift or die "Uso: $0 file.xml.p7m\n";
+
+# Leggi le prime 1024 bytes per determinare se è Base64
+open(my $fh, '<', $input_file) or die "Impossibile aprire '$input_file': $!";
+read($fh, my $head, 1024);
+seek($fh, 0, 0); # Torna all'inizio
+
+# Semplice controllo: solo caratteri base64 + padding e lunghezza significativa
+if ($head =~ /^[A-Za-z0-9+\/=\r\n]{100,}$/s) {
+    print "File sembra codificato in Base64. Decodifico...\n";
+
+    # Decodifica il contenuto base64
+    my $base64_content = do { local $/; <$fh> };
+    my $decoded = decode_base64($base64_content);
+
+    # Scrivi il contenuto decodificato in un file temporaneo
+    my ($tmpfh, $tmpfile) = tempfile(SUFFIX => '.p7m');
+    binmode $tmpfh;
+    print $tmpfh $decoded;
+    close $tmpfh;
+
+    process_p7m($tmpfile);
+
+    unlink $tmpfile;  # Pulisce
+} else {
+    print "File non è in Base64. Procedo direttamente.\n";
+    process_p7m($input_file);
+}
+
+sub process_p7m {
+    my ($p7m_file) = @_;
+    my $output_file = '/abd/asc/tmp/fattura.xml';
+
+    my $cmd = "openssl smime -verify -inform DER -noverify -in '$p7m_file' -out '$output_file'";
+    print "Eseguo: $cmd\n";
+    system($cmd) == 0
+        or die "Errore nell'estrazione del contenuto con OpenSSL\n";
+
+    print "Contenuto XML estratto in $output_file\n";
+}

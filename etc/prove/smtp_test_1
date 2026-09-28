@@ -1,0 +1,22 @@
+#!/usr/bin/perl -w
+# 2. Invio di posta funzionante con : Perl
+
+use Net::SMTP_auth;
+
+$smtp = Net::SMTP_auth->new('smtp.zatti.it',Port => 25);
+$smtp->auth('LOGIN', 'noreply@zatti.it', 'Scott123');
+
+$smtp->mail('noreply@zatti.it');
+# $smtp->to('daniele.zatti@gmail.com');
+$smtp->to('dkb@dkb.it');
+
+$smtp->data();
+#$smtp->datasend("To: daniele.zatti\@gmail.com\n");
+$smtp->datasend("From: daniele.zatti\@gmail.com\n");
+$smtp->datasend("To: dkb\@dkb.it\n");
+$smtp->datasend("Subject: Prova invio da Tangram\n");
+$smtp->datasend("\n");
+$smtp->datasend("A simple test message\n");
+$smtp->dataend();
+
+$smtp->quit;

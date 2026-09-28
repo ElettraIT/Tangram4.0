@@ -1,0 +1,546 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta Mail::Sender  *
+#                                          *
+# t_sender                                 *
+#                                          *
+# Invio di messaggi ad una lista di        *
+# indirizzi e con i relativi allegati PDF  *
+# (utilizzato per i lotti di fatture PDF)  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 08/02/07   *
+#   Ultima revisione:   NdK del 21/03/26   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#                                          *
+#            - server SMTP                 *
+#                                          *
+#            - mittente                    *
+#                                          *
+#            - username  (opzionale)       *
+#            - password  (opzionale)       *
+#                                          *
+#            - indirizzi (opzionale)       *
+#             (puo' contenere una mail e   *
+#              un percorso di allegato,    *
+#              separati da '#')            *
+#                                          *
+#            - soggetto  (opzionale)       *
+#             (puo' contenere un soggetto  *
+#              passato come parametro,     *
+#              evidenziato da '_')         *
+#                                          *
+#            - messaggio (opzionale)       *
+#                                          *
+#            - NR (opzionale)              *
+#              se valorizzato a 'NR' usa   *
+#              come From: no-reply@dominio *
+#              e come Reply-To: mittente   *
+#                                          *
+# N.B.: i campi in input sono separati da  *
+#       virgola ','                        *
+#                                          *
+# ---------------------------------------- *
+# N.B.: il campo indirizzi puo' contenere  *
+#       il nome di un file di indirizzi e  *
+#       percorsi di allegati, oppure un    *
+#       solo indirizzo e un solo allegato  *
+#       separati da '#'                    *
+#                                          *
+#       All'interno dell'eventuale lista   *
+#       di indirizzi ed allegati, gli in-  *
+#       dirizzi possono essere a coppie    *
+#       separati da '#': cio' significa    *
+#       che il primo indirizzo e' il des-  *
+#       tinatario, mentre il secondo e'    *
+#       in copia conoscenza                *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Mail::Sender                          ;
+use File::Basename                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/'                    ;
+my $logf = $base . 'log/t_sender.log'     ;
+my $temp = '/tmp/'                        ;
+#
+my $sogg = 'sogg.txt'                     ;
+my $mess = 'mess.txt'                     ;
+my $emla = 'indi.txt'                     ;
+#
+my $wsog = ''                             ;
+my $wmes = ''                             ;
+my $wind = ''                             ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+$inpt = $ARGV[0]                          ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$ARGV[0] || $ARGV[0] eq "-help")
+{
+    print "\n"
+        . "Uso : (parametri separati da virgola)"
+        . "\n"
+        . "> t_sender"
+        . "\n"
+        . "           AZIENDA(default: doc),"
+        . "\n"
+        . "           SERVER_SMTP,"
+        . "\n"
+        . "           MITTENTE,"
+        . "\n"
+        . "           USERID(opz),"
+        . "\n"
+        . "           PASSWORD(opz),"
+        . "\n"
+        . "           INDIRIZZI(opz),"
+        . "\n"
+        . "           SOGGETTO(opz),"
+        . "\n"
+        . "           MESSAGGIO(opz),"
+        . "\n"
+        . "           NR(opz)"
+        . "\n"
+        . "\n"
+        . "Se NR = 'NR':"
+        . "\n"
+        . "  From     = no-reply\@dominio_del_mittente"
+        . "\n"
+        . "  Reply-To = MITTENTE"
+        . "\n"
+        . "\n"
+        . "Release : 26/06/24"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Separazione dei componenti (,)           *
+#------------------------------------------*
+@vars = split(/,/, $inpt)                 ;
+
+#==========================================*
+# Parametri input                          *
+#------------------------------------------*
+my $atgm = $vars[0]                       ;
+my $srvr = $vars[1]                       ;
+my $mitt = $vars[2]                       ;
+my $user = $vars[3]                       ;
+my $pass = $vars[4]                       ;
+my $indi = $vars[5]                       ;
+my $sogi = $vars[6]                       ;
+my $mesi = $vars[7]                       ;
+my $nrfl = $vars[8]                       ;
+
+#==========================================*
+# Gestione mittente effettivo / reply-to   *
+#------------------------------------------*
+my $from_eff = $mitt                      ;
+my $rplyto   = ''                         ;
+my $bcc_addr = $mitt                      ;
+
+if (defined $nrfl && uc($nrfl) eq 'NR')
+{
+    if ($mitt =~ /\@(.+)$/)
+    {
+        my $dominio = $1                  ;
+        $from_eff = 'no-reply@' . $dominio;
+        $rplyto   = $mitt                 ;
+    }
+}
+
+#==========================================*
+# Debug (da scommentare)                   *
+#------------------------------------------*
+#   print "---------------------------\n" ;
+#   print "Azienda   : " . $vars[0] . "\n";
+#   print "Server    : " . $vars[1] . "\n";
+#   print "Mittente  : " . $vars[2] . "\n";
+#   print "Username  : " . $vars[3] . "\n";
+#   print "Password  : " . $vars[4] . "\n";
+#   print "Destin.   : " . $vars[5] . "\n";
+#   print "Oggetto   : " . $vars[6] . "\n";
+#   print "Messaggio : " . $vars[7] . "\n";
+#   print "NR flag   : " . $vars[8] . "\n";
+#   print "From eff. : " . $from_eff . "\n";
+#   print "Reply-To  : " . $rplyto . "\n";
+#   print "---------------------------\n" ;
+#   exit ()                               ;
+
+#==========================================*
+# Data di sistema                          *
+#------------------------------------------*
+my @months   = qw(Gen Feb Mar Apr Mag Giu Lug Ago Set Ott Nov Dic);
+my @weekDays = qw(Dom Lun Mar Mer Gio Ven Sab Dom);
+my ($second,
+    $minute,
+      $hour,
+$dayOfMonth,
+     $month,
+$yearOffset,
+ $dayOfWeek,
+ $dayOfYear,
+$daylightSavings) = localtime()           ;
+    $year = 1900 + $yearOffset            ;
+    $theTime = "$hour:$minute:$second, $weekDays[$dayOfWeek] $months[$month] $dayOfMonth, $year";
+
+#==========================================*
+# Open file di LOG                         *
+#------------------------------------------*
+open (LOG_FIL, ">>$logf") or die
+        "Impossibile aprire '$logf'"      ;
+
+#------------------------------------------*
+# Intestazione LOG                         *
+#------------------------------------------*
+print LOG_FIL "==========================\n";
+print LOG_FIL "Distinta   : " . $indi . "\n";
+print LOG_FIL "Data       : " . $theTime . "\n";
+print LOG_FIL "Mittente   : " . $mitt . "\n";
+print LOG_FIL "From eff.  : " . $from_eff . "\n";
+print LOG_FIL "Reply-To   : " . $rplyto . "\n";
+
+#==========================================*
+# Sub-routine per lettura soggetto         *
+#------------------------------------------*
+&soggetto                                 ;
+
+#==========================================*
+# Sub-routine per lettura testo            *
+#------------------------------------------*
+&messaggio                                ;
+
+#==========================================*
+# Sub-routine di spedizione                *
+#------------------------------------------*
+&spedisci                                 ;
+
+#==========================================*
+# Sottolineatura LOG                       *
+#------------------------------------------*
+print LOG_FIL "==========================\n";
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# Spedizione                               *
+#------------------------------------------*
+sub spedisci
+{
+    #--------------------------------------*
+    # Se passata una lista                 *
+    #--------------------------------------*
+    if ($indi !~ /\@/)
+    {
+        &lista                            ;
+    }
+    #--------------------------------------*
+    # Se passato un singolo indirizzo      *
+    #--------------------------------------*
+    else
+    {
+        @elem = split(/#/, $indi)         ;
+        &send                             ;
+    };
+}
+
+#==========================================*
+# Sub-routine di invio ad un singolo       *
+# indirizzo mail                           *
+#------------------------------------------*
+sub mail
+{
+    @elem = split(/#/, $indi)             ;
+    &send                                 ;
+}
+
+#==========================================*
+# Apertura file contenente il soggetto     *
+#------------------------------------------*
+sub soggetto
+{
+    if (!$sogi)
+    {
+        $wsog = $sogg                     ;
+    }
+    else
+    {
+        $wsog = $sogi                     ;
+    }
+
+    if ($wsog =~ /.txt/)
+    {
+        my $wdir = $base
+                 . $atgm
+                 . $temp
+                 . $wsog                  ;
+
+        open (SOGGETTO, "$wdir") or print LOG_FIL
+            "Impossibile aprire file '$wdir'\n";
+        @subject = <SOGGETTO>             ;
+        close SOGGETTO                    ;
+    }
+    else
+    {
+        @subject = split(/_/, $wsog )     ;
+    }
+}
+
+#==========================================*
+# Apertura file contenente il messaggio    *
+#------------------------------------------*
+sub messaggio
+{
+    if (!$mesi)
+    {
+        $wmes = $mess                     ;
+    }
+    else
+    {
+        $wmes = $mesi                     ;
+    }
+
+    my $wdir = ''                         ;
+    if ($wmes =~ /.txt/)
+    {
+        $wdir = $base
+              . $atgm
+              . $temp
+              . $wmes                     ;
+    }
+    else
+    {
+        $wdir = $wmes                     ;
+    }
+
+    open (MESSAGE, "$wdir")
+          or print LOG_FIL
+         "Impossibile aprire file '$wdir'\n";
+    @message = <MESSAGE>                  ;
+    close MESSAGE                         ;
+
+    $testo = qq{@message}                 ;
+}
+
+#==========================================*
+# Invio ad una lista                       *
+#------------------------------------------*
+sub lista
+{
+    if (!$indi)
+    {
+        $wind = $emla                     ;
+    }
+    else
+    {
+        $wind = $indi                     ;
+    }
+
+    my $wdir = $base
+             . $atgm
+             . $temp
+             . $wind                      ;
+
+    open (INDIRIZZI, "$wdir") or print LOG_FIL
+        "Impossibile aprire file indirizzi '$wdir'\n";
+    @indirizzo = <INDIRIZZI>              ;
+
+    foreach $indirizzo (@indirizzo)
+    {
+        chomp($indirizzo)                 ;
+        @elem = split(/,/, $indirizzo)    ;
+        if ($elem[0] !~ /\@/)
+        {
+            next                          ;
+        }
+        else
+        {
+            &send                         ;
+        }
+    }
+
+    close (INDIRIZZI)                     ;
+}
+
+#==========================================*
+# Singolo invio                            *
+#------------------------------------------*
+sub send
+{
+    my $sender                            ;
+
+    #--------------------------------------*
+    # Test se autenticazione necessaria    *
+    #--------------------------------------*
+    if (!$pass)
+    {
+        $sender = new Mail::Sender
+        {
+            smtp      => $srvr,
+            from      => $from_eff,
+            on_errors => undef,
+        }
+        or print LOG_FIL "Errore creazione sender: $Mail::Sender::Error\n";
+    }
+    else
+    {
+        $sender = new Mail::Sender
+        {
+            smtp      => $srvr,
+            auth      => 'LOGIN',
+            authid    => $user,
+            authpwd   => $pass,
+            from      => $from_eff,
+            on_errors => undef,
+        }
+        or print LOG_FIL "Errore creazione sender: $Mail::Sender::Error\n";
+    }
+
+    if (!$sender)
+    {
+        print LOG_FIL "Invio non eseguito: sender non creato\n";
+        return                            ;
+    }
+
+    #--------------------------------------*
+    # Estrazione nome allegato             *
+    #--------------------------------------*
+    my $fname = ''                        ;
+    if (defined $elem[1] && $elem[1] ne '')
+    {
+        $fname = basename($elem[1])       ;
+    }
+
+    #--------------------------------------*
+    # Estrazione nome allegato senza       *
+    # estensione                           *
+    #--------------------------------------*
+    my $fnams = ''                        ;
+    my $direc = ''                        ;
+    my $exten = ''                        ;
+
+    if (defined $elem[1] && $elem[1] ne '')
+    {
+        ($fnams, $direc, $exten) = fileparse($elem[1], '\..*');
+    }
+
+    #--------------------------------------*
+    # Composizione soggetto                *
+    #--------------------------------------*
+    my $oggw = qq{@subject}               ;
+       $oggw =~ s/^\s+//                  ;
+       $oggw =~ s/\s+$//                  ;
+
+    my $ogge = $oggw                      ;
+    if ($fnams ne '')
+    {
+        $ogge .= " - " . $fnams           ;
+    }
+
+    #--------------------------------------*
+    # Destinazione                         *
+    #--------------------------------------*
+    my @dest = split(/#/, $elem[0])       ;
+    my %mail_parms                        ;
+
+    if (!$dest[1])
+    {
+        %mail_parms = (
+            to       => $elem[0],
+            bcc      => $bcc_addr,
+            subject  => $ogge,
+            ctype    => 'text/html',
+            encoding => 'quoted-printable'
+        );
+    }
+    else
+    {
+        %mail_parms = (
+            to       => $dest[0],
+            cc       => $dest[1],
+            bcc      => $bcc_addr,
+            subject  => $ogge,
+            ctype    => 'text/html',
+            encoding => 'quoted-printable'
+        );
+    }
+
+    if ($rplyto)
+    {
+        $mail_parms{replyto} = $rplyto    ;
+    }
+
+    $sender->OpenMultipart(\%mail_parms)
+        or print LOG_FIL "Errore apertura messaggio: $Mail::Sender::Error\n";
+
+    #--------------------------------------*
+    # Corpo messaggio                      *
+    #--------------------------------------*
+    $sender->Body                         ;
+    $sender->SendEnc($testo)              ;
+
+    #--------------------------------------*
+    # Attachment                           *
+    #--------------------------------------*
+    if (defined $elem[1] && $elem[1] ne '')
+    {
+        $sender->Attach({
+            description => 'Documento PDF',
+            ctype       => 'application/pdf',
+            disposition => 'attachment; filename='
+                         . $fname
+                         . ';type="PDF archive"',
+            file        => $elem[1]
+        });
+    }
+
+    #--------------------------------------*
+    # Close messaggio                      *
+    #--------------------------------------*
+    $sender->Close                        ;
+
+    #--------------------------------------*
+    # Log                                  *
+    #--------------------------------------*
+    print LOG_FIL "--------------------------\n";
+    print LOG_FIL "Mail inviata a : "
+             . $elem[0]
+             . " - allegato : "
+             . $fname
+             . "\n"                       ;
+    print LOG_FIL "From         : "
+             . $from_eff
+             . "\n"                       ;
+    print LOG_FIL "Reply-To     : "
+             . $rplyto
+             . "\n"                       ;
+
+    #--------------------------------------*
+    # Attesa di 'n' secondi                *
+    #--------------------------------------*
+    sleep(2)                              ;
+}

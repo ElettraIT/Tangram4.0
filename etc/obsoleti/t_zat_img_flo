@@ -1,0 +1,248 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di scaricamento immagini da  *
+# sito criptato (https)                    *
+#                                          *
+# t_zat_img_flo                            *
+#                                          *
+# SU MISURA PER ZATTI                      *
+#                                          *
+# N.B.: funziona anche con codici 9 chr.   *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 26/03/09   *
+#   Ultima revisione:   NdK del 25/01/13   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use strict                                ;
+use WWW::Mechanize                        ;
+use HTTP::Cookies                         ;
+use DBI()                                 ;
+use Date::Calc qw(Today 
+                  Add_Delta_YMD 
+                  Days_in_Month)          ;
+
+#==========================================*
+# Variabili autenticazione 'https'         *
+#------------------------------------------*
+my $user = "admin.zatti"                  ;
+my $pass = "e624910749"                   ;
+
+#==========================================*
+# Variabili autenticazione database        *
+#------------------------------------------*
+#my $host = "localhost"                    ;
+#my $usrd = "root"                         ;
+#my $pwdd = "loppio2"                      ;
+
+my $host = "192.168.253.1"                ;
+my $usrd = "tangram"                      ;
+my $pwdd = "HomerBart1970"                ;
+my $dtbs = "zatti_db"                     ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+# URL di base                              *
+#------------------------------------------*
+my $urlb = "https://florissima.dyndns.org/"
+         . "florissima/"                  ;
+#my $urlb = "https://217.83.163.78/"
+#         . "florissima/"                  ;
+#------------------------------------------*
+# URL di autenticazione                    *
+#------------------------------------------*
+my $urla = $urlb
+         . "partner/items/listItems.do?"
+         . "javascript=true"              ;
+#------------------------------------------*
+# URL di ottenimento immagini              *
+#------------------------------------------*
+my $urlp = $urlb
+         . "getimage?class=de.florissima."
+         . "data.erp.items.FlArtikel&id=" ;
+#------------------------------------------*
+# Suffisso URL di ottenimento immagini     *
+#------------------------------------------*
+my $urlt = "&thumbnail=false"             ;
+#------------------------------------------*
+# Suffisso immagini                        *
+#------------------------------------------*
+my $suff = ".jpg"                         ;
+#------------------------------------------*
+# Cartelle immagini                        *
+#------------------------------------------*
+my $dest = "/abd/asc/img/"                ;
+
+#==========================================*
+# Variabili normalizzate                   *
+#------------------------------------------*
+my $item = ""                             ;
+my $urlw = ""                             ;
+my $outp = ""                             ;
+my $mech = ""                             ;
+my $dbh = ""                              ;
+my $sth = ""                              ;
+
+#==========================================*
+# Trattamento data ('n' giorni precedenti) *
+#------------------------------------------*
+my $dgap = -7                             ;
+
+my ($year,
+    $month,
+    $day) = Add_Delta_YMD( Today(), 0, 0, $dgap);
+
+my $data = sprintf ("%04d-%02d-%02d",
+                    $year,
+                    $month,
+                    $day)                 ;
+
+#------------------------------------------*
+#  Per ritaratura al volo della data       *
+#------------------------------------------*
+#  $data = "2009-06-01"                   ;
+
+#==========================================*
+# Inizio comunicazione 'https'             *
+#------------------------------------------*
+$mech = WWW::Mechanize->new()             ;
+$mech->cookie_jar(HTTP::Cookies->new())   ;
+$mech->get($urla)                         ;
+#------------------------------------------*
+# Login                                    *
+#------------------------------------------*
+$mech->form_name('LOGIN')                 ;
+$mech->field(j_username => $user)         ;
+$mech->field(j_password => $pass)         ;
+$mech->click()                            ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+$dbh = DBI->connect("DBI:"
+                  . "mysql:database="
+                  . "$dtbs;host=$host",
+                     $usrd,
+                     $pwdd,
+                     {RaiseError => 1,
+                      PrintError => 0})   ;
+
+#==========================================*
+# Ciclo di scansione prodotti              *
+#------------------------------------------*
+$sth = $dbh->prepare("SELECT aaf.cop_sfn, "
+                   . "dcp.alf_pro "
+                   . "FROM aaf "
+                   . "LEFT JOIN dcp "
+                   . "ON aaf.num_mag = "
+                   . "dcp.num_pro "
+                   . "WHERE dcp.dat_icm "
+                   . ">= '"
+                   . $data
+                   . "'"
+                   . "AND aaf.cod_dcf = "
+                   . "80264")             ;
+
+$sth->execute()                           ;
+
+while (my $ref = $sth->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Codice prodotto Florissima           *
+    #--------------------------------------*
+    my $item = $ref->{'cop_sfn'}          ;
+    #--------------------------------------*
+    # Codice prodotto Tangram              *
+    #--------------------------------------*
+    my $alfp = $ref->{'alf_pro'}          ;
+    #--------------------------------------*
+    # Trattamento singolo articolo         *
+    #--------------------------------------*
+    &arti($item, $alfp)                   ;
+}
+$sth->finish();
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# Trattamento singolo articolo             *
+#------------------------------------------*
+sub arti
+{
+    #--------------------------------------*
+    # Recupero nomi file                   *
+    #--------------------------------------*
+    my($prof, $prot) = @_                 ;
+    #--------------------------------------*
+    # Pathname completo                    *
+    #--------------------------------------*
+    $urlw = $urlp
+          . $prof
+          . $urlt                         ;
+    #--------------------------------------*
+    # Recupero immagine Florissima         *
+    #--------------------------------------*
+    $mech->get($urlw)                     ;
+    #--------------------------------------*
+    # Bufferizzazione                      *
+    #--------------------------------------*
+    $outp = $mech->content()              ;
+    #--------------------------------------*
+    # Scrittura                            *
+    #--------------------------------------*
+    &write($prot, $outp)                  ;
+}
+
+#==========================================*
+# Scrittura file immagine                  *
+#------------------------------------------*
+sub write
+{
+    #--------------------------------------*
+    # Recupero nome file Tangram           *
+    #--------------------------------------*
+    my($prod, $jpeg) = @_                 ;
+    #--------------------------------------*
+    # Prefisso nome file Tangram           *
+    #--------------------------------------*
+    my $pref = substr($prod,0,2)          ;
+    
+    # Provvisorio                          *
+    # my $pref = "flo"                      ;
+    
+    #--------------------------------------*
+    # Pathname completo                    *
+    #--------------------------------------*
+    my $wdir = $dest
+             . $pref
+             . "/"
+             . $prod
+             . $suff                      ;
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (IMMAGINE, ">$wdir")or die
+         "Impossibile scrivere '$wdir'"   ;
+    #--------------------------------------*
+    # Scrittura                            *
+    #--------------------------------------*
+    print IMMAGINE "$jpeg"                ;
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close IMMAGINE                        ;
+}
+

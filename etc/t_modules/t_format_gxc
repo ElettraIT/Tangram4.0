@@ -1,0 +1,113 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl formattazione file di testo  *
+#                                          *
+# t_format_gxc                             *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 19/09/11   *
+#   Ultima revisione:   NdK del 19/09/11   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Il modulo legge il sequenziale prodotto  *
+# da Tangram con '.k' di gxc ed emette un  *
+# file nel formato CSV                     *
+#                                          *
+# MEMO: il file originale deve essere in   *
+#       formato Unix LF                    *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Basename                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/tmp/'                ;
+my $outp = 'CAP_NEW.CSV'                  ;
+my $inpt = 'prvgxc.sqz'                   ;
+
+#==========================================*
+# Sub-routine di scansione file in Input   *
+#------------------------------------------*
+&input_file                               ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# File in Input                            *
+#------------------------------------------*
+sub input_file
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (OUTFILE, ">$base$outp") or die
+         "Impossibile aprire il file "
+       . "$base$outp"                     ;
+
+    open (INPFILE, "$base$inpt") or die
+         "Impossibile aprire il file "
+       . "$base$inpt"                     ;
+
+    #--------------------------------------*
+    # Ciclo di scansione file              *
+    #--------------------------------------*
+
+    $cont = 1                             ;
+
+
+    @stri = <INPFILE>                     ;
+
+    foreach $stri (@stri)
+    {
+    
+        $conx = sprintf("%05s", $cont)    ;
+    
+        chomp($stri)                      ;
+        $desc = substr( $stri, 41, 30 )   ;
+        $prov = substr( $stri, 71, 2 )    ;
+        $ccap = substr( $stri, 80, 5 )    ;
+        
+        if ($prov eq "AP"
+         or $prov eq "BT"
+         or $prov eq "FM"
+         or $prov eq "MB"
+         or $prov eq "PR"
+         or $prov eq "RN"
+         or $prov eq "TN"
+           )
+        {
+            &scrivi                       ;
+        }
+    }
+
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close (INPFILE)                       ;
+    close (OUTFILE)                       ;
+}
+
+#==========================================*
+# Subroutine di scrittura                  *
+#------------------------------------------*
+sub scrivi
+{
+        $cont++                           ;
+        
+        print OUTFILE "\"$conx\";"
+                    . "\"$prov\";"
+                    . "\"$desc\";"
+                    . ";\"---\";;;;;"
+                    . "\"$ccap\""
+                    . "\n"                ;   
+
+}

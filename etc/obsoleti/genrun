@@ -1,0 +1,210 @@
+     ############ /abd/etc/genrun
+     #
+     # Procedura per la generazione su supporto magnetico di /abd/run
+     #
+     # Input     $1: Sigla del sistema per cui deve essere eseguita la
+     #               generazione, come ad esempio:
+     #
+     #               -  decmvii
+     #               -  dec5500m
+     #               -  dos
+     #               -  hp9817s
+     #               -  ibm6000
+     #               -  nx680x0
+     #               -  ...
+     #
+     # Input     $2: Pathname dell'unita' a nastro magnetico che deve
+     #               essere utilizzata
+     #
+     # Nota      Se non viene passato il 2. parametro viene utilizzata
+     #           l'unita' per aggiornamento software definita dal
+     #           contenuto del file /abd/tar/agsdev
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                # Errore per il comando 'genrun' #               " ;
+       echo "              --------------------------------------             " ;
+       echo "                                                                 " ;
+       echo " Il comando puo' essere eseguito solamente dall'utente 'master'  " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# Controllo sul numero di parametri e sul loro valore
+###
+
+case $# in
+       0)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "         # Errore nei parametri per il comando 'genrun' #        " ;
+          echo "        --------------------------------------------------       " ;
+          echo "                                                                 " ;
+          echo " Errore : Non e' ammesso richiamare il comando senza parametri.  " ;
+          echo "                                                                 " ;
+          echo "          Il 1. parametro, obbligatorio, deve indicare la sigla  " ;
+          echo "                del sistema per cui deve essere eseguita la ge-  " ;
+          echo "                nerazione.                                       " ;
+          echo "                                                                 " ;
+          echo "          Il 2. parametro, facoltativo, deve indicare il path-   " ;
+          echo "                name relativo all'unita' a nastro magnetico da   " ;
+          echo "                utilizzarsi per l'operazione.                    " ;
+          echo "                                                                 " ;
+          echo "                In mancanza di tale parametro il valore per il   " ;
+          echo "                pathname sara' determinato dal contenuto del     " ;
+          echo "                file di configurazione /abd/tar/agsdev.          " ;
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+          ;;
+       1)
+          if [ ! -f /abd/tar/agsdev ]
+             then
+                 echo "                                                                 " ;
+                 echo "-----------------------------------------------------------------" ;
+                 echo "               # Errore per il comando 'genrun' #                " ;
+                 echo "         -------------------------------------------------       " ;
+                 echo "                                                                 " ;
+                 echo " Errore : Non esiste il file /abd/tar/agsdev per la definizione  " ;
+                 echo "          del pathname relativo all'unita' a nastro magnetico    " ;
+	         echo "          da utilizzarsi per gli aggiornamenti software.         " ;
+                 echo "                                                                 " ;
+                 echo " Nota   : Si ricorda che, in alternativa, sarebbe stato possibi- " ;
+                 echo "          le passare al comando un secondo parametro per indica- " ;
+	         echo "          re il pathname specificamente per questa operazione;   " ;
+	         echo "          invece il comando e' stato richiamato con u solo para- " ;
+	         echo "          metro, pertanto non e' possibile stabilire quale debba " ;
+	         echo "          essere l'unita' a nastro magnetico che deve essere     " ;
+	         echo "          utilizzata.                                            " ;
+                 echo "                                                                 " ;
+                 echo "-----------------------------------------------------------------" ;
+                 echo "                                                                 " ;
+                 exit 0;
+             fi
+          altervx52=`cat /abd/tar/agsdev`;
+          ;;
+       2)
+          altervx52=$2;
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "         # Errore nei parametri per il comando 'genrun' #        " ;
+          echo "        --------------------------------------------------       " ;
+          echo "                                                                 " ;
+          echo " Errore : Non e' ammesso richiamare il comando con piu' di due   " ;
+          echo "          parametri.                                             " ;
+          echo "                                                                 " ;
+          echo "          Il 1. parametro, obbligatorio, deve indicare la sigla  " ;
+          echo "                del sistema per cui deve essere eseguita la ge-  " ;
+          echo "                nerazione.                                       " ;
+          echo "                                                                 " ;
+          echo "          Il 2. parametro, facoltativo, deve indicare il path-   " ;
+          echo "                name relativo all'unita' a nastro magnetico da   " ;
+          echo "                utilizzarsi per l'operazione.                    " ;
+          echo "                                                                 " ;
+          echo "                In mancanza di tale parametro il valore per il   " ;
+          echo "                pathname sara' determinato dal contenuto del     " ;
+          echo "                file di configurazione /abd/tar/agsdev.          " ;
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+	  ;;
+     esac
+
+altervx51=$1
+
+cd /abd/sys
+
+altervx77=`ls`
+
+altervx78="0"
+
+for altervx44 in $altervx77
+    do
+        if [ $altervx44 = "unx" ]
+           then
+               continue ;
+           fi
+        if [ $altervx44 = $altervx51 ]
+           then
+               altervx78="1" ;
+               break ;
+           fi
+    done
+
+
+if [ $altervx78 != "1" ]
+   then
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "         # Errore nei parametri per il comando 'genrun' #        " ;
+          echo "        --------------------------------------------------       " ;
+          echo "                                                                 " ;
+          echo " Errore : Il 1. parametro deve avere uno dei seguenti valori     " ;
+          echo "                                                                 " ;
+          for altervx44 in $altervx77
+	      do
+                  if [ $altervx44 = "unx" ]
+                     then
+                         continue ;
+                     fi
+                  echo "                - $altervx44" ;
+              done
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+   fi
+
+######
+# - Esecuzione procedura di estrazione per mezzo del comando 'tar'
+###
+
+#
+# Spostamento su directory di destinazione
+#
+cd /abd/sys/$altervx51/run
+
+#
+# Messaggio pre-estrazione
+#
+clear
+echo "                                                                      " ;
+echo "----------------------------------------------------------------------" ;
+echo "                                                                      " ;
+echo "[] Generazione dati su supporto magnetico ......                      " ;
+echo "                                                                      " ;
+
+#
+# Comando per l'estrazione
+#
+umask 000
+tar -cvf $altervx52 *
+
+#
+# Messaggio post-estrazione
+#
+echo "                                                                      " ;
+echo "[] ...... Fine generazione                                            " ;
+echo "                                                                      " ;
+echo "----------------------------------------------------------------------" ;
+echo "                                                                      " ;
+
+######
+# - Fine procedura
+###

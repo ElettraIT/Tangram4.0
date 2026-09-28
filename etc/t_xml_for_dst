@@ -1,0 +1,192 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per creare un file leggendo  *
+# le directory di distinte 'scf'. Serve al *
+# selettore di date in 'index.html' di     *
+# 'scf'                                    *
+#                                          *
+# t_xml_for_dst                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 21/03/2021 *
+#   Ultima revisione:   NdK del 21/03/2022 *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - azienda                     *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use File::Basename                        ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $cod_azi = shift                       ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$cod_azi || $cod_azi eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_xml_for_dst azienda "
+        . "\n"
+        . "\n"
+        . "Release : 21/03/2022"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di configurazione base         *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/"
+            . "t_xml_for.ini"             ;
+#
+my %cnf_ele = do $cfg_bas                 ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_dst = $cnf_ele{pth_dst}           ;
+
+#------------------------------------------*
+# Anno per inizio scansione                *
+#------------------------------------------*
+my $yyy_dst = 2020                        ;
+#------------------------------------------*
+# Anno di sistema per fine scansione       *
+#------------------------------------------*
+my $ann_lct = (localtime)[5]              ;
+my $ann_wrk = int($ann_lct)               ;
+   $ann_wrk = $ann_wrk + 1900             ;
+#------------------------------------------*
+# Pathname del file di output              *
+#------------------------------------------*
+my $dst_scf = $pth_bas
+            . $cod_azi
+            . "/tmp/ind/cfg/dst_scf.cfg"  ;
+#==========================================*
+# Open del file di output                  *
+#------------------------------------------*
+open (DST_FIL, ">$dst_scf") or die 
+        "Impossibile aprire '$dst_scf'"   ;
+
+#==========================================*
+# Scrittura elemento iniziale              *
+#------------------------------------------*
+print DST_FIL "var enableDays = [\n"      ;
+
+#==========================================*
+# Ciclo di scansione anni                  *
+#------------------------------------------*
+for ( my $yyy_inx = $yyy_dst;
+         $yyy_inx < $ann_wrk+1;
+         $yyy_inx++ )
+{ 
+    #--------------------------------------*
+    # Directory per lettura dei file       *
+    #--------------------------------------*
+    my $dir_dst = $pth_bas
+                . $cod_azi
+                . "/"
+                . $pth_dst
+                . "/"
+                . $yyy_inx                ;
+    #--------------------------------------*
+    # Ciclo di scansione cartella          *
+    #--------------------------------------*
+    opendir(DIR, $dir_dst)                ;
+    my @dir=grep { !/^\.+$/ } sort readdir(DIR);
+    closedir(DIR)                         ;
+    #--------------------------------------*
+    # Scansione elenco dei file            *
+    #--------------------------------------*
+    foreach my $fil_for (@dir)
+    {
+        #----------------------------------*
+        # Skip eventuali directory         *
+        #----------------------------------*
+        if(-d $fil_for)
+        { next;}                          ;
+        #----------------------------------*
+        # Skip eventuali file "."          *
+        #----------------------------------*
+        if($fil_for eq "." || $fil_for eq "..")
+        { next;}                          ;
+        #----------------------------------*
+        # Skip eventuali file "._"         *
+        #----------------------------------*
+        my $sys_fil = substr($fil_for,0,2);
+        if($sys_fil eq "._")
+        { next;}                          ;
+        #----------------------------------*
+        # Se il file trattato non e' una   *
+        # directory                        *
+        #----------------------------------*
+        if (! -d $fil_for)
+        {
+            #------------------------------*
+            # Estrazione nome file         *
+            #------------------------------*
+           (my $fil_nam,
+            my $fil_pat,
+            my $fil_ext) = fileparse($fil_for, qr/\.[^.]*/);
+            #------------------------------*
+            # Skip dei file NON '.html'    *
+            #------------------------------*
+            if ($fil_ext ne ".html")
+            {next;}                       ;
+            #------------------------------*
+            # Scorporo MM e GG             *
+            #------------------------------*
+            my $mmm_dst = substr($fil_nam,0,2);
+            my $mes_fmt = sprintf ("%02d",$mmm_dst);
+            my $ddd_dst = substr($fil_nam,2,2);
+            my $gio_fmt = sprintf ("%02d",$ddd_dst);
+            #------------------------------*
+            # Scrittura su file di output  *
+            #------------------------------*
+            print DST_FIL "'"
+                        . $gio_fmt 
+                        . "-"
+                        . $mes_fmt 
+                        . "-"
+                        . $yyy_inx 
+                        . "',"
+                        . "\n"            ;
+            #------------------------------*
+            # DEBUG                        *
+            #------------------------------*
+#           print "fil_nam = " . $fil_nam . "\n";
+
+        }
+    }
+}
+
+
+#==========================================*
+# Scrittura elemento finale                *
+#------------------------------------------*
+print DST_FIL "];\n"                      ;
+
+#==========================================*
+# Close file di output                     *
+#------------------------------------------*
+close DST_FIL                             ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+

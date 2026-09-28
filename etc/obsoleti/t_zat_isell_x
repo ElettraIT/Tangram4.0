@@ -1,0 +1,110 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per lettura tabelle MySQL    *
+# ---------------------------------------- *
+# Versione originale:  001 del 01/04/12    *
+#   Ultima revisione:  NdK del 19/03/14    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# Su misura per    : ZATTI                 *
+#                                          *
+# Utilizzato x sbloccare la lettura ordini *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use strict                                ;
+use DBI()                                 ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $prt = shift                           ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$prt || $prt eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_zat_isell_x PROTOCOLLO_ORDINE_iSell"
+        . "\n"
+        . "\n"
+        . "Release : 19/03/2014"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Parametri di connessione                 *
+#------------------------------------------*
+my $hst = "localhost"                     ;
+my $usr = "root"                          ;
+my $pwd = "alter1"                        ;
+my $dtb = "sc2"                           ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtb;host=$hst",
+                       $usr,
+                       $pwd,
+                       {RaiseError => 1,
+                        PrintError => 0});
+
+#==========================================*
+# Lettura dati da tabella testate          *
+#------------------------------------------*
+my $sth = ""                              ;
+
+#==========================================*
+# Flag di trattamento TESTATE da eseguire  *
+#------------------------------------------*
+my $upd = "UPDATE oct_pel"
+                . " SET "
+                . " flg_bl1 = 'T' "
+                . " WHERE flg_bl1 = 'P'"
+                . " AND "
+                . " num_prt = "
+                . $prt
+                . " "                     ;
+                
+$sth = $dbh->prepare($upd)                ;
+
+$sth->execute()                           ;
+
+#==========================================*
+# Flag di trattamento RIGHE eseguito       *
+#------------------------------------------*
+$upd = "UPDATE ocr_pel"
+                . " SET "
+                . " flg_bl1 = 'T' "
+                . " WHERE flg_bl1 = 'P'"
+                . " AND "
+                . " num_prt = "
+                . $prt
+                . " "                     ;
+
+$sth = $dbh->prepare($upd)                ;
+
+$sth->execute()                           ;
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;

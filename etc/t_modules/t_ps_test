@@ -1,0 +1,70 @@
+#!/usr/bin/perl -w
+#========================================================================*
+#                                                                        *
+# Prova di inclusione di 2 EPS in Postscript                             *
+#                                                                        *
+# output su PDF o in stampa                                              *
+#                                                                        *
+# 19/05/2011 - Funziona                                                  *
+#                                                                        *
+#========================================================================*
+
+use PostScript::Simple                    ;
+
+# my $printer = "m1522"                     ;
+
+my $out = "/abd/asc/tmp/stampata.ps"        ;
+
+#my $eps1 = "/abd/asc/mod/nobibol0.eps"    ;
+#my $eps2 = "/abd/asc/tmp/stampata.ps"         ;
+
+my $eps1 = "/abd/asc/PRV_perl/barcode/eps/qr2.eps"    ;
+my $eps2 = "/abd/asc/PRV_perl/barcode/eps/qr3.eps"    ;
+
+
+my $pdf = "/abd/asc/master/pdf/prova_ps.pdf"        ;
+         
+
+#--------------------------------------*
+# Nuova pagina Postscript              *
+#--------------------------------------*
+$p = new PostScript::Simple(papersize => "A4",
+                            colour => 1,
+                            eps => 0,
+                            units => "in");
+$p->newpage                           ;
+
+
+$p->setfont("Times-Roman", 12);
+
+$p->text(2.5,11, "prova");
+
+
+# create an eps object
+$e1 = new PostScript::Simple::EPS(file => $eps1);
+$e1->scale(0.0135);
+
+# add eps to the current page
+$p->importeps($e1, 0.01, 0.01);
+
+
+
+
+
+
+# create an eps object
+$e2 = new PostScript::Simple::EPS(file => $eps2);
+$e2->scale(0.0135);
+
+# add eps to the current page
+
+$p->importeps($e2, 50, 50);
+
+$p->output($out);
+
+
+#    system("cat $out | lpr -P$printer");
+    system("cat $out | ps2pdf $out $pdf");
+
+
+

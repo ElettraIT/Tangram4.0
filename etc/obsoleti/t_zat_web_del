@@ -1,0 +1,169 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# sito di Web Creative                     *
+#                                          *
+# t_zat_web_del                            *
+#                                          *
+# (richiamato da pgtv7200)                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 30/04/13    *
+#   Ultima revisione:  NdK del 10/05/13    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - file da cancellare          *
+#                                          *
+#            - utente TANGRAM              *
+#                                          *
+#            - buyer                       *
+#                                          *
+#            - buyer RIF                   *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+use DBI()                                 ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $file = shift                          ;
+my $utet = shift                          ;
+my $sell = shift                          ;
+my $nrif = shift                          ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = "195.138.243.55"               ;
+my $user = 'gestionale'                   ;
+my $cert = "/home/master/.ssh/id_rsa"     ;
+
+#==========================================*
+# Cartelle utilizzate                      *
+#------------------------------------------*
+my $base = '/abd/asc/imp/web/'            ;
+my $path = '/home/gestionale/export/'     ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$file || !$utet || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_zat_web_del FILENAME "
+        . "UTENTE_TANGRAM "
+        . "CLIENTE "
+        . "RIF_CLIENTE"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Modulo Perl per configurazione database  *
+#------------------------------------------*
+my %conf = do '/abd/etc/dbase_conf'       ;    
+my $dtab = "web_orders"                   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database="
+                       .$conf{dbas}
+                       .";host="
+                       .$conf{dbsr}
+                       ."",
+                        $conf{user},
+                        $conf{pass},
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Flag di trattamento eseguito             *
+#------------------------------------------*
+my $upd = "UPDATE "
+                . $dtab
+                . " SET "
+                . " flag = '#', "
+                . " trtd = NOW(), "
+                . " utet = '"
+                . $utet
+                . "', sell = '"
+                . $sell
+                . "', nrif = '"
+                . $nrif
+                . "'"
+                . " WHERE path = '"
+                . $file
+                . "' LIMIT 1"             ;
+                
+my $sth = $dbh->prepare($upd)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+        
+#==========================================*
+# Cancellazione file remoto                *
+#==========================================*
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+    #--------------------------------------*
+    # Preparazione argomenti per chiamata  *
+    #--------------------------------------*
+    my %args = (user => $user,
+            key_path => $cert,
+                more => [qw(-o PreferredAuthentications=publickey)]
+        );
+
+    #--------------------------------------*
+    # Chiamata                             *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Posizionamento directory             *
+    #--------------------------------------*
+    $sftp->setcwd($path)
+        or die "Cambio directory "
+       . "non "
+       . "riuscito"                       ;
+
+#==========================================*
+# Cancellazione                            *
+#------------------------------------------*
+if ($file)
+{
+    $sftp->remove($file)
+      or die "Cancellazione "
+           . "fallita "                   ;
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+
+
+

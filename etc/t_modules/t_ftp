@@ -1,0 +1,65 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per FTP                     *
+#                                         *
+# t_ftp                                   *
+#                                         *
+# Ultimo aggiornamento 05/02/05           *
+#-----------------------------------------*
+
+#=========================================*
+# Modulo Perl Net::FTP                    *
+#-----------------------------------------*
+use Net::FTP;
+
+#=========================================*
+# Variabili lette in input                *
+# --------------------------------------- *
+#  - $hst : Hostname                      *
+#  - $usr : Username                      *
+#  - $pwd : Password                      *
+#  - $dir : Directory                     *
+#  - $fil : Filename                      *
+#  - $ope : Operazione                    *
+#-----------------------------------------*
+$hst = $ARGV[0];
+$usr = $ARGV[1];
+$pwd = $ARGV[2];
+$dir = $ARGV[3];
+$fil = $ARGV[4];
+$ope = $ARGV[5];
+
+#=========================================*
+# Connessione all'host                    *
+#-----------------------------------------*
+$ftp = Net::FTP->new($hst, Debug => 0)
+  or die "Connessione fallita con ". $hst . " : $@";
+
+#=========================================*
+# Login                                   *
+#-----------------------------------------*
+$ftp->login($usr,$pwd)
+  or die "Fallito il login", $ftp->message;
+
+#=========================================*
+# Attivazione trasferimento 'binary'      *
+#-----------------------------------------*
+$ftp->binary
+  or die "Non riesco con binary ", $ftp->message;
+
+#=========================================*
+# Cambio directory                        *
+#-----------------------------------------*
+$ftp->cwd($dir)
+  or die "Non riuscito cambio directory ", $ftp->message;
+
+#=========================================*
+# Operazione FTP                          *
+#-----------------------------------------*
+$ftp->$ope($fil)
+  or die "Non riuscita " . $ope . " ", $ftp->message;
+
+#=========================================*
+# Chiusura FTP                            *
+#-----------------------------------------*
+$ftp->quit;

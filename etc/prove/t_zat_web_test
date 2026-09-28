@@ -1,0 +1,94 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# sito di Web Creative                     *
+#                                          *
+# t_zat_web_imp                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 15/02/10    *
+#   Ultima revisione:  NdK del 02/05/13    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+# in Crontab ogni ora (alle '50)           *
+#                                          *
+# 50 * * * *      /abd/etc/t_zat_web_imp   *
+#   1>/abd/asc/log/t_zat_web_imp.log       *
+#   2>/abd/asc/log/t_zat_web_imp_err.log   *
+#                                          *
+# N.B.: seguito dal programma 'pgtv7200'   *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+# my $user = 'root'                         ;
+# my $pass = '901823087123'                 ;
+my $host = "195.138.243.55"               ;
+my $user = 'gestionale'                   ;
+my $cert = "/home/master/.ssh/id_rsa"     ;
+
+#==========================================*
+# Cartelle utilizzate                      *
+#------------------------------------------*
+my $base = '/abd/asc/imp/web/'            ;
+my $path = '/home/gestionale/export/'     ;
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+    #--------------------------------------*
+    # Preparazione argomenti per chiamata  *
+    #--------------------------------------*
+    my %args = (user => $user,
+            key_path => $cert,
+                more => [qw(-o PreferredAuthentications=publickey)]
+        );
+
+    #--------------------------------------*
+    # Chiamata                             *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Posizionamento directory             *
+    #--------------------------------------*
+    $sftp->setcwd($path)
+        or die "Cambio directory "
+       . "non "
+       . "riuscito", $sftp->message       ;
+
+
+my @files = $sftp->ls;
+
+foreach my $f ( @files )
+{
+    foreach my $file_ref ( @{$f} )
+    {
+    use File::Basename;
+    (my $a,my $b,my $c) = fileparse($file_ref->{'filename'},qr"\..[^.]*$");
+
+    if ($c eq ".OK")
+    {
+        print "$a$c\n";}    
+    }
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+

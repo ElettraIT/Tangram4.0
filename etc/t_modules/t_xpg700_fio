@@ -1,0 +1,278 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl formattazione file di testo  *
+#                                          *
+# t_xpg700_fio                             *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 09/11/11   *
+#   Ultima revisione:   NdK del 13/11/11   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Il modulo legge il sequenziale prodotto  *
+# da Tangram con 'xpg700' ed emette un     *
+# file nel formato CSV da esportare via    *
+# FTP ad un Server esterno                 *
+#                                          *
+# N.B.: 'pxpg7000' in crontab              *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Basename                        ;
+use Net::FTP                              ;
+use LWP::UserAgent                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/ftx/fio/'                ;
+my $basl = '/abd/asc/log/'                ;
+
+my $user = 'fiocchi'                      ;
+my $pass = 'venti2zero9'                  ;
+my $dest = 'upload_articoli'              ;
+
+my $usew = 'fiocchi'                      ;
+my $pasw = 'st3fano'                      ;
+my $urlw = 'http://www.fiocchistefano'
+         . '.it/admin/batch/import.php'   ;
+
+# my $urlw = 'http://fiocchistefano.prova'
+#          . '.smart.it/admin/batch/import'
+#          . '.php'                         ;
+
+my $logw = 'smart.log'                    ;
+
+#==========================================*
+# I Ciclo per 'dcc'                        *
+#==========================================*
+my $outp = 'dcc.csv'                      ;
+my $inpt = 'dcc.txt'                      ;
+
+#==========================================*
+# Sub-routine di scansione file in Input   *
+#------------------------------------------*
+print "Scansione ... "                    ;
+&input_file                               ;
+
+
+exit();
+
+#==========================================*
+# Invio finale del file al Server          *
+#------------------------------------------*
+print "Invio file ... "                   ;
+&ftpf                                     ;
+
+#==========================================*
+# Caricamento via http AUTH                *
+#------------------------------------------*
+print "Autenticazione = "                 ;
+&http_auth                                ;
+
+#==========================================*
+# II Ciclo per 'adc'                       *
+#==========================================*
+$outp = 'adc.csv'                      ;
+$inpt = 'adc.txt'                      ;
+
+#==========================================*
+# Sub-routine di scansione file in Input   *
+#------------------------------------------*
+print "Scansione ... "                    ;
+&input_file                               ;
+
+#==========================================*
+# Invio finale del file al Server          *
+#------------------------------------------*
+print "Invio file ... "                   ;
+&ftpf                                     ;
+
+#==========================================*
+# Caricamento via http AUTH                *
+#------------------------------------------*
+print "Autenticazione = "                 ;
+&http_auth                                ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# Scansione file in Input                  *
+#------------------------------------------*
+sub input_file
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (OUTFILE, ">$base$outp") or die
+         "Impossibile aprire il file "
+       . "$base$outp"                     ;
+
+    open (INPFILE, "$base$inpt") or die
+         "Impossibile aprire il file "
+       . "$base$inpt"                     ;
+
+    #--------------------------------------*
+    # Ciclo di scansione file              *
+    #--------------------------------------*
+
+    @stri = <INPFILE>                     ;
+
+    foreach $stri (@stri)
+    {
+        #----------------------------------*
+        # Pulizia fine riga                *
+        #----------------------------------*
+        chomp($stri)                      ;
+        #----------------------------------*
+        # Split della riga                 *
+        #----------------------------------*
+        
+        
+#        $stri =~ s/\\/,/g;
+#        $stri =~ s/(.)\1/$1/g;
+        
+        my @Fld = split(',', $stri)       ;
+        
+        
+        if ($inpt eq "dcc.txt")
+        {
+            #------------------------------*
+            # Scomposizione riga 'dcc'     *
+            #------------------------------*
+            $cod_cli = $Fld[0]            ;
+            $rag_cli = $Fld[1]            ;
+            $via_cli = $Fld[3]            ;
+            $loc_cli = $Fld[4]            ;
+            
+            #------------------------------*
+            # Emissione della riga         *
+            #------------------------------*
+            if ($rag_cli ne "'*'")
+            {
+                print OUTFILE "$cod_cli"
+                            . ";"
+                            . "$rag_cli"
+                            . ";"
+                            . "$via_cli"
+                            . ";"
+                            . "$loc_cli\n";
+            }
+        }
+        else
+        {
+            #------------------------------*
+            # Scomposizione riga 'adc'     *
+            #------------------------------*
+            $tip_rec = $Fld[0]            ;
+            $cod_cli = $Fld[1]            ;
+            $tip_con = $Fld[5]            ;
+            $num_con = $Fld[10]           ;
+            #------------------------------*
+            # Emissione della riga         *
+            #------------------------------*
+            if ($tip_rec == 2 && $tip_con eq "'EML'")
+            {
+                print OUTFILE "$cod_cli"
+                            . ";"
+                            . "$num_con\n";
+            }
+        }
+    }
+
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close (INPFILE)                       ;
+    close (OUTFILE)                       ;
+}
+
+#==========================================*
+# Subroutine di trasferimento del file     *
+#------------------------------------------*
+sub ftpf
+{
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    $ftp = Net::FTP->new("ftp.smart.it",
+                         Debug => 0)
+           or die "Non connesso a: $@"    ;
+
+    #--------------------------------------*
+    # Login connessione                    *
+    #--------------------------------------*
+    $ftp->login($user,$pass)
+          or die "Login errato ",
+                 $ftp->message            ;
+    
+    #--------------------------------------*
+    # Modalita' Binary                     *
+    #--------------------------------------*
+    $ftp->binary
+          or die "Binary NO",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Posizionamento cartella destinazione *
+    #--------------------------------------*
+    $ftp->cwd($dest) 
+          or die "Cartella errata",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Trasferimento                        *
+    #--------------------------------------*
+    $ftp->put("$base$outp")
+          or die "put fallita ",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Chiusura FTP                         *
+    #--------------------------------------*
+    $ftp->quit                            ;
+}
+
+#==========================================*
+# Subroutine di Autenticazione             *
+#------------------------------------------*
+sub http_auth
+{
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    my $ua = LWP::UserAgent->new( )       ;
+
+    #--------------------------------------*
+    # Richiesta                            *
+    #--------------------------------------*
+    my $req = HTTP::Request->new( GET => $urlw);
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+    $req->authorization_basic( $usew, $pasw );
+
+    #--------------------------------------*
+    # Salvataggio risposta                 *
+    #--------------------------------------*
+    my $res = $ua->request( $req,"$basl$logw" );
+    print $res->status_line, "\n";
+
+    #--------------------------------------*
+    # Check risposta                       *
+    #--------------------------------------*
+    if ( !$res->is_success )
+    {
+        die $res->status_line             ;
+    }
+}
+
+

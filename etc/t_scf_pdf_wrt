@@ -1,0 +1,183 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per caricamento file PDF da  *
+# apposito archivio a cartella utente      *
+#                                          *
+# t_scf_pdf_wrt                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 06/02/18    *
+#   Ultima revisione:  NdK del 06/02/18    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (nessun input)                *
+#                                          *
+# ---------------------------------------- *
+# in Crontab ogni 1/2 ora                  *
+#                                          *
+# */30 * * * * /abd/etc/t_scf_pdf_wrt      *
+#   1>/abd/asc/log/t_scf_pdf_wrt.log       *
+#   2>/abd/asc/log/t_scf_pdf_wrt_err.log   *
+#                                          *
+#------------------------------------------*
+use File::Basename                        ;
+
+#==========================================*
+# Valori di default                        *
+#------------------------------------------*
+my $ppdf = "pippo"                        ;
+my $azie = "siri"                         ;
+my $user = "master"                       ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $patb = "/abd/asc/"                    ;
+my $pats = $patb
+         . $azie
+         . "/scf/"                        ;
+my $dire = $patb
+         . $user
+         . "/pdf/out/"                    ;
+
+#==========================================*
+# Open directory                           *
+#------------------------------------------*
+opendir (DIR,$dire)                       ;
+    
+#==========================================*
+# Ciclo interno alla directory             *
+#------------------------------------------*
+LINE: foreach $elem (sort readdir(DIR))
+{
+    #--------------------------------------*
+    # Identificazione elemento             *
+    #--------------------------------------*
+    my $dele = $dire . $elem                ;
+    #--------------------------------------*
+    # Esclusione 'albero' directory        *
+    #--------------------------------------*
+    if ($elem eq "." || $elem eq "..")
+       {next(LINE)}                       ;
+    #--------------------------------------*
+    # Esclusione NON directory             *
+    #--------------------------------------*
+    next unless -d $dele                  ;
+    #--------------------------------------*
+    # Trattamento directory                *
+    #--------------------------------------*
+    &tdir                                 ;
+}
+
+#==========================================*
+# Close directory                          *
+#------------------------------------------*
+closedir (DIR)                            ;
+
+#==========================================*
+# Subroutine di trattamento directory      *
+#------------------------------------------*
+sub tdir 
+{
+    #--------------------------------------*
+    # Estrazione componente da directory   *
+    #--------------------------------------*
+    my @name = split('#', $elem)          ;
+    my $fnam = $name[1]                   ;
+    
+    my @seca = split('_', $fnam)          ;
+    my $anno = $seca[0]                   ;
+    my $sdir = $patb
+             . $user
+             . "/pdf/out/"
+             . $elem                      ;
+    
+    #--------------------------------------*
+    # Open sub-directory                   *
+    #--------------------------------------*
+    opendir (SUBDIR,$sdir)                ;
+
+    #--------------------------------------*
+    # Ciclo interno alla sub-directory     *
+    #--------------------------------------*
+    SUBLINE: foreach $sele (sort readdir(SUBDIR))
+    {
+        #----------------------------------*
+        # Esclusione 'albero' directory    *
+        #----------------------------------*
+        if ($sele eq "." || $sele eq "..")
+           {next(SUBLINE)}                ;
+           
+        #----------------------------------*
+        # Esclusione files di sistema      *
+        #----------------------------------*
+        next if $sele =~ /^\./            ;           
+           
+        #----------------------------------*
+        # Esclusione NON pdf               *
+        #----------------------------------*
+        my ($name,
+            $path,
+            $suff) = fileparse($sele, '\.[^\.]*');
+        
+        if ($suff ne ".pdf" && $suff ne ".PDF")
+           {next(SUBLINE)}                ;
+        #----------------------------------*
+        # Correzione eventuale estensione  *
+        #----------------------------------*
+        if ($suff eq ".PDF")
+           {$suff = ".pdf"}
+        #----------------------------------*
+        # Preparazione encrypting          *
+        #----------------------------------*
+        my $newf = $fnam . $suff          ;
+        my $newp = $pats
+                 . $anno
+                 . "/" 
+                 . $fnam
+                 . $suff                  ;
+                 
+        #----------------------------------*
+        # Comando per privilegi file       *
+        #----------------------------------*
+        system("chmod 0777 "
+               . $sdir
+               ."/"
+               . "\"$sele\"")             ;
+                 
+        #----------------------------------*
+        # Comando di encrypting            *
+        #----------------------------------*
+        my $cmnd = "pdftk "
+                 . $sdir
+                 ."/"
+                 . "\"$sele\""
+                 . " output "
+                 . $newp
+                 . " user_pw "
+                 . $ppdf                  ;
+        print $cmnd . "\n"                ;
+        system($cmnd)                     ;
+
+        #----------------------------------*
+        # Comando di cancellazione         *
+        #----------------------------------*
+        $cmnd = "rm " 
+               . $sdir
+               ."/"
+              . "\"$sele\""               ;
+        system($cmnd)                     ;
+        }
+    #--------------------------------------*
+    # Close sub-directory                  *
+    #--------------------------------------*
+    closedir (SUBDIR)                     ;
+    #--------------------------------------*
+    # Cancellazione sub-directory          *
+    #--------------------------------------*
+        $cmnd = "rmdir " 
+              . $sdir                     ;
+        system($cmnd)                     ;
+}

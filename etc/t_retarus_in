@@ -1,0 +1,220 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# Retarus                                  *
+#                                          *
+# SU MISURA PER SIRI                       *
+#                                          *
+# t_retaurs_in                             *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 12/09/25    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign;
+use MIME::Lite                            ;
+use DBI()                                 ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = '94.199.91.48'                 ;
+my $user = 'siri_vishay'                  ;
+my $pass = 'q7nw3hefzuwfzhwx'             ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$host || !$user || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_retaurs_in HOST "
+        . "USERNAME "
+        . "PASSWORD "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $path = "/productive/ordrsp_in"        ;
+# my $path = "/test/ordrsp_in"            ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dhst = "localhost"                    ;
+my $dusr = "root"                         ;
+my $dpwd = "alter1"                       ;
+my $dtbs = "siri"                         ;
+my $dtab = "retarus"                      ;
+
+#==========================================*
+# Parametri di posta                       *
+#------------------------------------------*
+$isps = "siriel-com01b.mail.protection.outlook.com";
+my $mitt = 'invoice@siri-el.com'          ;
+my $dest = 'purchases@siri-el.com'        ;
+
+#==========================================*
+# Open file di LOG                         *
+#------------------------------------------*
+my $logf = "/abd/asc/log/t_retarus_in.log";
+open (OUTFILE, ">$logf") or die
+     "Impossibile aprire '$logf'"         ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtbs;host=$dhst",
+                       $dusr,
+                       $dpwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+my $sftp = Net::SFTP::Foreign->new(
+  host     => $host,
+  user     => $user,
+  password => $pass,
+  port     => 22,
+);
+
+if ($sftp->error) {
+  print OUTFILE "Connessione SFTP fallita: " . $sftp->error . "\n";
+  close OUTFILE;
+  exit 1;
+}
+
+#==========================================*
+# Directory di input                       *
+#------------------------------------------*
+$sftp->setcwd($path)
+  or do {
+    print OUTFILE "setcwd('$path') fallita: " . $sftp->error . "\n";
+    close OUTFILE;
+    exit 1;
+  };
+
+#==========================================*
+# Recupero dei file remoti                 *
+#------------------------------------------*
+my $list = $sftp->ls($path);
+if (!$list) {
+    print OUTFILE "ls('$path') fallita: " . $sftp->error . "\n";
+    close OUTFILE; exit 1;
+}
+
+#==========================================*
+# Estrai i nomi in modo robusto            *
+#------------------------------------------*
+my @names = map { ref($_) eq 'HASH' ? $_->{filename} : $_ } @$list;
+
+#==========================================*
+# Filtra e scarica                         *
+#------------------------------------------*
+for my $fn (grep { /\.CSV\.ok$/ } @names) {   # usa $ invece di \z per compat
+    # se non presente a DB, scarica
+    my $sel = "SELECT 1 FROM $dtab WHERE path = ?";
+    my $sth = $dbh->prepare($sel);
+    $sth->execute($fn);
+    my ($exists) = $sth->fetchrow_array;
+    $sth->finish;
+    next if $exists;
+
+    my $local = "/abd/asc/imp/$fn";
+    $sftp->get("$path/$fn", $local)
+        or do { print OUTFILE "get('$fn') fallita: " . $sftp->error . "\n"; next; };
+
+    my $ins = "INSERT INTO $dtab VALUES (?, '', NOW(), '', '', '', '')";
+    my $sth_ins = $dbh->prepare($ins);
+    $sth_ins->execute($fn);
+    $sth_ins->finish;
+
+    &messaggio($fn);
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Trattamento messaggio di posta           *
+#------------------------------------------*
+sub messaggio 
+{
+    #--------------------------------------*
+    # Determinazione numero documento      *
+    # (da perfezionare)                    *
+    #--------------------------------------*
+    my $rnum = substr($_, 17, 8)          ;
+    #--------------------------------------*
+    # Estrazione del fornitore dal nome    *
+    # file                                 *
+    #--------------------------------------*
+    my $forn = ""                         ;
+    my $wfor = substr($_, 4, 3)           ;
+    
+    if ($wfor eq "VIS")
+    {
+        $forn = "Vishay"                  ;
+    }
+     elsif ($wfor eq "MOL")
+    {
+        $forn = "Molex"                   ;
+    }
+     else
+    {
+        $forn = "Yageo"                   ;
+    }
+    #--------------------------------------*
+    # Composizione soggetto                *
+    #--------------------------------------*
+    my $subj = "Conferma ordine da "
+             . $forn
+             . " "
+             . $rnum                      ;
+    #--------------------------------------*
+    # Messaggio di posta                   *
+    #--------------------------------------*
+    $msg = MIME::Lite->new(
+           From     =>$mitt,
+           To       =>$dest,
+           Subject  =>$subj,
+           Data     =>"Conferma "
+                    . $_
+                    . " da "
+                    . $forn
+                    . " "
+                    . $rnum)              ;
+    #--------------------------------------*
+    # Invio                                *
+    #--------------------------------------*
+    $msg->send('smtp', $isps, Timeout=>60);
+}

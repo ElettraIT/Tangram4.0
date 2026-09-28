@@ -1,0 +1,1801 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per stampare un file tem-    *
+# poraneo in formato CSV dedotto da un     *
+# documento XML precedentemente letto      *
+#                                          *
+# t_xml_scf_stp                            *
+#                                          *
+# N.B.: Utilizzato da 'pscf3700'           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/01/19   *
+#   Ultima revisione:   wip del 06/04/21   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - nome file (CSV)             *
+#                                          *
+#            - codice stampante            *
+#             (o percorso PDF)             *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use PostScript::Simple                    ;
+use File::Basename                        ;
+use File::Copy                            ;
+
+#=========================================*
+# Valori in input                         *
+#-----------------------------------------*
+my $fil_inp = shift                       ;
+my $cod_stp = shift                       ;
+
+#==========================================*
+# Percorsi file                            *
+#------------------------------------------*
+my $pth_tmp = '/abd/tmp/'                 ;
+my $pth_spl = '/abd/spl/'                 ;
+my $mod_eps = '/abd/asc/mod/xmlfat0.eps'  ;
+#------------------------------------------*
+# Percorso del file 'csv'                  *
+#------------------------------------------*
+my $pth_csv = $pth_tmp
+            . $fil_inp
+            . ".csv"                      ;
+#------------------------------------------*
+# Percorso del file Postcript generato     *
+#------------------------------------------*
+my $out_stp = $pth_spl
+            . $fil_inp
+            . ".ps"                       ;
+
+#==========================================*
+# Posizionamenti fissi                     *
+#------------------------------------------*
+my $top_pag = 841                         ;
+my $mrg_snx = 60                          ;
+my $alt_lin = 10                          ;
+my $pos_int = 10                          ;
+my $pos_dst = 260                         ;
+#------------------------------------------*
+# Modulo 'eps'                             *
+#------------------------------------------*
+my $eps_x01 = 0                           ;
+my $eps_y01 = 0                           ;
+my $eps_x02 = 590                         ;
+my $eps_y02 = 840                         ;
+#------------------------------------------*
+# Box estremi documento                    *
+#------------------------------------------*
+my @box_doc = (420, 770)                   ;
+#------------------------------------------*
+# Box fornitore                            *
+#------------------------------------------*
+my @box_fnt = (55, 770)                   ;
+my $int_fnt = 30                          ;
+#------------------------------------------*
+# Box causale                              *
+#------------------------------------------*
+my @box_cau = (60, 640)                   ;
+#------------------------------------------*
+# Box cliente                              *
+#------------------------------------------*
+my @box_cli = (340, 630)                  ;
+my $int_cli = 25                          ;
+#------------------------------------------*
+# Colonne corpo                            *
+#------------------------------------------*
+my @col_cor = (58, 128, 302, 352, 374, 430, 480, 530);
+#------------------------------------------*
+# Colonne castelletto pagamenti            *
+#------------------------------------------*
+my @col_cpe = (50, 90, 120, 200, 240, 270, 300, 350);
+#------------------------------------------*
+# Box piede                                *
+#------------------------------------------*
+my @box_pi1 = (60, 200)                   ;
+my @box_pi2 = (302, 200)                  ;
+my @box_pi3 = (60, 120)                   ;
+my @box_pi4 = (302, 120)                  ;
+
+#==========================================*
+# Contatori e posizionatori pagina         *
+#------------------------------------------*
+my $max_ric = 15                          ;
+my $max_rig = 0                           ;
+my $ctr_rig = 0                           ;
+my $num_pag = 0                           ;
+my $num_rig = 0                           ;
+my $top_rig = 547                         ;
+my $row_hgt = 20                          ;
+my $cur_lin = $top_rig                    ;
+my $ctr_wrk = 0                           ;
+
+#==========================================*
+# Normalizzazione variabili globali        *
+#------------------------------------------*
+#------------------------------------------*
+# Array dati                               *
+#------------------------------------------*
+my @tes_fld                               ;
+my @rig_fld                               ;
+my @pie_fld                               ;
+#------------------------------------------*
+# Documento                                *
+#------------------------------------------*
+my $tip_doc = ""                          ;
+my $num_doc = ""                          ;
+my $dat_doc = ""                          ;
+#------------------------------------------*
+# Fornitore                                *
+#------------------------------------------*
+my $rag_fnt = ""                          ;
+my $via_fnt = ""                          ;
+my $cap_fnt = ""                          ;
+my $cmn_fnt = ""                          ;
+my $tel_fnt = ""                          ;
+my $eml_fnt = ""                          ;
+#------------------------------------------*
+# Cliente                                  *
+#------------------------------------------*
+my $rag_cli = ""                          ;
+my $via_cli = ""                          ;
+my $cap_cli = ""                          ;
+my $cmn_cli = ""                          ;
+my $prv_cli = ""                          ;
+my $cfi_cli = ""                          ;
+my $piv_cli = ""                          ;
+my $loc_stp = ""                          ;
+my $tot_doc = ""                          ;
+my @cau_doc                               ;
+#------------------------------------------*
+# Riga                                     *
+#------------------------------------------*
+my $fld_inw = 0                           ;
+my $rig_num = 0                           ;
+my $fld_stp = ""                          ;
+my $prd_ini = ""                          ;
+my $prd_fin = ""                          ;
+#------------------------------------------*
+# Piede                                    *
+#------------------------------------------*
+# Castelletto Iva                          *
+#------------------------------------------*
+my @cst_iva                               ;
+my $max_iva = 0                           ;
+my $cst_ivi = 0                           ;
+my $tot_ibl = 0                           ;
+my $tot_imp = 0                           ;
+my $tot_wrk = 0                           ;
+#------------------------------------------*
+# Esigibilita' Iva                         *
+#------------------------------------------*
+my $esg_iva = ""                          ;
+#------------------------------------------*
+# Condizioni di pagamento                  *
+#------------------------------------------*
+my $cnd_pag = ""                          ;
+#------------------------------------------*
+# Attachment                               *
+#------------------------------------------*
+my $pth_att = ""                          ;
+my $nam_att = ""                          ;
+#------------------------------------------*
+# Castelletto pagamenti                    *
+#------------------------------------------*
+my @cst_pag                               ;
+my $cst_pgi = 0                           ;
+my $max_pag = 0                           ;
+#==========================================*
+# Preparazione pagina                      *
+#------------------------------------------*
+my $ps = new PostScript::Simple::(papersize => "A4",
+                                  landscape => 0,
+                                     colour => 1,
+                                        eps => 0,
+                                      units => "bp");
+
+#==========================================*
+# Open file 'csv'                          *
+#------------------------------------------*
+open (I_FILE, "$pth_csv") or die
+     "Impossibile aprire il file '$pth_csv'";
+my   @linea = <I_FILE>                    ;
+
+#==========================================*
+# Close del file in input                  *
+#------------------------------------------*
+close I_FILE                              ;
+
+#==========================================*
+# Ciclo di scansione preliminare per la    *
+# raccolta dei dati                        *
+#------------------------------------------*
+foreach $row (@linea)
+{
+    my   @rec = split(/;/, $row)          ;
+#   *--------------------------------------*
+#   * Raccolta dati testata                *
+#   *--------------------------------------*
+    if  ($rec[0] eq "T")
+    {
+        &rdt_tes                          ;
+    }
+#   *--------------------------------------*
+#   * Raccolta dati righe                  *
+#   *--------------------------------------*
+    elsif ($rec[0] eq "R")
+    {
+        &rdt_rig                          ;
+    }
+#   *--------------------------------------*
+#   * Raccolta dati piede                  *
+#   *--------------------------------------*
+    elsif ($rec[0] eq "P")
+    {
+        &rdt_pie                          ;
+    }
+#   *--------------------------------------*
+#   * Skip linee non riconosciute          *
+#   *--------------------------------------*
+    else
+    {
+        next                              ;
+    }
+}
+
+#==========================================*
+# Dati di testata raccolti                 *
+#------------------------------------------*
+#------------------------------------------*
+# Tipo documento                           *
+#------------------------------------------*
+$tip_doc = $tes_fld[410]                  ;
+#
+if    ($tip_doc eq "TD01"){$tip_doc = "FATTURA"}
+elsif ($tip_doc eq "TD02"){$tip_doc = "ACCONTO SU FATTURA"}
+elsif ($tip_doc eq "TD03"){$tip_doc = "ACCONTO SU PARCELLA"}
+elsif ($tip_doc eq "TD04"){$tip_doc = "NOTA DI CREDITO"}
+elsif ($tip_doc eq "TD05"){$tip_doc = "NOTA DI DEBITO"}
+elsif ($tip_doc eq "TD06"){$tip_doc = "PARCELLA"}
+elsif ($tip_doc eq "TD24"){$tip_doc = "FATTURA DIFFERITA"}
+elsif ($tip_doc eq "TD25"){$tip_doc = "FATTURA DIFFERITA"}
+else  {$tip_doc = "(???)"}
+#------------------------------------------*
+# Numero documento                         *
+#------------------------------------------*
+$num_doc = $tes_fld[440]                  ;
+$dat_doc = $tes_fld[430]                  ;
+#------------------------------------------*
+# Ragione sociale fornitore emittente      *
+# (CedentePrestatore)                      *
+#------------------------------------------*
+if(!$tes_fld[30])
+{
+    $rag_fnt = $tes_fld[32]
+             . " "
+             . $tes_fld[34]               ;
+}
+ else
+{
+    $rag_fnt = $tes_fld[30]               ;
+}
+#------------------------------------------*
+# Indirizzo fornitore                      *
+#------------------------------------------*
+$via_fnt = $tes_fld[40]                   ;
+$cap_fnt = $tes_fld[50]                   ;
+$cmn_fnt = $tes_fld[60]                   ;
+if ($tes_fld[70])
+   {$prv_fnt = $tes_fld[70];}
+else
+   {$prv_fnt = "";}                       ;
+#------------------------------------------*
+# Contatti fornitore                       *
+#------------------------------------------*
+$tel_fnt = $tes_fld[36]                   ;
+$eml_fnt = $tes_fld[38]                   ;
+#------------------------------------------*
+# Ragione sociale cliente                  *
+# (CessionarioCommittente)                 *
+#------------------------------------------*
+$rag_cli = $tes_fld[230]                  ;
+$via_cli = $tes_fld[240]                  ;
+$cap_cli = $tes_fld[250]                  ;
+$cmn_cli = $tes_fld[260]                  ;
+$prv_cli = $tes_fld[270]                  ;
+if ($tes_fld[270])
+   {$prv_cli = $tes_fld[270]}
+else
+   {$prv_cli = ""}                        ;
+$piv_cli = $tes_fld[210]                  ;
+$cfi_cli = $tes_fld[220]                  ;
+#------------------------------------------*
+# Totale documento                         *
+#------------------------------------------*
+$tot_doc = $tes_fld[460]                  ;
+
+#==========================================*
+# Dati piede raccolti                      *
+#------------------------------------------*
+#------------------------------------------*
+# Condizioni pagamento                     *
+#------------------------------------------*
+$cnd_pag = $pie_fld[950]                  ;
+#
+if($cnd_pag)
+{
+    if    ($cnd_pag eq "TP01"){$cnd_pag = "PAGAMENTO A RATE"}
+    elsif ($cnd_pag eq "TP02"){$cnd_pag = "PAGAMENTO COMPLETO"}
+    elsif ($cnd_pag eq "TP03"){$cnd_pag = "ANTICIPO"}
+    else  {$cnd_pag = "(???)"}
+}
+
+#==========================================*
+# Massimo righe castelletto Iva            *
+#------------------------------------------*
+$max_iva = $cst_ivi                       ;
+
+#==========================================*
+# Massimo righe castelletto pagamento      *
+#------------------------------------------*
+$max_pag = $cst_pgi                       ;
+#------------------------------------------*
+# Esigibilita' iva                         *
+#------------------------------------------*
+$esg_iva = $pie_fld[940]                  ;
+
+#------------------------------------------*
+# Attachment                               *
+#------------------------------------------*
+$pth_att = $pie_fld[1140]                 ;
+#------------------------------------------*
+# Estrazione nome file                     *
+#------------------------------------------*
+if($pth_att)
+{
+(my $fil_nam,
+ my $fil_pth,
+ my $fil_ext) = fileparse($pth_att, qr/\.[^.]*/);
+ $nam_att = $fil_nam . ".pdf"             ;
+}
+
+#==========================================*
+# Massimo righe lette                      *
+#------------------------------------------*
+$max_rig = $rig_num                       ;
+    
+#==========================================*
+# Determinazione numero pagine totali      *
+#------------------------------------------*
+my $max_pgn = &clc_pag ($max_ric, $max_rig);
+
+#==========================================*
+# Ciclo di scansione delle righe documento *
+# per eseguire la stampa                   *
+#------------------------------------------*
+$ctr_wrk = 0                              ;
+for $ctr_wrk (0 .. $max_rig)
+{
+#   *--------------------------------------*
+#   * Skip riga zero                       *
+#   *--------------------------------------*
+    if($ctr_wrk == 0){next}               ;
+#   *--------------------------------------*
+#   * Stampa riga                          *
+#   *--------------------------------------*
+    &stp_rig($ctr_wrk)                    ;
+}
+
+#==========================================*
+# Stampa dati nel Box condizioni di paga-  *
+# mento                                    *
+#------------------------------------------*
+
+
+
+
+
+#==========================================*
+# Stampa piede                             *
+#------------------------------------------*
+&stp_pie                                  ;
+
+#==========================================*
+# Generazione file Postscript              *
+#------------------------------------------*
+$ps->output($out_stp)                     ;
+
+#==========================================*
+# Stampa file                              *
+#                                          *
+# Test se il codice stampante passato      *
+# contiene un percorso per il PDF          *
+#------------------------------------------*
+if ($cod_stp =~ m/[\/]/)
+{
+#   *--------------------------------------*
+#   * Percorso PDF                         *
+#   *--------------------------------------*
+    my $out_pdf = $cod_stp
+                . $fil_inp
+                . ".pdf"                  ;
+#   *--------------------------------------*
+#   * Comando di creazione PDF             *
+#   *--------------------------------------*
+    system("ps2pdf $out_stp $out_pdf")    ;
+#   *--------------------------------------*
+#   * Trattamento eventuale attachment     *
+#   *--------------------------------------*
+    if ($pth_att)
+    {
+        my $new_att = $cod_stp
+                    . $nam_att            ;
+        copy($pth_att, $new_att) or die
+ 	     "Copia del file fallita: $!"  ;
+    }
+}
+ else
+{
+#   *--------------------------------------*
+#   * A stampante                          *
+#   *--------------------------------------*
+    system("cat $out_stp | lpr -P$cod_stp");
+}
+
+#-----------------------------------------*
+# Fine script                             *
+#=========================================*
+
+#==========================================*
+# Subroutines                              *
+#==========================================*
+
+#==========================================*
+# Raccolta dati di testata                 *
+#------------------------------------------*
+sub rdt_tes
+{
+#   *--------------------------------------*
+#   * Estrazione campi                     *
+#   *--------------------------------------*
+    my @tes = split(/;/, $row)            ;
+#   *--------------------------------------*
+#   * Pulizia trailing spaces campi testo  *
+#   *--------------------------------------*
+    my $max = 4                           ;
+    my $ctr                               ;
+    for ($ctr = 1 ; $ctr < $max ; $ctr++ )
+    {
+        $tes[$ctr] =~ s/^\s+//            ;
+        $tes[$ctr] =~ s/\s+$//            ;
+    }
+#   *--------------------------------------*
+#   * Assegnazione indice campo testata    *
+#   *--------------------------------------*
+    my $fld_ide = &fts_inx ($tes[1], $tes[2]);
+#   *--------------------------------------*
+#   * Assegnazione valore campo testata    *
+#   *--------------------------------------*
+    if ($fld_ide){$tes_fld[$fld_ide] = $tes[3]}
+#   *--------------------------------------*
+#   * Causale documento                    *
+#   *--------------------------------------*
+    if ($tes[2] eq "Causale")
+    {
+        push (@cau_doc, $tes[3])          ;
+    }
+}
+
+#==========================================*
+# Stampa testata                           *
+#------------------------------------------*
+sub stp_tes
+{
+#   *======================================*
+#   * Font per il box data e numero        *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica", 10)         ;
+#   *--------------------------------------*
+#   * Tipo documento                       *
+#   *--------------------------------------*
+    $ps->text({align => 'center'},
+                   $box_doc[0]+40,
+                      $box_doc[1],
+                         $tip_doc)        ;
+#   *--------------------------------------*
+#   * Numero documento                     *
+#   *--------------------------------------*
+    $ps->text({align => 'center'},
+                   $box_doc[0]+10,
+                   $box_doc[1]-36,
+                         $num_doc)        ;
+#   *--------------------------------------*
+#   * Data documento                       *
+#   *--------------------------------------*
+    $ps->text({align => 'center'},
+                   $box_doc[0]+90,
+                   $box_doc[1]-36,
+                         $dat_doc)        ;
+#   *--------------------------------------*
+#   * Stampa codice fiscale cliente        *
+#   *--------------------------------------*
+#   * Ritaratura carattere in base alla    *
+#   * lunghezza del codice fiscale         *
+#   *--------------------------------------*
+    if($cfi_cli)
+    {
+        if (length($cfi_cli) > 11)
+           {$siz = 8} else {$siz = 10}
+#
+        $ps->setfont("Helvetica-Bold", $siz);
+        $ps->text($box_doc[0]-34,
+                  $box_doc[1]-65,
+                  $cfi_cli)               ;
+        $ps->setfont("Helvetica", 10)     ;
+    }
+#   *--------------------------------------*
+#   * Stampa partita Iva cliente           *
+#   *--------------------------------------*
+    if($piv_cli)
+    {
+        $ps->text($box_doc[0]+60,
+                  $box_doc[1]-65,
+                     $piv_cli)            ;
+    }
+
+#   *======================================*
+#   * Stampa ragione sociale fornitore     *
+#   *--------------------------------------*
+#   * Ritaratura carattere in base alla    *
+#   * lunghezza della ragione sociale      *
+#   *--------------------------------------*
+    if (length($rag_fnt) > 35)
+       {$siz = 14} else {$siz = 16}
+#
+    $ps->setfont("Helvetica-Bold", $siz)  ;
+    $ps->text($box_fnt[0],
+              $box_fnt[1],
+              $rag_fnt)                   ;
+#   *--------------------------------------*
+#   * Stampa indirizzo fornitore           *
+#   *--------------------------------------*
+    $ps->text($box_fnt[0],
+              $box_fnt[1]-$int_fnt,
+              $via_fnt)                   ;
+#   *--------------------------------------*
+#   * Stampa localita' fornitore           *
+#   *--------------------------------------*
+#   * Assemblaggio                         *
+#   *--------------------------------------*
+    $loc_stp = $cap_fnt
+             . " "
+             . $cmn_fnt
+             . " "
+             . $prv_fnt                   ;
+#
+    $ps->text($box_fnt[0],
+              $box_fnt[1]-$int_fnt*2,
+              $loc_stp)                   ;
+#   *--------------------------------------*
+#   * Stampa telefono ed email fornitore   *
+#   *--------------------------------------*
+#   * Assemblaggio                         *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica-Bold", 12)    ;
+    
+    if($tel_fnt && $eml_fnt)
+    {
+        $tee_stp = $tel_fnt
+                 . " - "
+                 . $eml_fnt               ;
+#
+        $ps->text($box_fnt[0],
+       $box_fnt[1]-$int_fnt*3,
+                     $tee_stp)            ;
+    }
+#   *--------------------------------------*
+#   * Stampa causale documento             *
+#   *--------------------------------------*
+#   * Ritaratura carattere in base alla    *
+#   * lunghezza della causale              *
+#   *--------------------------------------*
+    if(@cau_doc)
+    {
+
+        if (length($cau_doc[0]) > 35)
+           {$siz = 5} else {$siz = 9}
+#
+        $ps->setfont("Helvetica-Bold", $siz)  ;
+        my $cau_lin = -10                     ;
+        foreach (@cau_doc)
+        {
+            $cau_lin = $cau_lin + 20          ;
+            $ps->text($box_cau[0],
+             $box_cau[1]-$cau_lin,
+                               $_)            ;
+        }
+    }
+
+#   *--------------------------------------*
+#   * Stampa ragione sociale cliente       *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica-Bold", 10)    ;
+    $ps->text($box_cli[0],
+              $box_cli[1],
+              $rag_cli)                   ;
+#   *--------------------------------------*
+#   * Stampa indirizzo cliente             *
+#   *--------------------------------------*
+    $ps->text($box_cli[0],
+              $box_cli[1]-$int_cli,
+              $via_cli)                   ;
+#   *--------------------------------------*
+#   * Stampa localita' cliente             *
+#   *--------------------------------------*
+    $loc_stp = $cap_cli
+             . " "
+             . $cmn_cli
+             . " "
+             . $prv_cli                   ;
+#
+    $ps->text($box_cli[0],
+              $box_cli[1]-$int_cli*2,
+              $loc_stp)                   ;
+}
+
+#==========================================*
+# Raccolta dati riga                       *
+#------------------------------------------*
+sub rdt_rig
+{
+#   *--------------------------------------*
+#   * Estrazione campi                     *
+#   *--------------------------------------*
+    my @rig = split(/;/, $row)            ;
+#   *--------------------------------------*
+#   * Pulizia trailing spaces campi testo  *
+#   *--------------------------------------*
+    my $max = 4                           ;
+    my $ctr                               ;
+    for ($ctr = 1 ; $ctr < $max ; $ctr++ )
+    {
+        $rig[$ctr] =~ s/^\s+//            ;
+        $rig[$ctr] =~ s/\s+$//            ;
+    }
+
+#   *--------------------------------------*
+#   * Assegnazione indice campo            *
+#   *                                      *
+#   * Valori restituiti                    *
+#   *                                      *
+#   * 1. = id campo assegnato              *
+#   * 2. = posizione del campo nella riga  *
+#   * 3. = indice ripetizione campo        *
+#   * 3. = valore del campo (contenuto)    *
+#   *--------------------------------------*
+    my ($fld_idr,
+        $fld_psz,
+        $fld_inx,
+        $fld_val) = &frg_inx ($rig[2],
+                              $rig[3])    ;
+#   *--------------------------------------*
+#   * Test se nuova linea                  *
+#   *--------------------------------------*
+    if ($rig[2] eq "NumeroLinea")
+    {
+        $rig_num++                        ;
+    }
+#   *--------------------------------------*
+#   * Assegnazione valore campo riga       *
+#   *--------------------------------------*
+    if ($fld_idr)
+    {
+        $rig_fld[$rig_num]
+                [$fld_psz]
+                [$fld_inx]
+                [$fld_idr] = $fld_val     ;
+    }
+}
+
+#==========================================*
+# Stampa riga                              *
+#------------------------------------------*
+sub stp_rig
+{
+#   *--------------------------------------*
+#   * Numero riga in corso di trattamento  *
+#   *--------------------------------------*
+    $rig_trt = shift                      ;
+#   *--------------------------------------*
+#   * Contatore righe                      *
+#   *--------------------------------------*
+    $ctr_rig++                            ;
+#   *--------------------------------------*
+#   * Se prima riga, intestazione pagina   *
+#   *--------------------------------------*
+    if ($rig_trt == 1)
+    {
+        &mynewpage($ps)                   ;
+        $ctr_rig = 1                      ;
+        $cur_lin = $top_rig               ;
+    }
+#   *--------------------------------------*
+#   * Eventuale reintestazione pagina      *
+#   *--------------------------------------*
+    if ($ctr_rig > $max_ric)
+    {
+        &mynewpage($ps)                   ;
+        $ctr_rig = 1                      ;
+        $cur_lin = $top_rig               ;
+    }
+#   *--------------------------------------*
+#   * Interlinea                           *
+#   *--------------------------------------*
+    $cur_lin = $cur_lin - $row_hgt        ;
+#   *--------------------------------------*
+#   * Font per riga                        *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica-Bold", 8)     ;
+#   *--------------------------------------*
+#   * Progressivo riga                     *
+#   *--------------------------------------*
+    $ps->text({align => 'right'},
+                              50,
+                      $cur_lin+2,
+                        $rig_trt)         ;
+#   *--------------------------------------*
+#   * Codice prodotto                      *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][2][0][730];
+    if ($fld_stp)
+    {
+        $ps->text($col_cor[0],
+                   $cur_lin+2,
+                     $fld_stp)            ;
+    }
+#   *--------------------------------------*
+#   * Descrizione prodotto                 *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][3][0][740];
+    if ($fld_stp)
+    {
+        $fld_stp = substr ($fld_stp, 0,35);
+        $ps->text($col_cor[1],
+                   $cur_lin+2,
+                     $fld_stp)            ;
+    }
+#   *--------------------------------------*
+#   * Quantita' prodotto                   *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][4][0][750];
+    if ($fld_stp)
+    {
+#       *----------------------------------*
+#       * Limitazione decimali             *
+#       *----------------------------------*
+        $num_stp = (sprintf("%.3f", $fld_stp));
+#       *----------------------------------*
+#       * Sostituzione '.' con ','         *
+#       *----------------------------------*
+        $num_stp =~ s/\./,/               ;
+#       *----------------------------------*
+#       * Stampa                           *
+#       *----------------------------------*
+        $ps->text({align => 'right'},
+                         $col_cor[2]+45,
+                          $cur_lin+2,
+                            $num_stp)     ;
+    }
+#   *--------------------------------------*
+#   * Unita' di misura prodotto            *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][5][0][760];
+    if ($fld_stp)
+    {
+        $fld_stp = substr ($fld_stp, 0, 3);
+        $ps->text($col_cor[3],
+                   $cur_lin+2,
+                     $fld_stp)            ;
+    }
+#   *--------------------------------------*
+#   * Prezzo unitario prodotto             *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][6][0][770];
+    if ($fld_stp)
+    {
+#       *----------------------------------*
+#       * Limitazione decimali             *
+#       *----------------------------------*
+        $num_stp = (sprintf("%.5f", $fld_stp))   ;
+#       *----------------------------------*
+#       * Sostituzione '.' con ','         *
+#       *----------------------------------*
+        $num_stp =~ s/\./,/               ;
+#       *----------------------------------*
+#       * Stampa                           *
+#       *----------------------------------*
+        $ps->text({align => 'right'},
+                         $col_cor[4]+50,
+                          $cur_lin+2,
+                            $num_stp)     ;
+    }
+    
+#   *--------------------------------------*
+#   * Sconto                               *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][14][0][774];
+    if ($fld_stp)
+    {
+        $fld_stp = substr ($fld_stp, 0, 2);
+        $ps->text($col_cor[5],
+                   $cur_lin+2,
+                     $fld_stp)            ;
+    }
+#   *--------------------------------------*
+#   * Prezzo totale prodotto               *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][7][0][780];
+    if ($fld_stp)
+    {
+#       *----------------------------------*
+#       * Limitazione decimali             *
+#       *----------------------------------*
+        $num_stp = (sprintf("%.2f", $fld_stp))   ;
+#       *----------------------------------*
+#       * Sostituzione '.' con ','         *
+#       *----------------------------------*
+        $num_stp =~ s/\./,/               ;
+#       *----------------------------------*
+#       * Stampa                           *
+#       *----------------------------------*
+        $ps->text({align => 'right'},
+                         $col_cor[6]+45,
+                          $cur_lin+2,
+                            $num_stp)     ;
+    }
+#   *--------------------------------------*
+#   * Aliquota Iva o 'natura'              *
+#   *--------------------------------------*
+    $fld_stp = $rig_fld[$rig_trt][8][0][790];
+    
+    if ($fld_stp eq "0.00")
+    {
+        $fld_stp = $rig_fld[$rig_trt][9][0][800];
+        $ps->text({align => 'right'},
+                         $col_cor[7]+18,
+                          $cur_lin+2,
+                            $fld_stp)     ;
+    }
+     else
+    {
+        $fld_stp = int($fld_stp)          ;
+        $ps->text({align => 'right'},
+                         $col_cor[7]+18,
+                          $cur_lin+2,
+                            $fld_stp)     ;
+    }
+#   *--------------------------------------*
+#   * Data inizio e fine periodo           *
+#   *--------------------------------------*
+    $prd_ini = $rig_fld[$rig_trt][13][0][762];
+    $prd_fin = $rig_fld[$rig_trt][14][0][764];
+    if ($prd_ini && $prd_fin)
+    {
+        $fld_stp = "Periodo dal : "
+                 . $prd_ini
+                 . " al: "
+                 . $prd_fin               ;
+#
+        $ps->text($col_cor[1]+10,
+                   $cur_lin+2-10,
+                        $fld_stp)         ;
+    }
+}
+
+#==========================================*
+# Raccolta dati piede                      *
+#------------------------------------------*
+sub rdt_pie
+{
+#   *--------------------------------------*
+#   * Estrazione campi                     *
+#   *--------------------------------------*
+    my @pie = split(/;/, $row)            ;
+#   *--------------------------------------*
+#   * Pulizia trailing spaces campi testo  *
+#   *--------------------------------------*
+    my $max = 4                           ;
+    my $ctr                               ;
+    for ($ctr = 1 ; $ctr < $max ; $ctr++ )
+    {
+        $pie[$ctr] =~ s/^\s+//            ;
+        $pie[$ctr] =~ s/\s+$//            ;
+    }
+#   *--------------------------------------*
+#   * Assegnazione indice campo piede      *
+#   *--------------------------------------*
+    my $fld_ide = &fpd_inx ($pie[1], $pie[2]);
+#   *--------------------------------------*
+#   * Assegnazione valore campo piede      *
+#   *--------------------------------------*
+    if ($fld_ide){$pie_fld[$fld_ide] = $pie[3]}
+
+#   *======================================*
+#   * Castelletto Iva                      *
+#   *--------------------------------------*
+#   * Aliquota Iva                         *
+#   *--------------------------------------*
+    if ($pie[2] eq "AliquotaIVA")
+    {
+#       *----------------------------------*
+#       * Incremento contatore             *
+#       *----------------------------------*
+        $cst_ivi++                        ;
+#       *----------------------------------*
+#       * Bufferizzazione                  *
+#       *----------------------------------*
+        if($pie[3])
+        {
+#           *------------------------------*
+#           * Aliquota                     *
+#           *------------------------------*
+            $cst_iva[$cst_ivi][0]= $pie[3];
+        }
+    }
+#   *--------------------------------------*
+#   * Natura                               *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "Natura")
+    {
+        $cst_iva[$cst_ivi][1]= $pie[3]    ;
+    }
+#   *--------------------------------------*
+#   * Imponibile importo                   *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "ImponibileImporto")
+    {
+        $cst_iva[$cst_ivi][2]= $pie[3]    ;
+    }
+#   *--------------------------------------*
+#   * Imposta                              *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "Imposta")
+    {
+        $cst_iva[$cst_ivi][3]= $pie[3]    ;
+    }
+
+#   *======================================*
+#   * Castelletto pagamenti                *
+#   *--------------------------------------*
+#   * Modalita di pagamento                *
+#   *--------------------------------------*
+    if ($pie[2] eq "ModalitaPagamento")
+    {
+#       *----------------------------------*
+#       * Incremento contatore             *
+#       *----------------------------------*
+        $cst_pgi++                        ;
+#       *----------------------------------*
+#       * Bufferizzazione                  *
+#       *----------------------------------*
+        if($pie[3])
+        {
+#           *------------------------------*
+#           * Tipo                         *
+#           *------------------------------*
+            $cst_pag[$cst_pgi][0]= $pie[3];
+#           *------------------------------*
+#           * Descrizione                  *
+#           *------------------------------*
+            my $des_csp = &dec_pag($pie[3]);
+            $cst_pag[$cst_pgi][1]= $des_csp;
+        }
+    }
+#   *--------------------------------------*
+#   * Data scadenza pagamento              *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "DataScadenzaPagamento")
+    {
+        $cst_pag[$cst_pgi][2]= $pie[3]    ;
+    }
+#   *--------------------------------------*
+#   * Importo pagamento                    *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "ImportoPagamento")
+    {
+        $cst_pag[$cst_pgi][3]= &trt_imp($pie[3]);
+    }
+#   *--------------------------------------*
+#   * IBAN                                 *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "IBAN")
+    {
+        $cst_pag[$cst_pgi][4]= $pie[3]    ;
+    }
+#   *--------------------------------------*
+#   * ABI                                  *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "IBAN")
+    {
+        $cst_pag[$cst_pgi][5]= $pie[3]    ;
+    }
+#   *--------------------------------------*
+#   * CAB                                  *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "IBAN")
+    {
+        $cst_pag[$cst_pgi][6]= $pie[3]    ;
+    }
+#   *--------------------------------------*
+#   * Istituto finanziario                 *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "IstitutoFinanziario")
+    {
+        $cst_pag[$cst_pgi][7]= $pie[3]    ;
+    }
+#   *--------------------------------------*
+#   * Beneficiario                         *
+#   *--------------------------------------*
+     elsif ($pie[2] eq "Beneficiario")
+    {
+        $cst_pag[$cst_pgi][8]= $pie[3]    ;
+    }
+}
+
+#==========================================*
+# Stampa piede                             *
+#------------------------------------------*
+sub stp_pie
+{
+#   *======================================*
+#   * Castelletto Iva                      *
+#   *--------------------------------------*
+#   * Font per il box 2 piede              *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica", 9)          ;
+#   *--------------------------------------*
+#   * Scansione castelletto Iva            *
+#   *--------------------------------------*
+    $ctr_wrk = 0                          ;
+    for $ctr_wrk (0 .. $max_iva)
+    {
+#       *----------------------------------*
+#       * Skip riga zero                   *
+#       *----------------------------------*
+        if($ctr_wrk == 0){next}           ;
+#       *----------------------------------*
+#       * Stampa riga                      *
+#       *----------------------------------*
+        &stp_csi($ctr_wrk)                ;
+#       *----------------------------------*
+#       * Accumulo totale imponibile       *
+#       *----------------------------------*
+        $tot_ibl = $tot_ibl + $cst_iva[$rig_trt][2];
+#       *----------------------------------*
+#       * Accumulo totale imposta          *
+#       *----------------------------------*
+        $tot_imp = $tot_imp + $cst_iva[$rig_trt][3];
+}
+
+#   *--------------------------------------*
+#   * Totale imponibile                    *
+#   *--------------------------------------*
+    $tot_ibl = (sprintf("%.2f", $tot_ibl));
+    $ps->text({align => 'right'},
+                 $box_pi2[0]+240,
+                     $box_pi2[1],
+              &trt_imp($tot_ibl))         ;
+#   *--------------------------------------*
+#   * Totale imposta                       *
+#   *--------------------------------------*
+    $tot_imp = (sprintf("%.2f", $tot_imp));
+    $ps->text({align => 'right'},
+                 $box_pi2[0]+240,
+                  $box_pi2[1]-25,
+              &trt_imp($tot_imp))         ;
+#   *--------------------------------------*
+#   * Totale documento                     *
+#   *--------------------------------------*
+    if ($tot_doc)
+    {
+        $ps->text({align => 'right'},
+                     $box_pi2[0]+240,
+                      $box_pi2[1]-50,
+                  &trt_imp($tot_doc))     ;
+    }
+     else
+    {
+        $tot_wrk = $tot_ibl + $tot_imp    ;
+        $tot_wrk = (sprintf("%.2f", $tot_wrk));
+        $ps->text({align => 'right'},
+                     $box_pi2[0]+240,
+                      $box_pi2[1]-50,
+                  &trt_imp($tot_wrk))     ;
+    }
+              
+#   *======================================*
+#   * Castelletto pagamenti                *
+#   *--------------------------------------*
+#   * Font per il box 3 piede              *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica", 9)          ;
+#   *--------------------------------------*
+#   * Scansione castelletto pagamento      *
+#   *--------------------------------------*
+    $ctr_wrk = 0                          ;
+    for $ctr_wrk (0 .. $max_pag)
+    {
+#       *----------------------------------*
+#       * Skip riga zero                   *
+#       *----------------------------------*
+        if($ctr_wrk == 0){next}           ;
+#       *----------------------------------*
+#       * Stampa riga                      *
+#       *----------------------------------*
+        &stp_csp($ctr_wrk)                ;
+    }
+
+#   *======================================*
+#   * Ritenuta                             *
+#   *--------------------------------------*
+
+#   *======================================*
+#   * Attachment                           *
+#   *--------------------------------------*
+    if($nam_att)
+    {
+        my $all_stp = "Allegato : "
+                    . substr($nam_att, 0, 35);
+        $ps->setfont("Helvetica-Bold", 10);
+        $ps->text($box_pi4[0],
+               $box_pi4[1]-55,
+                     $all_stp)            ;
+    }
+}
+
+#==========================================*
+# Stampa riga castelletto Iva              *
+#------------------------------------------*
+sub stp_csi
+{
+#   *--------------------------------------*
+#   * Numero riga in corso di trattamento  *
+#   *--------------------------------------*
+    $rig_trt = shift                      ;
+#   *--------------------------------------*
+#   * Font per riga                        *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica", 8)          ;
+#   *--------------------------------------*
+#   * Imponibile                           *
+#   *--------------------------------------*
+    $ps->text({align => 'right'},
+                  $box_pi2[0]+45,
+    $box_pi2[1]-($rig_trt*10)+10,
+ &trt_imp($cst_iva[$rig_trt][2]))         ;
+#   *--------------------------------------*
+#   * Aliquota Iva o Natura                *
+#   *--------------------------------------*
+    $fld_stp = $cst_iva[$rig_trt][0];
+    
+    if ($fld_stp eq "0.00")
+    {
+        $fld_stp = $cst_iva[$rig_trt][1];
+        $ps->text({align => 'right'},
+                      $box_pi2[0]+65,
+        $box_pi2[1]-($rig_trt*10)+10,
+                            $fld_stp)     ;
+    }
+     else
+    {
+        $fld_stp = int($fld_stp)          ;
+        $ps->text({align => 'right'},
+                      $box_pi2[0]+65,
+        $box_pi2[1]-($rig_trt*10)+10,
+                            $fld_stp)     ;
+    }
+#   *--------------------------------------*
+#   * Imposta                              *
+#   *--------------------------------------*
+    $ps->text({align => 'right'},
+                 $box_pi2[0]+120,
+    $box_pi2[1]-($rig_trt*10)+10,
+ &trt_imp($cst_iva[$rig_trt][3]))         ;
+}
+
+#==========================================*
+# Stampa riga castelletto pagamento        *
+#------------------------------------------*
+sub stp_csp
+{
+#   *--------------------------------------*
+#   * Numero riga in corso di trattamento  *
+#   *--------------------------------------*
+    $rig_trt = shift                      ;
+#   *--------------------------------------*
+#   * Font per riga                        *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica", 8)          ;
+#   *--------------------------------------*
+#   * Ciclo 0..8                           *
+#   *--------------------------------------*
+    for $ctr_001 (1 .. 7)
+    {
+#       *----------------------------------*
+#       * Stampa riga                      *
+#       *----------------------------------*
+        &stp_cpe($rig_trt, $ctr_001)      ;
+    }
+}
+
+#==========================================*
+# Intestazione pagina                      *
+#------------------------------------------*
+sub mynewpage
+{
+#   *--------------------------------------*
+#   * Documento in input                   *
+#   *--------------------------------------*
+    my $ps = shift                        ;
+#   *--------------------------------------*
+#   * Incremento numero pagina             *
+#   *--------------------------------------*
+    $num_pag++                            ;
+#   *--------------------------------------*
+#   * Nuova pagina                         *
+#   *--------------------------------------*
+    $ps->newpage                          ;
+#   *--------------------------------------*
+#   * Inclusione modulo EPS                *
+#   *--------------------------------------*
+    $ps->importepsfile($mod_eps,
+                       $eps_x01,
+                       $eps_y01,
+                       $eps_x02,
+                       $eps_y02)          ;
+#   *--------------------------------------*
+#   * Font per numero pagina               *
+#   *--------------------------------------*
+    $ps->setfont("Helvetica", 10)         ;
+    
+#   *--------------------------------------*
+#   * Stampa nome file                     *
+#   *--------------------------------------*
+    $ps->text(60, 35, "Documento : "
+                     . $fil_inp)          ;
+#   *--------------------------------------*
+#   * Stampa numero pagina                 *
+#   *--------------------------------------*
+    $ps->text(55, 665,
+              "Pagina "
+            . $num_pag
+            . " di "
+            . $max_pgn)                    ;
+#   *--------------------------------------*
+#   * Stampa testata                       *
+#   *--------------------------------------*
+    &stp_tes                              ;
+}
+
+#==========================================*
+# Calcolo numero massimo di pagine         *
+#------------------------------------------*
+sub clc_pag
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $wrk_mpg = shift                   ;
+    my $wrk_nrg = shift                   ;
+    #--------------------------------------*
+    # Calcolo                              *
+    #--------------------------------------*
+    my $wrk_max = 1                       ;
+    my $wrk_int = int($wrk_nrg / $wrk_mpg);
+    my $wrk_rem = $wrk_nrg / $wrk_mpg     ;
+    if ($wrk_rem > $wrk_int)
+       {$wrk_max = $wrk_max+$wrk_int}     ;
+    #--------------------------------------*
+    # Valore in output                     *
+    #--------------------------------------*
+    return $wrk_max                       ;
+}
+
+#==========================================*
+# Assegnazione indice campo testata        *
+# ---------------------------------------- *
+#                                          *
+#       CedentePrestatore (Fornitore)      *
+#                                          *
+# 010 - IdCodice                           *
+# 020 - CodiceFiscale                      *
+# 030 - Denominazione                      *
+# 032 - Nome                               *
+# 034 - Cognome                            *
+# 036 - Telefono                           *
+# 038 - Email                              *
+# 040 - Indirizzo                          *
+# 050 - CAP                                *
+# 060 - Comune                             *
+# 070 - Provincia                          *
+# 080 - Nazione                            *
+#                                          *
+#       CessionarioCommittente (Cliente)   *
+#                                          *
+# 210 - IdCodice                           *
+# 220 - CodiceFiscale                      *
+# 230 - Denominazione                      *
+# 240 - Indirizzo                          *
+# 250 - CAP                                *
+# 260 - Comune                             *
+# 270 - Provincia                          *
+# 280 - Nazione                            *
+#                                          *
+#       DatiGeneraliDocumento              *
+#                                          *
+# 410 - TipoDocumento                      *
+# 420 - Divisa                             *
+# 430 - Data                               *
+# 440 - Numero                             *
+# 450 - ImportoBollo                       *
+# 460 - ImportoTotaleDocumento             *
+# 470 - Causale                            *
+#------------------------------------------*
+sub fts_inx
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $fld_tip = shift                   ;
+    my $fld_tag = shift                   ;
+
+    if ($fld_tip eq "fnt")
+    {
+        #----------------------------------*
+        # Cedente (fornitore)              *
+        #----------------------------------*
+        if    ($fld_tag eq 'IdCodice' && $fld_tip eq 'fnt')
+              {$fld_out = 10}
+        elsif ($fld_tag eq 'CodiceFiscale')
+              {$fld_out = 20}
+        elsif ($fld_tag eq 'Denominazione')
+              {$fld_out = 30}
+        elsif ($fld_tag eq 'Nome')
+              {$fld_out = 32}
+        elsif ($fld_tag eq 'Cognome')
+              {$fld_out = 34}
+        elsif ($fld_tag eq 'Telefono')
+              {$fld_out = 36}
+        elsif ($fld_tag eq 'Email')
+              {$fld_out = 38}
+        elsif ($fld_tag eq 'Indirizzo')
+              {$fld_out = 40}
+        elsif ($fld_tag eq 'CAP')
+              {$fld_out = 50}
+        elsif ($fld_tag eq 'Comune')
+              {$fld_out = 60}
+        elsif ($fld_tag eq 'Provincia')
+              {$fld_out = 70}
+    }
+     elsif ($fld_tip eq "cli")
+    {
+        #----------------------------------*
+        # Cessionario (cliente)            *
+        #----------------------------------*
+        if    ($fld_tag eq 'IdCodice' && $fld_tip eq 'cli')
+              {$fld_out = 210}
+        elsif ($fld_tag eq 'CodiceFiscale')
+              {$fld_out = 220}
+        elsif ($fld_tag eq 'Denominazione')
+              {$fld_out = 230}
+        elsif ($fld_tag eq 'Indirizzo')
+              {$fld_out = 240}
+        elsif ($fld_tag eq 'CAP')
+              {$fld_out = 250}
+        elsif ($fld_tag eq 'Comune')
+              {$fld_out = 260}
+        elsif ($fld_tag eq 'Provincia')
+              {$fld_out = 270}
+    }
+     else
+    {
+        #----------------------------------*
+        # Estremi documento                *
+        #----------------------------------*
+        if    ($fld_tag eq 'TipoDocumento')
+              {$fld_out = 410}
+        elsif ($fld_tag eq 'Divisa')
+              {$fld_out = 420}
+        elsif ($fld_tag eq 'Data' && $fld_tip eq 'doc')
+              {$fld_out = 430}
+        elsif ($fld_tag eq 'Numero' && $fld_tip eq 'doc')
+              {$fld_out = 440}
+        elsif ($fld_tag eq 'ImportoBollo')
+              {$fld_out = 450}
+        elsif ($fld_tag eq 'ImportoTotaleDocumento')
+              {$fld_out = 460}
+        elsif ($fld_tag eq 'Causale')
+              {$fld_out = 470}
+        else  {$fld_out = 0}              ;
+    }
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $fld_out                       ;
+}
+
+#==========================================*
+# Assegnazione indice campo riga           *
+# ---------------------------------------- *
+#                                          *
+#       DatiOrdineAcquisto                 *
+#                                          *
+# 510 - RiferimentoNumeroLinea           + *
+# 520 - IdDocumento                        *
+# 530 - NumItem                            *
+#                                          *
+#       DettaglioLinee                     *
+#                                          *
+# 710 - NumeroLinea                        *
+# 720 - CodiceTipo                       + *
+# 730 - CodiceValore                     + *
+# 740 - Descrizione                        *
+# 750 - Quantita                           *
+# 760 - UnitaMisura                        *
+# 762 - DataInizioPeriodo                  *
+# 764 - DataFinePeriodo                    *
+# 770 - PrezzoUnitario                     *
+# 772 - Sconto - tipo                      *
+# 774 - Sconto - percentuale               *
+# 776 - Sconto - importo                   *
+# 780 - PrezzoTotale                       *
+# 790 - AliquotaIVA                        *
+# 800 - Natura                             *
+# 810 - TipoDato                         + *
+# 820 - RiferimentoNumero                + *
+# 822 - RiferimentoTesto                 + *
+# 823 - RiferimentoData                  + *
+#------------------------------------------*
+sub frg_inx
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $fld_tag = shift                   ;
+    my $fld_cnt = shift                   ;
+    
+    my $fld_inn = 0                       ;
+    
+    #
+    if    ($fld_tag eq 'NumeroLinea')
+    {
+        $fld_pos = 0                      ;
+        $fld_out = 710                    ;
+        $fld_inw = 0                      ;
+    }
+     elsif ($fld_tag eq 'CodiceTipo')
+    {
+        $fld_pos = 1                      ;
+        $fld_out = 720                    ;
+        $fld_inn = $fld_inw               ;
+        $fld_inw++                        ;
+    }
+     elsif ($fld_tag eq 'CodiceValore')
+    {
+        $fld_pos = 2                      ;
+        $fld_out = 730                    ;
+    }
+     elsif ($fld_tag eq 'Descrizione')
+    {
+        $fld_pos = 3                      ;
+        $fld_out = 740                    ;
+    }
+     elsif ($fld_tag eq 'Quantita')
+    {
+        $fld_pos = 4                      ;
+        $fld_out = 750                    ;
+    }
+     elsif ($fld_tag eq 'UnitaMisura')
+    {
+        $fld_pos = 5                      ;
+        $fld_out = 760                    ;
+    }
+     elsif ($fld_tag eq 'DataInizioPeriodo')
+    {
+        $fld_pos = 13                     ;
+        $fld_out = 762                    ;
+    }
+     elsif ($fld_tag eq 'DataFinePeriodo')
+    {
+        $fld_pos = 14                     ;
+        $fld_out = 764                    ;
+    }
+     elsif ($fld_tag eq 'PrezzoUnitario')
+    {
+        $fld_pos = 6                      ;
+        $fld_out = 770                    ;
+    }
+     elsif ($fld_tag eq 'Tipo')
+    {
+        $fld_pos = 13                     ;
+        $fld_out = 772                    ;
+    }
+     elsif ($fld_tag eq 'Percentuale')
+    {
+        $fld_pos = 14                     ;
+        $fld_out = 774                    ;
+    }
+     elsif ($fld_tag eq 'Importo')
+    {
+        $fld_pos = 15                     ;
+        $fld_out = 776                    ;
+    }
+     elsif ($fld_tag eq 'PrezzoTotale')
+    {
+        $fld_pos = 7                      ;
+        $fld_out = 780                    ;
+    }
+     elsif ($fld_tag eq 'AliquotaIVA')
+    {
+        $fld_pos = 8                      ;
+        $fld_out = 790                    ;
+    }
+     elsif ($fld_tag eq 'Natura')
+    {
+        $fld_pos = 9                      ;
+        $fld_out = 800                    ;
+    }
+     elsif ($fld_tag eq 'TipoDato')
+    {
+        $fld_pos = 9                      ;
+        $fld_out = 800                    ;
+        $fld_inn = $fld_inw               ;
+        $fld_inw++                        ;
+    }
+     elsif ($fld_tag eq 'RiferimentoNumero')
+    {
+        $fld_pos = 10                     ;
+        $fld_out = 820                    ;
+    }
+     elsif ($fld_tag eq 'RiferimentoTesto')
+    {
+        $fld_pos = 11                     ;
+        $fld_out = 822                    ;
+    }
+     elsif ($fld_tag eq 'RiferimentoData')
+    {
+        $fld_pos = 12                     ;
+        $fld_out = 824                    ;
+    }
+    else
+    {
+        $fld_pos = 0                      ;
+        $fld_out = 0                      ;
+        $fld_inn = 0                      ;
+    }
+    
+    #--------------------------------------*
+    # Valori restituiti                    *
+    #                                      *
+    # 1. = Valore del campo                *
+    # 2. = Posizione del campo             *
+    # 3. = Eventuale indice del campo      *
+    #======================================*
+    return ($fld_out,
+            $fld_pos,
+            $fld_inn,
+            $fld_cnt)                      ;
+}
+
+#==========================================*
+# Assegnazione indice campo piede          *
+# ---------------------------------------- *
+#                                          *
+#       DatiRiepilogo                    + *
+#                                          *
+# 910 - AliquotaIVA                        *
+# 920 - ImponibileImporto                  *
+# 930 - Imposta                            *
+# 940 - EsigibilitaIVA                     *
+#                                          *
+#       DatiPagamento                      *
+#                                          *
+# 950 - CondizioniPagamento                *
+# 960 - ModalitaPagamento                + *
+# 970 - DataScadenzaPagamento              *
+# 980 - ImportoPagamento                   *
+# 990 - IBAN                               *
+# 992 - ABI                                *
+# 994 - CAB                                *
+# 996 - IstitutoFinanziario                *
+# 998 - Beneficiario                       *
+#                                          *
+#       Attachment                         *
+#                                          *
+# 1100 - NomeAttachment                    *
+# 1110 - AlgoritmoCompressione             *
+# 1120 - FormatoAttachment                 *
+# 1130 - DescrizioneAttachment             *
+# 1140 - Attachment                        *
+#------------------------------------------*
+sub fpd_inx
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $fld_tip = shift                   ;
+    my $fld_tag = shift                   ;
+    #--------------------------------------*
+    # Assegnazione                         *
+    #--------------------------------------*
+    if     ($fld_tag eq 'AliquotaIVA')
+               {$fld_out = 910}
+    elsif  ($fld_tag eq 'ImponibileImporto')
+               {$fld_out = 920}
+    elsif  ($fld_tag eq 'Imposta')
+               {$fld_out = 930}
+    elsif  ($fld_tag eq 'EsigibilitaIVA')
+               {$fld_out = 940}
+    elsif  ($fld_tag eq 'CondizioniPagamento')
+               {$fld_out = 950}
+    elsif  ($fld_tag eq 'ModalitaPagamento')
+               {$fld_out = 960}
+    elsif  ($fld_tag eq 'DataScadenzaPagamento')
+               {$fld_out = 970}
+    elsif  ($fld_tag eq 'ImportoPagamento')
+               {$fld_out = 980}
+    elsif  ($fld_tag eq 'IBAN')
+               {$fld_out = 990}
+    elsif  ($fld_tag eq 'ABI')
+               {$fld_out = 992}
+    elsif  ($fld_tag eq 'CAB')
+               {$fld_out = 994}
+    elsif  ($fld_tag eq 'IstitutoFinanziario')
+               {$fld_out = 996}
+    elsif  ($fld_tag eq 'Beneficiario')
+               {$fld_out = 998}
+    elsif  ($fld_tag eq 'NomeAttachment')
+               {$fld_out = 1100}
+    elsif  ($fld_tag eq 'AlgoritmoCompressione')
+               {$fld_out = 1110}
+    elsif  ($fld_tag eq 'FormatoAttachment')
+               {$fld_out = 1120}
+    elsif  ($fld_tag eq 'DescrizioneAttachment')
+               {$fld_out = 1130}
+    elsif  ($fld_tag eq 'Attachment')
+               {$fld_out = 1140}
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $fld_out                       ;
+}
+
+#==========================================*
+# Decodifica pagamento                     *
+# Tabella ministeriale                     *
+#                                          *
+# 'MP01' : Contanti                        *
+# 'MP02' : Assegno                         *
+# 'MP03' : Assegno Circolare               *
+# 'MP04' : Contanti presso Tesoreria       *
+# 'MP05' : Bonifico                        *
+# 'MP06' : Vaglia cambiario                *
+# 'MP07' : Bollettino bancario             *
+# 'MP08' : carta di pagamento              *
+# 'MP09' : RID		               *				
+# 'MP10' : RID utenze	               *
+# 'MP11' : RID veloce			 *
+# 'MP12' : RIBA				 *
+# 'MP13' : MAV				 *
+# 'MP14' : quietanza erario			 *
+# 'MP15' : giroconto su conti di contab    *
+# 'MP16' : domiciliazione bancaria		 *
+# 'MP17' : domiciliazione postale		 *
+# 'MP18' : bollettino di c/c postale	 *
+# 'MP19' : SEPA Direct Debit		 *
+# 'MP20' : SEPA Direct Debit CORE		 *
+# 'MP21' : SEPA Direct Debit B2B		 *
+# 'MP22' : Trattenuta su somme gia' risc.  *
+#------------------------------------------*
+sub dec_pag
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $cod_pag = shift                   ;
+    #--------------------------------------*
+    # Decodifica                           *
+    #--------------------------------------*
+    my $des_pag = ""                      ;
+    
+    if    ($cod_pag eq 'MP01'){$des_pag = "Contanti"}
+    elsif ($cod_pag eq 'MP02'){$des_pag = "Assegno"}
+    elsif ($cod_pag eq 'MP03'){$des_pag = "Assegno Circolare"}
+    elsif ($cod_pag eq 'MP04'){$des_pag = "Contanti Tesoreria"}
+    elsif ($cod_pag eq 'MP05'){$des_pag = "Bonifico"}
+    elsif ($cod_pag eq 'MP06'){$des_pag = "Vaglia cambiario"}
+    elsif ($cod_pag eq 'MP07'){$des_pag = "Bollettino bancario"}
+    elsif ($cod_pag eq 'MP08'){$des_pag = "Carta di pagamento"}
+    elsif ($cod_pag eq 'MP09'){$des_pag = "RID"}
+    elsif ($cod_pag eq 'MP10'){$des_pag = "RID utenze"}
+    elsif ($cod_pag eq 'MP11'){$des_pag = "RID veloce"}
+    elsif ($cod_pag eq 'MP12'){$des_pag = "Riba"}
+    elsif ($cod_pag eq 'MP13'){$des_pag = "MAV"}
+    elsif ($cod_pag eq 'MP14'){$des_pag = "Quietanza erario"}
+    elsif ($cod_pag eq 'MP15'){$des_pag = "Giroconto"}
+    elsif ($cod_pag eq 'MP16'){$des_pag = "Domiciliaz. bancaria"}
+    elsif ($cod_pag eq 'MP17'){$des_pag = "Domiciliazione postale"}
+    elsif ($cod_pag eq 'MP18'){$des_pag = "Bollettino postale"}
+    elsif ($cod_pag eq 'MP19'){$des_pag = "SEPA Direct Debit"}
+    elsif ($cod_pag eq 'MP20'){$des_pag = "SEPA Direct Debit CORE"}
+    elsif ($cod_pag eq 'MP21'){$des_pag = "SEPA Direct Debit B2B"}
+    elsif ($cod_pag eq 'MP22'){$des_pag = "Trattenuta su somme gia' risc."}
+    else {$des_pag = "(non riconosciuto)"}
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $des_pag                       ;
+}
+
+#==========================================*
+# Trattamento importo                      *
+#------------------------------------------*
+sub trt_imp
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $imp_inp = shift                   ;
+    #--------------------------------------*
+    # Formattazione                        *
+    #--------------------------------------*
+    $imp_inp =~ s/\./,/                   ;
+    $imp_inp =~ s/(^[-+]?\d+?(?=(?>(?:\d{3})+)(?!\d))|\G\d{3}(?=\d))/$1./g;
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $imp_inp                       ;
+}
+
+#==========================================*
+# Stampa singolo elemento castelletto pa-  *
+# menti                                    *
+#------------------------------------------*
+sub stp_cpe
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $rig_stp = shift                   ;
+    my $col_stp = shift                   ;
+    #--------------------------------------*
+    # Stampa                               *
+    #--------------------------------------*
+    if($cst_pag[$rig_stp][$col_stp])
+    {
+        $ps->text($col_cpe[$col_stp],
+        $box_pi3[1]-($rig_stp*10)+10,
+        $cst_pag[$rig_stp][$col_stp])     ;
+    }
+}
+
+#==========================================*
+# Debug a video                            *
+#------------------------------------------*
+sub debug
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $dbg_pmt = shift                   ;
+    my $dbg_val = shift                   ;
+    print "$dbg_pmt = " . $dbg_val . "\n" ;
+    #exit()                                ;
+}
+

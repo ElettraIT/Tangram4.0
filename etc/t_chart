@@ -1,0 +1,355 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per invio dati a generatore  *
+# di grafici in Javascript e mail ad       *
+# eventuale utente Tangram con indirizzo   *
+#                                          *
+# t_chart                                  *
+#                                          *
+# Richiamato da: 'mgengrf0' di 'svf'       *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 25/12/10    *
+#   Ultima revisione:  NdK del 02/03/25    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#            - codice utente               *
+#            - nome file                   *
+#            - tipo grafico   'C' o 'P'    *
+#            - server SMTP    (opzionale)  *
+#            - mail utente    (opzionale)  *
+#            - User ID        (opzionale)  *
+#            - Password       (opzionale)  *
+#                                          *
+# ---------------------------------------- *
+# MODIFICA IMPORTANTE PER SIRI:            *
+#                                          *
+# $isps = "siriel-com01b.mail.protection." *
+#       . "outlook.com"                    *
+#                                          *
+# RESA NECESSARIA DALLA LUNGHEZZA DEL NOME *
+# SERVER SMTP, OLTRE 40 CARATTERI          *
+#                                          *
+# Valutare se creare un file di configura- *
+# zione per gli script che usano 'SMTP'    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# ___ RIVEDERE IL DISCORSO MAIL ___        *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl di base                      *
+#------------------------------------------*
+use Net::FTP                              ;
+use Digest::MD5 qw(md5_hex)               ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $azie = shift                          ;
+my $user = shift                          ;
+my $file = shift                          ;
+my $ctyp = shift                          ;
+my $isps = shift                          ;
+my $ieml = shift                          ;
+my $uidx = shift                          ;
+my $pwdx = shift                          ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$azie || $azie eq "-help")
+{
+    print "\n"
+        . "============================="
+        . "\n"
+        . "USO     :"
+        . "\n"
+        . "> t_chart azi utente "
+        . "file tipo(C/P) "
+        . " Server_SMTP (opz) "
+        . "ind_mail (opz)"
+        . "user ID (opz)"
+        . "Password (opz)"
+        . "\n"
+        . "\n"
+        . "-----------------------------"
+        . "\n"
+        . "ESEMPIO :"
+        . "\n"
+        . "\n"
+        . "> t_chart prv master "
+        . "svf200 C "
+        . " smtp.libero.it "
+        . " prova\@libero.it "
+        . "\n"
+        . "\n"
+        . "-----------------------------"
+        . "\n"
+        . "RELEASE : 02/03/25"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "============================="
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di configurazione              *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_chart.ini"  ;
+my %cnf_ele = do $cfg_bas                 ;
+my $host = $cnf_ele{hst_iip}              ;
+my $ftps = $cnf_ele{hst_ftp}              ;
+my $ftpu = $cnf_ele{usr_ftp}              ;
+my $ftpp = $cnf_ele{pwd_ftp}              ;
+my $ftpd = $cnf_ele{pth_cht}              ;
+
+#==========================================*
+# Costanti di configurazione               *
+#------------------------------------------*
+my $base = '/abd/asc/'                    ;
+my $path = '/tmp/'                        ;
+my $http = 'http://'
+         . $host
+         . '/chart/t_engine.html?CT='     ;
+
+#==========================================*
+# Sub-routine di trasferimento file        *
+#------------------------------------------*
+my $link = &ftpf                          ;
+
+#==========================================*
+# Sub-routine di invio mail a utente       *
+#                                          *
+# ___ DA MIGLIORARE ___                    *
+#------------------------------------------*
+if ($isps && $ieml)
+{
+    &inmu($link)                          ;
+}
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# Subroutine di trasferimento del file     *
+#------------------------------------------*
+sub ftpf
+{
+    #--------------------------------------*
+    # Comodo per errori                    *
+    #--------------------------------------*
+    my $erra=0                            ;
+    #--------------------------------------*
+    # Determinazione nomi cartelle e file  *
+    #--------------------------------------*
+    my $md5a = md5_hex($azie)             ;
+    my $md5u = md5_hex($user)             ;
+    #--------------------------------------*
+    # Pathname di destinazione del file    *
+    #--------------------------------------*
+    my $dest = $ftpd
+             . $md5a
+             . $md5u                      ;
+    #--------------------------------------*
+    # Cartella cryptata MD5 {AZI}{USR}     *
+    #--------------------------------------*
+    my $fnam = $md5a
+             . $md5u                      ;
+    #--------------------------------------*
+    # Pathname di prelievo del file        *
+    #--------------------------------------*
+    my $fput = $base
+             . $user
+             . $path
+             . $azie
+             . "_"
+             . $file 
+             . ".csv"                     ;
+
+    #--------------------------------------*
+    # (Debug)                              *
+    #--------------------------------------*
+    #print $dest . "\n"                    ;
+    #print         "\n"                    ;
+    #print $fput . "\n"                    ;
+    #print         "\n"                    ;
+    #print $fnam . "\n"                    ;
+    #exit();
+
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    $ftp = Net::FTP->new($ftps,
+                         Debug => 0)
+           or die "Non connesso a: $@"    ;
+
+    #--------------------------------------*
+    # Login connessione                    *
+    #--------------------------------------*
+    $ftp->login($ftpu,$ftpp)
+          or die "Login errato ",
+                 $ftp->message            ;
+    
+    #--------------------------------------*
+    # Posizionamento cartella destinazione *
+    #--------------------------------------*
+    $ftp->cwd($dest) or $erra=1           ;
+
+    if ($erra == 1)
+    {
+        #----------------------------------*
+        # Creazione directory              *
+        #----------------------------------*
+        &crea($fnam)                      ;
+    }
+                 
+    #--------------------------------------*
+    # Modalita' Binary                     *
+    #--------------------------------------*
+    $ftp->binary
+          or die "Binary NO",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Ri-posizionamento cautelativo        *
+    #--------------------------------------*
+    $ftp->cwd($dest) or $erra=2           ;
+
+    #--------------------------------------*
+    # Trasferimento                        *
+    #--------------------------------------*
+    $ftp->put($fput)
+          or die "put fallita ",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Chiusura FTP                         *
+    #--------------------------------------*
+    $ftp->quit                            ;
+
+    #--------------------------------------*
+    # Link in uscita                       *
+    #--------------------------------------*
+    return $fnam                          ;
+
+}
+
+#==========================================*
+# Subroutine di creazione directory        *
+#------------------------------------------*
+sub crea
+{
+    #--------------------------------------*
+    # Nome della cartella da creare        *
+    #--------------------------------------*
+    my $cred = shift @_                   ;
+
+    #--------------------------------------*
+    # Posizionamento cartella destinazione *
+    #--------------------------------------*
+    $ftp->cwd($ftpd)
+          or die "Posizionamento ",
+                 $ftp->message            ;
+                 
+    #--------------------------------------*
+    # Creazione cartella destinazione      *
+    #--------------------------------------*
+    $ftp->mkdir($cred)
+          or die "Creazione cartella fallita",
+                 $ftp->message            ;
+}
+
+#==========================================*
+# Subroutine di invio mail a utente        *
+#------------------------------------------*
+sub inmu
+{
+    #--------------------------------------*
+    # Modulo PERL di invio mail            *
+    #--------------------------------------*
+    use MIME::Lite                        ;
+
+    #--------------------------------------*
+    # Link da subroutine di trasferimento  *
+    #--------------------------------------*
+    my $lnkw = shift @_                   ;
+
+    $lnkw    = $http
+             . $ctyp
+             . '&EN='
+             . $file
+             . '&ID='
+             . $lnkw
+             . '/'
+             . $azie
+             . '_'
+             . $file
+             . '.csv'                     ;
+    
+    #--------------------------------------*
+    # (Debug)                              *
+    #--------------------------------------*
+    #print $lnkw . "\n"                   ;
+    
+    #--------------------------------------*
+    # Composizione soggetto                *
+    #--------------------------------------*
+    my $subj = "Grafico TANGRAM - "
+             . $file
+             . " - ["
+             . $user
+             . " - "
+             . $azie
+             . "]"                        ;
+
+    #--------------------------------------*
+    # Messaggio di posta                   *
+    #--------------------------------------*
+    $msg = MIME::Lite->new(
+           From     =>$ieml,
+           To       =>$ieml,
+           Subject  =>$subj,
+           Data     =>$lnkw)              ;
+
+    #--------------------------------------*
+    # Invio in funzione dell'account       *
+    #--------------------------------------*
+    if ($pwdx)
+    {
+        #---------------------------------*
+        # Uso di SMTP_auth                *
+        #---------------------------------*
+        use Net::SMTP_auth                ;
+
+        my $smtp = Net::SMTP_auth -> new($isps, debug=>1);
+        
+        $smtp -> auth( 'LOGIN', $uidx, $pwdx);
+    
+        $smtp->mail($ieml)                ;
+        $smtp->to($ieml)                  ;
+        $smtp -> data()                   ;
+        
+        $smtp -> datasend( $msg->as_string());
+        $smtp -> dataend()                ;
+        $smtp -> quit                     ;
+    }
+     else
+    {
+        #---------------------------------*
+        # Uso di MIME                     *
+        #---------------------------------*
+        $msg->send('smtp',
+                   $isps,
+                   Timeout=>60);
+    }
+}

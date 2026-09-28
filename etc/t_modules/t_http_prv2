@@ -1,0 +1,27 @@
+#!/usr/bin/perl -w
+# Legge da HTTP, scrive su file e invia tramite FTP
+
+
+use LWP::UserAgent;
+  my $ua  = LWP::UserAgent->new;
+  my $req = HTTP::Request->new('GET', 'https://florissima.dyndns.org/florissima/getimage?class=de.florissima.data.erp.items.FlArtikel&id=101048019&thumbnail=false/');
+  my $res = $ua->request($req);
+  print $res->content, "\n";
+
+exit();
+
+
+my($code, $mess, %h) = $s->read_response_headers;
+
+open (IMMAGINE, ">/abd/asc/tmp/florissima.jpg") or die
+         "Impossibile aprire il file Immagine";
+
+while (1) {
+   my $buf;
+   my $n = $s->read_entity_body($buf, 1024);
+   die "read failed: $!" unless defined $n;
+   last unless $n;
+   print IMMAGINE $buf;   
+}
+
+close IMMAGINE;

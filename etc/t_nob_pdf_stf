@@ -1,0 +1,162 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per dezippare file di PDF    *
+# ---------------------------------------- *
+# Versione originale:   001 del 05/12/18   *
+#   Ultima revisione:   wip del 05/12/18   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Crea un PDF da una pagina modello in     *
+# base ad una lista di nomi                *
+#                                          *
+# NON PIU' richiamato dal modulo CGI       *
+# 'nob_stf_pdf.pl                          *
+#==========================================*
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Archive::Zip                          ;
+use PDF::Reuse                            ;
+
+#==========================================*
+# Parametri in input                       *
+#------------------------------------------*
+my $des_dir = shift                       ;
+my $zipname = shift                       ;
+
+my $zipfile = $zipname . ".zip"           ;
+
+#==========================================*
+# Directory di lavoro                      *
+#------------------------------------------*
+my $dir = $des_dir . "/" . $zipname       ;
+
+#print $zipfile . "\n"; 
+#print $zipname . "\n"; 
+#print $dir . "\n"; 
+
+#exit();
+
+
+#==========================================*
+# Estrazione del file ZIP                  *
+#------------------------------------------*
+my $zip = Archive::Zip->new($zipfile)     ;
+foreach my $member ($zip->members)
+{
+    next if $member->isDirectory          ;
+    (my $extractName = $member->fileName) =~ s{.*/}{};
+    $member->extractToFileNamed(
+      "$dir/$extractName")                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $fil_pdf = $dir . '.pdf'               ;
+my $pag_1o2 = 0                           ;
+
+#==========================================*
+# File PDF che accorpa le etichette        *
+#------------------------------------------*
+prFile($fil_pdf)                          ;
+
+#==========================================*
+# Open directory dei PDF                   *
+#------------------------------------------*
+opendir (DIR,$dir)                        ;
+    
+#==========================================*
+# Ciclo interno alla directory             *
+#------------------------------------------*
+foreach $nam (sort readdir(DIR))
+{
+    #--------------------------------------*
+    # Comodo                               *
+    #--------------------------------------*
+    my $fil = $dir . $nam                 ;
+    #--------------------------------------*
+    # Skip dei file "."                    *
+    #--------------------------------------*
+    if($nam eq "." || $nam eq ".."){ next;}    
+    #--------------------------------------*
+    # Test che il file trattato non sia    *
+    # una directory                        *
+    #--------------------------------------*
+    if (! -d $fil)
+    {
+        #----------------------------------*
+        # Comodo per nome file             *
+        #----------------------------------*
+        my $path = $dir . "/" . $nam;
+        #----------------------------------*
+        # Switch per pagina                *
+        #----------------------------------*
+        $pag_1o2 = $pag_1o2 + 1;
+
+        #----------------------------------*
+        # Se fine pagina                   *
+        #----------------------------------*
+        if ($pag_1o2++ > 1)
+        {
+            #------------------------------*
+            # Inclusione 2. etichetta      *
+            #------------------------------*
+            prForm( { file =>$path,
+                        x  => 40,
+                        y  => 50,
+                      size => 1.2 } )     ;
+            #------------------------------*
+            # Generazione pagina           *
+            #------------------------------*
+            prPage()                      ;
+            #------------------------------*
+            # Normalizzazione switch       *
+            #------------------------------*
+            $pag_1o2 = 0                  ;
+
+        }
+         else
+        #----------------------------------*
+        # Se inizio pagina                 *
+        #----------------------------------*
+        {
+            #------------------------------*
+            # Inclusione 2. etichetta      *
+            #------------------------------*
+            prForm( { file =>$path,
+                        x  => 40,
+                        y  => 450,
+                      size => 1.2 } )     ;
+                    
+        }
+    }
+}
+
+#==========================================*
+# Close directory                          *
+#------------------------------------------*
+closedir (DIR)                            ;
+
+#==========================================*
+# Fine generazione PDF                     *
+#------------------------------------------*
+prEnd()                                   ;
+
+#==========================================*
+# Definizione stampante                    *
+#------------------------------------------*
+#my $printer = "mfp"                       ;
+
+#==========================================*
+# Conversione in file Postscript           *
+#------------------------------------------*
+#my $fil_ps = $dir . '.ps'                 ;
+#system("pdf2ps $fil_pdf $fil_ps")         ;
+
+#==========================================*
+# Stampa file Postscript                   *
+#------------------------------------------*
+#    system("cat $fil_ps | lpr -P$printer")   ;

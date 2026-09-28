@@ -1,0 +1,140 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# Retarus                                  *
+#                                          *
+# t_retaurs_sel                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 16/04/07    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - host di ricevimento         *
+#                                          *
+#            - username                    *
+#                                          *
+#            - password                    *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $host = shift                           ;
+my $user = shift                           ;
+my $pass = shift                           ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$host || !$user || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_retaurs_sel HOST "
+        . "USERNAME "
+        . "PASSWORD "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+# my $path = "/productive/ordrsp_in"        ;
+#my $path = "/test/ordrsp_in"             ;
+my $path = "/abd/asc/imp"             ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dhst = "localhost"                    ;
+my $dusr = "root"                         ;
+# my $dpwd = "alter1"                       ;
+my $dpwd = "loppio2"                       ;
+my $dtbs = "siri"                         ;
+my $dtab = "retarus"                      ;
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtbs;host=$dhst",
+                       $dusr,
+                       $dpwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Open dei file di appoggio                *
+#------------------------------------------*
+my $pth = "/abd/asc/imp/"                 ;
+my $sep = "."                             ;
+my $tes = "TOrdCli.txt"                   ;
+my $rig = "TOrdCliRig.txt"                ;
+
+open (LISTA, ">$pth$pre$sep$tes") or die
+         "Impossibile aprire il file LISTA";
+
+#==========================================*
+# Lettura dati da tabella                  *
+#------------------------------------------*
+my $sel = "SELECT path
+                  FROM "
+                . $dtab
+                . " WHERE flg = ' '"      ;
+my $sth = $dbh->prepare($sel)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Ciclo di lettura testate                 *
+#------------------------------------------*
+while (my $ref = $sth->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Codice cliente                       *
+    #--------------------------------------*
+    my $file = ""                         ;
+    if ($ref->{'path'})
+    {
+        $file = $ref->{'path'}            ;
+    }
+     else
+    {
+        $file = " "                       ;
+    }
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print LISTA "$file\n"                 ;   
+}
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close del file di appoggio               *
+#------------------------------------------*
+close LISTA                               ;

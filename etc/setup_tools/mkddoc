@@ -1,0 +1,82 @@
+     ############ /abd/etc/mkddoc
+     #
+     # Procedura di creazione della subdirectory 'doc' di '/abd'
+     #
+     # Input : $1:Pathname completo per la directory al cui interno deve
+     #                     essere creata la subdirectory 'doc'
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                # Errore per il comando 'mkddoc' #               " ;
+       echo "                ----------------------------------               " ;
+       echo "                                                                 " ;
+       echo " Il comando puo' essere eseguito solamente dall'utente 'master'  " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# Controllo sul numero di parametri
+###
+
+case $# in
+       1)
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "          # Errore nei parametri per il comando 'mkddoc' #       " ;
+          echo "         -------------------------------------------------       " ;
+          echo "                                                                 " ;
+          echo " Errore : E' richiesto in input il parametro per il pathname     " ;
+          echo "          della directory al cui interno deve essere creata      " ;
+	  echo "          la subdirectory 'doc'.                                 " ;
+          echo "                                                                 " ;
+          echo "          Non e' ammesso omettere il parametro, ne' fornirne     " ;
+          echo "          piu' di uno.                                           " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+	  ;;
+     esac
+
+######
+# - Creazione directory 'doc'
+###
+
+mkdir           $1/doc
+chmod  0750     $1/doc
+
+######
+# - Simbolic link, se necessario, a '/abd/doc'
+###
+
+case $1 in
+     /abd)
+          ;;
+        *)
+          ln -s $1/doc /abd/doc ;
+	  ;;
+     esac
+
+######
+# - Creazione directory 'doc/app'
+###
+
+mkdir           $1/doc/app
+chmod  0750     $1/doc/app
+
+######
+# - Fine procedura
+###

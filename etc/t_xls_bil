@@ -1,0 +1,140 @@
+#!/usr/bin/perl -w
+#========================================================================*
+#                                                                        *
+# Traduttore in formato Spreadsheet (tipo Excel)                         *
+#                                                                        *
+# Ad hoc per bilancio                                                    *
+#                                                                        *
+# ---------------------------------------------------------------------- *
+#                                                                        *
+# Parametri in input : - file CSV da tradurre (percorso)                 *
+#                                                                        *
+# ---------------------------------------------------------------------- *
+#                                                                        *
+# Utilizzo :                                                             *
+#                                                                        *
+# $ t_xls_bil /percorso/FILE.CSV                                         *
+#                                                                        *
+# ___ OBSOLETO ___                                                       *
+#                                                                        *
+#========================================================================*
+
+#=========================================*
+# Dichiarazione per restrizione variabili *
+#-----------------------------------------*
+use strict                                ;
+
+#=========================================*
+# Modulo Perl Spreadsheet::WriteExcel     *
+#-----------------------------------------*
+use Spreadsheet::WriteExcel               ;
+
+#=========================================*
+# Lettura della variabile in input ed     *
+# eliminazione dell'estensione            *
+#-----------------------------------------*
+my $csv = $ARGV[0]                        ;
+   $csv =~ s/\.[^.]+$//                   ;
+
+#=========================================*
+# Open del file in input                  *
+#-----------------------------------------*
+&f_input                                  ;
+
+#=========================================*
+# Trattamento foglio                      *
+#-----------------------------------------*
+#    *------------------------------------*
+#    * Nuovo file                         *
+#    *------------------------------------*
+my $workbook  = Spreadsheet::WriteExcel->new("$csv.xls");
+my $worksheet = $workbook->add_worksheet();
+
+#    *------------------------------------*
+#    * Formattazione per celle            *
+#    *                                    *
+#    * Bordo da 1 punto di spessore       *
+#    *------------------------------------*
+my $cel_fmt = $workbook->add_format()     ;
+   $cel_fmt->set_border(1)                ;
+
+#    *------------------------------------*
+#    * Formattazione colonne valori       *
+#    *                                    *
+#    * Formato numero e 'bold'            *
+#    *------------------------------------*
+my $col_fmt = $workbook->add_format()     ;
+   $col_fmt->set_num_format('#,###.00')   ;
+   $col_fmt->set_bold()                   ;
+
+#    *------------------------------------*
+#    * Formattazione colonne              *
+#    *------------------------------------*
+$worksheet->set_column(0, 0, 2)           ;
+$worksheet->set_column(1, 1, 15)          ;
+$worksheet->set_column(2, 2, 9)           ;
+$worksheet->set_column(3, 3, 40)          ;
+$worksheet->set_column(4, 4, 18, $col_fmt);
+
+#    *------------------------------------*
+#    * Normalizzazione contatore righe    *
+#    *------------------------------------*
+my $row = 0                               ;
+
+#    *------------------------------------*
+#    * Ciclo di scansione                 *
+#    *------------------------------------*
+while (<I_FILE>) {
+
+#        *--------------------------------*
+#        * Pulizia fine riga              *
+#        *--------------------------------*
+    chomp                                 ;
+
+#        *--------------------------------*
+#        * Split della riga               *
+#        *--------------------------------*
+    my @Fld = split(';', $_)              ;
+#        *--------------------------------*
+#        * Costruzione colonne            *
+#        *--------------------------------*
+#            *----------------------------*
+#            * Tipo conto                 *
+#            *----------------------------*
+    $worksheet->write_string($row, 0, $Fld[0], $cel_fmt);
+#            *----------------------------*
+#            * Tipo incidenza             *
+#            *----------------------------*
+    $worksheet->write_string($row, 1, $Fld[1], $cel_fmt);
+#            *----------------------------*
+#            * Descrizione sottoconto     *
+#            *----------------------------*
+    $worksheet->write_string($row, 2, $Fld[2], $cel_fmt);
+#            *----------------------------*
+#            * Codice sottoconto          *
+#            *----------------------------*
+    $worksheet->write_string($row, 3, $Fld[3], $cel_fmt);
+#            *----------------------------*
+#            * Valore                     *
+#            *----------------------------*
+    $worksheet->write_number($row, 4, $Fld[4], $cel_fmt);
+#        *--------------------------------*
+#        * Incremento riga                *
+#        *--------------------------------*
+    $row++;
+}
+
+#=========================================*
+# Apertura file da trattare               *
+#-----------------------------------------*
+sub f_input
+{
+    open (I_FILE, "$csv.CSV") or die
+         "Impossibile aprire il file '$csv.CSV'";
+}
+
+#=========================================*
+# Chiusura file da trattare               *
+#-----------------------------------------*
+close I_FILE                              ;
+

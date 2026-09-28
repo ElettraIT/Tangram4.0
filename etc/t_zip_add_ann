@@ -1,0 +1,210 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per Zippare una lista di     *
+# files in un unico archivio               *
+#                                          *
+# Differisce da 't_zip_add' solo per la    *
+# presenza dell'anno                       *
+#                                          *
+# t_zip_add_ann                            *
+#                                          *
+# N.B.: Utilizzato da 'pfat420c'           *
+#                     'pfat420z'           *
+#                     'pscf420z'           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 07/02/19   *
+#   Ultima revisione:   NdK del 28/09/26   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#            - area                        *
+#            - anno (1 carattere Alfa)     *
+#            - anno per esteso             *
+#            - numero distinta             *
+#            - prefisso (IT99999999999)    *
+#                                          *
+# ---------------------------------------- *
+# N.B.: i campi in input sono separati da  *
+#       virgola ','                        *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+use File::Basename                        ;
+
+#==========================================*
+# Nuova istanza di creazione Zip           *
+#------------------------------------------*
+$obj = Archive::Zip->new()                ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+#    *-------------------------------------*
+#    * Lettura variabile in input          *
+#    *-------------------------------------*
+$inpt = $ARGV[0]                          ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$ARGV[0] || $ARGV[0] eq "-help")
+{
+    print "\n"
+        . "Uso : (parametri "
+        . "separati da virgola)"
+        . "\n"
+        . "> t_zip_add"
+        . "\n"
+        . "           AZIENDA,"
+        . "\n"
+        . "           AREA,"
+        . "\n"
+        . "           ANNO (A/B/..),"
+        . "\n"
+        . "           ANNO (9999),"
+        . "\n"
+        . "           DISTINTA,"
+        . "\n"
+        . "           PREFISSO (IT99999999999),"
+        . "\n"
+        . "\n"
+        . "Release : 30/09/2021"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#    *-------------------------------------*
+#    * Separazione dei componenti (,)      *
+#    *-------------------------------------*
+@vars = split(/,/, $inpt)                 ;
+#    *-------------------------------------*
+#    * Azienda                             *
+#    *-------------------------------------*
+my $azie = $vars[0]                       ;
+#    *-------------------------------------*
+#    * Area                                *
+#    *-------------------------------------*
+my $area = $vars[1]                       ;
+#    *-------------------------------------*
+#    * Sigla anno                          *
+#    *-------------------------------------*
+my $anns = $vars[2]                       ;
+#    *-------------------------------------*
+#    * Anno per esteso                     *
+#    *-------------------------------------*
+my $anno = $vars[3]                       ;
+#    *-------------------------------------*
+#    * Distinta                            *
+#    *-------------------------------------*
+my $dist = $vars[4]                       ;
+#    *-------------------------------------*
+#    * Prefisso                            *
+#    *-------------------------------------*
+my $pref = $vars[5]                       ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = "/abd/asc/"                    ;
+
+#==========================================*
+# Composizione directory di lavoro         *
+#------------------------------------------*
+my $dire = $base
+         . $azie
+         . "/"
+         . $area
+         . "/xml/"
+         . $anno                          ;
+
+#==========================================*
+# Composizione nome lista da leggere       *
+#------------------------------------------*
+my $list = $base
+         . $azie
+         . "/tmp/"
+         . $dist
+         . ".txt"                         ;
+
+#==========================================*
+# Composizione nome archivio zip           *
+#------------------------------------------*
+my $dstn = substr($dist, 6, 4)            ;
+my $nzip = $pref
+         . "_"
+         . $anns
+         . $dstn
+         . ".zip"                         ;
+
+#==========================================*
+# DEBUG                                    *
+#------------------------------------------*
+#print $nzip . "\n"                        ;
+#print $dire . "\n"                        ;
+#print $list . "\n"                        ;
+#print $dist . "\n"                        ;
+#print $dstn . "\n"                        ;
+#exit()                                    ;
+
+#==========================================*
+# Cambio directory                         *
+#------------------------------------------*
+chdir $dire                               ;
+
+#==========================================*
+# Open lista files da includere            *
+#------------------------------------------*
+open (LISTA, $list) or die
+    "Impossibile aprire l'elenco\n"       ;
+@name = <LISTA>                           ;
+
+#==========================================*
+# Ciclo di scansione file                  *
+#------------------------------------------*
+foreach $elem(@name)
+{
+    #--------------------------------------*
+    # Pulizia fine riga                    *
+    #--------------------------------------*
+    chomp ($elem)                         ;
+    #--------------------------------------*
+    # Test che il file esista              *
+    #--------------------------------------*
+    if (-e $elem)
+    { 
+        #----------------------------------*
+        # Aggiunta file                    *
+        #----------------------------------*
+        $obj->addFile($elem, basename($elem)) ;
+    }
+     else 
+    {
+        print "non trovato = "
+            . $elem
+            . "\n"                        ;
+    }
+}
+
+#==========================================*
+# Scrittura archivio zip                   *
+#------------------------------------------*
+unless ($obj->writeToFileNamed($nzip) == AZ_OK)
+{
+    die "Errore nella scrittura di $nzip\n" ;
+}
+
+#==========================================*
+# Close                                    *
+#------------------------------------------*
+close (LISTA)                             ;
+

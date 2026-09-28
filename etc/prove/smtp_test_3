@@ -1,0 +1,29 @@
+#!/usr/bin/perl -w
+use warnings;
+use strict;
+use MIME::Lite;
+use Net::SMTP_auth;
+
+#login con SMTP_Auth
+my $smtp = Net::SMTP_auth -> new('smtp.zatti.it', debug=>1);
+$smtp -> auth( 'LOGIN', 'noreply@zatti.it', 'Scott123' );
+ 
+# composizione messaggio usando MIME
+
+my $msg = MIME::Lite -> new ( 
+  From  => 'noreply@zatti.it',
+  TO    => 'dkb@dkb.it', 
+  Subject  => 'Messaggio test 3 prova',
+  Data     => 'How\'s it going.' );
+ 
+# invio messaggio con SMTP_Auth
+
+$smtp->mail('noreply@zatti.it');
+$smtp->to('dkb@dkb.it');
+$smtp -> data();
+$smtp -> datasend( $msg->as_string() );
+$smtp -> dataend();
+
+## quit when finished loop
+$smtp -> quit;
+

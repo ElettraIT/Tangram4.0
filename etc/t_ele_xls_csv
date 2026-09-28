@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w
+#==========================================*
+#                                          *
+# Traduttore da Excel a CSV                *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 09/10/2023 *
+#   Ultima revisione:   wip del 09/10/2023 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : file XLS (percorso)           *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# SU MISURA PER ELETTRA                    *
+# (MAI utilizzato da '______')                 *
+#                                          *
+# ---------------------------------------- *
+# (vedi parse_perl4)                       *
+#==========================================*
+ 
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Spreadsheet::XLSX                     ;
+use Text::Iconv                           ;
+use File::Basename                        ;
+
+#==========================================*
+# Lettura della variabile in input         *
+#------------------------------------------*
+#my $fxls = shift                          ;
+my $fxls = "/abd/asc/imp/ZP17N_OUTPUTFILE.XLSX";
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/tmp/'                ;
+
+#==========================================*
+# Open file di LOG                         *
+#------------------------------------------*
+my $log_fil = '/abd/asc/'
+            . 'log/t_ele_xls_csv.log'     ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Determinazione nome file in output       *
+#------------------------------------------*
+my $fcsv = basename($fxls, ".XLSX")
+         . ".csv"                         ;
+
+#==========================================*
+# Open del file in output                  *
+#------------------------------------------*
+open (OUTFILE, ">$base$fcsv") or print LOG_FIL
+         "Impossibile aprire il file $base$fcsv";
+
+#==========================================*
+# Traduzione                               *
+#------------------------------------------*
+my $excel = Spreadsheet::XLSX->new($fxls) ;
+ 
+#------------------------------------------*
+# Ciclo principale                         *
+#------------------------------------------*
+foreach my $sheet (@{$excel->{Worksheet}})
+{ 
+    #--------------------------------------*
+    # Nome 'sheet'                         *
+    #--------------------------------------*
+    printf LOG_FIL "Pagina: %s\n", $sheet->{Name};
+    #--------------------------------------*
+    # Determinazione righe min - max       *
+    #--------------------------------------*
+    $sheet->{MaxRow} ||= $sheet->{MinRow};
+    #--------------------------------------*
+    # Ciclo su righe                       *
+    #--------------------------------------*
+    foreach my $row ($sheet->{MinRow} .. $sheet->{MaxRow})
+    {
+        #----------------------------------*
+        # Determinazione colonne min - max *
+        #----------------------------------*
+        $sheet->{MaxCol} ||= $sheet->{MinCol};
+         
+        #----------------------------------*
+        # Ciclo su colonne                 *
+        #----------------------------------*
+        foreach my $col ($sheet->{MinCol} ..  $sheet->{MaxCol})
+        {
+            #------------------------------*
+            # Estrazione valore cella      *
+            #------------------------------*
+            my $cell = $sheet->{Cells}[$row][$col];
+            #------------------------------*
+            # Se valore cella esistente    *
+            #------------------------------*
+            if ($cell) {
+#                printf OUTFILE ("( %s , %s ) => %s\n", $row, $col, $cell->{Val});
+                printf OUTFILE ($row . " " . $cell->{Val} ."\n");
+            }
+     
+        }
+     
+    }
+ 
+}
+
+
+#==========================================*
+# Close del file in output                 *
+#------------------------------------------*
+close (OUTFILE)                           ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+

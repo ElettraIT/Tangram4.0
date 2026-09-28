@@ -1,0 +1,84 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per aggiornamenti programmi  *
+#                                          *
+# t_wip_agg                                *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 12/02/2022  *
+#   Ultima revisione:  NdK del 12/02/2022  *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input     : - elenco programmi sepa-  *
+#                  rato da ','             *
+#                                          *
+# Abbreviazioni: - pxxxNNNx programma      *
+#                - pxxxNN*  programmi      *
+#                - xxx      area           *
+#                                          *
+# ___ IN LAVORAZIONE ___                   *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::FTP                              ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $hostn = "www17.protec.it"             ;
+my $login = "dkb"                         ;
+my $passw = "cavallo"                     ;
+
+#==========================================*
+# Parametri in input                       *
+#------------------------------------------*
+my $prm_inp = shift                       ;
+
+
+
+#------------------------------------------*
+# Separazione dei componenti (,)           *
+#------------------------------------------*
+@prm_agg = split(/,/, $prm_inp)           ;
+
+
+print scalar @prm_agg, "\n";
+exit();
+
+
+
+
+
+
+
+
+
+
+#=========================================*
+# Connessione ed invio                    *
+#-----------------------------------------*
+$ftp = Net::FTP->new($hostn, Debug => 0)
+  or die "Collegamento fallito col server www17.protec.it: $@";
+
+$ftp->login($login,$passw)
+  or die "Login fallito ", $ftp->message  ;
+
+$ftp->cwd("dkb.it/agg")
+  or die "Cambio directory fallito ", $ftp->message;
+
+$ftp->binary
+  or die "Modalita' binary fallita ", $ftp->message;
+
+$ftp->put("/abd/asc/agg/aggint.tar")
+  or die "Invio fallito ", $ftp->message  ;
+
+#=========================================*
+# Fine connessione                        *
+#-----------------------------------------*
+$ftp->quit                                ;
+

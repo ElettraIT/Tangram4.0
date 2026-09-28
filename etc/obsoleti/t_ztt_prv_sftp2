@@ -1,0 +1,27 @@
+#!/usr/bin/perl -w
+# FUNZIONA
+
+use Net::SFTP::Foreign;
+
+# Credenziali
+$host = "195.138.243.55";
+$user = "root";
+$pswd = "901823087123";
+
+# Preparazione argomenti per chiamata
+my %args = (user => $user,
+        password => $pswd
+);
+
+# Chiamata
+my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+# Ricevimento file
+$sftp->get("183573000.jpg", "/abd/asc/tmp/183573000_ricevuta.jpg")
+    or die "ricevimento fallito: " . $sftp->error;
+
+# Invio file
+$sftp->put("/abd/asc/tmp/183573000.jpg", "183573000.jpg")
+    or die "invio fallito: " . $sftp->error;
+
+# print "Terminato ...!\n";

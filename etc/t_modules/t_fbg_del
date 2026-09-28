@@ -1,0 +1,74 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per cancellare dati MySQL    *
+#                                          *
+# Cancellazione dati utilizzati            *
+#                                          *
+# Su misura per Foralberg                  *
+#                                          *
+# Utilizzato dai programmi 'gpf810'        *
+#                          'gpf812'        *
+#                                          *
+# Ultima revisione:    NdK del 16/05/05    *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Modulo Perl MIME::Lite                   *
+#------------------------------------------*
+use strict                                ;
+use DBI()                                 ;
+
+#==========================================*
+# Parametri di connessione                 *
+#------------------------------------------*
+my $dtb = "fbg"                           ;
+my $hst = "localhost"                     ;
+my $usr = "root"                          ;
+my $pwd = "alter1"                        ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtb;host=$hst",
+                       $usr,
+                       $pwd,
+                       {'RaiseError' => 1});
+
+#==========================================*
+# Variabili lette in input                 *
+# ---------------------------------------- *
+#  - $oid : ID Ordine                      *
+#------------------------------------------*
+my $oid = $ARGV[0]                        ;
+
+#==========================================*
+# Cancellazione in tabella testate         *
+#------------------------------------------*
+if ($oid)
+{
+    my $sth = $dbh->prepare("DELETE 
+                         FROM TOrdCli
+                         WHERE OctID  = '$oid'
+                         AND   OctSta = 'X'
+                        ")                ;
+    $sth->execute()                       ;
+    $sth->finish()                        ;
+
+#==========================================*
+# Cancellazione in tabella righe           *
+#------------------------------------------*
+    my $st2 = $dbh->prepare("DELETE 
+                         FROM TOrdCliRig
+                         WHERE OcrIDord  = '$oid'
+                        ")                ;
+
+    $st2->execute()                       ;
+    $st2->finish()                        ;
+}
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+

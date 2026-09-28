@@ -1,0 +1,174 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per cancellazione file       *
+# presso Retarus                           *
+#                                          *
+# t_nobili_del                             *
+#                                          *
+# (Richiamato da 'aut600')                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 18/02/11    *
+#   Ultima revisione:  NdK del 13/04/11    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - file da cancellare          *
+#                                          *
+#            - utente TANGRAM              *
+#                                          *
+#            - buyer                       *
+#                                          *
+#            - buyer RIF                   *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Descrizione modulo:                      *
+#                                          *
+# Concellazione dei files prelevati via    *
+# FTP ed aggiornamento del Database rela-  *
+# tivo                                     *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::FTP                              ;
+use DBI()                                 ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $file = shift                          ;
+my $utet = shift                          ;
+my $sell = shift                          ;
+my $nrif = shift                          ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = '94.199.90.151'                ;
+my $user = 'nobili'                       ;
+my $pass = '*Na4RcCC)gj%'                 ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$file || !$utet || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_nobili_del FILENAME "
+        . "UTENTE_TANGRAM "
+        . "CLIENTE "
+        . "RIF_CLIENTE"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $path = "/productive/to_nobili/orders" ;
+# my $path = "/test/to_nobili/orders"       ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dhst = "localhost"                    ;
+my $dusr = "root"                         ;
+# my $dpwd = "alter1"                       ;
+my $dpwd = "loppio2"                      ;
+my $dtbs = "nob"                          ;
+my $dtab = "retarus"                      ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtbs;host=$dhst",
+                       $dusr,
+                       $dpwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Flag di trattamento eseguito             *
+#------------------------------------------*
+my $upd = "UPDATE "
+                . $dtab
+                . " SET "
+                . " flag = '#', "
+                . " trtd = NOW(), "
+                . " utet = '"
+                . $utet
+                . "', sell = '"
+                . $sell
+                . "', nrif = '"
+                . $nrif
+                . "'"
+                . " WHERE path = '"
+                . $file
+                . "' LIMIT 1"             ;
+                
+my $sth = $dbh->prepare($upd)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+        
+#==========================================*
+# Cancellazione file remoto                *
+#==========================================*
+
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+my $ftp = Net::FTP->new($host, Debug => 0)
+  or die "Connessione non riuscita a : $@";
+
+#==========================================*
+# Login                                    *
+#------------------------------------------*
+$ftp->login($user,$pass)
+  or die "Fallito il login ", $ftp->message;
+
+#==========================================*
+# Directory di output                      *
+#------------------------------------------*
+$ftp->cwd($path)
+  or die "Cambio directory "
+       . "non "
+       . "riuscito", $ftp->message        ;
+
+#==========================================*
+# Cancellazione                            *
+#------------------------------------------*
+if ($file)
+{
+    $ftp->delete($file)
+      or die "Cancellazione "
+           . "fallita ", $ftp->message    ;
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$ftp->quit                                ;
+
+
+

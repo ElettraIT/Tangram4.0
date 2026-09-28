@@ -1,0 +1,108 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per creare un file tempora-  *
+# neo, chiamato da 'paut1500', con la lis- *
+# ta dei documenti 'xml' da inviare a SDI  *
+# fornitori                                *
+#                                          *
+# t_nob_lat_lst                            *
+#                                          *
+# SU MISURA PER NOBILI                     *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 31/01/19   *
+#   Ultima revisione:   wip del 31/01/19   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - pathname lista              *
+#                                          *
+#            - indirizzo mail SDI          *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $pth_lst = shift                       ;
+my $eml_sdi = shift                       ;
+
+#==========================================*
+# Test su valori in input                  *
+#------------------------------------------*
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di lavoro                      *
+#------------------------------------------*
+my $dir_xml = "/abd/asc/nob/lat/"         ;
+        
+#==========================================*
+# Ciclo di scansione cartella              *
+#------------------------------------------*
+opendir(DIR, $dir_xml)                    ;
+my @dir=grep { !/^\.+$/ } readdir(DIR)    ;
+closedir(DIR)                             ;
+
+#=========================================*
+# Open del file di output                 *
+#-----------------------------------------*
+open (OUTFILE, ">$pth_lst") or die
+         "Impossibile aprire il file"     ;
+
+#==========================================*
+# Scansione elenco dei file                *
+#------------------------------------------*
+foreach my $fil_dir (@dir)
+{
+    #--------------------------------------*
+    # Skip directory                       *
+    #--------------------------------------*
+    if(-d $fil_dir)
+    { next;}                              ;
+    #--------------------------------------*
+    # Skip dei file "."                    *
+    #--------------------------------------*
+    if($fil_dir eq "." || $fil_dir eq "..")
+    { next;}                              ;
+    #--------------------------------------*
+    # Skip dei file che iniziano  "._"     *
+    #--------------------------------------*
+    my $prffil = substr($fil_dir,0,2)     ;
+    if($prffil eq "._")
+    { next;}                              ;
+    #--------------------------------------*
+    # Test che non sia una directory il    *
+    # file trattato                        *
+    #--------------------------------------*
+    if (! -d $fil_dir)
+    {
+        #----------------------------------*
+        # Creazione path completo          *
+        #----------------------------------*
+        my $fil_pth = $dir_xml . $fil_dir ;
+        #----------------------------------*
+        # Composizione linea               *
+        #----------------------------------*
+        my $lin_fmt = $eml_sdi
+                    . ","
+                    . $fil_pth
+                    . ","                 ;
+        #----------------------------------*
+        # Scrittura su file di output      *
+        #----------------------------------*
+        print OUTFILE $lin_fmt . "\n"     ;
+    }
+}
+
+#=========================================*
+# Close file di output                    *
+#-----------------------------------------*
+close (OUTFILE)                           ;
+

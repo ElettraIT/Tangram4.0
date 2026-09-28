@@ -1,0 +1,120 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per invio file a Retarus     *
+#                                          *
+# t_retaurs_out                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 12/09/25    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - host di destinazione        *
+#                                          *
+#            - username                    *
+#                                          *
+#            - password                    *
+#                                          *
+#            - file da inviare             *
+#                                          *
+#            - tipo esecuzione             *
+#                                          *
+#------------------------------------------*
+
+#!/usr/bin/perl -w
+
+#==========================================*
+# Moduli Perl
+#------------------------------------------*
+use Net::SFTP::Foreign;
+use File::Basename;
+
+#==========================================*
+# Variabili lette in input
+#------------------------------------------*
+my $host = shift;
+my $user = shift;
+my $pass = shift;
+my $file = shift;
+my $texe = shift;
+
+#==========================================*
+# Help
+#------------------------------------------*
+if (!$host || !$user || $host eq "-help") {
+    print "\nUso :\n> t_retaurs_out HOST USERNAME PASSWORD FILENAME TIPO(Test/Productive)\n\n(C) WIP\n\n";
+    exit();
+}
+
+#==========================================*
+# Determinazione percorso di destinazione
+#------------------------------------------*
+my $path = ($texe && $texe eq "T") ? "/test/orders_out" : "/productive/orders_out";
+
+#==========================================*
+# Open file di LOG
+#------------------------------------------*
+my $logf = $file . ".log";
+open (OUTFILE, ">$logf") or die "Impossibile aprire '$logf'";
+
+#==========================================*
+# Connessione
+#------------------------------------------*
+my $sftp = Net::SFTP::Foreign->new(
+  host     => $host,
+  user     => $user,
+  password => $pass,                      # usa la password passata a riga di comando
+  port     => 22,                         # <-- QUI serviva la virgola!
+);
+
+if ($sftp->error) {
+  print OUTFILE "Connessione SFTP fallita: " . $sftp->error . "\n";
+  close OUTFILE;
+  exit 1;
+}
+
+#==========================================*
+# Directory di output
+#------------------------------------------*
+$sftp->setcwd($path)
+  or do {
+    print OUTFILE "setcwd('$path') fallita: " . $sftp->error . "\n";
+    close OUTFILE;
+    exit 1;
+  };
+
+#==========================================*
+# Invio
+#------------------------------------------*
+$sftp->put($file)
+  or do {
+    print OUTFILE "put('$file') fallita: " . $sftp->error . "\n";
+    close OUTFILE;
+    exit 1;
+  };
+
+#==========================================*
+# Rename del file
+#------------------------------------------*
+my $name = basename($file);
+my $rnmd = $name . ".CSV.ok";
+
+$sftp->rename($name, $rnmd)
+  or do {
+    print OUTFILE "rename('$name' -> '$rnmd') fallita: " . $sftp->error . "\n";
+    close OUTFILE;
+    exit 1;
+  };
+
+#==========================================*
+# Uscita
+#------------------------------------------*
+$sftp->disconnect;
+
+#==========================================*
+# Close LOG
+#------------------------------------------*
+print OUTFILE "OK: inviato '$name' come '$rnmd' in $path\n";
+close OUTFILE;

@@ -1,0 +1,1290 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Etichette A5 per bancali                 *
+#                                          *
+# Ad hoc NOBILI                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/09/2023 *
+#   Ultima revisione:   wip del 09/11/2024 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Parametri in input : - file parametri    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Note : lo script legge un file CSV e     *
+#        prepara un file PDF da memoriz-   *
+#        zare nella cartella dell'utente   *
+#                                          *
+#        Utilizzato da: pbol340a NOBILI    *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use PDF::Reuse                            ;
+use PDF::Reuse::Barcode                   ;
+use strict                                ;
+
+#==========================================*
+# Variabili in input                       *
+#------------------------------------------*
+my $num_prt = shift                       ;
+
+#==========================================*
+# Test su variabili in input               *
+#------------------------------------------*
+if (!$num_prt)
+{ exit();}
+
+#==========================================*
+# Percorsi file                            *
+#------------------------------------------*
+#my $pth_tmp = "/abd/spl/"                 ;
+my $pth_tmp = "/abd/asc/m/pdf/"           ;
+my $log_az1 = "/abd/asc/mod/nobili.pdf"   ;
+my $pth_csv = $pth_tmp . $num_prt . ".csv";
+my $out_pdf = $pth_tmp . $num_prt . ".pdf";
+
+#==========================================*
+# Normalizzazioni                          *
+#------------------------------------------*
+my $cod_stp = ""                          ;
+my $tip_eti = ""                          ;
+my $num_eti = 0                           ;
+my $pes_tot = 0                           ;
+my $num_col = 0                           ;
+my $num_doc = ""                          ;
+my $dat_doc = ""                          ;
+#
+my $rag_cli = ""                          ;
+my $via_cli = ""                          ;
+my $loc_cli = ""                          ;
+my $prv_cli = ""                          ;
+my $cap_cli = ""                          ;
+my $naz_cli = ""                          ;
+#
+my $rag_vet = ""                          ;
+my $via_vet = ""                          ;
+my $loc_vet = ""                          ;
+my $rif_doc = ""                          ;
+#------------------------------------------*
+# Comodi per la stampa                     *
+#------------------------------------------*
+my $str     = ""                          ;
+my $lin     = 0                           ;
+my $pos     = 0                           ;
+
+#==========================================*
+# Open file contenente i parametri         *
+#------------------------------------------*
+open (I_FILE, "$pth_csv") or die
+     "Impossibile aprire il file '$pth_csv'";
+my   @linea = <I_FILE>                    ;
+
+#==========================================*
+# Close del file                           *
+#------------------------------------------*
+close I_FILE                              ;
+
+#==========================================*
+# Ciclo di scansione per lettura parametri *
+#------------------------------------------*
+foreach my $row (@linea)
+{
+    #--------------------------------------*
+    # Lettura linea                        *
+    #--------------------------------------*
+    my   @rec = split(/;/, $row)          ;
+    #--------------------------------------*
+    # Test su tipo record                  *
+    #--------------------------------------*
+    if  ($rec[0] eq "cod_stp")
+    {
+        #----------------------------------*
+        # Codice stampante                 *
+        #----------------------------------*
+        $cod_stp = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "tip_eti")
+    {
+        #----------------------------------*
+        # Tipo etichetta                   *
+        #----------------------------------*
+        $tip_eti = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "num_eti")
+    {
+        #----------------------------------*
+        # Numero di etichette              *
+        #----------------------------------*
+        $num_eti = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "pes_tot")
+    {
+        #----------------------------------*
+        # Peso totale                      *
+        #----------------------------------*
+        $pes_tot = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "num_col")
+    {
+        #----------------------------------*
+        # Numero colli                     *
+        #----------------------------------*
+        $num_col = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "num_doc")
+    {
+        #----------------------------------*
+        # Numero documento                 *
+        #----------------------------------*
+        $num_doc = $rec[1]                ;
+        $num_doc =~ s/\s+$//              ;
+    }
+     elsif ($rec[0] eq "dat_doc")
+    {
+        #----------------------------------*
+        # Data documento                   *
+        #----------------------------------*
+        $dat_doc = $rec[1]                ;
+        $dat_doc =~ s/\s+$//              ;
+    }
+     elsif ($rec[0] eq "rag_cli")
+    {
+        #----------------------------------*
+        # Ragione sociale cliente          *
+        #----------------------------------*
+        $rag_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "via_cli")
+    {
+        #----------------------------------*
+        # Indirizzo cliente                *
+        #----------------------------------*
+        $via_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "loc_cli")
+    {
+        #----------------------------------*
+        # Localita' cliente                *
+        #----------------------------------*
+        $loc_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "prv_cli")
+    {
+        #----------------------------------*
+        # Provincia cliente                *
+        #----------------------------------*
+        $prv_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "cap_cli")
+    {
+        #----------------------------------*
+        # CAP cliente                      *
+        #----------------------------------*
+        $cap_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "naz_cli")
+    {
+        #----------------------------------*
+        # Nazione cliente                  *
+        #----------------------------------*
+        $naz_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "rag_vet")
+    {
+        #----------------------------------*
+        # Ragione sociale vettore          *
+        #----------------------------------*
+        $rag_vet = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "via_vet")
+    {
+        #----------------------------------*
+        # Indirizzo vettore                *
+        #----------------------------------*
+        $via_vet = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "loc_vet")
+    {
+        #----------------------------------*
+        # Localita' vettore                *
+        #----------------------------------*
+        $loc_vet = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "rif_doc")
+    {
+        #----------------------------------*
+        # Riferimento documento            *
+        #----------------------------------*
+        $rif_doc = $rec[1]                ;
+    }
+#------------------------------------------*
+# Ciclo di scansione per lettura parametri *
+#                                          *
+# Fine                                     *
+#==========================================*
+}
+
+#==========================================*
+# Trattamento codice stampante             *
+#------------------------------------------*
+#------------------------------------------*
+# Pulizia caratteri iniziali e finali      *
+# (trim)                                   *
+#------------------------------------------*
+$cod_stp =~ s/^\s+|\s+$//g                ;
+#------------------------------------------*
+# Decodifica per spooler                   *
+#                                          *
+# z1 = zebra_1                             *
+# z2 = zebra_2                             *
+# z3 = zebra_3                             *
+#                                          *
+# ___ TOGLIERE ??? ___                     *
+#------------------------------------------*
+if    ($cod_stp eq "z1"){$cod_stp = 'zebra_1'}
+elsif ($cod_stp eq "z2"){$cod_stp = 'zebra_2'}
+elsif ($cod_stp eq "z3"){$cod_stp = 'zebra_3'};
+
+#==========================================*
+# DEBUG                                    *
+#------------------------------------------*
+#    print "Stampante : " . $cod_stp . "\n";
+#    print "Tipo eti  : " . $tip_eti . "\n";
+#    print "Num eti   : " . $num_eti . "\n";
+#    print "Num DOC   : " . $num_doc . "\n";
+#    print "Cliente   : " . $rag_cli . "\n";
+#    print "   -      : " . $via_cli . "\n";
+#    print "   -      : " . $loc_cli . "\n";
+
+#==========================================*
+# Deviazione in funzione del tipo di eti-  *
+# chetta                                   *
+#------------------------------------------*
+if ($tip_eti == 1)
+{
+    &eti_001                              ;
+}
+ else
+{
+    exit()                                ;
+}
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Etichetta di tipo '1': segnacolli DDT    *
+#                        formato A4        *
+#                        2 etichette       *
+#------------------------------------------*
+sub eti_001
+{
+    #======================================*
+    # Parametri pagina                     *
+    #--------------------------------------*
+    my $mrg_sin = 10                      ;
+    my $mrg_inf = 10                      ;
+    #--------------------------------------*
+    # Misure etichetta                     *
+    #--------------------------------------*
+    my $eti_lar = 575                     ;
+    my $eti_alt = 400                     ;
+    #--------------------------------------*
+    # Posizionamenti etichetta             *
+    #--------------------------------------*
+    my $p01_yyy = 387                     ;
+    my $p02_yyy = 315                     ;
+    my $p03_yyy = 160                     ;
+    #--------------------------------------*
+    # Parametri vettore                    *
+    #--------------------------------------*
+    my $vet_pmt = 'Filiale di spedizione' ;
+    my $vet_xxx = 15                      ;
+    my $vet_yyy = 370                     ;
+    #--------------------------------------*
+    # Parametri 1. fincatura               *
+    #--------------------------------------*
+    my $f01_yyy = 330                     ;
+    #--------------------------------------*
+    # Parametri 2. fincatura               *
+    #--------------------------------------*
+    my $f02_yyy = 220                     ;
+    #--------------------------------------*
+    # Parametri categoria temperatura      *
+    #--------------------------------------*
+    my $ctt_pmt = 'Categoria Temp.'       ;
+    my $ctt_yyy = 340                     ;
+    my $ctt_xxx = 295                     ;
+    #--------------------------------------*
+    # Parametri provincia cliente          *
+    #--------------------------------------*
+    my $prv_pmt = 'Provincia'             ;
+    my $prv_yyy = 340                     ;
+    my $prv_xxx = 370                     ;
+    #--------------------------------------*
+    # Parametri nazione cliente            *
+    #--------------------------------------*
+    my $naz_pmt = 'Nazione'               ;
+    my $naz_yyy = 340                     ;
+    my $naz_xxx = 420                     ;
+    #--------------------------------------*
+    # Parametri CAP cliente                *
+    #--------------------------------------*
+    my $cap_pmt = 'CAP'                   ;
+    my $cap_yyy = 340                     ;
+    my $cap_xxx = 470                     ;
+    #--------------------------------------*
+    # Parametri mittente                   *
+    #--------------------------------------*
+    my $mit_pmt = 'Mittente'              ;
+    my $mit_rag = 'Caseificio F.lli Nobili S.r.l.';
+    my $mit_via = 'Via Enrico Fermi 13'   ;
+    my $mit_loc = '35030 RUBANO PD'       ;
+    my $mit_xxx = 15                      ;
+    my $mit_yyy = 300                     ;
+    #--------------------------------------*
+    # Parametri mittente - logo            *
+    #--------------------------------------*
+    my $log_xxx = 180                     ;
+    my $log_yyy = 235                     ;
+    my $log_scl = '0.12'                  ;
+    #--------------------------------------*
+    # Parametri 3. fincatura - verticale   *
+    #--------------------------------------*
+    my $f03_yyy = 220                     ;
+    my $f03_xxx = 280                     ;
+    my $f03_lun = 110                     ;
+    #--------------------------------------*
+    # Parametri cliente                    *
+    #--------------------------------------*
+    my $cli_pmt = 'Da consegnare a:'      ;
+    my $cli_xxx = 300                     ;
+    my $cli_yyy = 290                     ;
+    #--------------------------------------*
+    # Parametri 4. fincatura               *
+    #--------------------------------------*
+    my $f04_yyy = 110                     ;
+    #--------------------------------------*
+    # Parametri data documento             *
+    #--------------------------------------*
+    my $ddo_pmt = 'Data di spedizione'    ;
+    my $ddo_xxx = 15                      ;
+    #--------------------------------------*
+    # Parametri 5. fincatura - verticale   *
+    #--------------------------------------*
+    my $f05_yyy = 110                     ;
+    my $f05_xxx = 140                     ;
+    my $f05_lun = 110                     ;
+    #--------------------------------------*
+    # Parametri numero documento           *
+    #--------------------------------------*
+    my $ndo_pmt = 'DDT'                   ;
+    my $ndo_xxx = 160                     ;
+    #--------------------------------------*
+    # Parametri 6. fincatura - verticale   *
+    #--------------------------------------*
+    my $f06_yyy = 110                     ;
+    my $f06_xxx = 280                     ;
+    my $f06_lun = 110                     ;
+    #--------------------------------------*
+    # Parametri numero colli               *
+    #--------------------------------------*
+    my $col_pmt = 'COLLI'                 ;
+    my $col_xxx = 300                     ;
+    #--------------------------------------*
+    # Parametri 7. fincatura - verticale   *
+    #--------------------------------------*
+    my $f07_yyy = 110                     ;
+    my $f07_xxx = 425                     ;
+    my $f07_lun = 110                     ;
+    #--------------------------------------*
+    # Parametri peso                       *
+    #--------------------------------------*
+    my $pes_pmt = 'PESO'                  ;
+    my $pes_xxx = 450                     ;
+    #--------------------------------------*
+    # Parametri bancale                    *
+    #--------------------------------------*
+    my $bnc_pmt = 'BANCALE'               ;
+    my $bnc_xxx = 15                      ;
+
+    #======================================*
+    # Normalizzazione comodi               *
+    #--------------------------------------*
+    my $eti_yyy = 0                       ;
+    my $stp_ctr = 1                       ;
+    my $num_pag = 0                       ;
+    my $pos_yyy = 0                       ;
+    my $pos_xxx = 0                       ;
+    my $pos_lar = 0                       ;
+    my $pos_alt = 0                       ;
+    my $pos_rot = ''                      ;
+    my $pos_scl = ''                      ;
+    my $pos_str = ''                      ;
+    my $swc_pag = 'D'                     ;
+
+    #--------------------------------------*
+    # Ciclo di generazione e stampa per    *
+    # ciascuna etichetta                   *
+    #--------------------------------------*
+    while($stp_ctr <= $num_eti)
+    {
+        #----------------------------------*
+        # Switch di pagina: pari o dispari *
+        #----------------------------------*
+        $swc_pag = &par_dsp ($stp_ctr)    ;
+        #----------------------------------*
+        # Se dispari: etichetta superiore  *
+        #----------------------------------*
+        if ($swc_pag eq 'D')
+        {
+            #------------------------------*
+            # Inizializzazione file PDF    *
+            #------------------------------*
+            prFile($out_pdf)              ;
+            #------------------------------*
+            # Impostazione pagina (A4)     *
+            #------------------------------*
+            prMbox(0, 0, 595, 842)        ;
+            #------------------------------*
+            # Font per la pagina           *
+            #------------------------------*
+            prFont('Helvetica-Bold')      ;
+            #------------------------------*
+            # Coordinata 'Y'               *
+            #------------------------------*
+            $eti_yyy = 430                ;
+            #------------------------------*
+            # Numero di pagina etichetta   *
+            # da stampare                  *
+            #------------------------------*
+            $num_pag = $num_pag + 1       ;
+        }
+         else
+        {
+            #------------------------------*
+            # Coordinata 'Y'               *
+            #------------------------------*
+            $eti_yyy = $mrg_inf           ;
+        }
+        
+        #==================================*
+        # Box etichetta A5                 *
+        #----------------------------------*
+        &stp_ret ($mrg_sin,
+                  $eti_yyy, 
+                  $eti_lar,
+                  $eti_alt)               ;
+
+        #==================================*
+        # Ragione sociale vettore - prompt *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p01_yyy               ;
+        $pos_xxx = $vet_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $vet_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Ragione sociale vettore          *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $vet_yyy               ;
+        $pos_xxx = $vet_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $rag_vet)               ;
+        #----------------------------------*
+        # Indirizzo vettore                *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $vet_yyy - 15          ;
+        $pos_xxx = $vet_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $via_vet)               ;
+        #----------------------------------*
+        # Localita' vettore                *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $vet_yyy - 30          ;
+        $pos_xxx = $vet_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $loc_vet)               ;
+
+        #==================================*
+        # Categoria temperatura - box      *
+        #----------------------------------*
+        $pos_xxx = 290                    ;
+        $pos_yyy = $eti_yyy + 330         ;
+        $pos_lar = 70                     ;
+        $pos_alt = 70                     ;
+        #
+        &stp_ret ($pos_xxx,
+                  $pos_yyy, 
+                  $pos_lar,
+                  $pos_alt)               ;
+        #----------------------------------*
+        # Categoria temperatura - prompt   *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p01_yyy               ;
+        $pos_xxx = $ctt_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $ctt_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(42)                    ;       
+        #----------------------------------*
+        # 'FR'                             *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $ctt_yyy               ;
+        $pos_xxx = $ctt_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = 'FR'                   ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # Provincia - prompt               *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p01_yyy               ;
+        $pos_xxx = $prv_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $prv_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(32)                    ;       
+        #----------------------------------*
+        # Provincia - valore               *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $prv_yyy               ;
+        $pos_xxx = $prv_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $prv_cli               ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # Nazione - prompt                 *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p01_yyy               ;
+        $pos_xxx = $naz_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $naz_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(32)                    ;       
+        #----------------------------------*
+        # Nazione - valore                 *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $naz_yyy               ;
+        $pos_xxx = $naz_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $naz_cli               ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # CAP - prompt                     *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p01_yyy               ;
+        $pos_xxx = $cap_xxx + 40          ;
+        $pos_rot = ''                     ;
+        $pos_str = $cap_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(32)                    ;       
+        #----------------------------------*
+        # CAP - valore                     *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $cap_yyy               ;
+        $pos_xxx = $cap_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $cap_cli               ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # Mittente - prompt                *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p02_yyy               ;
+        $pos_xxx = $mit_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $mit_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Mittente - ragione sociale       *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $mit_yyy               ;
+        $pos_xxx = $mit_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $mit_rag)               ;
+        #----------------------------------*
+        # Mittente - indirizzo             *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $mit_yyy - 30          ;
+        $pos_xxx = $mit_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $mit_via)               ;
+        #----------------------------------*
+        # Mittente - localita'             *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $mit_yyy - 60          ;
+        $pos_xxx = $mit_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $mit_loc)               ;
+        #----------------------------------*
+        # Mittente - logo                  *
+        #----------------------------------*
+        $pos_xxx = $log_xxx               ;
+        $pos_yyy = $eti_yyy + $log_yyy    ;
+        $pos_scl = $log_scl               ;
+        #
+        prImage(  { file    => $log_az1,
+                    x       => $pos_xxx,
+                    y       => $pos_yyy,
+                    size    => $pos_scl });
+
+        #==================================*
+        # Cliente - prompt                 *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p02_yyy               ;
+        $pos_xxx = $cli_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $cli_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Cliente - ragione sociale        *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy + $cli_yyy    ;
+        $pos_xxx = $cli_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_big ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $rag_cli)               ;
+        #----------------------------------*
+        # Cliente - indirizzo              *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $cli_yyy - 30          ;
+        $pos_xxx = $cli_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $via_cli)               ;
+        #----------------------------------*
+        # Cliente - localita'              *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy 
+                 + $cli_yyy - 60          ;
+        $pos_xxx = $cli_xxx               ;
+        $pos_rot = ''                     ;
+        #
+        &stp_str ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $loc_cli)               ;
+
+        #==================================*
+        # Data documento - prompt          *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy + 50          ;
+        $pos_xxx = $ddo_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $ddo_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Data documento - valore          *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy               ;
+        $pos_xxx = $ddo_xxx + 20          ;
+        $pos_rot = ''                     ;
+        $pos_str = $dat_doc               ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # Numero documento - prompt        *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy + 50          ;
+        $pos_xxx = $ndo_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $ndo_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Numero documento - valore        *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy               ;
+        $pos_xxx = $ndo_xxx + 20          ;
+        $pos_rot = ''                     ;
+        $pos_str = $num_doc               ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # Numero colli - prompt            *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy + 50          ;
+        $pos_xxx = $col_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $col_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Numero colli - valore            *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy               ;
+        $pos_xxx = $col_xxx + 20          ;
+        $pos_rot = ''                     ;
+        $pos_str = $num_col               ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # Peso - prompt                    *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy + 50          ;
+        $pos_xxx = $pes_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $pes_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Peso - valore                    *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy
+                 + $p03_yyy               ;
+        $pos_xxx = $pes_xxx + 20          ;
+        $pos_rot = ''                     ;
+        $pos_str = $pes_tot               ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # Bancale - prompt                 *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy + 100         ;
+        $pos_xxx = $bnc_xxx               ;
+        $pos_rot = ''                     ;
+        $pos_str = $bnc_pmt               ;
+        #
+        &stp_pmt ($pos_xxx,
+                  $pos_yyy,
+                  $pos_rot,
+                  $pos_str)               ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFontSize(96)                    ;       
+        #----------------------------------*
+        # Bancale - valore                 *
+        #----------------------------------*
+        $pos_yyy = $eti_yyy + 20          ;
+        $pos_xxx = $bnc_xxx + 200         ;
+        $pos_rot = ''                     ;
+        $pos_str = "$stp_ctr"
+                 . "/"
+                 . "$num_eti"             ;
+        #
+        prText($pos_xxx,
+               $pos_yyy,
+               $pos_str, '', '',)         ;
+
+        #==================================*
+        # 1. fincatura                     *
+        #----------------------------------*
+        $pos_xxx = $mrg_sin + $eti_lar    ;
+        $pos_yyy = $eti_yyy + $f01_yyy    ;
+        #
+        &stp_lin ($mrg_sin, 
+                  $pos_yyy,
+                  $pos_xxx,
+                  $pos_yyy)               ;
+
+        #==================================*
+        # 2. fincatura                     *
+        #----------------------------------*
+        $pos_xxx = $mrg_sin + $eti_lar    ;
+        $pos_yyy = $eti_yyy + $f02_yyy    ;
+        #
+        &stp_lin ($mrg_sin, 
+                  $pos_yyy,
+                  $pos_xxx,
+                  $pos_yyy)               ;
+
+        #==================================*
+        # 3. fincatura (verticale)         *
+        #----------------------------------*
+        $pos_xxx = $mrg_sin + $f03_xxx    ;
+        $pos_yyy = $eti_yyy + $f03_yyy    ;
+        #
+        &stp_lin ($pos_xxx, 
+                  $pos_yyy,
+                  $pos_xxx,
+                  $pos_yyy + $f03_lun)    ;
+
+        #==================================*
+        # 4. fincatura                     *
+        #----------------------------------*
+        $pos_xxx = $mrg_sin + $eti_lar    ;
+        $pos_yyy = $eti_yyy + $f04_yyy    ;
+        #
+        &stp_lin ($mrg_sin, 
+                  $pos_yyy,
+                  $pos_xxx,
+                  $pos_yyy)               ;
+
+        #==================================*
+        # 5. fincatura (verticale)         *
+        #----------------------------------*
+        $pos_xxx = $mrg_sin + $f05_xxx    ;
+        $pos_yyy = $eti_yyy + $f05_yyy    ;
+        #
+        &stp_lin ($pos_xxx, 
+                  $pos_yyy,
+                  $pos_xxx,
+                  $pos_yyy + $f05_lun)    ;
+
+        #==================================*
+        # 6. fincatura (verticale)         *
+        #----------------------------------*
+        $pos_xxx = $mrg_sin + $f06_xxx    ;
+        $pos_yyy = $eti_yyy + $f06_yyy    ;
+        #
+        &stp_lin ($pos_xxx, 
+                  $pos_yyy,
+                  $pos_xxx,
+                  $pos_yyy + $f06_lun)    ;
+
+        #==================================*
+        # 7. fincatura (verticale)         *
+        #----------------------------------*
+        $pos_xxx = $mrg_sin + $f07_xxx    ;
+        $pos_yyy = $eti_yyy + $f07_yyy    ;
+        #
+        &stp_lin ($pos_xxx, 
+                  $pos_yyy,
+                  $pos_xxx,
+                  $pos_yyy + $f07_lun)    ;
+
+        #----------------------------------*
+        # Se ultima etichetta o etichetta  *
+        # pari: emissione file PDF         *
+        #----------------------------------*
+        if ($stp_ctr == $num_eti || $swc_pag eq 'P')
+        {
+            &ejc_pag($cod_stp, 
+                     $pth_tmp,
+                     $num_prt,
+                     $num_pag)            ;
+        }
+
+        #----------------------------------*
+        # Incremento contatore             *
+        #----------------------------------*
+        $stp_ctr++                        ;
+    }
+}
+
+#==========================================*
+# Stampa stringa con eventuale ritaratura  *
+# del font size                            *
+#                                          *
+#   Parametri                              *
+#   -------------------------------------- *
+# - Distanza dal bordo sinistro  (X)       *
+# - Distanza dal bordo inferiore (Y)       *
+# - Coefficiente di rotazione    ''   - no *
+#                                'q1' - 90 *
+#                                'q2' -180 *
+#                                'q3' -270 *
+# - Stringa da stampare                    *
+#------------------------------------------*
+sub stp_str
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $xxx = shift                       ;
+    my $yyy = shift                       ;
+    my $rot = shift                       ;
+    my $str = shift                       ;
+    #--------------------------------------*
+    # Pulizia spazi vuoti a fine stringa   *
+    #--------------------------------------*
+    $str =~ s/\s+$//                      ;
+    #--------------------------------------*
+    # Determinazione lunghezza stringa     *
+    #--------------------------------------*
+    my $lun = length($str)                ;
+    #--------------------------------------*
+    # Eventuale ritaratura FontSize        *
+    #--------------------------------------*
+    if ($lun >= 10)
+    {
+        prFontSize(12)                    ;       
+    }
+     else
+    {
+        prFontSize(14)                    ;       
+    }
+    #--------------------------------------*
+    # Emissione stringa                    *
+    #--------------------------------------*
+    prText($xxx, $yyy, $str, '', $rot)    ;
+}
+
+#==========================================*
+# Stampa stringa con eventuale ritaratura  *
+# del font size - Testo piu' grande        *
+#------------------------------------------*
+sub stp_big
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $xxx = shift                       ;
+    my $yyy = shift                       ;
+    my $rot = shift                       ;
+    my $str = shift                       ;
+    #--------------------------------------*
+    # Pulizia spazi vuoti a fine stringa   *
+    #--------------------------------------*
+    $str =~ s/\s+$//                      ;
+    #--------------------------------------*
+    # Determinazione lunghezza stringa     *
+    #--------------------------------------*
+    my $lun = length($str)                ;
+    #--------------------------------------*
+    # Eventuale ritaratura FontSize        *
+    #--------------------------------------*
+    if ($lun >= 13)
+    {
+        prFontSize(16)                    ;       
+    }
+     else
+    {
+        prFontSize(15)                    ;       
+    }
+    #--------------------------------------*
+    # Emissione stringa                    *
+    #--------------------------------------*
+    prText($xxx, $yyy, $str, '', $rot)    ;
+}
+
+#==========================================*
+# Stampa prompt                            *
+#------------------------------------------*
+sub stp_pmt
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $xxx = shift                       ;
+    my $yyy = shift                       ;
+    my $rot = shift                       ;
+    my $str = shift                       ;
+    #--------------------------------------*
+    # Pulizia spazi vuoti a fine stringa   *
+    #--------------------------------------*
+    $str =~ s/\s+$//                      ;
+    #--------------------------------------*
+    # Determinazione lunghezza stringa     *
+    #--------------------------------------*
+    my $lun = length($str)                ;
+    #--------------------------------------*
+    # FontSize                             *
+    #--------------------------------------*
+    prFontSize(8)                         ;       
+    #--------------------------------------*
+    # Emissione stringa                    *
+    #--------------------------------------*
+    prText($xxx, $yyy, $str, '', $rot)    ;
+}
+
+#==========================================*
+# Emissione linea retta                    *
+#                                          *
+#   Parametri                              *
+#   -------------------------------------- *
+# - Punto di partenza (x1)                 *
+# - Punto di partenza (y1)                 *
+# - Punto di arrivo   (x2)                 *
+# - Punto di arrivo   (y2)                 *
+#------------------------------------------*
+sub stp_lin
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $xx1 = shift                       ;
+    my $yy1 = shift                       ;
+    my $xx2 = shift                       ;
+    my $yy2 = shift                       ;
+    #--------------------------------------*
+    # Composizione stringa                 *
+    #--------------------------------------*
+    my $str = "q "
+            . $xx1
+            . " "
+            . $yy1
+            . " m "
+            . $xx2
+            . " "
+            . $yy2
+            . " l S Q"                    ;
+    #--------------------------------------*
+    # Emissione stringa                    *
+    #--------------------------------------*
+    prAdd($str)                           ;
+}
+
+#==========================================*
+# Emissione rettangolo                     *
+# ---------------------------------------- *
+#                                          *
+#   Parametri                              *
+#   ---------------------------            *
+# - Distanza dal bordo sinistro            *
+# - Distanza dal bordo inferiore           *
+# - Stringa da stampare                    *
+# - Coefficiente di rotazione              *
+#------------------------------------------*
+sub stp_ret
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $xxx = shift                       ;
+    my $yyy = shift                       ;
+    my $lll = shift                       ;
+    my $hhh = shift                       ;
+    #--------------------------------------*
+    # Composizione stringa                 *
+    #--------------------------------------*
+    my $str = "q 1 1 1 rg "
+            . $xxx
+            . " "
+            . $yyy
+            . " "
+            . $lll
+            . " "
+            . $hhh
+            . " re b Q"                   ;
+    #--------------------------------------*
+    # Emissione stringa                    *
+    #--------------------------------------*
+    prAdd($str)                           ;
+}
+
+#==========================================*
+# Check se numero pari o dispari           *
+#------------------------------------------*
+sub par_dsp
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $num = shift                       ;
+    #--------------------------------------*
+    # Normalizzazione risultato            *
+    #--------------------------------------*
+    my $pod = ''                          ;
+    #--------------------------------------*
+    # Test                                 *
+    #--------------------------------------*
+    if (0 == $num % 2)
+    {
+        #----------------------------------*
+        # Pari                             *
+        #----------------------------------*
+        $pod = 'P'                        ;
+    }
+     else
+    {
+        #----------------------------------*
+        # Dispari                          *
+        #----------------------------------*
+        $pod = 'D'                        ;
+    }
+    #--------------------------------------*
+    # Valore in uscita                     *
+    #======================================*
+    return $pod                           ;
+}
+
+#==========================================*
+# Emissione e stampa PDF                   *
+#------------------------------------------*
+sub ejc_pag
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $stp = shift                       ;
+    my $pth = shift                       ;
+    my $prt = shift                       ;
+    my $pag = shift                       ;
+    #--------------------------------------*
+    # Chiusura PDF                         *
+    #--------------------------------------*
+    prEnd()                               ;
+    #--------------------------------------*
+    # Assegnazione nome file               *
+    #--------------------------------------*
+    $out_pdf = $pth 
+             . $prt
+             . "."
+             . $pag
+             . ".pdf"                     ;
+             
+
+    #--------------------------------------*
+    # Stampa file PDF                      *
+    #--------------------------------------*
+#        system("cat $out_pdf | lpr -P$stp");
+    #--------------------------------------*
+    # Uscita                               *
+    #======================================*
+}
+

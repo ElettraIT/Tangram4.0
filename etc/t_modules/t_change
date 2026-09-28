@@ -1,0 +1,55 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per lettura file cambi XML   *
+# Retarus                                  *
+#                                          *
+# t_change                                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 14/05/07    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::HTTP                             ;
+
+#==========================================*
+# Parametri di connessione                 *
+#------------------------------------------*
+my $s = Net::HTTP->new(Host => "www.ecb.int") || die $@;
+
+#==========================================*
+# Percorso di lettura                      *
+#------------------------------------------*
+$s->write_request(GET => "/stats/eurofxref/eurofxref-daily.xml", 'User-Agent' => "Mozilla/5.0");
+
+my($code, $mess, %h) = $s->read_response_headers;
+
+#==========================================*
+# Apertura file di comodo                  *
+#------------------------------------------*
+open (FILEXML, ">/abd/asc/tmp/change.xml") or die
+         "Impossibile aprire il file Immagine";
+
+#==========================================*
+# Ciclo di scrittura                       *
+#------------------------------------------*
+while (1) {
+   my $buf                                ;
+   my $n = $s->read_entity_body($buf, 1024);
+   die "read failed: $!" unless defined $n;
+   last unless $n                         ;
+   print FILEXML $buf                     ;
+}
+
+#==========================================*
+# Chiusura file di comodo                  *
+#------------------------------------------*
+close FILEXML                             ;
+

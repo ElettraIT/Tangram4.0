@@ -1,0 +1,45 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per codificare in base64 un *
+# file PDF                                *
+#                                         *
+# FUNZIONA! - 05/05/2025                  *
+#=========================================*
+
+use MIME::Base64 qw(encode_base64)        ;
+
+#=========================================*
+# File in input                           *
+#-----------------------------------------*
+my $pdf = '/abd/asc/master/pdf/ele_fat300.pdf';
+
+#=========================================*
+# File di output                          *
+#-----------------------------------------*
+my $b64 = '/abd/asc/master/pdf/ele_fat300.enc';
+
+#=========================================*
+# Open del file di output                 *
+#-----------------------------------------*
+open (OUTFILE, ">$b64") or die
+     "Impossibile aprire il file di output";
+
+binmode OUTFILE                           ;
+
+#=========================================*
+# Ciclo di encoding                       *
+#-----------------------------------------*
+open(FILE, $pdf) or die "$!";
+while (read(FILE, $pdf, 60*57)) {
+    print OUTFILE encode_base64($pdf)     ;
+}
+
+#=========================================*
+# Close del file di input                 *
+#-----------------------------------------*
+close (FILE)                             ;
+
+#=========================================*
+# Close del file di output                *
+#-----------------------------------------*
+close (OUTFILE)                           ;

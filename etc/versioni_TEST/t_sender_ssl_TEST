@@ -1,0 +1,78 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta con autenti-  *
+# cazione SSL                              *
+#                                          *
+# t_sender_ssl TEST                        *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/01/19   *
+#   Ultima revisione:   wip del 23/01/19   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - server SMTP                 *
+#                                          *
+#            - Username account PEC        *
+#                                          *
+#            - Password account PEC        *
+#                                          *
+#            - Mail destinatario test      *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Net::SMTP::SSL                        ;
+
+#==========================================*
+# Parametri in input                       *
+#------------------------------------------*
+my $srvr = shift                          ;
+my $user = shift                          ;
+my $pass = shift                          ;
+my $mitt = shift                          ;
+my $dest = $mitt                          ;
+#==========================================*
+# Testo del messaggio                      *
+#------------------------------------------*
+my $testo = 'CONTENUTO MESSAGGIO'         ;
+#==========================================*
+# Normalizzazione preliminare              *
+#------------------------------------------*
+my $smtp                                  ;
+#==========================================*
+# Invio                                    *
+#------------------------------------------*
+    #--------------------------------------*
+    # Invio vero e proprio                 *
+    #--------------------------------------*
+    if (not $smtp = Net::SMTP::SSL->new($srvr,
+                              Port => 465,
+                              Debug => 0))
+       {
+           die "Connessione al server "
+             . "fallita\n"                ;
+       }
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+    $smtp->auth($user, $pass)
+     || die "Autenticazione fallita!\n"   ;
+
+    $smtp->mail($mitt)                    ;
+    $smtp->to($dest)                      ;
+    $smtp->data();
+    $smtp->datasend("To: " . $dest . "\n")  ;
+    $smtp->datasend("Subject: PROVA\n")   ;
+
+    #--------------------------------------*
+    # Chiusura invio                       *
+    #--------------------------------------*
+    $smtp->datasend("\n")                 ;
+    $smtp->datasend($testo . "\n")        ;
+    $smtp->dataend()                      ;
+    $smtp->quit                           ;

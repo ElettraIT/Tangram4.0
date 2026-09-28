@@ -1,0 +1,129 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di generazione QRcode in EPS *
+#                                          *
+# Genera un file EPS con il QRcode         *
+# tramite il modulo 'barcode.ps'           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 29/11/21   *
+#   Ultima revisione:   NdK del 29/11/21   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - testo da includere          *
+#            - nome file                   *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# ___ DA MIGLIORARE MA FUNZIONA BENE ___   *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Variabili in input                       *
+#------------------------------------------*
+my $txt_qrc = shift                       ;
+my $nam_qrc = shift                       ;
+
+#==========================================*
+# Lettura del modulo 'barcode.ps'          *
+#------------------------------------------*
+my $gen_bcd = "/abd/asc/cfg/barcode.ps"   ;
+my $gen_er1 = "File di configurazione "
+            . "non trovato!"              ;
+my $gen_er2 = "Impossibile recuperare "
+            . "il Template!"              ;
+open(PS, $gen_bcd) or die $gen_er1        ;
+$_=join('',<PS>)                          ;
+close(PS)                                 ;
+
+#==========================================*
+# Estrazione dal modulo 'barcode.ps' del   *
+# TEMPLATE da richiamare                   *
+#------------------------------------------*
+m/
+    %\ --BEGIN\ TEMPLATE--
+    (.*)
+    %\ --END\ TEMPLATE--
+    /sx or die $gen_er2                   ;
+
+#==========================================*
+# Completamento del TEMPLATE               *
+#------------------------------------------*
+my $template=''                           ;
+$template.="%!PS-Adobe-2.0 EPSF-2.0\n"    ;
+$template.="%%BoundingBox: 0 0 [% width %] [% height %]\n"     ;
+$template.="%%EndComments"                ;
+$template.=$1                             ;
+$template.="10 7 moveto\n"                ;
+$template.="[% call %]\n"                 ;
+$template.="showpage\n"                   ;
+
+#==========================================*
+# Emissione EPS                            *
+#                                          *
+# Parametri:                               *
+# - Nome file                              *
+# - Testo da includere                     *
+#------------------------------------------*
+&inc_eps ($nam_qrc,$txt_qrc)              ;
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Trattamento EPS                          *
+#------------------------------------------*
+sub inc_eps
+{
+#   *--------------------------------------*
+#   * Valori in input                      *
+#   *--------------------------------------*
+    my $nom_cmp = shift                   ;
+    my $val_cmp = shift                   ;
+#   *--------------------------------------*
+#   * Percorso file barcode EPS            *
+#   *--------------------------------------*
+    my $pth_eps = "/abd/asc/tmp/"
+                . $nom_cmp
+                . ".eps"                  ;
+#   *--------------------------------------*
+#   * Parametri per generazione tramite    *
+#   * modulo 'barcode.ps'                  *
+#   *                                      *
+#   * EVENTUALI PARAMETRI IN INPUT         *
+#   *--------------------------------------*
+    my $eps_wid=95                        ;
+    my $eps_hei=95                        ;
+    my $eps_inc = "("
+                . $val_cmp
+                . ") (includetext) /qrcode "
+                . "/uk.co.terryburton.bwipp "
+                . "findresource exec"     ;
+#   *--------------------------------------*
+#   * Completamento per EPS                *
+#   *--------------------------------------*
+    my $barcode=$template                 ;
+    $barcode=~s/\[% call %\]/$eps_inc/   ;
+    $barcode=~s/\[% width %\]/$eps_wid/   ;
+    $barcode=~s/\[% $eps_hei %\]/$eps_hei/   ;
+
+#   *--------------------------------------*
+#   * DEBUG                                *
+#   *--------------------------------------*
+#    print $pth_eps . "\n";
+#    print $eps_wid . "\n";
+#    print $eps_hei . "\n";
+#    print $eps_inc . "\n";
+
+#   *--------------------------------------*
+#   * Apertura e generazione del file EPS  *
+#   *--------------------------------------*
+    open(OUT,"> $pth_eps")                ;
+    print OUT $barcode                    ;
+    close(OUT)                            ;
+}
+

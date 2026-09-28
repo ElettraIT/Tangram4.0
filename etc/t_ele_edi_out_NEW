@@ -1,0 +1,313 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per invio file a Metel       *
+#                                          *
+# t_ele_edi_out                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/06/23    *
+#   Ultima revisione:  NdK del 23/10/23    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Descrizione modulo:                      *
+#                                          *
+# Collegamento SFTP al sito di Metel per   *
+# inviare i documenti nell' apposita di-   *
+# rectory col il path che termina con la   *
+# estensione '.xml'. Contestualmente, per  *
+# ogni file trasferito, si scrive un       *
+# record del Database MySQL relativo       *
+#                                          *
+# ---------------------------------------- *
+# in Crontab ogni ora (alle '50)           *
+#                                          *
+# 50 * * * *      /abd/etc/t_ele_edi_imp   *
+#                                          *
+# N.B.: seguito dal programma 'pedi6000'   *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Configurazione : - 't_ele_edi_out.ini'   *
+#                                          *
+# File di Log    : - 't_ele_edi_out.log'   *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+use File::Basename                        ;
+use DBI()                                 ;
+
+#==========================================*
+# Parametri di configurazione              *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_ele_edi_out.ini";
+my %cnf_ele = do $cfg_bas                 ;
+#
+my $hst_ftp = $cnf_ele{hst_ftp}           ;
+my $hst_usr = $cnf_ele{hst_usr}           ;
+my $hst_pwd = $cnf_ele{hst_pwd}           ;
+my $pth_exp = $cnf_ele{pth_exp}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_tst = $cnf_ele{pth_tst}           ;
+my $pth_pro = $cnf_ele{pth_pro}           ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+#
+my $dtb_azi = "ele"                       ;
+my $dtb_tbl = "metel"                     ;
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+$theTime = &sys_tim                       ;
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = $pth_bas
+            . 'log/t_ele_edi_out.log'     ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtb_azi;host=$dtb_hst",
+                       $dtb_usr,
+                       $dtb_pwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Determinazione percorso di destinazione  *
+#------------------------------------------*
+my $pat_exe = $pth_pro                    ;
+
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+my %args = (user => $hst_usr,
+        password => $hst_pwd,
+            port => 22)                   ;
+
+my $sftp = Net::SFTP::Foreign->new($hst_ftp, %args)
+   or &log_msg("Connessione SFTP fallita") ;
+#------------------------------------------*
+# Directory di output                      *
+#------------------------------------------*
+#$sftp->setcwd($pat_exe)
+#  or &log_msg("Cambio directory fallito") ;
+
+
+
+
+
+#==========================================*
+# Open directory dei PDF                   *
+#------------------------------------------*
+opendir (DIR, $pth_exp)                   ;
+    
+#==========================================*
+# Ciclo interno alla directory             *
+#------------------------------------------*
+foreach $nam (sort readdir(DIR))
+{
+    #--------------------------------------*
+    # Skip dei file "."                    *
+    #--------------------------------------*
+    if($nam eq "." || $nam eq ".."){ next;}    
+    #--------------------------------------*
+    # Test che il file trattato non sia    *
+    # una directory                        *
+    #--------------------------------------*
+    if (! -d $nam)
+    {
+        #----------------------------------*
+        # Test se file gia' inviato ed     *
+        # eventuale invio                  *
+        #----------------------------------*
+        &snd_fil ($nam)                   ;
+    }
+}
+  
+#==========================================*
+# Close directory                          *
+#------------------------------------------*
+closedir (DIR)                            ;
+
+#------------------------------------------*
+# Uscita da FTP                            *
+#==========================================*
+$sftp->disconnect                         ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Messaggio di conclusione                 *
+#------------------------------------------*
+&log_msg("Trasmissione conclusa")         ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Test se file da inviare                  *
+#------------------------------------------*
+sub snd_fil
+{
+    #--------------------------------------*
+    # Nome file da testare                 *
+    #--------------------------------------*
+    my $fil_inv = shift                   ;
+    #--------------------------------------*
+    # Lettura elemento                     *
+    #--------------------------------------*
+    my $sel = "SELECT path FROM "
+            . $dtb_tbl
+            . " WHERE path = '"
+            . $fil_inv
+            . "'"                         ;
+    #--------------------------------------*
+    # Preparazione select                  *
+    #--------------------------------------*
+    my $sth = $dbh->prepare($sel)         ;
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth->execute()                       ;
+    #--------------------------------------*
+    # Test su esito lettura                *
+    #--------------------------------------*
+    $row = $sth->rows                     ;
+    #--------------------------------------*
+    # Se record non trovati                *
+    #--------------------------------------*
+    if ($row == 0)
+    {
+        #----------------------------------*
+        # Invio vero e proprio             *
+        #----------------------------------*
+        my $loc_pat = $pth_exp . $fil_inv ;
+        my $rem_pat = $pth_pro . $fil_inv ;
+
+
+        print $loc_pat . "\n";
+        print $rem_pat . "\n";
+
+
+
+
+        $sftp->put($loc_pat, $rem_pat)
+            or &log_msg("Invio fallito")  ;
+
+        #----------------------------------*
+        # Aggiornamento database           *
+        #----------------------------------*
+        my $ins = "INSERT INTO "
+                . $dtb_tbl
+                . " VALUES ('"
+                . $fil_inv
+                . "', '#', NOW(),"
+                . " '', '', '', '')"      ;
+        my $sth = $dbh->prepare($ins)     ;
+        #----------------------------------*
+        # Esecuzione                       *
+        #----------------------------------*
+        $sth->execute()                   ;
+        #----------------------------------*
+        # Chiusura database                *
+        #----------------------------------*
+        $sth->finish()                    ;
+    }
+    
+}
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+     $daylightSavings) = localtime()      ;
+    #--------------------------------------*
+    # Correttivi                           *
+    #--------------------------------------*
+    my $anno = 1900 + $yearOffset         ;
+    #
+    my $mese = $month + 1                 ;
+    my $mesx = sprintf ("%02d", $mese)    ;
+    #
+    my $gior = $dayOfMonth                ;
+    my $giox = sprintf ("%02d", $gior)    ;
+    #
+    my $orax = sprintf ("%02d", $hour)    ;
+    my $minx = sprintf ("%02d", $minute)  ;
+    my $secx = sprintf ("%02d", $second)  ;
+    #--------------------------------------*
+    # Data in output                       *
+    #--------------------------------------*
+    $sysTime = "$anno $mesx $giox "
+             . "$orax:$minx:$secx"        ;
+    return $sysTime                       ;
+}
+
+#==========================================*
+# Emissione LOG                            *
+#------------------------------------------*
+sub log_msg 
+{
+    #--------------------------------------*
+    # Testo messaggio in input             *
+    #--------------------------------------*
+    my $msg_txt = shift                   ;
+    #--------------------------------------*
+    # Messaggio per il LOG                 *
+    #--------------------------------------*
+    print LOG_FIL $theTime
+	         . " - "
+	         . $msg_txt
+                . "\n"                    ;
+}
+

@@ -1,0 +1,20 @@
+#!/usr/bin/perl -w
+# Invio a Retarus CSV per EDI
+
+use Net::SFTP;
+my $host = '82.135.18.189';
+
+# my $host = '94.199.90.151'                ;
+my $sftp = Net::SFTP->new($host);
+
+
+$sftp->login("siri",'siri2retarus%%')
+   or die "Cannot login ", $sftp->message;
+
+ $sftp->cwd("test/orders_out")
+   or die "Cannot change working directory ", $sftp->message;
+
+  $sftp->put("/abd/asc/exp/ORDERS_07_231.CSV")
+   or die "put failed ", $sftp->message;
+
+$sftp->quit;

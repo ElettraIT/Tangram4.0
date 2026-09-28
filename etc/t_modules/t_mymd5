@@ -1,0 +1,38 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per generazione password    *
+# in formato MD5 in tabella utenti        *
+#                                         *
+# t_mymd5                                 *
+#-----------------------------------------*
+
+#=========================================*
+# Modulo Perl MIME::Lite                  *
+#-----------------------------------------*
+use DBI();
+
+#=========================================*
+# Variabili lette in input                *
+# --------------------------------------- *
+#  - $pass : Password                     *
+#-----------------------------------------*
+$pass= $ARGV[0];
+$dtbs= "xpg";
+$tbla= "ute";
+
+#=========================================*
+# Connessione al database                 *
+#-----------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtbs;
+                        host=localhost",
+                       "root",
+                       $pass,
+                       {RaiseError => 1,
+                        PrintError => 0});
+
+#=========================================*
+# Scansione tabella utenti                *
+#-----------------------------------------*
+my $sth = $dbh->prepare("UPDATE $tbla SET pwd_ute = MD5(pwd_ute)");
+$sth->execute();
+$sth->finish();

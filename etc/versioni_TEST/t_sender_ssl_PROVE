@@ -1,0 +1,484 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta con autenti-  *
+# cazione SSL                              *
+#                                          *
+# t_sender_ssl                             *
+#                                          *
+# Invio di messaggi ad una lista di        *
+# indirizzi e con i relativi allegati      *
+# (utilizzato per i lotti di fatture PDF)  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 31/10/12   *
+#   Ultima revisione:   NdK del 07/04/16   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#            - server SMTP                 *
+#            - mittente                    *
+#            - username                    *
+#            - password                    *
+#            - indirizzi (opzionale)       *
+#            - soggetto  (opzionale)       *
+#            - messaggio (opzionale)       *
+#                                          *
+# ---------------------------------------- *
+# N.B.: i campi in input sono separati da  *
+#       virgola ','                        *
+#                                          *
+# ---------------------------------------- *
+# N.B.: UNIFORMABILE CON 't_sender_aut'    *
+# ---------------------------------------- *
+# N.B.: il campo indirizzi puo' contenere  *
+#       il nome di un file di indirizzi e  *
+#       percorsi di allegati, oppure un    *
+#       solo indirizzo e un solo allegato  *
+#       separati da '#'                    *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+#use Net::SMTP::SSL                        ;
+use Net::SMTP                        ;
+use MIME::Base64                          ;
+use File::Spec                            ;
+use File::Basename                        ;
+use LWP::MediaTypes                       ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/'                    ;
+my $temp = '/tmp/'                        ;
+#
+my $sogg = 'sogg.txt'                     ;
+my $mess = 'mess.txt'                     ;
+my $emla = 'indi.txt'                     ;
+#
+my $wsog = ''                             ;
+my $wmes = ''                             ;
+my $wind = ''                             ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+#    *-------------------------------------*
+#    * Lettura variabile in input          *
+#    *-------------------------------------*
+$inpt = $ARGV[0]                          ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$ARGV[0] || $ARGV[0] eq "-help")
+{
+    print "\n"
+        . "Uso : (parametri "
+        . "separati da virgola)"
+        . "\n"
+        . "> t_sender_ssl"
+        . "\n"
+        . "           AZIENDA(default: doc),"
+        . "\n"
+        . "           SERVER_SMTP,"
+        . "\n"
+        . "           MITTENTE,"
+        . "\n"
+        . "           USERID_SSL,"
+        . "\n"
+        . "           PASSWORD_SSL,"
+        . "\n"
+        . "           INDIRIZZI(opz),"
+        . "\n"
+        . "           SOGGETTO(opz),"
+        . "\n"
+        . "           MESSAGGIO(opz),"
+        . "\n"
+        . "\n"
+        . "Release : 07/04/2016"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#    *-------------------------------------*
+#    * Separazione dei componenti (,)      *
+#    *-------------------------------------*
+@vars = split(/,/, $inpt)                 ;
+#    *-------------------------------------*
+#    * Azienda Tangram                     *
+#    *-------------------------------------*
+my $atgm = $vars[0]                       ;
+#    *-------------------------------------*
+#    * Server SMTP                         *
+#    *-------------------------------------*
+my $srvr = $vars[1]                       ;
+#    *-------------------------------------*
+#    * Mittente                            *
+#    *-------------------------------------*
+my $mitt = $vars[2]                       ;
+#    *-------------------------------------*
+#    * Username autenticazione             *
+#    *-------------------------------------*
+my $user = $vars[3]                       ;
+#    *-------------------------------------*
+#    * Password autenticazione             *
+#    *-------------------------------------*
+my $pass = $vars[4]                       ;
+#    *-------------------------------------*
+#    * Indirizzi                          *
+#    *-------------------------------------*
+my $indi = $vars[5]                       ;
+#    *-------------------------------------*
+#    * Soggetto                            *
+#    *-------------------------------------*
+my $sogi = $vars[6]                       ;
+#    *-------------------------------------*
+#    * Messaggio                           *
+#    *-------------------------------------*
+my $mesi = $vars[7]                       ;
+
+#==========================================*
+# Debug (da scommentare)                   *
+#------------------------------------------*
+#    print "azienda :" . $vars[0] . "\n";
+#    print $vars[1] . "\n";
+#    print $vars[2] . "\n";
+#    print $vars[3] . "\n";
+#    print $vars[4] . "\n";
+#    print $vars[5] . "\n";
+#    print $vars[6] . "\n";
+#    print $vars[7] . "\n";
+#    exit ();
+
+#==========================================*
+# Sub-routine per lettura soggetto         *
+#------------------------------------------*
+&soggetto                                 ;
+
+#==========================================*
+# Sub-routine per lettura testo            *
+#------------------------------------------*
+&messaggio                                ;
+
+#=========================================*
+# Sub-routine di spedizione               *
+#-----------------------------------------*
+&spedisci                                 ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#=========================================*
+# Spedizione                              *
+#-----------------------------------------*
+sub spedisci 
+{
+    #-------------------------------------*
+    # Se passata una lista                *
+    #-------------------------------------*
+    if ($indi !~ /\@/)
+    {
+        &lista                            ;
+    }
+    #-------------------------------------*
+    # Se passato un singolo indirizzo     *
+    #-------------------------------------*
+    else 
+    {
+        @elem = split(/#/, $indi)         ;
+        &send                             ;
+    };
+}
+
+#==========================================*
+# Apertura file contenente il soggetto     *
+#------------------------------------------*
+sub soggetto
+{
+    #--------------------------------------*
+    # Verifica variabile letta             *
+    #--------------------------------------*
+    if (!$sogi)
+    {
+        $wsog = $sogg                     ;
+    } else
+    {
+        $wsog = $sogi                     ;
+    }
+    
+    #--------------------------------------*
+    # Test se si tratta di un nome file    *
+    #--------------------------------------*
+    if ($wsog =~ /.txt/)
+    {
+        #----------------------------------*
+        # Composizione directory           *
+        #----------------------------------*
+        my $wdir = $base
+                 . $atgm
+                 . $temp
+                 . $wsog                  ;
+        #----------------------------------*
+        # Open                             *
+        #----------------------------------*
+        open (SOGGETTO, "$wdir")or die
+         "Impossibile aprire file '$wdir'";
+        @subject=<SOGGETTO>               ;
+        #----------------------------------*
+        # Close                            *
+        #----------------------------------*
+        close SOGGETTO                    ;
+    } else
+    {
+        @subject = split(/_/, $wsog )     ;
+    }
+}
+
+#==========================================*
+# Apertura file contenente il messaggio    *
+#------------------------------------------*
+sub messaggio
+{
+    #--------------------------------------*
+    # Verifica variabile letta             *
+    #--------------------------------------*
+    if (!$mesi)
+    {
+        $wmes = $mess                     ;
+    } else
+    {
+        $wmes = $mesi                     ;
+    }
+    #--------------------------------------*
+    # Composizione directory               *
+    #--------------------------------------*
+    my $wdir = $base
+             . $atgm
+             . $temp
+             . $wmes                      ;
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (MESSAGE, "$wdir")
+          or die
+         "Impossibile aprire file '$mess'";
+    @message=<MESSAGE>                    ;
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close MESSAGE                         ;
+    #--------------------------------------*
+    # Compattazione testo letto            *
+    #--------------------------------------*
+    $testo = qq{@message}                 ;
+}
+
+#==========================================*
+# Invio ad una lista                       *
+#------------------------------------------*
+sub lista
+{
+    #--------------------------------------*
+    # Verifica variabile letta             *
+    #--------------------------------------*
+    if (!$indi)
+    {
+        $wind = $emla                     ;
+    } else
+    {
+        $wind = $indi                     ;
+    }
+    #--------------------------------------*
+    # Composizione directory               *
+    #--------------------------------------*
+    my $wdir = $base
+             . $atgm
+             . $temp
+             . $wind                      ;
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (INDIRIZZI, "$wdir")or die
+        "Impossibile aprire file indirizzi";
+    @indirizzo = <INDIRIZZI>              ;
+    #--------------------------------------*
+    # Ciclo di scansione file              *
+    #--------------------------------------*
+    foreach $indirizzo (@indirizzo)
+    {
+        @elem = split(/,/, $indirizzo)    ;
+        if ($elem[0] !~ /\@/)
+            {next}
+            else {&send}                  ;
+    }
+
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close (INDIRIZZI)                     ;
+}
+
+#==========================================*
+# Singolo invio                            *
+#------------------------------------------*
+sub send
+{
+    #--------------------------------------*
+    # Normalizzazione preliminare          *
+    #--------------------------------------*
+    my $smtp                              ;
+
+    #--------------------------------------*
+    # Invio vero e proprio                 *
+    #--------------------------------------*
+    if (not $smtp = Net::SMTP->new($srvr,
+                              Port => 465,
+                              SSL  => 1,
+                              Timeout => 30,
+                              Debug => 1))
+       {
+           die "Connessione al server "
+             . "fallita\n"                ;
+       }
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+    $smtp->auth($user, $pass)
+     || die "Autenticazione fallita!\n"   ;
+
+    #--------------------------------------*
+    # Preparazione messaggio               *
+    #--------------------------------------*
+    my ($bi, $bn, @bchrs)                 ;
+    my $boundry = ""                      ;
+    foreach $bn (48..57,65..90,97..122)
+    {
+        $bchrs[$bi++] = chr($bn)          ;
+    }
+    foreach $bn (0..20)
+    {
+        $boundry .= $bchrs[rand($bi)]     ;
+    }
+
+    #--------------------------------------*
+    # Estrazione nome allegato             *
+    #--------------------------------------*
+    my $fname = basename($elem[1])        ;
+    #--------------------------------------*
+    # Estrazione nome allegato senza       *
+    # estensione                           *
+    #--------------------------------------*
+   (my $fnams,
+    my $direc,
+    my $exten) = fileparse($elem[1],'\..*');
+    #--------------------------------------*
+    # Composizione soggetto e allegato     *
+    # eliminando blank superflui dal sog-  *
+    # getto del file                       *
+    #--------------------------------------*
+    my $oggw = qq{@subject}               ;
+    $oggw =~ s/^\s+//                     ;
+    $oggw =~ s/\s+$//                     ;    
+    my $ogge = $oggw . " - " . $fnams     ;
+
+    #--------------------------------------*
+    # Invio intestazione                   *
+    #--------------------------------------*
+    $smtp->mail($mitt . "\n");
+    my @recepients = split(/,/, $elem[0]) ;
+    foreach my $recp (@recepients)
+    {
+        $smtp->to($recp . "\n")           ;
+    }
+    $smtp->data();
+    $smtp->datasend("From: " . $mitt . "\n");
+    $smtp->datasend("To: " . $elem[0] . "\n")  ;
+    $smtp->datasend("Bcc: " . $mitt . "\n") ;
+    $smtp->datasend("Subject: " . $ogge . "\n");
+    $smtp->datasend("MIME-Version: 1.0\n");
+    $smtp->datasend("Content-Type: multipart/mixed; BOUNDARY=\"$boundry\"\n");
+
+    #--------------------------------------*
+    # Invio corpo                          *
+    #--------------------------------------*
+    $smtp->datasend("\n--$boundry\n");
+    $smtp->datasend("Content-Type: text/html; charset=UTF-8\n\n");
+    $smtp->datasend($testo . "\n\n");
+
+    #--------------------------------------*
+    # Invio attachments                    *
+    #--------------------------------------*
+    
+    my $file = $elem[1]                   ;
+    
+        unless (-f $file)
+        {
+            die "Non trovato il file $file\n";
+            next                          ;
+        }
+        my($bytesread, $buffer, $data, $total);
+        open(FH, "$file") || die "Errore in apertura di $file\n";
+        binmode(FH)                       ;
+        while (($bytesread = sysread(FH, $buffer, 1024)) == 1024)
+        {
+            $total += $bytesread          ;
+            $data .= $buffer              ;
+        }
+        if ($bytesread)
+        {
+            $data .= $buffer              ;
+            $total += $bytesread          ;
+        }
+        close FH                          ;
+
+    #--------------------------------------*
+    # Pulizia nome file                    *
+    #--------------------------------------*
+    my ($volm,
+        $dire,
+        $fnam) = File::Spec->splitpath($file);
+  
+    #--------------------------------------*
+    # Tipo file dall'estensione            *
+    #--------------------------------------*
+    my $cont = guess_media_type($file)    ;
+  
+    if ($data)
+    {
+        $smtp->datasend("--$boundry\n")   ;
+        $smtp->datasend("Content-Type: $cont; name=\"$fnam\"\n");
+        $smtp->datasend("Content-Transfer-Encoding: base64\n");
+        #----------------------------------*
+        # Attenzione Header RFC 2183 ___   *
+        #----------------------------------*
+        $smtp->datasend("Content-Disposition: attachment; filename=\"$fnam\"\n\n");
+        $smtp->datasend(encode_base64($data));
+        $smtp->datasend("--$boundry\n")   ;
+    }
+
+    #--------------------------------------*
+    # Chiusura invio                       *
+    #--------------------------------------*
+    $smtp->datasend("\n--$boundry--\n")   ;
+    $smtp->datasend("\n")                 ;
+    $smtp->dataend()                      ;
+    $smtp->quit                           ;
+
+    #--------------------------------------*
+    # Attesa di 'n' secondi per consentire *
+    # al server ricevente di inoltrare al  *
+    # destinatario                         *
+    #--------------------------------------*
+    sleep(2)                              ;
+}
+

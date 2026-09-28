@@ -1,0 +1,148 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per tradurre in formato CSV  *
+# un file Excel in formato 97/2000/XP con  *
+# estensione '.xls'                        *
+#                                          *
+# t_pet_xls_csv                            *
+#                                          *
+# SU MISURA PER PERONTECNICI               *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 14/05/21    *
+#   Ultima revisione:  NdK del 19/05/21    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - nome file XLS               *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Spreadsheet::ParseExcel               ;
+use File::Basename                        ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $fil_nam = shift                       ;
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di configurazione base         *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/"
+            . "t_pet_xls_csv.ini"         ;
+#
+my %cnf_ele = do $cfg_bas                 ;
+my $pth_wrk = $cnf_ele{pth_wrk}           ;
+
+#==========================================*
+# Definizione percorsi completi files      *
+#------------------------------------------*
+my $fil_wrk = basename($fil_nam, ".xls")
+            . ".csv"                      ;
+my $pth_csv = $pth_wrk . $fil_wrk         ;
+my $pth_xls = $pth_wrk . $fil_nam         ;
+
+#==========================================*
+# Open del file in output                  *
+#------------------------------------------*
+open (OUTFILE, ">$pth_csv") or die
+     "Impossibile aprire il file $pth_csv";
+
+#==========================================*
+# Definizione area di lavoro               *
+#------------------------------------------*
+my $ext_xls = new Spreadsheet::ParseExcel ;
+my $wrk_fil = $ext_xls->Parse($pth_xls)   ;
+
+#==========================================*
+# DEBUG                                    *
+#------------------------------------------*
+# print "pth_csv = " . $pth_csv . "\n"    ;
+# print "pth_xls = " . $pth_xls . "\n"    ;
+# exit()                                  ;
+            
+#==========================================*
+# Preparazione scansione                   *
+#------------------------------------------*
+my $she_ets = $wrk_fil->{SheetCount}      ;
+my ($SHE_WRK, $she_nam)                   ;
+
+#==========================================*
+# Ciclo di scansione                       *
+#------------------------------------------*
+foreach my $she_ele (0 .. $she_ets - 1)
+{
+    #--------------------------------------*
+    # Definizioni preliminari              *
+    #--------------------------------------*
+    $she_wrk = $wrk_fil->{Worksheet}[$she_ele];
+    $she_nam = $she_wrk->{Name}           ;
+    #--------------------------------------*
+    # Stampa titolo foglio                 *
+    #--------------------------------------*
+#    print "Worksheet $sheet: $she_nam\n";
+
+    #--------------------------------------*
+    # Ciclo                                *
+    #--------------------------------------*
+    next unless (exists ($she_wrk->{MaxRow}) and (exists ($she_wrk->{MaxCol})));
+    foreach my $row ($she_wrk->{MinRow} .. $she_wrk->{MaxRow})
+    {
+        #----------------------------------*
+        # Colonne                          *
+        #----------------------------------*
+        foreach my $column ($she_wrk->{MinCol} .. $she_wrk->{MaxCol})
+        {
+            next unless (defined $she_wrk->{Cells}[$row][$column]);
+            #------------------------------*
+            # Recupero valore cella        *
+            #------------------------------*
+            $wrk_fld = $she_wrk->{Cells}[$row][$column]->Value;
+            #------------------------------*
+            # Skip prime due colonne       *
+            #------------------------------*
+            if ($column < 2)
+            {next}
+            #------------------------------*
+            # Formattazione colonna codice *
+            # prodotto                     *
+            #------------------------------*
+            if ($column == 2)
+            {
+                $wrk_fld = pack("A20", $wrk_fld)
+            }
+            #------------------------------*
+            # Formattazione col. quantita' *
+            #------------------------------*
+            if ($column > 2)
+            {
+                $wrk_fld = pack("A10", $wrk_fld)
+            }
+            #------------------------------*
+            # Scrittura valori             *
+            #------------------------------*
+            print OUTFILE $wrk_fld . ";";
+        }
+        #----------------------------------*
+        # Ultima riga file                 *
+        #----------------------------------*
+        print OUTFILE "\n";
+    }
+}
+#------------------------------------------*
+# Fine ciclo di scansione del file         *
+#==========================================*
+
+#==========================================*
+# Close del file in output                 *
+#------------------------------------------*
+close (OUTFILE)                           ;
+

@@ -1,0 +1,170 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl su misura                    *
+#                                          *
+# t_zat_cre_gia                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 09/11/11   *
+#   Ultima revisione:   NdK del 17/06/13   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Il modulo legge il sequenziale prodotto  *
+# da Tangram con 'gpz7120' ed emette un    *
+# file nel formato CSV da esportare via    *
+# SFTP ad un Server esterno                *
+#                                          *
+# SOLO GIACENZE                            *
+#                                          *
+# N.B.: 'pgpz7120' in crontab              *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Basename                        ;
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $host = "195.138.243.55"               ;
+my $user = 'gestionale'                   ;
+my $cert = "/home/master/.ssh/id_rsa"     ;
+
+my $base = '/abd/asc/exp/web/'            ;
+my $bcsv = '/home/gestionale/'
+         . 'import/'                      ;
+my $dftx = '/abd/ftx/zatti_tc/'           ;
+
+my $fgcz = 'gcz_mag.csv'                  ;
+
+my $ngcz = 'scorte'                       ;
+my $subd = 'new'                          ;
+
+#==========================================*
+# Variabili di trattamento DATA e ORA      *
+#------------------------------------------*
+#                                          *
+# Utilizzo variabile 'localtime'           *
+#                                          *
+# - 0 : Secondi                            *
+# - 1 : Minuti                             *
+# - 2 : Ora                                *
+# - 3 : Giorno                             *
+# - 4 : Mese                               *
+# - 5 : Anno (Secolo - anno di 3 cifre)    *
+# - 6 : Giorno della settimana             *
+# - 7 : Giorno nell'anno (0..364)          *
+# - 8 : Giorno o notte (true - false)      *
+#------------------------------------------*
+    #--------------------------------------*
+    # Data di sistema (hh) - Ore           *
+    #--------------------------------------*
+    my $ora = sprintf("%02d",
+                     (localtime)[2])      ;
+    #--------------------------------------*
+    # Data di sistema (mm) - Minuti        *
+    #--------------------------------------*
+    my $min = sprintf("%02d",
+                     (localtime)[1])      ;
+    #--------------------------------------*
+    # Data di sistema (AAAA) - Anno (est.) *
+    #--------------------------------------*
+    my $ann = sprintf("%04d",
+                     (localtime)[5]+1900) ;
+    #--------------------------------------*
+    # Data di sistema (AA) - Anno (abbr.)  *
+    #--------------------------------------*
+    my $ana = sprintf("%02d",
+                     (localtime)[5] % 100);    
+    #--------------------------------------*
+    # Data di sistema (MM) - Mese          *
+    #--------------------------------------*
+    my $mes = sprintf("%02d",
+                     (localtime)[4]+1)    ;
+    #--------------------------------------*
+    # Data di sistema (GG) - Giorno        *
+    #--------------------------------------*
+    my $gio = sprintf("%02d",
+                     (localtime)[3])      ;
+
+#==========================================*
+# Test preliminare che l'esecuzione        *
+# avvenga in orari di lavoro per evitare   *
+# le ore di inutilizzo                     *
+#                                          *
+# Range: dalle 07 di mattina alle 20       *
+#------------------------------------------*
+if ($ora > 20 || $ora < 07)
+{
+    exit()                                ;
+}
+
+#==========================================*
+# Messaggi di inizio e fine procedura      *
+#------------------------------------------*
+BEGIN
+{
+    print "Inizio invio giacenze ...\n"   ;
+}
+
+END
+{
+    print "... invio eseguito\n"          ;
+}
+
+#==========================================*
+# Creazione nome file di destinazione      *
+#                                          *
+# Formato nome : xxxx_AAAA_MM_GG-HH_SS.csv *
+#------------------------------------------*
+
+    #--------------------------------------*
+    # Nome file completo: giacenze         *
+    #--------------------------------------*
+    my $giac = $ngcz
+             . "_"
+             . $ann
+             . "_"
+             . $mes
+             . "_"
+             . $gio
+             . "-"
+             . $ora
+             . "_"
+             . $min
+             . ".csv"                     ;
+    
+    #--------------------------------------*
+    # Preparazione argomenti per chiamata  *
+    #--------------------------------------*
+    my %args = (user => $user,
+            key_path => $cert,
+                more => [qw(-o PreferredAuthentications=publickey)]
+        );
+
+    #--------------------------------------*
+    # Chiamata                             *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Invio file: giacenze                 *
+    #--------------------------------------*
+    $send = $dftx . $fgcz                 ;
+    
+    $sftp->put($send, $bcsv
+                    . $ngcz
+                    . "/"
+                    . $subd
+                    . "/"
+                    . $giac)
+    or die "invio fallito: " . $sftp->error;
+
+#------------------------------------------*
+# Fine procedura                           *
+#==========================================*

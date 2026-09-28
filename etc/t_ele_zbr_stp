@@ -1,0 +1,1048 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Etichette su stampante Zebra             *
+#                                          *
+# Ad hoc ELETTRA                           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/09/2023 *
+#   Ultima revisione:   wip del 05/06/2024 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Parametri in input : - file parametri    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Note : lo script legge un file CSV e     *
+#        prepara un file PDF da inviare    *
+#        alla stampante ZEBRA indicata che *
+#        lo tratta con l'emulatore         *
+#                                          *
+#        Utilizzato da: pbol340a ELETTRA   *
+#                       pbol340b ELETTRA   *
+#                       pbol300s ELETTRA   *
+#                                          *
+#                       pods3700           *
+#                                          *
+#                       eleodsZ0 ELETTRA   *
+#                                          *
+# Per evitare sovrapposizioni con i nomi   *
+# dei files PDF, pensare ad usare il tipo  *
+# etichetta come differenziatore           *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use PDF::Reuse                            ;
+use PDF::Reuse::Barcode                   ;
+use strict                                ;
+
+#==========================================*
+# Variabili in input                       *
+#------------------------------------------*
+my $num_prt = shift                       ;
+
+#==========================================*
+# Test su variabili in input               *
+#------------------------------------------*
+if (!$num_prt)
+{ exit();}
+
+#==========================================*
+# Percorsi file                            *
+#------------------------------------------*
+my $pth_tmp = "/abd/spl/"                 ;
+my $log_az1 = "/abd/asc/mod/elettra.pdf"  ;
+my $log_az2 = "/abd/asc/mod/aeg.pdf"      ;
+my $pth_csv = $pth_tmp . $num_prt . ".csv";
+my $out_pdf = $pth_tmp . $num_prt . ".pdf";
+
+#==========================================*
+# Normalizzazioni                          *
+#------------------------------------------*
+my $cod_stp = ""                          ;
+my $tip_eti = ""                          ;
+my $num_eti = 0                           ;
+my $pes_tot = 0                           ;
+my $num_doc = ""                          ;
+my $rag_cli = ""                          ;
+my $via_cli = ""                          ;
+my $loc_cli = ""                          ;
+my $rag_vet = ""                          ;
+my $via_vet = ""                          ;
+my $loc_vet = ""                          ;
+my $rif_doc = ""                          ;
+#------------------------------------------*
+# Comodi per la stampa                     *
+#------------------------------------------*
+my $str     = ""                          ;
+my $lin     = 0                           ;
+my $pos     = 0                           ;
+#------------------------------------------*
+# Normalizzazioni - etichetta '3'          *
+#------------------------------------------*
+my $tra_cur = ""                          ;
+my $cod_vet = ""                          ;
+my $cod_spd = ""                          ;
+my $des_spd = ""                          ;
+my $cod_por = ""                          ;
+my $des_por = ""                          ;
+my $spe_spd = ""                          ;
+my $ann_sp1 = ""                          ;
+my $ann_sp2 = ""                          ;
+my $ann_sp3 = ""                          ;
+my $ann_sp4 = ""                          ;
+
+#==========================================*
+# Open file contenente i parametri         *
+#------------------------------------------*
+open (I_FILE, "$pth_csv") or die
+     "Impossibile aprire il file '$pth_csv'";
+my   @linea = <I_FILE>                    ;
+
+#==========================================*
+# Close del file                           *
+#------------------------------------------*
+close I_FILE                              ;
+
+#==========================================*
+# Ciclo di scansione per lettura parametri *
+#------------------------------------------*
+foreach my $row (@linea)
+{
+    #--------------------------------------*
+    # Lettura linea                        *
+    #--------------------------------------*
+    my   @rec = split(/;/, $row)          ;
+    #--------------------------------------*
+    # Test su tipo record                  *
+    #--------------------------------------*
+    if  ($rec[0] eq "cod_stp")
+    {
+        #----------------------------------*
+        # Codice stampante                 *
+        #----------------------------------*
+        $cod_stp = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "tip_eti")
+    {
+        #----------------------------------*
+        # Tipo etichetta                   *
+        #----------------------------------*
+        $tip_eti = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "num_eti")
+    {
+        #----------------------------------*
+        # Numero di etichette              *
+        #----------------------------------*
+        $num_eti = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "pes_tot")
+    {
+        #----------------------------------*
+        # Peso totale                      *
+        #----------------------------------*
+        $pes_tot = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "num_doc")
+    {
+        #----------------------------------*
+        # Numero documento                 *
+        #----------------------------------*
+        $num_doc = $rec[1]                ;
+        $num_doc =~ s/\s+$//              ;
+    }
+     elsif ($rec[0] eq "rag_cli")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '2'            *
+        #                                  *
+        # Ragione sociale cliente          *
+        #----------------------------------*
+        $rag_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "via_cli")
+    {
+        #----------------------------------*
+        # Indirizzo cliente                *
+        #----------------------------------*
+        $via_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "loc_cli")
+    {
+        #----------------------------------*
+        # Localita' cliente                *
+        #----------------------------------*
+        $loc_cli = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "rag_vet")
+    {
+        #----------------------------------*
+        # Ragione sociale vettore          *
+        #----------------------------------*
+        $rag_vet = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "via_vet")
+    {
+        #----------------------------------*
+        # Indirizzo vettore                *
+        #----------------------------------*
+        $via_vet = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "loc_vet")
+    {
+        #----------------------------------*
+        # Localita' vettore                *
+        #----------------------------------*
+        $loc_vet = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "rif_doc")
+    {
+        #----------------------------------*
+        # Riferimento documento            *
+        #----------------------------------*
+        $rif_doc = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "tra_cur")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Trasporto a cura                 *
+        #----------------------------------*
+        $tra_cur = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "cod_vet")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Trasporto a cura                 *
+        #----------------------------------*
+        $cod_vet = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "cod_spd")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Codice spedizione                *
+        #----------------------------------*
+        $cod_spd = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "des_spd")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Descrizione spedizione           *
+        #----------------------------------*
+        $des_spd = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "cod_por")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Codice porto                     *
+        #----------------------------------*
+        $cod_por = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "des_por")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Descrizione porto                *
+        #----------------------------------*
+        $des_por = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "spe_spd")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Spese di spedizione              *
+        #----------------------------------*
+        $spe_spd = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "ann_sp1")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Annotazioni per la spedizione    *
+        #----------------------------------*
+        $ann_sp1 = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "ann_sp2")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Annotazioni per la spedizione    *
+        #----------------------------------*
+        $ann_sp2 = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "ann_sp3")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Annotazioni per la spedizione    *
+        #----------------------------------*
+        $ann_sp3 = $rec[1]                ;
+    }
+     elsif ($rec[0] eq "ann_sp4")
+    {
+        #----------------------------------*
+        # Etichetta di tipo '3'            *
+        #                                  *
+        # Annotazioni per la spedizione    *
+        #----------------------------------*
+        $ann_sp4 = $rec[1]                ;
+    }
+#------------------------------------------*
+# Ciclo di scansione per lettura parametri *
+#                                          *
+# Fine                                     *
+#==========================================*
+}
+
+#==========================================*
+# Trattamento codice stampante             *
+#------------------------------------------*
+#------------------------------------------*
+# Pulizia caratteri iniziali e finali      *
+# (trim)                                   *
+#------------------------------------------*
+$cod_stp =~ s/^\s+|\s+$//g                ;
+#------------------------------------------*
+# Decodifica per spooler                   *
+#                                          *
+# z1 = zebra_1                             *
+# z2 = zebra_2                             *
+# z3 = zebra_3                             *
+#------------------------------------------*
+if    ($cod_stp eq "z1"){$cod_stp = 'zebra_1'}
+elsif ($cod_stp eq "z2"){$cod_stp = 'zebra_2'}
+elsif ($cod_stp eq "z3"){$cod_stp = 'zebra_3'};
+
+#==========================================*
+# DEBUG                                    *
+#------------------------------------------*
+#    print "Stampante : " . $cod_stp . "\n";
+#    print "Tipo eti  : " . $tip_eti . "\n";
+#    print "Num eti   : " . $num_eti . "\n";
+#    print "Num DOC   : " . $num_doc . "\n";
+#    print "Cliente   : " . $rag_cli . "\n";
+#    print "   -      : " . $via_cli . "\n";
+#    print "   -      : " . $loc_cli . "\n";
+
+#==========================================*
+# Deviazione in funzione del tipo di eti-  *
+# chetta                                   *
+#------------------------------------------*
+if ($tip_eti == 1)
+{
+    &eti_001                              ;
+}
+ elsif ($tip_eti == 2)
+{
+    &eti_002                              ;
+}
+ elsif ($tip_eti == 3)
+{
+    &eti_003                              ;
+}
+ else
+{
+    exit()                                ;
+}
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Etichetta di tipo '1': segnacolli DDT    *
+#                        formato 10 x 15   *
+#------------------------------------------*
+sub eti_001
+{
+    #======================================*
+    # Ciclo di generazione e stampa per    *
+    # ciascuna etichetta                   *
+    #--------------------------------------*
+    my $stp_ctr = 1                       ;
+    while($stp_ctr <= $num_eti)
+    {
+        #----------------------------------*
+        # Assegnazione nome file           *
+        #----------------------------------*
+        $out_pdf = $pth_tmp 
+                 . $num_prt
+                 . "."
+                 . $stp_ctr
+                 . ".pdf"                 ;
+        #----------------------------------*
+        # Inizializzazione file PDF        *
+        #----------------------------------*
+        prFile($out_pdf)                  ;
+        #----------------------------------*
+        # Impostazione pagina              *
+        #----------------------------------*
+        prMbox(0, 0, 285, 425)            ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFont('Helvetica-Bold')          ;
+        #----------------------------------*
+        # Box pagina                       *
+        #----------------------------------*
+        prAdd("q 1 1 1 rg 10 10 270 400 re b Q");
+        #----------------------------------*
+        # Fincatura superiore              *
+        #----------------------------------*
+        prAdd("q 50 10 m 50 410 l S Q")   ; 
+        #----------------------------------*
+        # Fincatura centrale               *
+        #----------------------------------*
+        prAdd("q 190 10 m 190 410 l S Q") ; 
+        #----------------------------------*
+        # Fincatura verticale              *
+        #----------------------------------*
+        prAdd("q 190 140 m 240 140 l S Q") ; 
+        #----------------------------------*
+        # Fincatura inferiore              *
+        #----------------------------------*
+        prAdd("q 240 10 m 240 410 l S Q") ; 
+        #----------------------------------*
+        # Font per numero documento        *
+        #----------------------------------*
+        prFontSize(24)                    ;       
+        #----------------------------------*
+        # Numero documento                 *
+        #                                  *
+        #   Parametri di posizionamento    *
+        #   ---------------------------    *
+        # - Distanza dal bordo sinistro    *
+        # - Distanza dal bordo inferiore   *
+        # - Stringa da stampare            *
+        # - Coefficiente di rotazione      *
+        #----------------------------------*
+        $str  = "DDT nr. "  
+              . $num_doc                  ;
+        prText(40, 150, $str,'','q3')     ;
+        #----------------------------------*
+        # Font per Ragione sociale         *
+        #----------------------------------*
+        prFontSize(28)                    ;       
+        #----------------------------------*
+        # Ragione sociale                  *
+        #----------------------------------*
+        &stp_str (90, 20, 'q3', $rag_cli) ;
+        &stp_str (120, 20, 'q3', $via_cli);
+        &stp_str (150, 20, 'q3', $loc_cli);
+        #----------------------------------*
+        # Font per Numero colli            *
+        #----------------------------------*
+        prFontSize(26)                    ;       
+        #----------------------------------*
+        # Numero colli                     *
+        #----------------------------------*
+        $str  = "Colli "
+              . $stp_ctr
+              . " di "
+              . $num_eti                  ;
+        prText(230, 200, $str,'','q3')    ;
+        
+        #----------------------------------*
+        # Prompt per Vettore               *
+        #----------------------------------*
+        $rag_vet =~ s/\s+$//              ;
+        if (length($rag_vet) != 0)
+        {
+        prFontSize(12)                    ;       
+        $str  = "Vettore"                 ;
+        prText(253, 22, $str,'','q3')     ;
+        }
+        #----------------------------------*
+        # Font per Vettore                 *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Ragione sociale Vettore          *
+        #----------------------------------*
+        $str  = $rag_vet                  ;
+        prText(273, 20, $str,'','q3')     ;
+        #----------------------------------*
+        # Logo Elettra                     *
+        #----------------------------------*
+        prImage(  { file    => $log_az1,
+                    page    => 1,
+                    imageNo => 1,
+                    x       => 20,
+                    y       => 20,
+                    rotate  => 'q3',
+                    size    => 0.2 }  )   ;
+        #----------------------------------*
+        # Logo AEG                         *
+        #----------------------------------*
+        prImage(  { file    => $log_az2,
+                    page    => 1,
+                    imageNo => 1,
+                    x       => 20,
+                    y       => 340,
+                    rotate  => 'q3',
+                    size    => 0.5 }  )   ;
+        #----------------------------------*
+        # Barcode per Numero documento     *
+        #----------------------------------*
+        PDF::Reuse::Barcode::Code128(x      => 235,
+                                     y      => 30,
+                                     value  => $num_doc,
+                                     rotate => 90);
+        #----------------------------------*
+        # Chiusura PDF                     *
+        #----------------------------------*
+        prEnd()                           ;
+        #----------------------------------*
+        # Stampa file PDF                  *
+        #----------------------------------*
+        system("cat $out_pdf | lpr -P$cod_stp");
+        #----------------------------------*
+        # Incremento contatore             *
+        #----------------------------------*
+        $stp_ctr++                        ;
+    }
+}
+
+#==========================================*
+# Etichetta di tipo '2': Riferimenti ODS   *
+#                        formato 10 x 10   *
+#------------------------------------------*
+sub eti_002
+{
+    #======================================*
+    # Ciclo di generazione e stampa per    *
+    # ciascuna etichetta                   *
+    #--------------------------------------*
+    my $stp_ctr = 1                       ;
+    while($stp_ctr <= $num_eti)
+    {
+        #----------------------------------*
+        # Assegnazione nome file           *
+        #----------------------------------*
+        $out_pdf = $pth_tmp 
+                 . $num_prt
+                 . "."
+                 . $stp_ctr
+                 . ".pdf"                 ;
+        #----------------------------------*
+        # Inizializzazione file PDF        *
+        #----------------------------------*
+        prFile($out_pdf)                  ;
+        #----------------------------------*
+        # Impostazione pagina              *
+        #----------------------------------*
+        prMbox(0, 0, 285, 285)            ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFont('Helvetica-Bold')          ;
+        #----------------------------------*
+        # Box pagina                       *
+        #----------------------------------*
+        prAdd("q 1 1 1 rg 10 10 270 270 re b Q"); 
+        #----------------------------------*
+        # Fincatura superiore              *
+        #----------------------------------*
+        prAdd("q 50 10 m 50 280 l S Q")   ; 
+        #----------------------------------*
+        # Fincatura inferiore              *
+        #----------------------------------*
+        prAdd("q 220 10 m 220 280 l S Q") ; 
+        #----------------------------------*
+        # Font per numero documento        *
+        #----------------------------------*
+        prFontSize(20)                    ;       
+        #----------------------------------*
+        # Numero documento                 *
+        #                                  *
+        #   Parametri di posizionamento    *
+        #   ---------------------------    *
+        # - Distanza dal bordo sinistro    *
+        # - Distanza dal bordo inferiore   *
+        # - Stringa da stampare            *
+        # - Coefficiente di rotazione      *
+        #----------------------------------*
+        $str  = "ODS : "  
+              . $num_doc                  ;
+        prText(40, 140, $str,'','q3')     ;
+        #----------------------------------*
+        # Font per Ragione sociale         *
+        #----------------------------------*
+        prFontSize(30)                    ;       
+        #----------------------------------*
+        # Ragione sociale                  *
+        #----------------------------------*
+        &stp_str (90, 20, 'q3', $rag_cli) ;
+        prFontSize(16)                    ;       
+        prText(130, 20, $via_cli,'','q3') ;
+        prText(170, 20, $loc_cli,'','q3') ;
+        #----------------------------------*
+        # Riferimento                      *
+        #----------------------------------*
+        &stp_rif (258, 20, 'q3', $rif_doc) ;
+        #----------------------------------*
+        # Logo Elettra                     *
+        #----------------------------------*
+        prImage(  { file    => $log_az1,
+                    page    => 1,
+                    imageNo => 1,
+                    x       => 20,
+                    y       => 20,
+                    rotate  => 'q3',
+                    size    => 0.2 }  )   ;
+        #----------------------------------*
+        # Chiusura PDF                     *
+        #----------------------------------*
+        prEnd()                           ;
+        #----------------------------------*
+        # Stampa file PDF                  *
+        #----------------------------------*
+        system("cat $out_pdf | lpr -P$cod_stp");
+        #----------------------------------*
+        # Incremento contatore             *
+        #----------------------------------*
+        $stp_ctr++                        ;
+    }
+}
+
+#==========================================*
+# Etichetta di tipo '3': carpenteria pron- *
+#                        ta form. 10 x 15  *
+#------------------------------------------*
+sub eti_003
+{
+    #======================================*
+    # Ciclo di generazione e stampa per    *
+    # ciascuna etichetta                   *
+    #--------------------------------------*
+    my $stp_ctr = 1                       ;
+    while($stp_ctr <= $num_eti)
+    {
+        #----------------------------------*
+        # Assegnazione nome file           *
+        #                                  *
+        # N.B.: prevista attualmente una   *
+        #       sola etichetta             *
+        #----------------------------------*
+        $out_pdf = $pth_tmp 
+                 . $num_prt
+#                 . "."
+#                 . $stp_ctr
+                 . ".pdf"                 ;
+        #----------------------------------*
+        # Inizializzazione file PDF        *
+        #----------------------------------*
+        prFile($out_pdf)                  ;
+        #----------------------------------*
+        # Impostazione pagina              *
+        #----------------------------------*
+        prMbox(0, 0, 285, 425)            ;
+        #----------------------------------*
+        # Font                             *
+        #----------------------------------*
+        prFont('Helvetica-Bold')          ;
+        #----------------------------------*
+        # Box pagina                       *
+        #----------------------------------*
+        prAdd("q 1 1 1 rg 10 10 270 400 re b Q");
+        #----------------------------------*
+        # Fincatura superiore              *
+        #----------------------------------*
+        prAdd("q 50 10 m 50 410 l S Q")   ; 
+        #----------------------------------*
+        # Fincatura centrale               *
+        #----------------------------------*
+        prAdd("q 98 10 m 98 410 l S Q")   ;
+        #----------------------------------*
+        # Fincatura centrale 2             *
+        #----------------------------------*
+        prAdd("q 125 10 m 125 410 l S Q") ;
+        #----------------------------------*
+        # Font per numero documento        *
+        #----------------------------------*
+        prFontSize(24)                    ;       
+        #----------------------------------*
+        # Posizionamento numero documento  *
+        #----------------------------------*
+        $lin  = 40                        ;
+        $pos  = 150                       ;
+        #----------------------------------*
+        # Numero documento                 *
+        #                                  *
+        #   Parametri di posizionamento    *
+        #   ---------------------------    *
+        # - Distanza dal bordo sinistro    *
+        # - Distanza dal bordo inferiore   *
+        # - Stringa da stampare            *
+        # - Coefficiente di rotazione      *
+        #----------------------------------*
+        $str  = "ODS nr. "  
+              . $num_doc                  ;
+        prText($lin, $pos, $str,'','q3')  ;
+        #----------------------------------*
+        # Font per Ragione sociale         *
+        #----------------------------------*
+        prFontSize(28)                    ;       
+        #----------------------------------*
+        # Posizionamento Ragione sociale   *
+        #----------------------------------*
+        $lin  = 85                        ;
+        $pos  = 20                        ;
+        #----------------------------------*
+        # Ragione sociale                  *
+        #----------------------------------*
+        &stp_str ($lin,
+                  $pos,
+                  'q3',
+                  $rag_cli)               ;
+        #----------------------------------*
+        # Posizionamento Dicitura fissa    *
+        #----------------------------------*
+        $lin  = 120                       ;
+        $pos  = 80                        ;
+        #----------------------------------*
+        # Dicitura fissa                   *
+        #----------------------------------*
+        $str  = "CARPENTERIA PRONTA"      ;
+        &stp_str ($lin,
+                  $pos,
+                  'q3',
+                  $str)                   ;
+
+        #==================================*
+        # Prompt per Trasporto a cura      *
+        #----------------------------------*
+        $tra_cur =~ s/\s+$//              ;
+        #----------------------------------*
+        # Linea Trasporto a cura           *
+        #----------------------------------*
+        $lin  = 145                       ;
+        #----------------------------------*
+        # Stampa                           *
+        #----------------------------------*
+        if (length($tra_cur) != 0)
+        {
+            prFontSize(12)                ;       
+            $str  = "Trasporto a cura"    ;
+            prText($lin, 22, $str,'','q3');
+            $str  = ":"                   ;
+            prText($lin, 120, $str,'','q3');
+        }
+        #----------------------------------*
+        # Font per Trasporto a cura        *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Trasporto a cura                 *
+        #----------------------------------*
+        $str  = $tra_cur                  ;
+        prText($lin, 130, $str,'','q3')   ;
+
+        #==================================*
+        # Prompt per Vettore               *
+        #----------------------------------*
+        $rag_vet =~ s/\s+$//              ;
+        #----------------------------------*
+        # Linea per Vettore                *
+        #----------------------------------*
+        $lin  = 165                       ;
+        #----------------------------------*
+        # Stampa                           *
+        #----------------------------------*
+        if (length($rag_vet) != 0)
+        {
+            prFontSize(12)                ;       
+            $str  = "Vettore"             ;
+            prText($lin, 22, $str,'','q3');
+            $str  = ":"                   ;
+            prText($lin, 120, $str,'','q3');
+        }
+        #----------------------------------*
+        # Font per Vettore                 *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Ragione sociale Vettore          *
+        #----------------------------------*
+        $str  = $rag_vet                  ;
+        prText($lin, 130, $str,'','q3')   ;
+
+        #==================================*
+        # Prompt per Spedizione            *
+        #----------------------------------*
+        $des_spd =~ s/\s+$//              ;
+        #----------------------------------*
+        # Linea per Spedizione             *
+        #----------------------------------*
+        $lin  = 185                       ;
+        #----------------------------------*
+        # Stampa                           *
+        #----------------------------------*
+        if (length($des_spd) != 0)
+        {
+            prFontSize(12)                ;       
+            $str  = "Spedizione"          ;
+            prText($lin, 22, $str,'','q3');
+            $str  = ":"                   ;
+            prText($lin, 120, $str,'','q3');
+        }
+        #----------------------------------*
+        # Font per Spedizione              *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Codice spedizione                *
+        #----------------------------------*
+        $str  = $cod_spd                  ;
+        prText($lin, 130, $str,'','q3')   ;
+        #----------------------------------*
+        # Descrizione spedizione           *
+        #----------------------------------*
+        $str  = $des_spd                  ;
+        prText($lin, 175, $str,'','q3')   ;
+        
+        #==================================*
+        # Prompt per Porto                 *
+        #----------------------------------*
+        $des_por =~ s/\s+$//              ;
+        #----------------------------------*
+        # Linea per Porto                  *
+        #----------------------------------*
+        $lin  = 205                       ;
+        #----------------------------------*
+        # Stampa                           *
+        #----------------------------------*
+        if (length($des_por) != 0)
+        {
+            prFontSize(12)                ;       
+            $str  = "Porto"               ;
+            prText($lin, 22, $str,'','q3');
+            $str  = ":"                   ;
+            prText($lin, 120, $str,'','q3');
+        }
+        #----------------------------------*
+        # Font per Porto                   *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Codice Porto                     *
+        #----------------------------------*
+        $str  = $cod_por                  ;
+        prText($lin, 130, $str,'','q3')   ;
+        #----------------------------------*
+        # Descrizione porto                *
+        #----------------------------------*
+        $str  = $des_por                  ;
+        prText($lin, 175, $str,'','q3')   ;
+        
+        #==================================*
+        # Prompt per Spese di spedizione   *
+        #----------------------------------*
+        $spe_spd =~ s/\s+$//              ;
+        #----------------------------------*
+        # Linea per Spese di spedizione    *
+        #----------------------------------*
+        $lin  = 225                       ;
+        #----------------------------------*
+        # Stampa                           *
+        #----------------------------------*
+        if (length($spe_spd) != 0)
+        {
+            prFontSize(12)                ;       
+            $str  = "Spese"               ;
+            prText($lin, 22, $str,'','q3');
+            $str  = ":"                   ;
+            prText($lin, 120, $str,'','q3');
+        }
+        #----------------------------------*
+        # Font per Spese di spedizione     *
+        #----------------------------------*
+        prFontSize(18)                    ;       
+        #----------------------------------*
+        # Spese di spedizione              *
+        #----------------------------------*
+        $str  = $spe_spd                  ;
+        prText($lin, 130, $str,'','q3')   ;
+        
+        #==================================*
+        # Prompt per Annotazioni           *
+        #----------------------------------*
+        $ann_sp1 =~ s/\s+$//              ;
+        #----------------------------------*
+        # Linea per Annotazioni            *
+        #----------------------------------*
+        $lin  = 245                       ;
+        #----------------------------------*
+        # Stampa                           *
+        #----------------------------------*
+        if (length($ann_sp1) != 0)
+        {
+            prFontSize(12)                ;       
+            $str  = "Annotazioni"         ;
+            prText($lin, 22, $str,'','q3');
+            $str  = ":"                   ;
+            prText($lin, 120, $str,'','q3');
+        }
+        #----------------------------------*
+        # Font per Annotazioni             *
+        #----------------------------------*
+        prFontSize(12)                    ;       
+        #----------------------------------*
+        # Annotazioni                      *
+        #----------------------------------*
+        $str  = $ann_sp1                  ;
+        prText($lin, 130, $str,'','q3')   ;
+        #
+        $lin  = 255                       ;
+        $str  = $ann_sp2                  ;
+        prText($lin, 130, $str,'','q3')   ;
+        #
+        $lin  = 265                       ;
+        $str  = $ann_sp3                  ;
+        prText($lin, 130, $str,'','q3')   ;
+        #
+        $lin  = 275                       ;
+        $str  = $ann_sp4                  ;
+        prText($lin, 130, $str,'','q3')   ;
+
+        #----------------------------------*
+        # Logo Elettra                     *
+        #----------------------------------*
+        prImage(  { file    => $log_az1,
+                    page    => 1,
+                    imageNo => 1,
+                    x       => 20,
+                    y       => 20,
+                    rotate  => 'q3',
+                    size    => 0.2 }  )   ;
+        #----------------------------------*
+        # Logo AEG                         *
+        #----------------------------------*
+        prImage(  { file    => $log_az2,
+                    page    => 1,
+                    imageNo => 1,
+                    x       => 20,
+                    y       => 340,
+                    rotate  => 'q3',
+                    size    => 0.5 }  )   ;
+        #----------------------------------*
+        # Barcode per Numero documento     *
+        #----------------------------------*
+        PDF::Reuse::Barcode::Code128(x      => 90,
+                                     y      => 300,
+                                     value  => $num_doc,
+                                     rotate => 90);
+        #----------------------------------*
+        # Chiusura PDF                     *
+        #----------------------------------*
+        prEnd()                           ;
+        #----------------------------------*
+        # Stampa file PDF                  *
+        #----------------------------------*
+        system("cat $out_pdf | lpr -P$cod_stp");
+        #----------------------------------*
+        # Incremento contatore             *
+        #----------------------------------*
+        $stp_ctr++                        ;
+    }
+}
+
+#==========================================*
+# Stampa stringa con eventuale ritaratura  *
+# del font size                            *
+#------------------------------------------*
+sub stp_str
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $xxx = shift                       ;
+    my $yyy = shift                       ;
+    my $rot = shift                       ;
+    my $str = shift                       ;
+    #--------------------------------------*
+    # Pulizia spazi vuoti a fine stringa   *
+    #--------------------------------------*
+    $str =~ s/\s+$//                      ;
+    #--------------------------------------*
+    # Determinazione lunghezza stringa     *
+    #--------------------------------------*
+    my $lun = length($str)                ;
+    #--------------------------------------*
+    # Eventuale ritaratura FontSize        *
+    #--------------------------------------*
+    if ($lun >= 10)
+    {
+        prFontSize(20)                    ;       
+    }
+     else
+    {
+        prFontSize(30)                    ;       
+    }
+    #--------------------------------------*
+    # Emissione stringa                    *
+    #--------------------------------------*
+    prText($xxx, $yyy, $str, '', $rot)    ;
+}
+
+#==========================================*
+# Stampa stringa con eventuale ritaratura  *
+# del font size - Riferimento              *
+#------------------------------------------*
+sub stp_rif
+{
+    #======================================*
+    # Variabili in input                   *
+    #--------------------------------------*
+    my $xxx = shift                       ;
+    my $yyy = shift                       ;
+    my $rot = shift                       ;
+    my $str = shift                       ;
+    #--------------------------------------*
+    # Pulizia spazi vuoti a fine stringa   *
+    #--------------------------------------*
+    $str =~ s/\s+$//                      ;
+    #--------------------------------------*
+    # Determinazione lunghezza stringa     *
+    #--------------------------------------*
+    my $lun = length($str)                ;
+    #--------------------------------------*
+    # Eventuale ritaratura FontSize        *
+    #--------------------------------------*
+    if ($lun >= 13)
+    {
+        prFontSize(28)                    ;       
+    }
+     else
+    {
+        prFontSize(36)                    ;       
+    }
+    #--------------------------------------*
+    # Emissione stringa                    *
+    #--------------------------------------*
+    prText($xxx, $yyy, $str, '', $rot)    ;
+}

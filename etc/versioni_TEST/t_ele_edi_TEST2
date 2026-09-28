@@ -1,0 +1,60 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per test connessione SFTP    *
+# con Metel                                *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP;
+
+#==========================================*
+# Parametri di configurazione              *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_ele_edi_out.ini";
+my %cnf_ele = do $cfg_bas                 ;
+#
+my $hst_ftp = $cnf_ele{hst_ftp}           ;
+my $hst_usr = $cnf_ele{hst_usr}           ;
+my $hst_pwd = $cnf_ele{hst_pwd}           ;
+
+#==========================================*
+# Variabili di comodo                      *
+# ___ !!! ___                              *
+#------------------------------------------*
+my $file = "ORDRSP_23_45.xml.CSV.OK"      ;
+my $base = "/abd/asc/imp/edi/"            ;
+my $path = "/dkb.it/agg"                  ;
+# my $path = "/test/to_nobili/orders"       ;
+
+# my $cert = "/home/master/.ssh/id_rsa"     ;
+
+
+
+#==========================================*
+# Cancellazione file remoto                *
+#==========================================*
+
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+
+my %args        = ();
+$args{user}     = $hst_usr;
+$args{password} = $hst_pwd;
+$args{debug}    = "true";
+
+my $sftp = Net::SFTP->new($hst_ftp, %args);
+
+$sftp->get("/download/prova.txt", "/abd/asc/imp/edi/prova.txt");
+$sftp->put("/abd/asc/exp/edi/prova.txt", "/upload/prova.txt");
+
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+
+
+

@@ -1,0 +1,235 @@
+#!/opt/lampp/bin/perl -w
+#
+# Attenzione: non si usa il Perl base !!!
+#
+#==========================================*
+# Modulo Perl per FTP                      *
+#                                          *
+# t_zat_img                                *
+#                                          *
+# Per aggiornare le foto modificate        *
+#                                          *
+# Ultimo aggiornamento 18/10/09            *
+#                                          *
+# N.B.: in Crontab nel server Web          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+use File::Basename                        ;
+
+#==========================================*
+# Variabili lette in input                 *
+# ---------------------------------------- *
+#  - $hst : Host                           *
+#  - $usr : User                           *
+#  - $pwd : Password                       *
+#  - $dtb : Database                       *
+#------------------------------------------*
+my $hst = shift                           ;
+my $usr = shift                           ;
+my $pwd = shift                           ;
+my $dtb = shift                           ;
+
+#==========================================*
+# Variabili di comodo                      *
+# ---------------------------------------- *
+#  - $bas : Pathname di base               *
+#  - $tbl : Tabella 'img'                  *
+#------------------------------------------*
+my $bas = "/abd/asc/img/"                 ;
+my $tbl = "img"                           ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtb;host=$hst",
+                       $usr,
+                       $pwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Scansione directory di base              *
+#------------------------------------------*
+for($inx=0; $inx<100; $inx++)
+{
+    #--------------------------------------*
+    # Variabili di lavoro                  *
+    #--------------------------------------*
+    my $ind = sprintf ("%02d",$inx)       ;
+    my $dir = $bas . $ind . "/"           ;
+    
+    #--------------------------------------*
+    # Open directory                       *
+    #--------------------------------------*
+    opendir (DIR,$dir)                    ;
+    
+    #--------------------------------------*
+    # Ciclo interno alla directory         *
+    #--------------------------------------*
+    LINE: foreach $nam (sort readdir(DIR))
+    {
+        #----------------------------------*
+        # Variabili di comodo              *
+        #                                  *
+        # Si utilizza la funzione stat che *
+        # ritorna informazioni sul file in *
+        # forma di array                   *
+        #----------------------------------*
+        my $fil = $dir . $nam             ;
+        my @time = stat($fil)             ;            
+        my $tim = $time[9]                ;            
+        my $type = -f $fil                ;
+        #----------------------------------*
+        # Estrazione della data            *
+        #----------------------------------*
+        my $aaa = 1900+(localtime($tim))[5];
+        my $mmm = (localtime($tim))[4]    ;
+        my $ggg = (localtime($tim))[3]    ;
+        #----------------------------------*
+        my $ann = sprintf ("%04d",$aaa)   ;
+        my $mes = sprintf ("%02d",$mmm+1) ;
+        my $gio = sprintf ("%02d",$ggg)   ;
+        #----------------------------------*
+        my $upd  = $ann . "-"
+                        . $mes
+                        . "-"
+                        . $gio           ;
+        #----------------------------------*
+        # Test che non sia un file Windows *
+        #----------------------------------*
+        if ($nam eq "Thumbs.db")
+           {next(LINE)}                   ;
+        
+        #----------------------------------*
+        # Test che non sia una directory   *
+        #----------------------------------*
+        if (! -d $fil)
+        {
+            #------------------------------*
+            # Test di congruenza tra il    *
+            # nome file ed il nome della   *
+            # directory                    *
+            #------------------------------*
+            my $prf = substr($nam,0,2)    ;
+            if ($prf ne $ind)
+               {    
+                   print "$nam in "
+                       . "directory "
+                       . "$ind\n"         ;
+                   next(LINE)             ;
+               }                          ;
+            
+            #------------------------------*
+            # Lettura tabella              *
+            #                              *
+            # Estrazione del nome file     *
+            # senza estenzione             *
+            #------------------------------*
+           (my $fnams,
+            my $direc,
+            my $exten) = fileparse($nam,'\..*');
+            
+            my $img = $fnams               ;
+            
+            my $sth = $dbh->prepare("SELECT "
+                                  . "img_upd "
+                                  . "FROM "
+                                  . $tbl
+                                  . " WHERE "
+                                  . "img_ide = '"
+                                  . $img . "'");
+            $sth->execute();
+
+            my $ref = $sth->fetchrow_hashref();
+            
+            my $dtu = $ref->{'img_upd'}   ;
+            
+            #------------------------------*
+            # Se lettura OK                *
+            #------------------------------*
+            if ($dtu)
+            {
+                #--------------------------*
+                # Confronto date           *
+                #--------------------------*
+                if ($dtu ne $upd)
+                {
+                    #----------------------*
+                    # Aggiornamento        *
+                    #----------------------*
+                    &update_rec($img,
+                                $tim,
+                                $upd)     ;
+                }
+            } else
+            #------------------------------*
+            # Se lettura non OK            *
+            #------------------------------*
+            {
+                #--------------------------*
+                # Inserimento              *
+                #--------------------------*
+                &insert_rec($img,
+                            $tim,
+                            $upd)         ;
+            }
+        }
+    }
+    
+    #--------------------------------------*
+    # Close directory                      *
+    #--------------------------------------*
+    closedir (DIR);
+}
+
+#==========================================*
+# Chiusura connessione                     *
+#------------------------------------------*
+
+#==========================================*
+# Subroutine di scrittura                  *
+#------------------------------------------*
+sub insert_rec
+{
+    my $ccc = shift                       ;
+    my $ttt = shift                       ;
+    my $uuu = shift                       ;
+
+    $dbh->do("INSERT "
+           . "INTO "
+           . $tbl
+           . " (img_ide, "
+           . "img_dtm, "
+           . "img_dat, "
+           . "img_upd) "
+           . "VALUES "
+           . "('$ccc', "
+           . "'$ttt', "
+           . "NOW(), "
+           . "'$uuu')")   ;
+}
+
+#==========================================*
+# Subroutine di modifica                   *
+#------------------------------------------*
+sub update_rec
+{
+    my $ccc = shift                       ;
+    my $ttt = shift                       ;
+    my $uuu = shift                       ;
+
+    $dbh->do("UPDATE "
+           . $tbl
+           . " SET "
+           . "img_dtm = '$ttt', "
+           . "img_dat = NOW(), "
+           . "img_upd = '$uuu' "
+           . "WHERE img_ide = '$ccc'")    ;
+}
+

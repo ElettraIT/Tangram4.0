@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per inviare il file di      *
+# aggiornamento 'aggint.tar' al server    *
+# pubblico                                *
+#                                         *
+# t_aggout                                *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 31/08/17   *
+#   Ultima revisione:  NdK del 31/08/17   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : (nessun valore)              *
+#                                         *
+#-----------------------------------------*
+
+#=========================================*
+# Moduli Perl                             *
+#-----------------------------------------*
+use Net::FTP                              ;
+
+#=========================================*
+# Variabili di connessione                *
+#-----------------------------------------*
+my $hostn = "www17.protec.it"             ;
+my $login = "dkb"                         ;
+my $passw = "cavallo"                     ;
+
+#=========================================*
+# Connessione ed invio                    *
+#-----------------------------------------*
+$ftp = Net::FTP->new($hostn, Debug => 0)
+  or die "Collegamento fallito col server www17.protec.it: $@";
+
+$ftp->login($login,$passw)
+  or die "Login fallito ", $ftp->message  ;
+
+$ftp->cwd("dkb.it/agg")
+  or die "Cambio directory fallito ", $ftp->message;
+
+$ftp->binary
+  or die "Modalita' binary fallita ", $ftp->message;
+
+$ftp->put("/abd/asc/agg/aggint.tar")
+  or die "Invio fallito ", $ftp->message  ;
+
+#=========================================*
+# Fine connessione                        *
+#-----------------------------------------*
+$ftp->quit                                ;
+

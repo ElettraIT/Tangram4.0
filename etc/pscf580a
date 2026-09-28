@@ -1,0 +1,123 @@
+#!/bin/sh
+
+      #================================================================#
+      #                                                                #
+      # Catalogo:          Sistema applicativo:    pgm                 #
+      #                        Area gestionale:    scf                 #
+      #                                Settore:    glo                 #
+      #                                   Fase:    scf580              #
+      #                    ------------------------------------------- #
+      #                     Versione originale:    001 del 14/11/10    #
+      #                       Ultima revisione:    NdK del 11/08/22    #
+      #                    ------------------------------------------- #
+      #                                 Autore:    Nicola de Kunovich  #
+      #================================================================#
+      #                                                                #
+      # Descrizione pgm:   Batch per esposizione fornitori             #
+      #                                                                #
+      # QUESTA VERSIONE LEGGE IL CODICE AZIENDA COME VARIABILE PASSATA #
+      #                                                                #
+      #================================================================#
+
+######
+# Preparazione esecuzione
+###
+
+#
+# Set della nuova umask
+#
+umask 022;
+
+#
+# Posizionamento sulla directory di base per oggetti
+#
+cd /abd/ogt;
+
+######
+# Preparazione variabili per Acucobol
+###
+
+#
+# Tipo di terminale
+#
+A_TERM="none"; export A_TERM;
+
+#
+# File di terminal capabilities
+#
+A_TERMCAP="../run/webtermcap"; export A_TERMCAP;
+
+#
+# File di configurazione Runtime Acucobol
+#
+A_CONFIG="../run/webcblcfg"; export A_CONFIG;
+
+######
+# Preparazione variabili per esecuzione 'TANGRAM'
+###
+
+#
+# Variabili di configurazione
+#
+V_DKB_UTEN="master"; export V_DKB_UTEN;
+V_DKB_PRMS="pgm/scf/prg/obj/pscf5800"; export V_DKB_PRMS;
+
+#
+# Directory di base 'abd'
+#
+V_DKB_HOME="/abd"; export V_DKB_HOME;
+
+#
+# Real User-Id
+#
+V_DKB_USER="`whoami`"; export V_DKB_USER;
+
+#
+# Codice del terminale
+#
+dkb_tty="`tty`";
+# V_DKB_TTYC="`basename $dkb_tty`"; export V_DKB_TTYC;
+V_DKB_TTYC="0"; export V_DKB_TTYC;
+
+#
+# Tipo di terminale utilizzato
+#
+V_DKB_TERM="vt300"; export V_DKB_TERM;
+
+#
+# Tipo di runtime utilizzato : Acucobol
+#
+V_DKB_RUNT="00"; export V_DKB_RUNT;
+
+#
+# Process-ID unico
+#
+V_DKB_GETP="`/abd/run/getpid`"; export V_DKB_GETP;
+
+#
+# Altre variabili
+#
+V_DKB_SUBT=""; export V_DKB_SUBT;
+
+######
+# Lancio del runtime Acucobol
+###
+
+#
+# Preparazione parametro POST
+#
+V_DKB_POST="S"; export V_DKB_POST;
+
+#
+# Lettura codice azienda passato come parametro
+#
+V_DKB_AZIE=$1; export V_DKB_AZIE;
+
+#
+# Esecuzione TANGRAM in foreground
+#
+/abd/run/runcbl -x swd/xpg/prg/obj/pxpgcg00 "$V_DKB_HOME" "$V_DKB_USER" "$V_DKB_TTYC" "$V_DKB_TERM" "$V_DKB_RUNT" "$V_DKB_GETP" "$V_DKB_SUBT" "$V_DKB_AZIE" "$V_DKB_UTEN" "$V_DKB_PRMS" "$V_DKB_POST";
+
+######
+# - Fine procedura
+###

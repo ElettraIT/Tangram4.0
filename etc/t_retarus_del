@@ -1,0 +1,179 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per cancellazione file       *
+# presso Retarus                           *
+#                                          *
+# t_retaurs_del                            *
+#                                          *
+# (Richiamato da 'pagb6500' - SIRI)        *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 12/09/25    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - host di destinazione        *
+#                                          *
+#            - username                    *
+#                                          *
+#            - password                    *
+#                                          *
+#            - file da cancellare          *
+#                                          *
+#            - utente TANGRAM              *
+#                                          *
+#            - seller                      *
+#                                          *
+#            - seller RIF                  *
+#                                          *
+#------------------------------------------*
+# Memo operazioni su database              *
+#                                          *
+# DELETE FROM `retarus` WHERE YEAR         *
+# ( `upld` ) < 2018                        *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign;
+use DBI()                                 ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $host = shift                          ;
+my $user = shift                          ;
+my $pass = shift                          ;
+my $file = shift                          ;
+my $utet = shift                          ;
+my $sell = shift                          ;
+my $nrif = shift                          ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$host || !$user || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_retaurs_del HOST "
+        . "USERNAME "
+        . "PASSWORD "
+        . "FILENAME "
+        . "UTENTE_TANGRAM "
+        . "VENDITORE "
+        . "RIF_VENDITORE"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $path = "/productive/ordrsp_in"        ;
+# my $path = "/test/ordrsp_in"            ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dhst = "localhost"                    ;
+my $dusr = "root"                         ;
+my $dpwd = "alter1"                       ;
+my $dtbs = "siri"                         ;
+my $dtab = "retarus"                      ;
+
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+my $sftp = Net::SFTP::Foreign->new(
+  host     => $host,
+  user     => $user,
+  password => $pass,                      # usa la password passata a riga di comando
+  port     => 22,                         # <-- QUI serviva la virgola!
+);
+
+if ($sftp->error) {
+  print OUTFILE "Connessione SFTP fallita: " . $sftp->error . "\n";
+  close OUTFILE;
+  exit 1;
+}
+
+#==========================================*
+# Directory di output                      *
+#------------------------------------------*
+$sftp->setcwd($path)
+  or do {
+    print OUTFILE "setcwd('$path') fallita: " . $sftp->error . "\n";
+    close OUTFILE;
+    exit 1;
+  };
+
+#==========================================*
+# Cancellazione                            *
+#------------------------------------------*
+if ($file)
+{
+    $sftp->delete($file)
+      or die "Delete "
+           . "failed ", $sftp->message     ;
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtbs;host=$dhst",
+                       $dusr,
+                       $dpwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Flag di trattamento eseguito             *
+#------------------------------------------*
+my $upd = "UPDATE "
+                . $dtab
+                . " SET "
+                . " flag = '#', "
+                . " trtd = NOW(), "
+                . " utet = '"
+                . $utet
+                . "', sell = '"
+                . $sell
+                . "', nrif = '"
+                . $nrif
+                . "'"
+                . " WHERE path = '"
+                . $file
+                . "' LIMIT 1"             ;
+                
+my $sth = $dbh->prepare($upd)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+
+

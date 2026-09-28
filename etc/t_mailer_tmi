@@ -1,0 +1,353 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per invio posta MIME::Lite   *
+#                                          *
+# t_mailer_tmi                             *
+#                                          *
+# SU MISURA PER TEMI E RIADATTATO PER DKB  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 08/02/07   *
+#   Ultima revisione:   NdK del 18/10/11   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - server di posta             *
+#                                          *
+#            - mittente                    *
+#                                          *
+#            - indirizzo e-mail o nome     *
+#              file lista di indirizzi     *
+#                                          *
+#            - file messaggio (opzionale)  *
+#                                          *
+#            - file allegato  (opzionale)  *
+#                                          *
+#            - si/no ricevuta (opzionale)  *
+#                                          *
+#------------------------------------------*
+#                                          *
+# N.B.: i campi in input sono separati da  *
+#       ','                                *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Modulo Perl MIME::Lite                   *
+#------------------------------------------*
+use MIME::Lite                            ;
+
+#==========================================*
+# Variabili statiche                       *
+# ---------------------------------------- *
+#  - Pathname di base per i file           *
+#  - Nome file contenente il soggetto      *
+#------------------------------------------*
+$base = '/abd/asc/tmp/'                   ;
+$sogg = 'sogg.txt'                        ;
+
+#==========================================*
+# Variabili lette in input                 *
+# ---------------------------------------- *
+#  - $isps : Server di posta               *
+#  - $mitt : Mittente                      *
+#  - $indi : File contenente indirizzi     *
+#  - $mess : File messaggio                *
+#  - $atta : File attachement              *
+#  - $snxr : Si/no ricevuta                *
+#------------------------------------------*
+$inpt = $ARGV[0]                          ;
+@vars = split(/,/, $inpt)                 ;
+
+$isps = $vars[0]                          ;
+$mitt = $vars[1]                          ;
+$indi = $vars[2]                          ;
+$mess = $vars[3]                          ;
+$atta = $vars[4]                          ;
+$snxr = $vars[5]                          ;
+
+#==========================================*
+# Normalizzazioni                          *
+#------------------------------------------*
+#    *-------------------------------------*
+#    * Pathname file testo                 *
+#    *-------------------------------------*
+if (!$mess) { $mess = 'mess.txt';}
+#    *-------------------------------------*
+#    * Pathname file lista indirizzi       *
+#    *-------------------------------------*
+if (!$indi) { $indi = 'mail.001';}
+#    *-------------------------------------*
+#    * Si/no ricevuta                      *
+#    *-------------------------------------*
+if (!$snxr) { $snxr = "N";}
+#    *-------------------------------------*
+#    * Pathname allegato                   *
+#    *-------------------------------------*
+$attp = ''                                ;
+
+#==========================================*
+# Eventuale normalizzazione attachement    *
+#------------------------------------------*
+if ($atta) { $attp = $base . $atta ;}
+
+#==========================================*
+# Sub-routine per lettura soggetto         *
+#------------------------------------------*
+&soggetto                                 ;
+
+#==========================================*
+# Sub-routine per lettura testo            *
+#------------------------------------------*
+&messaggio                                ;
+
+#==========================================*
+# Sub-routine di spedizione                *
+#------------------------------------------#
+&spedisci                                 ;
+
+#==========================================*
+# Sub-routines                             *
+#==========================================*
+
+#==========================================*
+# Spedizione                               *
+#------------------------------------------*
+sub spedisci 
+{
+    #--------------------------------------*
+    # Se passata una lista                 *
+    #--------------------------------------*
+    if ($indi !~ /\@/)
+         {&lista;}
+    #--------------------------------------*
+    # Se passato un singolo indirizzo      *
+    #--------------------------------------*
+    else {$indirizzo=$indi;
+          &send}                          ;
+}
+
+#==========================================*
+# Singolo invio con MIME::Lite             *
+#------------------------------------------*
+sub send
+{
+    #--------------------------------------*
+    # Composizione soggetto e allegato     *
+    # eliminando blank superflui dal sog-  *
+    # getto del file                       *
+    #                                      *
+    # dkb@dkb.it                           *
+    # antonella_scarpa@alice.it            *
+    # sandra.stecca@soge-tec.it            *
+    # mario.bellini@aegelettra.it          *
+    # ornella@elettromat.it                *
+    # nobilifabio@tiscali.it               *
+    # amministrazione@iformagginobili.it   *
+    # zatti@zatti.it                       *
+    # info@fiocchistefano.it               *
+    # amministrazione@gruppovalle.com      *
+    # schiavon@siri-el.com                 *
+    # elena@rumor.it                       *
+    # diegocozza@teletu.it                 *
+    #                                      *
+    #--------------------------------------*
+    $oggw =~ s/^\s+//                     ;
+    $oggw =~ s/\s+$//                     ;
+    #--------------------------------------*
+    # Estrazione nome da indirizzo         *
+    #--------------------------------------*
+    my @oggx = split(/@/, $indirizzo)     ;
+    my $nome = $oggx[0]                   ;
+    my $domi = $oggx[1]                   ;
+    #--------------------------------------*
+    # Trattamento nome da indirizzo        *
+    #--------------------------------------*
+    if    ($nome eq "dkb")
+        {
+            $nome = "Nicola de Kunovich";
+        }
+    elsif ($nome eq "kunovich")
+        {
+            $nome = "Nicola de Kunovich";
+        }
+    elsif ($nome eq "antonella_scarpa")
+        {
+            $nome = "Dottoressa Antonella";
+        }
+    elsif ($nome eq "graziella.mingardo")
+        {
+            $nome = "Gentilissima Signora Graziella";
+        }
+    elsif ($nome eq "sandra.stecca")
+        {
+            $nome = "Gentilissima Signora Sandra";
+        }
+    elsif ($nome eq "mario.bellini")
+        {
+            $nome = "Egregio Dottor Mario Bellini";
+        }
+    elsif ($nome eq "ornella")
+        {
+            $nome = "Gentilissima Signora Ornella";
+        }
+    elsif ($nome eq "nobilifabio")
+        {
+            $nome = "Gentilissimo Signor Fabio";
+        }
+    elsif ($nome eq "petra.zatti")
+        {
+            $nome = "Gentilissima Signora Petra";
+        }
+    elsif ($nome eq "zatti")
+        {
+            $nome = "Gentile Signor Stefano";
+        }
+    elsif ($nome eq "info")
+        {
+            $nome = "Gentilissimo Signor Stefano";
+        }
+    elsif ($nome eq "amministrazione")
+        {
+            $nome = "Gentilissima Signora Rosa";
+        }
+    elsif ($nome eq "schiavon")
+        {
+            $nome = "Gentilissima Signora Norina";
+        }
+    elsif ($nome eq "elena")
+        {
+            $nome = "Gentilissima Dottoressa Elena";
+        }
+    elsif ($nome eq "diegocozza")
+        {
+            $nome = "Gentilissima Dottoressa Silvana";
+        }
+    elsif ($nome eq "amministrazione" && $domi eq "gruppovalle.com")
+        {
+            $nome = "Gentilissima Signora Rosa";
+        }
+    elsif ($nome eq "amministrazione" && $domi eq "iformagginobili.it")
+        {
+            $nome = "Gentilissima Signora Barbara";
+        }
+    else
+        {
+            $nome =$nome;
+        }
+
+    #--------------------------------------*
+    # Completamento oggetto messaggio      *
+    #--------------------------------------*
+    my $ogge = $oggw
+             . " - CA "
+             . $nome                      ;
+    #--------------------------------------*
+    # Messaggio                            *
+    #--------------------------------------*
+    $msg = MIME::Lite->new
+    (
+        From    =>$mitt,
+        To      =>$indirizzo,
+        Bcc     =>$mitt,
+        Subject =>$ogge,
+        Type    =>'multipart/mixed',
+    );
+    
+    #-------------------------------------*
+    # Eventuale ricevuta di ritorno       *
+    #-------------------------------------*
+    if ($snxr eq "S")
+        {
+            &rerc;
+        }
+
+    $msg->attach
+    (
+        Type    => 'text/html',
+        Data    => $testo
+    );
+
+    #=====================================*
+    # Eventuale attachement               *
+    #-------------------------------------*
+    if ($atta)
+        {
+            $msg->attach
+                (Type        => 'application/pdf',
+                 Path        => $attp,
+                 Filename    => $atta,
+                 Disposition => 'attachment'
+                );
+        }
+    
+    $msg->send('smtp', $isps, Timeout=>60);
+}
+
+#=========================================*
+# Apertura file contenente il soggetto    *
+#-----------------------------------------*
+sub soggetto
+{
+    #--------------------------------------*
+    # Apertura, lettura e chiusura         *
+    #--------------------------------------*
+    open (SOGGETTO, "$base$sogg")or die
+         "Impossibile aprire '$sogg'"     ;
+    @sogx=<SOGGETTO>                      ;
+    close SOGGETTO                        ;
+    #-------------------------------------*
+    # Compattazione testo letto           *
+    #-------------------------------------*
+    $oggw = qq{@sogx}                     ;
+}
+
+#=========================================*
+# Apertura file contenente il messaggio   *
+#-----------------------------------------*
+sub messaggio
+{
+    #-------------------------------------*
+    # Open                                *
+    #-------------------------------------*
+    open (MESSAGE, "$base$mess")
+          or die
+         "Impossibile aprire il file '$mess'";
+    @message=<MESSAGE>;
+    close MESSAGE;
+    #-------------------------------------*
+    # Compattazione testo letto           *
+    #-------------------------------------*
+    $testo = qq{@message};
+}
+
+#=========================================*
+# Invio ad una lista                      *
+#-----------------------------------------*
+sub lista
+{
+    open (INDIRIZZI, "$base$indi")or die
+        "Impossibile aprire il file indirizzi";
+    @indirizzo = <INDIRIZZI>;
+    foreach $indirizzo (@indirizzo)
+    {
+        if ($indirizzo !~ /\@/)
+            {next}
+            else {&send};
+    }
+    close (INDIRIZZI);
+}
+
+#=========================================*
+# Ricevuta di ritorno                     *
+#                                         *
+# (rivedere ID)                           *
+#                                         *
+#-----------------------------------------*
+sub rerc
+{
+#    $msg->add("Message-ID" =>'123.456@dkb.it');
+    $msg->add("Message-ID" =>$mitt );
+    $msg->add("Disposition-Notification-To" =>$mitt );
+}

@@ -1,0 +1,306 @@
+     ############ /abd/etc/xcc
+     #
+     # Procedura per la compilazione di un Sorgente Acucobol
+     #
+     # Input : $1:Sigla sistema applicativo
+     #
+     #         $2:Sigla area gestionale
+     #
+     #         $3:Tipo di programma da compilare
+     #
+     #         $4:Sigla del programma da compilare, senza estensione .cbl
+     #
+     ######
+     
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                 # Errore per il comando 'xcc' #                 " ;
+       echo "                 -------------------------------                 " ;
+       echo "                                                                 " ;
+       echo " Il comando puo' essere eseguito solamente dall'utente 'master'  " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# Controllo sul numero di parametri in input per la procedura
+###
+
+case $# in
+     4|5)
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                 # Errore per il comando 'xcc' #                 " ;
+          echo "                 -------------------------------                 " ;
+          echo "                                                                 " ;
+          echo " I parametri per il comando devono essere 4                      " ;
+          echo "                                                                 " ;
+          echo "   1. parametro : sigla sistema applicativo                      " ;
+          echo "                  - pgm                                          " ;
+          echo "                  - swd                                          " ;
+          echo "                  - ...                                          " ;
+          echo "                                                                 " ;
+          echo "   2. parametro : sigla area gestionale                          " ;
+          echo "                                                                 " ;
+          echo "   3. parametro : tipo di compilazione                           " ;
+          echo "                  - p : programmi                                " ;
+          echo "                  - f : files                                    " ;
+          echo "                  - t : tabelle                                  " ;
+          echo "                  - n : numerazioni                              " ;
+          echo "                  - s : scelte                                   " ;
+          echo "                                                                 " ;
+          echo "   4. parametro : nome del programma da compilare                " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+         ;;
+     esac
+
+######
+# Controllo sul terzo parametro in input per la procedura
+###
+
+case $3 in
+     p|f|t|n|s)
+                ;;
+             *)
+                echo "                                                                 " ;
+                echo "-----------------------------------------------------------------" ;
+                echo "                 # Errore per il comando 'xcc' #                 " ;
+                echo "                 -------------------------------                 " ;
+                echo "                                                                 " ;
+                echo " Il 3. parametro deve essere tra i seguenti                      " ;
+                echo "                                                                 " ;
+                echo "   - p : programma                                               " ;
+                echo "                                                                 " ;
+                echo "   - f : input-output per file                                   " ;
+                echo "                                                                 " ;
+                echo "   - t : input-output per tabelle                                " ;
+                echo "                                                                 " ;
+                echo "   - n : input-output per numerazioni                            " ;
+                echo "                                                                 " ;
+                echo "   - s : input-output per scelte                                 " ;
+                echo "                                                                 " ;
+                echo "-----------------------------------------------------------------" ;
+                echo "                                                                 " ;
+                exit 0;
+               ;;
+     esac
+
+######
+# - Preparazione delle variabili per la compilazione
+###
+
+#
+# Directory di base per programmi oggetto
+#
+altervx00="/abd/ogt";
+
+#
+# Directory di base per programmi sorgente
+#
+altervx01="/abd/srg";
+
+#
+# Sistema applicativo e Area gestionale
+#
+case $2 in
+     xpg|mod|drv)
+                  altervx02="swd/$2";
+                  ;;
+               *)
+                  altervx02="$1/$2";
+                  ;;
+     esac
+
+#
+# Subdirectory determinata dal 3. parametro
+#
+case $3 in
+     p)
+        altervx03="prg";
+        ;;
+     f)
+        altervx03="fls/ioc";
+        ;;
+     t)
+        altervx03="tbl/ioc";
+        ;;
+     n)
+        altervx03="num/ioc";
+        ;;
+     s)
+        altervx03="sce/ioc";
+        ;;
+     esac
+
+#
+# Pathname directory programmi oggetto
+#
+altervx10="$altervx00/$altervx02/$altervx03/obj";
+
+#
+# Pathname programma sorgente
+#
+altervx11="$altervx01/$altervx02/$altervx03/cbl/$4";
+
+######
+# Preparazione ciclo di compilazione
+###
+
+#
+# Set della nuova umask
+#
+umask 022;
+
+#
+# Preparazione copy per interfaccia 'c' _ INIBITA
+#
+# cp /abd/srg/swd/mod/int/c.l /abd/srg/swd/mod/int/c
+
+#
+# Posizionamento sulla directory di base per sorgenti e copy
+#
+cd $altervx01;
+
+#
+# Espansione del pathname del sorgente da compilare
+#
+case $4 in
+     -)
+        altervx12="$altervx01/$altervx02/$altervx03/cbl/*";
+        ;;
+     *)
+        altervx12="$altervx11*";
+        ;;
+     esac
+
+#
+# Numero di programmi compilati: zero
+#
+altervx50=0;
+
+#
+# Numero di programmi compilati correttamente: zero
+#
+altervx51=0;
+
+#
+# Numero di programmi compilati con errore: zero
+#
+altervx52=0;
+
+#
+# Nomi dei programmi compilati con errore: nessuno
+#
+altervx53="";
+
+######
+# Ciclo di compilazione
+###
+
+for altervx60 in $altervx12
+    do
+        altervx61=`expr $altervx60 : '.*/\(.*\)' '|' $altervx60`;
+        if [ `expr $altervx61 : \%.*` -gt 0 ]
+           then
+               continue;
+           fi
+        if [ `expr $altervx61 : SAV\..*` -gt 0 ]
+           then
+               continue;
+           fi
+        if [ `expr $altervx61 : sav\..*` -gt 0 ]
+           then
+           continue;
+           fi
+        altervx50=`expr $altervx50 + 1`;
+        altervx21=$altervx61;
+        altervx22=`expr $altervx21 : '\([A-Z;a-z;0-9]*\)' '|' $altervx60`;
+        rm -f $altervx10/$altervx22 > /dev/null;
+        case $# in
+             4)
+               /abd/bps/ccbl -o $altervx10/$altervx22 -C20 -Z20 -Ta 32768 -Tb 8192 -Zl -Za -x -Li -Cr -Sa $altervx60;
+               altervx77=$?;
+                ;;
+                 5)
+               /abd/bps/ccbl -o $altervx10/$altervx22 -C20 -Z20 -Ta 32768 -Tb 8192 -Zl -Za -x -Lo /abd/asc/$5 -Ls -Cr -Sa $altervx60;
+               altervx77=$?;
+                ;;
+             esac
+        case $altervx77 in
+             0)
+                altervx51=`expr $altervx51 + 1`;
+                ;;
+             *)
+                altervx52=`expr $altervx52 + 1`;
+                altervx53="$altervx53 $altervx60";
+                ;;
+             esac
+    done
+
+######
+# Stampa risultati della compilazione
+###
+
+if [ $altervx50 -eq $altervx51 ]
+   then
+      if [ $altervx50 -eq 0 ]
+         then
+         echo " ";
+         echo "Attenzione : Non e' stato compilato nessun programma.";
+         echo " ";
+      elif [ $altervx50 -eq 1 ]
+         then
+         echo " ";
+         echo "Compilazione Ok";
+         echo " ";
+      else
+         echo " ";
+         echo "Eseguita compilazione di $altervx50 programmi, tutti Ok.";
+         echo " ";
+      fi
+   else
+      if [ $altervx50 -eq 1 ]
+         then
+         echo " ";
+         echo "ATTENZIONE : ERRORI NELLA COMPILAZIONE DEL PROGRAMMA";
+         echo " ";
+      else
+         echo " ";
+         echo "----------------------------------------------------------------";
+         echo " ATTENZIONE : LA COMPILAZIONE DEI PROGRAMMI HA PRODOTTO ERRORI. ";
+         echo "----------------------------------------------------------------"
+         echo " ";
+         echo "   - Numero di programmi compilati    : $altervx50 ";
+         echo " ";
+         echo "   - Numero di programmi senza errori : $altervx51 ";
+         echo " ";
+         echo "   - Numero di programmi con errori   : $altervx52 ";
+         echo " ";
+         echo "   - Lista dei programmi con errori   :            ";
+         echo " ";
+        for altervx66 in $altervx53
+            do
+                 echo "           - $altervx66";
+            done
+         echo " ";
+         echo "----------------------------------------------------------------";
+         echo " ";
+      fi
+   fi
+
+######
+# - Fine procedura
+###

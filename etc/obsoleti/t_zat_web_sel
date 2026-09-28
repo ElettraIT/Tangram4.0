@@ -1,0 +1,110 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# sito di Web Creative                     *
+#                                          *
+# t_zat_web_sel                            *
+#                                          *
+# (richiamato da pgtv7200)                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 30/04/13    *
+#   Ultima revisione:  NdK del 28/05/13    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $pth = "/abd/asc/imp/web/"             ;
+my $nam = "LISTA_WEB"                     ;
+
+#==========================================*
+# Modulo Perl per configurazione database  *
+#------------------------------------------*
+my %conf = do '/abd/etc/dbase_conf'       ;    
+my $dtab = "web_orders"                   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database="
+                       .$conf{dbas}
+                       .";host="
+                       .$conf{dbsr}
+                       ."",
+                        $conf{user},
+                        $conf{pass},
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Open dei file di appoggio                *
+#------------------------------------------*
+open (LISTA, ">$pth$nam") or die
+        "Impossibile aprire il file $nam" ;
+
+#==========================================*
+# Lettura dati da tabella                  *
+#------------------------------------------*
+my $sel = "SELECT path FROM "
+
+       . $dtab
+        . " WHERE flag = ' '"             ;
+my $sth = $dbh->prepare($sel)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Ciclo di lettura nomi file               *
+#------------------------------------------*
+while (my $ref = $sth->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Nome file                            *
+    #--------------------------------------*
+    my $file = ""                         ;
+    if ($ref->{'path'})
+    {
+        $file = $ref->{'path'}            ;
+    }
+     else
+    {
+        $file = " "                       ;
+    }
+
+    #--------------------------------------*
+    # Controllo 'lastOrder'                *
+    #--------------------------------------*
+    $flst = substr ($file, 0, 9)          ;
+    next if ($flst eq "lastOrder")        ;
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print LISTA "$file\n"                 ;   
+}
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close del file di appoggio               *
+#------------------------------------------*
+close LISTA                               ;

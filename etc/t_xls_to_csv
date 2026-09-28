@@ -1,0 +1,91 @@
+#!/usr/bin/perl -w
+#===============================================================*
+#                                                               *
+# Traduttore in formato Spreadsheet (da Excel a CSV)            *
+#                                                               *
+#                   ------------------------------------------- *
+#                    Versione originale:    001 del 21/02/11    *
+#                      Ultima revisione:    NdK del 21/02/11    *
+#                   ------------------------------------------- *
+#                                Autore:    Nicola de Kunovich  *
+# ------------------------------------------------------------- *
+#                                                               *
+# Parametri in input : file XLS da tradurre (percorso)          *
+#                                                               *
+# ------------------------------------------------------------- *
+#                                                               *
+# Utilizzo :                                                    *
+#                                                               *
+# $ t_xls_to_csv FILE.xls                                       *
+#                                                               *
+# ___ DA PERFEZIONARE ___                                       *
+#                                                               *
+#===============================================================*
+
+#===============================================================*
+# Dichiarazione per restrizione variabili                       *
+#---------------------------------------------------------------*
+use strict                                                     ;
+
+#===============================================================*
+# Moduli Perl                                                   *
+#---------------------------------------------------------------*
+use Spreadsheet::ParseExcel                                    ;
+use File::Basename                                             ;
+
+#===============================================================*
+# Lettura della variabile in input                              *
+#---------------------------------------------------------------*
+my $fxls = $ARGV[0]                                            ;
+
+#===============================================================*
+# Variabili statiche                                            *
+#---------------------------------------------------------------*
+my $base = '/abd/asc/exp/'                                     ;
+
+#===============================================================*
+# Open del file in output                                       *
+#---------------------------------------------------------------*
+my $fcsv = basename($fxls, ".xls") . ".csv"                    ;
+
+open (OUTFILE, ">$base$fcsv") or die
+         "Impossibile aprire il file $base$fcsv"               ;
+
+#===============================================================*
+# Parsing                                                       *
+#---------------------------------------------------------------*
+my $pars = Spreadsheet::ParseExcel->new()                      ;
+my $finw = $base . $fxls                                       ;
+my $finp = $pars->parse($finw)                                 ;
+
+if ( !defined $finp ) {
+    die $pars->error(), ".\n";
+}
+
+for my $worksheet ( $finp->worksheets() ) {
+
+    my ( $row_min, $row_max ) = $worksheet->row_range();
+    my ( $col_min, $col_max ) = $worksheet->col_range();
+
+    for my $row ( $row_min .. $row_max )
+    {
+        for my $col ( $col_min .. $col_max )
+        {
+
+            my $cell = $worksheet->get_cell( $row, $col );
+            next unless $cell;
+
+            print OUTFILE $cell->value(),       ";";
+        }
+        print OUTFILE "\n";
+
+    }
+}
+    
+    
+#===============================================================*
+# Close del file in output                                      *
+#---------------------------------------------------------------*
+close (OUTFILE)                                                ;
+
+    

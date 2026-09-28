@@ -1,0 +1,83 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# sito di Web Creative                     *
+#                                          *
+# t_zat_web_test2                          *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 15/02/10    *
+#   Ultima revisione:  NdK del 02/05/13    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# PER EFFETTUARE TEST ...                  *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+# my $user = 'root'                         ;
+# my $pass = '901823087123'                 ;
+my $host = "195.138.243.55"               ;
+my $user = 'gestionale'                   ;
+my $cert = "/home/master/.ssh/id_rsa"     ;
+
+#==========================================*
+# Cartelle utilizzate                      *
+#------------------------------------------*
+my $base = '/abd/asc/imp/web/'            ;
+my $path = '/home/gestionale/import/'     ;
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+    #--------------------------------------*
+    # Preparazione argomenti per chiamata  *
+    #--------------------------------------*
+    my %args = (user => $user,
+            key_path => $cert,
+                more => [qw(-o PreferredAuthentications=publickey)]
+        );
+
+    #--------------------------------------*
+    # Chiamata                             *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Posizionamento directory             *
+    #--------------------------------------*
+    $sftp->setcwd($path)
+        or die "Cambio directory "
+       . "non "
+       . "riuscito", $sftp->message       ;
+
+    #--------------------------------------*
+    # Creazione nuova directory            *
+    #--------------------------------------*
+    $sftp->mkdir("prodotti")
+        or die "Cambio directory "
+       . "non "
+       . "riuscito", $sftp->message       ;
+
+
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+

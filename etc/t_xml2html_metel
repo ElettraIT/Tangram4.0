@@ -1,0 +1,61 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per generare un file 'html'  *
+# da un file 'xml' con il foglio di stile  *
+#                                          *
+# t_xml2html_metel PER FASE 'A'            *
+#                                          *
+# N.B.: Utilizzato da 'pedi6000'           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 17/08/23    *
+#   Ultima revisione:  NdK del 31/08/23    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - path file 'xml'             *
+#                                          *
+#            - nome file 'xsl'             *
+#                                          *
+#------------------------------------------*
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use File::Basename                        ;
+use XML::LibXSLT                          ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $pth_xml = shift                       ;
+my $nam_xsl = shift                       ;
+
+#==========================================*
+# File 'xsl'                               *
+#------------------------------------------*
+my $pth_xsl = "/abd/asc/cfg/"
+            . $nam_xsl                    ;
+
+#==========================================*
+# Estrazione nome file                     *
+#------------------------------------------*
+(my $fil_nam,
+ my $fil_pat,
+ my $fil_ext) = fileparse($pth_xml, qr/\.[^.]*/);
+
+#==========================================*
+# File di output                           *
+#------------------------------------------*
+my $out_htm = $fil_pat
+            . $fil_nam
+            . ".html"                     ;
+
+#==========================================*
+# Generazione 'html'                       *
+#------------------------------------------*
+my $new_xsl = XML::LibXSLT->new           ;
+my $new_htm = $new_xsl->parse_stylesheet_file($pth_xsl);
+my $res_htm = $new_htm->transform_file($pth_xml);
+   $new_htm->output_file($res_htm, $out_htm);
+   

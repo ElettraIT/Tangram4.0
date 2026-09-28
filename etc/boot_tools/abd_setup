@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+#========================================================================*
+#                                                                        *
+# Script per installare Tangram in ambiente Linux Suse                   *
+#                                                                        *
+# MAI UTILIZZATO                                                         *
+#                                                                        *
+#========================================================================*
+
+use strict;
+
+#=========================================*
+# Creazione gruppo Tangroup               *
+#-----------------------------------------*
+my $command = '/usr/sbin/groupadd -g 5555 tangroup';
+system ($command);
+
+#=========================================*
+# Creazione utente Master                 *
+#-----------------------------------------*
+my $command = '/usr/sbin/useradd -u 5555 -g tangroup -c Capogruppo_Tangram -d /home/master -m -p alter1 master1';
+system ($command);
+
+my $command = '/bin/cp master/.profile /home/master/.profile';
+system ($command);
+
+#=========================================*
+# Creazione utente Tangram                *
+#-----------------------------------------*
+my $command = '/usr/sbin/useradd -u 5556 -g tangroup -c Utente_Tangram -d /home/tangram -m tangram';
+system ($command);
+
+my $command = '/bin/cp tangram/.profile /home/tangram/.profile';
+system ($command);
+
+#=========================================*
+# Creazione directory 'abd'               *
+#-----------------------------------------*
+my $command = '/bin/mkdir /abd';
+system ($command);
+
+my $command = 'chown master:tangroup /abd';
+system ($command);
+
+my $command = 'chmod 0755 /abd';
+system ($command);
+
+#=========================================*
+# Creazione inizializzatore               *
+#-----------------------------------------*
+my $command = '/bin/cp boot/altrboot /etc/rc.d/altrboot';
+system ($command);
+
+my $command = '/bin/ln -s /etc/rc.d/altrboot /etc/rc.d/rc5.d/S20altrboot';
+system ($command);
+

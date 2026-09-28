@@ -1,0 +1,243 @@
+     ############ /abd/etc/tarcntf2
+     #
+     # Procedura per l'esecuzione di un salvataggio in formato 'tar' - Output in file /abd/tar/tar.log
+     #
+     # Input     $1: Tipo di unita' che deve essere utilizzata per l'esecuzione
+     #               del comando 'tar'
+     #
+     #                   b : unita' per backup, come da /abd/tar/bakdev
+     #                   a : unita' per aggiornamenti software, come da /abd/tar/agsedv
+     #                   f : unita' floppy, come da /abd/tar/flpedv
+     #                   
+     #               Se viene passato un parametro con valore diverso da quelli
+     #               elencati, si presume che questo corrisponda al pathname completo
+     #               del device driver che deve essere utilizzato
+     #                   
+     # Input     $2: Pathname su cui deve essere eseguito un 'change directory'
+     #               prima dell'esecuzione del comando 'tar'
+     #
+     # Input     $3: Pathname del control file che indica, uno per ogni linea,
+     #               i pathnames che devono essere inclusi nel 'tar'
+     #
+     # Nota      Devono essere tassativamente passati tutti i parametri
+     #
+     ######
+
+######
+# Controllo sul numero di parametri
+###
+
+case $# in
+       3)
+          ;;
+       *)
+          clear ;
+          echo    "                                                                 " ;
+          echo    "-----------------------------------------------------------------" ;
+          echo    "          # Errore per il comando di salvataggio dati #          " ;
+          echo    "         -------------------------------------------------       " ;
+          echo    "                                                                 " ;
+          echo    " Errore : Sono richiesti in input tre parametri.                 " ;
+          echo    "                                                                 " ;
+          echo    "          1. parametro : Tipo di unita' che deve essere usata.   " ;
+          echo    "                                                                 " ;
+          echo    "          2. parametro : Pathname della directory su cui posi-   " ;
+          echo    "                         zionarsi prima dell'esecuzione.         " ;
+          echo    "                                                                 " ;
+          echo    "          3. parametro : Pathname del control-file contenente    " ;
+          echo    "                         la lista degli elementi da trattare.    " ;
+          echo    "                                                                 " ;
+          echo    " Nota   : Non e' ammesso omettere nessun parametro, ne' fornire  ";
+          echo    "          piu' parametri di quanto sia richiesto.                " ;
+          echo    "                                                                 " ;
+          echo    " Il comando pertanto non e' stato eseguito.                      " ;
+          echo    "-----------------------------------------------------------------" ;
+          echo    "                                                                 " ;
+          /abd/etc/echonnl "Digitare Return per presa visione --------------> : " ;
+          read  altervx00;
+          exit 0;
+     esac
+
+######
+# Controllo sul 1. parametro
+###
+
+case $1 in
+       b)
+          if [ ! -f /abd/tar/bakdev ]
+             then
+                 clear ;
+                 echo    "                                                                 " ;
+                 echo    "-----------------------------------------------------------------" ;
+                 echo    "          # Errore per il comando di salvataggio dati #          " ;
+                 echo    "         -------------------------------------------------       " ;
+                 echo    "                                                                 " ;
+                 echo    " Errore : Non esiste il file /abd/tar/bakdev per la definizione  " ;
+                 echo    "          del pathname relativo all'unita' a nastro magnetico    " ;
+                 echo    "          che deve essere utilizzata.                            " ;
+                 echo    "                                                                 " ;
+                 echo    " Il comando pertanto non e' stato eseguito.                      " ;
+                 echo    "-----------------------------------------------------------------" ;
+                 echo    "                                                                 " ;
+                 /abd/etc/echonnl "Digitare Return per presa visione --------------> : " ;
+                 read  altervx00;
+                 exit 0;
+             fi
+          altervx11=`cat /abd/tar/bakdev`;
+          ;;
+       a)
+          if [ ! -f /abd/tar/agsdev ]
+             then
+                 clear ;
+                 echo    "                                                                 " ;
+                 echo    "-----------------------------------------------------------------" ;
+                 echo    "          # Errore per il comando di salvataggio dati #          " ;
+                 echo    "         -------------------------------------------------       " ;
+                 echo    "                                                                 " ;
+                 echo    " Errore : Non esiste il file /abd/tar/agsdev per la definizione  " ;
+                 echo    "          del pathname relativo all'unita' a nastro magnetico    " ;
+                 echo    "          che deve essere utilizzata.                            " ;
+                 echo    "                                                                 " ;
+                 echo    " Il comando pertanto non e' stato eseguito.                      " ;
+                 echo    "-----------------------------------------------------------------" ;
+                 echo    "                                                                 " ;
+                 /abd/etc/echonnl "Digitare Return per presa visione --------------> : " ;
+                 read  altervx00;
+                 exit 0;
+             fi
+          altervx11=`cat /abd/tar/agsdev`;
+          ;;
+       f)
+          if [ ! -f /abd/tar/flpdev ]
+             then
+                 clear ;
+                 echo    "                                                                 " ;
+                 echo    "-----------------------------------------------------------------" ;
+                 echo    "          # Errore per il comando di salvataggio dati #          " ;
+                 echo    "         -------------------------------------------------       " ;
+                 echo    "                                                                 " ;
+                 echo    " Errore : Non esiste il file /abd/tar/flpdev per la definizione  " ;
+                 echo    "          del pathname relativo all'unita' a floppy disk che     " ;
+                 echo    "          deve essere utilizzata.                                " ;
+                 echo    "                                                                 " ;
+                 echo    " Il comando pertanto non e' stato eseguito.                      " ;
+                 echo    "-----------------------------------------------------------------" ;
+                 echo    "                                                                 " ;
+                 /abd/etc/echonnl "Digitare Return per presa visione --------------> : " ;
+                 read  altervx00;
+                 exit 0;
+             fi
+          altervx11=`cat /abd/tar/flpdev`;
+          ;;
+       *)
+          altervx11=$1;
+          ;;
+     esac
+
+######
+# Controllo sul 2. parametro
+###
+
+altervx12=$2;
+if [ ! -d $altervx12 ]
+   then
+       clear ;
+       echo    "                                                                 " ;
+       echo    "-----------------------------------------------------------------" ;
+       echo    "          # Errore per il comando di salvataggio dati #          " ;
+       echo    "         -------------------------------------------------       " ;
+       echo    "                                                                 " ;
+       echo    " Errore : Il 2. parametro passato, per indicare la directory su  " ;
+       echo    "          cui posizionarsi prima dell'esecuzione del comando,    " ;
+       echo    "          non fa' riferimento ad una directory.                  " ;
+       echo    "                                                                 " ;
+       echo    " Il comando pertanto non e' stato eseguito.                      " ;
+       echo    "-----------------------------------------------------------------" ;
+       echo    "                                                                 " ;
+       /abd/etc/echonnl "Digitare Return per presa visione --------------> : " ;
+       read  altervx00;
+       exit 0;
+   fi
+
+######
+# Controllo sul 3. parametro
+###
+
+altervx13=$3;
+if [ ! -f $altervx13 ]
+   then
+       clear ;
+       echo    "                                                                 " ;
+       echo    "-----------------------------------------------------------------" ;
+       echo    "          # Errore per il comando di salvataggio dati #          " ;
+       echo    "         -------------------------------------------------       " ;
+       echo    "                                                                 " ;
+       echo    " Errore : Il 3. parametro passato, per indicare il pathname del  " ;
+       echo    "          control-file contenente i nomi degli elementi da in-   " ;
+       echo    "          cludere nella memorizzazione, non fa' riferimento ad   " ;
+       echo    "          un file esistente.                                     " ;
+       echo    "                                                                 " ;
+       echo    " Il comando pertanto non e' stato eseguito.                      " ;
+       echo    "-----------------------------------------------------------------" ;
+       echo    "                                                                 " ;
+       /abd/etc/echonnl "Digitare Return per presa visione --------------> : " ;
+       read  altervx00;
+       exit 0;
+   fi
+
+######
+# Set di una variabile per i contenuti del control file
+###
+
+altervx21=`cat $altervx13`;
+altervx22="";
+for altervx23 in $altervx21
+    do
+        altervx22="$altervx22 $altervx23";
+    done
+
+######
+# - Esecuzione procedura di salvataggio per mezzo del comando 'tar'
+###
+
+#
+# Spostamento su directory di destinazione
+#
+cd $altervx12;
+
+#
+# Messaggio pre-esecuzione
+#
+clear
+echo    "                                                                      " ;
+echo    "----------------------------------------------------------------------" ;
+echo    "                                                                      " ;
+echo    "[] Memorizzazione dati su supporto magnetico ......                   " ;
+echo    "                                                                      " ;
+
+#
+# Comando per la memorizzazione su supporto magnetico
+#
+tar -cvf $altervx11 $altervx22 | cat > /abd/tar/tar.log;
+#tar -cvf $altervx11 $altervx22 | cat > /abd/tar/tar.log | lpr -P lp1 /abd/tar/tar.log;
+
+#
+# Messaggio post-estrazione
+#
+echo    "                                                                      " ;
+echo    "[] ...... Fine memorizzazione dati                                    " ;
+echo    "                                                                      " ;
+echo    "----------------------------------------------------------------------" ;
+echo    "                                                                      " ;
+#
+# Accettazione per presa visione
+#
+#/abd/etc/echonnl "--- Premere il tasto Return ---> : " ;
+#read  altervx61;
+#echo    "                                                                      " ;
+#echo    "----------------------------------------------------------------------" ;
+#echo    "                                                                      " ;
+
+######
+# - Fine procedura
+###

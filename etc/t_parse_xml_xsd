@@ -1,0 +1,47 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per verificare un file XML  *
+# in base allo schema XSD                 *
+#                                         *
+# t_parse_xml_xsd                         *
+#                                         *
+# DA COLLAUDARE                           *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 31/08/17   *
+#   Ultima revisione:  NdK del 31/08/17   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : - percorso 'xml'             *
+#            - percorso 'xsd'             *
+#                                         *
+#-----------------------------------------*
+
+#=========================================*
+# Moduli Perl                             *
+#-----------------------------------------*
+use XML::LibXML                           ;
+
+#=========================================*
+# Percorsi file in input                  *
+#-----------------------------------------*
+my $xml = shift                           ;
+my $xsd = shift                           ;
+
+#=========================================*
+# Parsing                                 *
+#-----------------------------------------*
+my $schema = XML::LibXML::Schema->new(location => $xsd);
+
+my $parser = XML::LibXML->new;
+my $doc    = $parser->parse_file($xml);
+
+eval { $schema->validate($doc) };
+die $@ if $@;
+
+#=========================================*
+# Esito positivo                          *
+#-----------------------------------------*
+print "$xml validated successfully\n";

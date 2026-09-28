@@ -1,0 +1,173 @@
+#!/usr/bin/perl -w
+#========================================================================*
+#                                                                        *
+# Prova linee curve                                                      *
+#                                                                        *
+# output su PDF o in stampa                                              *
+#                                                                        *
+# 27/03/18 - Funziona                                                    *
+#                                                                        *
+#========================================================================*
+
+use PostScript::Simple                    ;
+
+my $printer = "m1522"                     ;
+
+my $out = "/abd/asc/tmp/stampata.ps"        ;
+
+my $pdf = "/abd/asc/tmp/stampata.pdf"        ;
+         
+
+#--------------------------------------*
+# Nuova pagina Postscript              *
+#--------------------------------------*
+$p = new PostScript::Simple(papersize => "A4",
+                            landscape => 1,
+                               colour => 1,
+                                  eps => 0,
+                                units => "mm")           ;
+$p->newpage                           ;
+
+
+$p->setfont("Helvetica-Bold", 24);
+
+$p->setcolour("red");
+
+$p->text(200,200, "TESTO DI PROVA");
+
+
+#$p->text(10,10,"*");
+#$p->text(90,90,"*");
+#$p->text(80,10,"*");
+#$p->text(90,20,"*");
+
+# BOXcon spigoli curvi usando "curve"
+
+#$p->line(10, 100, 160, 100)                 ;
+#$p->curvextend(169,100, 170,101, 170,110);
+#$p->linextend(170, 180)                 ;
+#$p->curvextend(170,188, 168,190, 160,190);
+#$p->linextend(10, 190)                 ;
+
+#$p->curve(10,10, 80,10, 90,20, 90,90);
+# Create a curve from (x1, y1) to (x4, y4). (x2, y2) and (x3, y3) are the control points for the start- and end-points respectively.
+
+#       X   Y   R   A1 A2
+#$p->arc(80, 80, 3, 0, 90);
+
+
+# QUESTO CREA PROBLEMI DI ORIENTAMENTO PAGINA
+#$p->circletext({align => "inside"},90, 90, 20, 170, "Hello, Inside World!");
+
+
+
+
+#$p->curvextend(120,120, 130,130, 127,123);
+
+# BOXcon spigoli curvi usando "arc"
+
+#$p->line(120, 10, 200, 10)                 ; # linea in basso
+#$p->line(120, 80, 200, 80)                 ; # linea in alto
+#$p->line(110, 20, 110, 70)                 ; # linea a sinistra
+#$p->line(210, 20, 210, 70)                 ; # linea a destra
+
+#$p->arc(200, 20, 10, 270, 360); # angolo in basso a destra
+#$p->arc(200, 70, 10, 0, 90); # angolo in alto a destra
+#$p->arc(120, 70, 10, 90, 180); # angolo in alto a sinistra
+#$p->arc(120, 20, 10, 180, 270); # angolo in basso a sinistra
+
+my $pos_X = 90;   # Posizione (X)
+my $pos_Y = 130;  # Posizione (Y)
+my $lun   = 120;  # Lunghezza
+my $alt   = 50;   # Altezza
+my $cur   = 10;   # Curvatura (in mm.)
+my $spl   = 0.7;  # Spessore linea (in mm.)
+my $col   = "red";  # Colore
+&draw_box ($pos_X, $pos_Y, $lun, $alt, $cur, $spl, $col);
+
+$pos_X = 95;  # Posizione (X)
+$pos_Y = 135; # Posizione (Y)
+$lun   = 80;  # Lunghezza
+$alt   = 40;  # Altezza
+$cur   = 1;   # Curvatura (in mm. da 0 in su )
+$spl   = 0.3; # Spessore linea (in mm.)
+$col   = "green";  # Colore
+&draw_box ($pos_X, $pos_Y, $lun, $alt, $cur, $spl, $col);
+
+$pos_X = 33;   # Posizione (X)
+$pos_Y = 44;   # Posizione (Y)
+$lun   = 180;  # Lunghezza
+$alt   = 20;   # Altezza
+$cur   = 4;    # Curvatura (in mm. da 0 in su )
+$spl   = 0.01; # Spessore linea (in mm.)
+$col   = "blue";  # Colore
+&draw_box ($pos_X, $pos_Y, $lun, $alt, $cur, $spl, $col);
+
+$pos_X = 33;   # Posizione (X)
+$pos_Y = 64;   # Posizione (Y)
+$lun   = 180;  # Lunghezza
+$alt   = 20;   # Altezza
+$cur   = 4;    # Curvatura (in mm. da 0 in su )
+$spl   = 0.01; # Spessore linea (in mm.)
+$col   = "blue";  # Colore
+&draw_box ($pos_X, $pos_Y, $lun, $alt, $cur, $spl, $col);
+
+
+
+$p->output($out);
+
+
+#    system("cat $out | lpr -P$printer");
+    system("ps2pdf $out $pdf");
+
+
+# Subroutine per disegnare un box
+
+#===============================================================*
+# Subroutine per disegnare un box                               *
+#                                                               *
+# In Input : - coordinata X                                     *
+#            - coordinata Y                                     *
+#            - lunghezza (mm)                                   *
+#            - altezza (mm)                                     *
+#            - raggio angoli (mm)                               *
+#            - spessore linee (mm)                              *
+#            - colore                                           *
+#---------------------------------------------------------------*
+sub draw_box
+{
+#   *-----------------------------------------------------------*
+#   * Variabili da chiamante                                    *
+#   *-----------------------------------------------------------*
+    my $x = shift;
+    my $y = shift;
+    my $l = shift;
+    my $a = shift;
+    my $r = shift;
+    my $s = shift;
+    my $c = shift;
+#   *-----------------------------------------------------------*
+#   * Spessore linea                                            *
+#   *-----------------------------------------------------------*
+    $p->setlinewidth($s)                         ;
+#   *-----------------------------------------------------------*
+#   * Colore                                                    *
+#   *-----------------------------------------------------------*
+    $p->setcolour($c)                     ;
+#   *-----------------------------------------------------------*
+#   * Linee Box                                                 *
+#   *-----------------------------------------------------------*
+    $p->line($x+$r, $y, $x+$l-$r, $y)           ; # linea in basso
+    $p->line($x+$r, $y+$a, $x+$l-$r, $y+$a)     ; # linea in alto
+    $p->line($x, $y+$r, $x, $y+$a-$r)           ; # linea a sinistra
+    $p->line($x+$l, $y+$r, $x+$l, $y+$a-$r)     ; # linea a destra
+#   *-----------------------------------------------------------*
+#   * Angoli Box                                                *
+#   *-----------------------------------------------------------*
+    $p->arc($x+$r, $y+$r, $r, 180, 270);    # angolo in basso a sinistra
+    $p->arc($x+$l-$r, $y+$r, $r, 270, 360); # angolo in basso a destra
+    $p->arc($x+$r, $y+$a-$r, $r, 90, 180);  # angolo in alto a sinistra
+    $p->arc($x+$l-$r, $y+$a-$r, $r, 0, 90); # angolo in alto a destra
+    
+}
+

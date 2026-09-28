@@ -1,0 +1,114 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per lista contenuto di una  *
+# directory Utente di Tangram             *
+#                                         *
+# t_sir_doc                               *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 22/12/17   *
+#   Ultima revisione:  NdK del 22/12/17   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : (nessun elemento)            *
+#                                         *
+# In crontab di 'master' ogni domenica    *
+#                                         *
+# --------------------------------------- *
+# N.B. serve a pulire la directory 'doc'  *
+#      ma non verifica l'anno del nome    *
+#      file !!!                           *
+#-----------------------------------------*
+#=========================================*
+# Moduli Perl utilizzati                  *
+#-----------------------------------------*
+use File::Copy;
+
+#=========================================*
+# Variabili statiche                      *
+# --------------------------------------- *
+#  - Data di sistema per ANNO             *
+#-----------------------------------------*
+my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =
+                                                localtime(time);
+$year += 1900;
+my $anno = sprintf("%02d", $year % 100);
+
+#=========================================*
+# Variabili statiche                      *
+#-----------------------------------------*
+my $dire = "/abd/asc/doc"                 ;
+my $fatt = $dire . "/fatture_" . $year    ;
+my $ordi = $dire . "/ordini_" . $year     ;
+my $ordx = "_OC_"                         ;
+
+#=========================================*
+# Spostamento                             *
+#-----------------------------------------*
+    #--------------------------------------*
+    # Open directory                       *
+    #--------------------------------------*
+    opendir (DIR,$dire)                    ;
+
+    #--------------------------------------*
+    # Ciclo interno alla directory         *
+    #--------------------------------------*
+    LINE: foreach $name (sort readdir(DIR))
+    {
+        #----------------------------------*
+        # Si ignorano le directory         *
+        #----------------------------------*
+        if ($name eq "." || $name eq "..")
+           {next(LINE)}                   ;
+        #----------------------------------*
+        # Si ignorano altri eventuali doc  *
+        #----------------------------------*
+        my $subd = substr $name, 0, 5;
+        if ($subd ne "siri_")
+           {next(LINE)}                   ;
+        #----------------------------------*
+        # Test se sono ordini              *
+        #----------------------------------*
+        my $subs = substr $name, 4, 4;
+            #print "$subs\n";
+        if ($subs ne $ordx)
+            {
+            #------------------------------*
+            # Spostamento fatture          *
+            #------------------------------*
+            my $sour = $dire . "/" . $name;
+            my $dest = $fatt . "/" . $name;
+            move($sour,$dest)             ;
+
+            #print "$sour\n";
+            #print "$dest\n";
+           }
+           else
+           {
+            #------------------------------*
+            # Spostamento ordini           *
+            #------------------------------*
+            my $sour = $dire . "/" . $name;
+            my $dest = $ordi . "/" . $name;
+            move($sour,$dest)             ;
+
+            #print "$sour\n";
+            #print "$dest\n";
+           }                      ;
+    }
+
+    #--------------------------------------*
+    # Close directory                      *
+    #--------------------------------------*
+    closedir (DIR);
+
+
+
+
+
+
+
+
+

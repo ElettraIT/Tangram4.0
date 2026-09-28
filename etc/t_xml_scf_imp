@@ -1,0 +1,2908 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per importare le fattura     *
+# in formato XML, ricevute da fornitori,   *
+# da scansione lista creata precedente-    *
+# mente, su database, dal modulo in        *
+# crontab 't_xml_for_imp'                  *
+#                                          *
+# t_xml_scf_imp {AZI}                      *
+#                                          *
+# N.B.: Utilizzato da 'pscf3700'           *
+#                                          *
+# ___ OBSOLETO ___                         *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Versione Fattura PA 1.2.1                *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 17/02/18   *
+#   Ultima revisione:   wip del 20/04/21   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#                                          *
+# (Configurazione: - 't_xml_for.ini'       *
+#                  - 'dtb.ini')            *
+#                                          *
+# ---------------------------------------- *
+# in Crontab ogni 3 minuti                 *
+#                                          *
+# */3 * * * * /abd/etc/t_xml_for_wrt {AZI} *
+#   1>/abd/asc/log/t_xml_for_wrt_ok.log    *
+#   2>/abd/asc/log/t_xml_for_wrt_ko.log    *
+#                                          *
+# ---------------------------------------- *
+# Per creare il database                   *
+#                                          *
+# CREATE TABLE `{AZI}`.`xml_frr` (         *
+# `nam_xml` varchar(40) NOT NULL,          *
+# `tip_rec` tinytext NOT NULL,             *
+# `tip_ele` varchar(5) NOT NULL,           *
+# `ctr_ele` varchar(5) NOT NULL,           *
+# `pmt_ele` varchar(60) NOT NULL,          *
+# `val_ele` mediumtext NOT NULL,           *
+# `dat_imp` DATETIME NOT NULL              *
+# ) ENGINE = MYISAM;                       *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+use File::Basename                        ;
+use XML::Simple                           ;
+use utf8                                  ;
+use Unicode::Normalize                    ;
+use MIME::Base64 qw(decode_base64)        ;
+
+#=========================================*
+# Valori in input                         *
+#-----------------------------------------*
+my $cod_azi = shift                       ;
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di configurazione base         *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/"
+            . "t_xml_for.ini"             ;
+
+my %cnf_ele = do $cfg_bas                 ;
+my $pth_scf = $cnf_ele{pth_scf}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_wrk = $cnf_ele{pth_wrk}           ;
+my $pth_att = $cnf_ele{pth_att}           ;
+#------------------------------------------*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dtb_azi = $cod_azi                    ;
+#
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+my $dtb_tbt = $cnf_dtb{dtb_tbt}           ;
+my $dtb_tbr = $cnf_dtb{dtb_tbr}           ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dtb_con = DBI->connect("DBI:"
+                         . "mysql:database="
+                         . "$dtb_azi;"
+                         . "host=$dtb_hst",
+                                  $dtb_usr,
+                                  $dtb_pwd,
+                          {RaiseError => 1,
+                           PrintError => 0});
+
+#------------------------------------------*
+# Lettura database                         *
+#------------------------------------------*
+my $sel_dtb = "SELECT nam_xml FROM "
+            . $dtb_tbt
+            . " WHERE dat_sql = '0'"      ;
+my $sth_dtb = $dtb_con->prepare($sel_dtb) ;
+#------------------------------------------*
+# Esecuzione                               *
+#------------------------------------------*
+$sth_dtb->execute()                       ;
+
+#------------------------------------------*
+# Ciclo di scansione                       *
+#------------------------------------------*
+    #--------------------------------------*
+    # Righe tabella                        *
+    #--------------------------------------*
+    while (@row = $sth_dtb->fetchrow_array) 
+    {
+        #----------------------------------*
+        # Estrazione nome file             *
+        #----------------------------------*
+       (my $fil_nam,
+        my $fil_pat,
+        my $fil_ext) = fileparse($row[0], qr/\.[^.]*/);
+        #----------------------------------*
+        # Test se file cryptato            *
+        #----------------------------------*
+        if ($fil_ext eq ".p7m")
+        {$xml_nam = $fil_nam;}
+         else
+        {$xml_nam = $fil_nam . $fil_ext;}
+        #----------------------------------*
+        # Estrazione dei valori            *
+        #----------------------------------*
+        &wrt_xml ($xml_nam)               ;
+        #----------------------------------*
+        # Aggiornamento data               *
+        # _______                          *
+        #----------------------------------*
+#        &upd_xml ($row[0])                ;
+    }
+
+#------------------------------------------*
+# Chiusura database                        *
+#------------------------------------------*
+$dtb_con->disconnect()                    ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# Subroutines                              *
+#==========================================*
+
+#==========================================*
+# Estrazione dei valori                    *
+#------------------------------------------*
+sub wrt_xml
+{
+    #======================================*
+    # Valore in input                      *
+    #--------------------------------------*
+    my $wrk_nam = shift                   ;
+    #--------------------------------------*
+    # Directory di lavoro                  *
+    #--------------------------------------*
+    my $wrk_pat = $pth_bas
+                . $cod_azi
+                . "/"
+                . $pth_wrk
+                . "/"                     ;
+    #--------------------------------------*
+    # Directory file da leggere            *
+    #--------------------------------------*
+    my $xml_pat = $wrk_pat
+                . $wrk_nam                ;
+    #--------------------------------------*
+    # Caricamento file                     *
+    #--------------------------------------*
+    my $xml = XML::Simple->new()          ;
+    my $data = XMLin($xml_pat)            ;
+    #--------------------------------------*
+    # Normalizzazione numero righe         *
+    #--------------------------------------*
+    my $ctr_rig = 0                       ;
+    my $row_num = ""                      ;
+
+    #======================================*
+    # Decodifica nodi                      *
+    #======================================*
+
+    #======================================*
+    # Dati Trasmissione              (1.1) *
+    #--------------------------------------*
+        #----------------------------------*
+        # Tipo record                      *
+        #----------------------------------*
+        my $tip_rec = "T"                 ;
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        my $tip_ele = "trs"               ;
+        #----------------------------------*
+        # Id Paese               (1.1.1.1) *
+        #----------------------------------*
+        my $pmt_nam = "IdPaese"           ;
+        my $pmt_dat = $data->{FatturaElettronicaHeader}
+                           ->{DatiTrasmissione}
+                           ->{IdTrasmittente}
+                           ->{IdPaese}    ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Id Codice              (1.1.1.2) *
+        #----------------------------------*
+        $pmt_nam = "IdCodice"             ;
+        $pmt_dat = $data->{FatturaElettronicaHeader}
+                        ->{DatiTrasmissione}
+                        ->{IdTrasmittente}
+                        ->{IdCodice}      ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Progressivo invio        (1.1.2) *
+        #----------------------------------*
+        $pmt_nam = "ProgressivoInvio"     ;
+        $pmt_dat = $data->{FatturaElettronicaHeader}
+                        ->{DatiTrasmissione}
+                        ->{ProgressivoInvio};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Formato Trasmissione     (1.1.3) *
+        #----------------------------------*
+        $pmt_nam = "FormatoTrasmissione"     ;
+        $pmt_dat = $data->{FatturaElettronicaHeader}
+                        ->{DatiTrasmissione}
+                        ->{FormatoTrasmissione};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Codice Destinatario      (1.1.4) *
+        #----------------------------------*
+        $pmt_nam = "CodiceDestinatario"     ;
+        $pmt_dat = $data->{FatturaElettronicaHeader}
+                        ->{DatiTrasmissione}
+                        ->{CodiceDestinatario};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Telefono Trasmittente  (1.1.5.1) *
+        #----------------------------------*
+        $pmt_nam = "Telefono"             ;
+        $pmt_dat = $data->{FatturaElettronicaHeader}
+                        ->{DatiTrasmissione}
+                        ->{ContattiTrasmittente}
+                        ->{Telefono}      ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Email Trasmittente     (1.1.5.2) *
+        #----------------------------------*
+        $pmt_nam = "Email"                ;
+        $pmt_dat = $data->{FatturaElettronicaHeader}
+                        ->{DatiTrasmissione}
+                        ->{ContattiTrasmittente}
+                        ->{Email}         ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # PEC Destinatario         (1.1.6) *
+        #----------------------------------*
+        $pmt_nam = "PECDestinatario"      ;
+        $pmt_dat = $data->{FatturaElettronicaHeader}
+                        ->{DatiTrasmissione}
+                        ->{PECDestinatario};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+    #--------------------------------------*
+    # Dati trasmissione - Fine             *
+    #======================================*
+    
+    #======================================*
+    # Cedente prestatore - Fornitore (1.2) *
+    #--------------------------------------*
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "fnt"                  ;
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_fnt = $data->{FatturaElettronicaHeader}
+                        ->{CedentePrestatore}
+                        ->{DatiAnagrafici};
+        #----------------------------------*
+        # Dati anagrafici          (1.2.1) *
+        #----------------------------------*
+        &pmt_ana ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_fnt)               ;
+        #----------------------------------*
+        # Albo Professionale     (1.2.1.4) *
+        #----------------------------------*
+        $pmt_nam = "AlboProfessionale"    ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{AlboProfessionale};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Provincia Albo         (1.2.1.5) *
+        #----------------------------------*
+        $pmt_nam = "ProvinciaAlbo"        ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{ProvinciaAlbo};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Numero Iscrizione Albo (1.2.1.6) *
+        #----------------------------------*
+        $pmt_nam = "NumeroIscrizioneAlbo" ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{NumeroIscrizioneAlbo} ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Data Iscrizione Albo   (1.2.1.7) *
+        #----------------------------------*
+        $pmt_nam = "DataIscrizioneAlbo"   ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{DataIscrizioneAlbo};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Regime Fiscale         (1.2.1.8) *
+        #----------------------------------*
+        $pmt_nam = "RegimeFiscale"        ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{RegimeFiscale};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Riferimento Amministr.   (1.2.6) *
+        #----------------------------------*
+        $pmt_nam = "RiferimentoAmministrazione";
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{RiferimentoAmministrazione};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Telefono               (1.2.5.1) *
+        #----------------------------------*
+        $pmt_nam = "Telefono"             ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{Contatti}
+                           ->{Telefono}   ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Fax                    (1.2.5.2) *
+        #----------------------------------*
+        $pmt_nam = "Fax"                  ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{Contatti}
+                           ->{Fax}        ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Email                  (1.2.5.3) *
+        #----------------------------------*
+        $pmt_nam = "Email"                ;
+        $pmt_dat = $pmt_fnt->{DatiAnagrafici}
+                           ->{Contatti}
+                           ->{Email}      ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+                  
+    #--------------------------------------*
+    # Cedente prestatore - Fine            *
+    #======================================*
+    
+    #======================================*
+    # Rappresentante fiscale               *
+    #--------------------------------------*
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "rfs"                  ;
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_rfs = $data->{FatturaElettronicaHeader}
+                        ->{RappresentanteFiscale}
+                        ->{DatiAnagrafici};
+        #----------------------------------*
+        # Dati anagrafici                  *
+        #----------------------------------*
+        &pmt_ana ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_rfs)               ;
+    #--------------------------------------*
+    # Rappresentante fiscale - Fine        *
+    #======================================*
+    
+    #======================================*
+    # Cessionario Committente (cliente)    *
+    #--------------------------------------*
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "cli"                  ;
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_cli = $data->{FatturaElettronicaHeader}
+                        ->{CessionarioCommittente}
+                        ->{DatiAnagrafici};
+        #----------------------------------*
+        # Dati anagrafici                  *
+        #----------------------------------*
+        &pmt_ana ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_cli)               ;
+        #----------------------------------*
+        # DA IMPLEMENTARE ___              *
+        #----------------------------------*
+        #1.4.3             <StabileOrganizzazione>
+        #1.4.4             <RappresentanteFiscale>
+    #--------------------------------------*
+    # Cessionario committente - Fine       *
+    #======================================*
+
+    #======================================*
+    # Terzo intermediario (emittente)      *
+    #--------------------------------------*
+    
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "trz"                  ;
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_trz = $data->{FatturaElettronicaHeader}
+                        ->{TerzoIntermediarioOSoggettoEmittente}
+                        ->{DatiAnagrafici};
+        #----------------------------------*
+        # Dati anagrafici                  *
+        #----------------------------------*
+        &pmt_ana ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_trz)               ;
+
+    #--------------------------------------*
+    # Terzo intermediario - Fine           *
+    #======================================*
+
+    #======================================*
+    # Dati Generali Documento              *
+    #--------------------------------------*
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "doc"                  ;
+        #----------------------------------*
+        # Tipo documento         (2.1.1.1) *
+        #----------------------------------*
+        $pmt_nam = "TipoDocumento"        ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{TipoDocumento} ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Divisa                 (2.1.1.2) *
+        #----------------------------------*
+        $pmt_nam = "Divisa"               ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{Divisa}        ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Data documento         (2.1.1.3) *
+        #----------------------------------*
+        $pmt_nam = "Data"                 ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{Data}          ;
+        #
+        my $dat_doc = &trt_dat ($pmt_dat) ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $dat_doc)               ;
+        #----------------------------------*
+        # Numero documento       (2.1.1.4) *
+        #----------------------------------*
+        $pmt_nam = "Numero"               ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{Numero}        ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "rit"                  ;
+        #----------------------------------*
+        # Tipo ritenuta        (2.1.1.5.1) *
+        #----------------------------------*
+        $pmt_nam = "TipoRitenuta"         ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{DatiRitenuta}
+                        ->{TipoRitenuta}  ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Importo ritenuta                 *
+        #----------------------------------*
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{DatiRitenuta}
+                        ->{ImportoRitenuta};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+         "ImportoRitenuta",
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Aliquota ritenuta                *
+        #----------------------------------*
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{DatiRitenuta}
+                        ->{AliquotaRitenuta};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+        "AliquotaRitenuta",
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Causale pagamento ritenuta       *
+        #----------------------------------*
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{DatiRitenuta}
+                        ->{CausalePagamento};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+        "CausalePagamento",
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "doc"                  ;
+        
+        #----------------------------------*
+        # Dati Bollo             (2.1.1.6) *
+        #----------------------------------*
+        # Bollo Virtuale       (2.1.1.6.1) *
+        #----------------------------------*
+        $pmt_nam = "BolloVirtuale"        ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{DatiBollo}
+                        ->{BolloVirtuale} ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Bollo Virtuale       (2.1.1.6.2) *
+        #----------------------------------*
+        $pmt_nam = "ImportoBollo"         ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{DatiBollo}
+                        ->{ImportoBollo}  ;
+        
+        #----------------------------------*
+        # Dati Cassa Previdenz.  (2.1.1.7) *
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_dcp = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{DatiCassaPrevidenziale};
+        #----------------------------------*
+        # Dati anagrafici                  *
+        #----------------------------------*
+        &pmt_dcp ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_dcp)               ;
+
+        #==================================*
+        # Sconto o maggiorazione (2.1.1.8) *
+        # campo multiplo                   *
+        #----------------------------------*
+        if (ref($data->{FatturaElettronicaBody}
+                     ->{DatiGenerali}
+                     ->{DatiGeneraliDocumento}
+                     ->{ScontoMaggiorazione}) =~ /ARRAY/)
+        {
+            #-----------------------------*
+            # Ciclo su righe sconto       *
+            #-----------------------------*
+            foreach $s (@{$data->{FatturaElettronicaBody}
+                               ->{DatiGenerali}
+                               ->{DatiGeneraliDocumento}
+                               ->{ScontoMaggiorazione}})
+            {
+            #-----------------------------*
+            # Tipo                        *
+            #-----------------------------*
+            $pmt_nam = "Tipo"             ;
+            $pmt_val = $s->{Tipo}         ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Percentuale                 *
+            #-----------------------------*
+            $pmt_nam = "Percentuale"      ;
+            $pmt_val = $s->{Percentuale}  ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Importo                     *
+            #-----------------------------*
+            $pmt_nam = "Importo"          ;
+            $pmt_val = $s->{Importo}      ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            }
+        }
+         else
+        {
+            #-----------------------------*
+            # Se una sola riga di sconto  *
+            #-----------------------------*
+            # Tipo                        *
+            #-----------------------------*
+            $pmt_nam = "Tipo"             ;
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiGeneraliDocumento}
+                            ->{ScontoMaggiorazione}
+                            ->{Tipo}      ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Percentuale                 *
+            #-----------------------------*
+            $pmt_nam = "Percentuale"      ;
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiGeneraliDocumento}
+                            ->{ScontoMaggiorazione}
+                            ->{Percentuale};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Importo                     *
+            #-----------------------------*
+            $pmt_nam = "Importo"          ;
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiGeneraliDocumento}
+                            ->{ScontoMaggiorazione}
+                            ->{Importo}   ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+        }
+
+        #----------------------------------*
+        # Importo totale doc.    (2.1.1.9) *
+        #----------------------------------*
+        $pmt_nam = "ImportoTotaleDocumento";
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{ImportoTotaleDocumento};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+        #----------------------------------*
+        # Arrotondamento        (2.1.1.10) *
+        #----------------------------------*
+        $pmt_nam = "Arrotondamento"       ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{Arrotondamento};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+
+        #==================================*
+        # Causale - campo multiplo         *
+        #----------------------------------*
+        if (ref($data->{FatturaElettronicaBody}
+                     ->{DatiGenerali}
+                     ->{DatiGeneraliDocumento}
+                     ->{Causale}) =~ /ARRAY/)
+        {
+            #-----------------------------*
+            # Ciclo su righe causale      *
+            #-----------------------------*
+            foreach $c (@{$data->{FatturaElettronicaBody}
+                               ->{DatiGenerali}
+                               ->{DatiGeneraliDocumento}
+                               ->{Causale}})
+            {
+            #-----------------------------*
+            # Causale                     *
+            #-----------------------------*
+            $pmt_val = $c                 ;
+        #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                     "Causale",
+                      $pmt_val)           ;
+            }
+        }
+         else
+        {
+            #-----------------------------*
+            # Se una sola riga di causale *
+            #-----------------------------*
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiGeneraliDocumento}
+                            ->{Causale}   ;
+        #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                     "Causale",
+                      $pmt_val)           ;
+        }
+
+        #----------------------------------*
+        # Articolo 73           (2.1.1.12) *
+        #----------------------------------*
+        $pmt_nam = "Art73"                ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiGeneraliDocumento}
+                        ->{Art73}         ;
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+    #--------------------------------------*
+    # Dati Generali Documento - Fine       *
+    #======================================*
+    
+    #======================================*
+    # Corpo documento                      *
+    #--------------------------------------*
+    
+        #----------------------------------*
+        # Tipo record                      *
+        #----------------------------------*
+        $tip_rec = "R"                    ;
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "ord"                  ;
+        #==================================*
+        # Riferimenti ordini - campo       *
+        # multiplo                         *
+        #----------------------------------*
+        if (ref($data->{FatturaElettronicaBody}
+                     ->{DatiGenerali}
+                     ->{DatiOrdineAcquisto}) =~ /ARRAY/)
+        {
+            #-----------------------------*
+            # Ciclo su righe riferimento  *
+            # a ordini                    *
+            #-----------------------------*
+            foreach $o (@{$data->{FatturaElettronicaBody}
+                               ->{DatiGenerali}
+                               ->{DatiOrdineAcquisto}})
+            {
+            #-----------------------------*
+            # Riferimento numero linea    *
+            #-----------------------------*
+            $pmt_val = $o->{RiferimentoNumeroLinea};
+        #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+      "RiferimentoNumeroLinea",
+                      $pmt_val)           ;
+            #-----------------------------*
+            # ID documento                *
+            #-----------------------------*
+            $pmt_val = $o->{IdDocumento}  ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                 "IdDocumento",
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Data                        *
+            #-----------------------------*
+            $pmt_nam = "Data"             ;
+            $pmt_val = $o->{Data}         ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Num Item                    *
+            #-----------------------------*
+            $pmt_nam = "NumItem"          ;
+            $pmt_val = $o->{NumItem}      ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Codice Commessa Convenzione *
+            #-----------------------------*
+            $pmt_nam = "CodiceCommessaConvenzione";
+            $pmt_val = $o->{CodiceCommessaConvenzione};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Codice CUP                  *
+            #-----------------------------*
+            $pmt_nam = "CodiceCUP"        ;
+            $pmt_val = $o->{CodiceCUP}    ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Codice CIG                  *
+            #-----------------------------*
+            $pmt_nam = "CodiceCIG"        ;
+            $pmt_val = $o->{CodiceCIG}    ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            }
+        }
+         else
+        {
+            #-----------------------------*
+            # Se una sola riga di         *
+            # riferimento ordini          *
+            #-----------------------------*
+            $pmt_nam = "RiferimentoNumeroLinea";
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiOrdineAcquisto}
+                            ->{RiferimentoNumeroLinea};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # ID documento                *
+            #-----------------------------*
+            $pmt_nam = "IdDocumento"      ;
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiOrdineAcquisto}
+                            ->{IdDocumento};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Data                        *
+            #-----------------------------*
+            $pmt_nam = "Data"             ;
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiOrdineAcquisto}
+                            ->{Data}      ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Num Item                    *
+            #-----------------------------*
+            $pmt_nam = "NumItem"          ;
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiOrdineAcquisto}
+                            ->{NumItem}   ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Codice Commessa Convenzione *
+            #-----------------------------*
+            $pmt_nam = "CodiceCommessaConvenzione";
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiOrdineAcquisto}
+                            ->{CodiceCommessaConvenzione};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Codice CUP                  *
+            #-----------------------------*
+            $pmt_nam = "CodiceCUP";
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiOrdineAcquisto}
+                            ->{CodiceCUP} ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Codice CIG                  *
+            #-----------------------------*
+            $pmt_nam = "CodiceCIG";
+            $pmt_val = $data->{FatturaElettronicaBody}
+                            ->{DatiGenerali}
+                            ->{DatiOrdineAcquisto}
+                            ->{CodiceCIG} ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_val)           ;
+        }
+
+        #==================================*
+        # Riferimenti Dati Contratto       *
+        # campo multiplo                   *
+        # ___                              *
+        #----------------------------------*
+
+        #==================================*
+        # Riferimenti Dati Convenzione     *
+        # campo multiplo                   *
+        # ___                              *
+        #----------------------------------*
+
+        #==================================*
+        # Riferimenti Dati Ricezione       *
+        # campo multiplo                   *
+        # ___                              *
+        #----------------------------------*
+
+        #==================================*
+        # Dati fatture collegate   (2.1.6) *
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "dfc"                  ;
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_dfc = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiFattureCollegate};
+        #----------------------------------*
+        # Riferimenti                      *
+        #----------------------------------*
+        &pmt_dfc ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_dfc)               ;
+
+        #==================================*
+        # Dati DDT                 (2.1.8) *
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "ddt"                  ;
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_ddt = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}  ;
+        #----------------------------------*
+        # Riferimenti                      *
+        #----------------------------------*
+        &pmt_ddt ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_ddt)               ;
+
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "vet"                  ;
+        #----------------------------------*
+        # Header                           *
+        #----------------------------------*
+        $pmt_vet = $data->{FatturaElettronicaBody}
+                        ->{DatiGenerali}
+                        ->{DatiTrasporto}
+                        ->{DatiAnagraficiVettore};
+        #----------------------------------*
+        # Dati anagrafici        (2.1.9.1) *
+        #----------------------------------*
+        &pmt_ana ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_vet)               ;
+#            <DatiTrasporto>
+#                <DatiAnagraficiVettore>
+#                    <IdFiscaleIVA>
+#                        <IdPaese>IT</IdPaese>
+#                        <IdCodice>00100170448</IdCodice>
+#                    </IdFiscaleIVA>
+#                    <CodiceFiscale>00100170448</CodiceFiscale>
+#                    <Anagrafica>
+#                        <Denominazione>EUROCOT S.P.A.</Denominazione>
+#                    </Anagrafica>
+#                </DatiAnagraficiVettore>
+#                <CausaleTrasporto>C/Vendita</CausaleTrasporto>
+#                <Descrizione>SCATOLE SU BANCALE</Descrizione>
+#                <PesoLordo>1666.95</PesoLordo>
+#                <PesoNetto>14.66</PesoNetto>
+#            </DatiTrasporto>
+
+
+
+
+    #======================================*
+    # Linee documento                      *
+    #--------------------------------------*
+
+        #==================================*
+        # Righe di dettaglio - campo       *
+        # multiplo                         *
+        #----------------------------------*
+        if (ref($data->{FatturaElettronicaBody}
+                     ->{DatiBeniServizi}
+                     ->{DettaglioLinee}) =~ /ARRAY/)
+        {
+            #-----------------------------*
+            # Ciclo su righe di dettaglio *
+            #-----------------------------*
+            foreach $e (@{$data->{FatturaElettronicaBody}
+                               ->{DatiBeniServizi}
+                               ->{DettaglioLinee}})
+            {
+            #-----------------------------*
+            # Incremento contatore righe  *
+            #-----------------------------*
+            $ctr_rig++                    ;
+            $row_num = sprintf "%03d", 
+                        $ctr_rig          ;
+            #-----------------------------*
+            # Numero riga                 *
+            #-----------------------------*
+            $pmt_val = $e->{NumeroLinea}  ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+                 "NumeroLinea",
+                      $pmt_val)           ;
+            #=============================*
+            # Codice prodotto - campo     *
+            # multiplo                    *
+            #-----------------------------*
+            if (ref($e->{CodiceArticolo}) =~ /ARRAY/)
+            {
+                #-------------------------*
+                # Ciclo su codici         *
+                #-------------------------*
+                foreach $r (@{$e->{CodiceArticolo}})
+                {
+                #-------------------------*
+                # Codice tipo             *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                      "CodiceTipo",
+                  $r->{CodiceTipo})       ;
+                #-------------------------*
+                # Codice valore           *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                    "CodiceValore",
+                $r->{CodiceValore})       ;
+                }
+            }
+             else
+            {
+                #-------------------------*
+                # Codice tipo             *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                      "CodiceTipo",
+                $e->{CodiceArticolo}
+                    {CodiceTipo})         ;           
+                #-------------------------*
+                # Codice valore           *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                    "CodiceValore",
+                $e->{CodiceArticolo}
+                    {CodiceValore})       ;           
+            }
+            #-----------------------------*
+            # Codice prodotto - fine      *
+            #=============================*
+
+            #-----------------------------*
+            # Descrizione                 *
+            #-----------------------------*
+            $pmt_val = $e->{Descrizione}  ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+                 "Descrizione",
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Quantita'                   *
+            #-----------------------------*
+            $pmt_val = $e->{Quantita}     ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+                    "Quantita",
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Unita' di misura            *
+            #-----------------------------*
+            $pmt_val = $e->{UnitaMisura}  ;
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+                 "UnitaMisura",
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Data Inizio Periodo         *
+            #-----------------------------*
+            $pmt_val = $e->{DataInizioPeriodo};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+           "DataInizioPeriodo",
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Data Fine Periodo           *
+            #-----------------------------*
+            $pmt_val = $e->{DataFinePeriodo};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+             "DataFinePeriodo",
+                      $pmt_val)           ;
+            #-----------------------------*
+            # Prezzo unitario             *
+            #-----------------------------*
+            $pmt_val = $e->{PrezzoUnitario};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+              "PrezzoUnitario",
+                      $pmt_val)           ;
+                  
+            #=============================*
+            # Sconto o maggiorazione      *
+            # campo multiplo              *
+            #-----------------------------*
+            if (ref($e->{ScontoMaggiorazione}) =~ /ARRAY/)
+            {
+                #-------------------------*
+                # Ciclo su sconto         *
+                #-------------------------*
+                foreach $m (@{$e->{ScontoMaggiorazione}})
+                {
+                #-------------------------*
+                # Tipo                    *
+                #-------------------------*
+                $pmt_val = $m->{Tipo}     ;
+                #
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                            "Tipo",
+                          $pmt_val)       ;
+        #---------------------------------*
+        # Percentuale                     *
+        # ___ QUI ___                     *
+        #---------------------------------*
+        $pmt_val = $m->{Percentuale}      ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+             "Percentuale",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Importo                         *
+        #---------------------------------*
+        $pmt_val = $m->{Importo}          ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+                 "Importo",
+                  $pmt_val)               ;
+        }
+    }
+     else
+    {
+        #=================================*
+        # Se una sola riga di sconto o    *
+        # maggiorazione                   *
+        #---------------------------------*
+        #---------------------------------*
+        # Tipo                            *
+        #---------------------------------*
+        $pmt_val = $e->{ScontoMaggiorazione}
+                     ->{Tipo}             ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+                    "Tipo",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Percentuale                     *
+        #---------------------------------*
+        $pmt_val = $e->{ScontoMaggiorazione}
+                     ->{Percentuale}      ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+             "Percentuale",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Importo                         *
+        #---------------------------------*
+        $pmt_val = $e->{ScontoMaggiorazione}
+                     ->{Importo}          ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+                 "Importo",
+                  $pmt_val)               ;
+    }
+
+        #---------------------------------*
+        # Prezzo totale                   *
+        #---------------------------------*
+        $pmt_val = $e->{PrezzoTotale}     ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+           "PrezzoTotale",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Aliquota IVA                    *
+        #---------------------------------*
+        $pmt_val = $e->{AliquotaIVA}      ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+             "AliquotaIVA",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Natura                          *
+        #---------------------------------*
+        $pmt_val = $e->{Natura}           ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+                  "Natura",
+                  $pmt_val)               ;
+        #=================================*
+        # Altri dati gestionali           *
+        #---------------------------------*
+        if (ref($e->{AltriDatiGestionali}) =~ /ARRAY/)
+        {
+            #-----------------------------*
+            # Se piu' righe               *
+            #-----------------------------*
+            foreach $r (@{$e->{AltriDatiGestionali}})
+            {
+                #-------------------------*
+                # Tipo Dato               *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                        "TipoDato",
+                    $r->{TipoDato})       ;
+                #-------------------------*
+                # Riferimento Numero      *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+               "RiferimentoNumero",
+          $r->{RiferimentoNumero});
+                #-------------------------*
+                # Riferimento Testo       *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                "RiferimentoTesto",
+           $r->{RiferimentoTesto});
+                #-------------------------*
+                # Riferimento Data        *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                 "RiferimentoData",
+            $r->{RiferimentoData});
+            }
+        }
+         else
+        {
+            #-----------------------------*
+            # Se una sola riga            *
+            #-----------------------------*
+                #-------------------------*
+                # Tipo Dato               *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                        "TipoDato",
+          $e->{AltriDatiGestionali}
+                        {TipoDato})       ;
+                #-------------------------*
+                # Riferimento Numero      *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+               "RiferimentoNumero",
+          $e->{AltriDatiGestionali}
+               {RiferimentoNumero})       ;
+                #-------------------------*
+                # Riferimento Numero      *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                "RiferimentoTesto",
+          $e->{AltriDatiGestionali}
+                {RiferimentoTesto})       ;
+                #-------------------------*
+                # Riferimento Data        *
+                #-------------------------*
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $row_num,
+                 "RiferimentoData",
+          $e->{AltriDatiGestionali}
+                 {RiferimentoData})       ;
+        }
+        #---------------------------------*
+        # Altri dati gestionali           *
+        #=================================*
+    }
+}
+ else
+{
+    #=====================================*
+    # Se una sola riga di dettaglio       *
+    #--------------------------------------*
+    #--------------------------------------*
+    # Incremento contatore righe          *
+    #--------------------------------------*
+    $ctr_rig++                            ;
+    $row_num = sprintf "%03d",
+                    $ctr_rig              ;
+    #--------------------------------------*
+    # Numero riga                         *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                    ->{DatiBeniServizi}
+                    ->{DettaglioLinee}
+                    ->{NumeroLinea}       ;
+    &pmt_val ($wrk_nam,
+              $tip_rec,
+              $row_num,
+         "NumeroLinea",
+              $pmt_val)                   ;
+    #=====================================*
+    # Codice prodotto                     *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                    ->{DatiBeniServizi}
+                    ->{DettaglioLinee}
+                    ->{CodiceArticolo}    ;
+    
+    if (ref($pmt_val) =~ /ARRAY/)
+    {
+        #---------------------------------*
+        # Se piu' righe                   *
+        #---------------------------------*
+        foreach $r (@{$pmt_val})
+        {
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+                  "CodiceTipo",
+              $r->{CodiceTipo})           ;
+        #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+                "CodiceValore",
+            $r->{CodiceValore})           ;
+            }
+        }
+         else
+        {
+        #---------------------------------*
+        # Se una sola riga                *
+        #---------------------------------*
+        $pmt_val = $data->{FatturaElettronicaBody}
+                        ->{DatiBeniServizi}
+                        ->{DettaglioLinee}
+                        ->{CodiceArticolo}
+                        ->{CodiceTipo}    ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+              "CodiceTipo",
+                  $pmt_val)               ;
+        #
+        $pmt_val = $data->{FatturaElettronicaBody}
+                        ->{DatiBeniServizi}
+                        ->{DettaglioLinee}
+                        ->{CodiceArticolo}
+                        ->{CodiceValore}  ;
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $row_num,
+            "CodiceValore",
+                  $pmt_val)               ;
+    }
+    #--------------------------------------*
+    # Codice prodotto                     *
+    #=====================================*
+              
+    #--------------------------------------*
+    # Descrizione                         *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{Descrizione}    ;
+    #
+    $pmt_val =~ s/\n+//g                  ;
+    #
+    &pmt_val ($wrk_nam,
+              $tip_rec,
+              $row_num,
+         "Descrizione",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Quantita'                           *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{Quantita}       ;
+    &pmt_val ($wrk_nam,
+              $tip_rec,
+              $row_num,
+            "Quantita",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Unita' di misura                    *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{UnitaMisura}    ;
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+         "UnitaMisura",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Data Inizio Periodo                 *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{DataInizioPeriodo};
+    #
+    if ($pmt_val)
+    {
+        $pmt_val = &trt_dat ($pmt_val)
+    }
+    #
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+   "DataInizioPeriodo",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Data Fine Periodo                   *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{DataFinePeriodo};
+    #
+    if ($pmt_val)
+    {
+        $pmt_val = &trt_dat ($pmt_val)
+    }
+    #
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+     "DataFinePeriodo",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Prezzo unitario                     *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{PrezzoUnitario};
+    &pmt_val ($wrk_nam,
+              $tip_rec,
+              $row_num,
+      "PrezzoUnitario",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Sconto o maggiorazione              *
+    # ___ ARRAY ___                       *
+    #--------------------------------------*
+    # Tipo                                *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{ScontoMaggiorazione}
+                       ->{Tipo};
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+                "Tipo",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Percentuale                         *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{ScontoMaggiorazione}
+                       ->{Percentuale};
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+         "Percentuale",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Importo                             *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{ScontoMaggiorazione}
+                       ->{Importo};
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+             "Importo",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Prezzo totale                       *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{PrezzoTotale}   ;
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+        "PrezzoTotale",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Aliquota IVA                        *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{AliquotaIVA}    ;
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+         "AliquotaIVA",
+              $pmt_val)                   ;
+    #--------------------------------------*
+    # Natura                              *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DettaglioLinee}
+                       ->{Natura}         ;
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+              $row_num,
+              "Natura",
+              $pmt_val)                   ;
+
+    #=====================================*
+    # AltriDatiGestionali                 *
+    #--------------------------------------*
+    $pmt_val = $data->{FatturaElettronicaBody}
+                    ->{DatiBeniServizi}
+                    ->{DettaglioLinee}
+                    ->{AltriDatiGestionali};
+    
+    if (ref($pmt_val) =~ /ARRAY/)
+    {
+        #---------------------------------*
+        # Se piu' righe                   *
+        #---------------------------------*
+        foreach $a (@{$pmt_val})
+        {
+            #-----------------------------*
+            # Tipo Dato                   *
+            #-----------------------------*
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $row_num,
+                    "TipoDato",
+                $a->{TipoDato})           ;
+            #-----------------------------*
+            # Riferimento Testo           *
+            #-----------------------------*
+            &pmt_val ($wrk_nam,
+          $tip_rec,
+                      $row_num,
+            "RiferimentoTesto",
+        $a->{RiferimentoTesto})           ;
+            #-----------------------------*
+            # Riferimento Numero          *
+            #-----------------------------*
+            &pmt_val ($wrk_nam,
+          $tip_rec,
+                      $row_num,
+           "RiferimentoNumero",
+       $a->{RiferimentoNumero})           ;
+            #-----------------------------*
+            # Riferimento Data            *
+            #-----------------------------*
+            &pmt_val ($wrk_nam,
+          $tip_rec,
+                      $row_num,
+             "RiferimentoData",
+         $a->{RiferimentoData})           ;
+            }
+        }
+         else
+        {
+        #---------------------------------*
+        # Se una sola riga                *
+        #---------------------------------*
+        # Tipo dato                       *
+        #---------------------------------*
+        $pmt_val = $data->{FatturaElettronicaBody}
+                        ->{DatiBeniServizi}
+                        ->{DettaglioLinee}
+                        ->{AltriDatiGestionali}
+                        ->{TipoDato}      ;
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                  $row_num,
+                "TipoDato",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Riferimento Testo               *
+        #---------------------------------*
+        $pmt_val = $data->{FatturaElettronicaBody}
+                        ->{DatiBeniServizi}
+                        ->{DettaglioLinee}
+                        ->{AltriDatiGestionali}
+                        ->{RiferimentoTesto};
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                  $row_num,
+        "RiferimentoTesto",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Riferimento Numero              *
+        #---------------------------------*
+        $pmt_val = $data->{FatturaElettronicaBody}
+                        ->{DatiBeniServizi}
+                        ->{DettaglioLinee}
+                        ->{AltriDatiGestionali}
+                        ->{RiferimentoNumero};
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                  $row_num,
+       "RiferimentoNumero",
+                  $pmt_val)               ;
+        #---------------------------------*
+        # Riferimento Data                *
+        #---------------------------------*
+        $pmt_val = $data->{FatturaElettronicaBody}
+                        ->{DatiBeniServizi}
+                        ->{DettaglioLinee}
+                        ->{AltriDatiGestionali}
+                        ->{RiferimentoData};
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                  $row_num,
+         "RiferimentoData",
+                  $pmt_val)               ;
+    }
+    #--------------------------------------*
+    # AltriDatiGestionali                 *
+    #=====================================*
+}
+
+    #--------------------------------------*
+    # Corpo socumento - Fine               *
+    #======================================*
+    
+    #======================================*
+    # Riepilogo documento                  *
+    #--------------------------------------*
+
+#-----------------------------------------*
+# Tipo record                             *
+#-----------------------------------------*
+$tip_rec = "P"                            ;
+
+#-----------------------------------------*
+# Test se una o piu' righe riepilogo      *
+#-----------------------------------------*
+if (ref($data->{FatturaElettronicaBody}
+             ->{DatiBeniServizi}
+             ->{DatiRiepilogo}) =~ /ARRAY/)
+{
+    #--------------------------------------*
+    # Se piu' righe Riepilogo             *
+    #--------------------------------------*
+    foreach $r (@{$data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DatiRiepilogo}})
+    {
+        #---------------------------------*
+        # Aliquota Iva                    *
+        #---------------------------------*
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+             "AliquotaIVA",
+         $r->{AliquotaIVA})               ;
+        #---------------------------------*
+        # Natura                          *
+        #---------------------------------*
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+                  "Natura",
+              $r->{Natura})               ;
+        #---------------------------------*
+        # Imponibile                      *
+        #---------------------------------*
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+       "ImponibileImporto",
+   $r->{ImponibileImporto})               ;
+        #---------------------------------*
+        # Imposta                         *
+        #---------------------------------*
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+                 "Imposta",
+             $r->{Imposta})               ;
+        #---------------------------------*
+        # Esigibilita'                    *
+        #---------------------------------*
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+          "EsigibilitaIVA",
+      $r->{EsigibilitaIVA})               ;
+    }
+}
+ else
+{
+    #--------------------------------------*
+    # Prompt comune dettaglio linee       *
+    #--------------------------------------*
+    $pie_pmt = $data->{FatturaElettronicaBody}
+                       ->{DatiBeniServizi}
+                       ->{DatiRiepilogo}  ;
+    #--------------------------------------*
+    # Aliquota Iva                        *
+    #--------------------------------------*
+    my $doc_pie_ali = $pie_pmt->{AliquotaIVA} ;
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+                 "pie",
+         "AliquotaIVA",
+          $doc_pie_ali)                   ;
+    #--------------------------------------*
+    # Imponibile                          *
+    #--------------------------------------*
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+                 "pie",
+    "ImponibileImporto",
+$pie_pmt->{ImponibileImporto})            ;
+    #--------------------------------------*
+    # Imposta                             *
+    #--------------------------------------*
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+                 "pie",
+             "Imposta",
+   $pie_pmt->{Imposta})                   ;
+    #--------------------------------------*
+    # Esigibilita'                        *
+    #--------------------------------------*
+    my $doc_pie_esi = $pie_pmt->{EsigibilitaIVA};
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+                 "pie",
+      "EsigibilitaIVA",
+          $doc_pie_esi)                   ;
+    #--------------------------------------*
+    # Natura                              *
+    #--------------------------------------*
+    $val_dat = $pie_pmt->{Natura}         ;
+    &pmt_val ($wrk_nam,
+          $tip_rec,
+                 "pie",
+              "Natura",
+              $val_dat)                   ;
+}
+
+    #======================================*
+    # Dati pagamento                       *
+    #--------------------------------------*
+        #----------------------------------*
+        # Tipo elemento                    *
+        #----------------------------------*
+        $tip_ele = "pag"                  ;
+        #----------------------------------*
+        # Condizioni di pagamento          *
+        #----------------------------------*
+        $pmt_nam = "CondizioniPagamento"  ;
+        $pmt_dat = $data->{FatturaElettronicaBody}
+                        ->{DatiPagamento}
+                        ->{CondizioniPagamento};
+        #
+        &pmt_val ($wrk_nam,
+                  $tip_rec,
+                  $tip_ele,
+                  $pmt_nam,
+                  $pmt_dat)               ;
+                  
+                  
+                  
+                  
+        #----------------------------------*
+        # Dettaglio pagamento - campo      *
+        # multiplo                         *
+        #----------------------------------*
+        if (ref($data->{FatturaElettronicaBody}
+                     ->{DatiPagamento}
+                     ->{DettaglioPagamento}) =~ /ARRAY/)
+        {
+            #-----------------------------*
+            # Ciclo su righe dettaglio    *
+            # pagamento                   *
+            #-----------------------------*
+            foreach $p (@{$data->{FatturaElettronicaBody}
+                               ->{DatiPagamento}
+                               ->{DettaglioPagamento}})
+            {
+            #-----------------------------*
+            # Modalita' di pagamento      *
+            #-----------------------------*
+            $pmt_nam = "ModalitaPagamento";
+            $pmt_dat = $p->{ModalitaPagamento};
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_dat)           ;
+            #-----------------------------*
+            # Data Riferimento Termini    *
+            #-----------------------------*
+            $pmt_nam = "DataRiferimentoTerminiPagamento";
+            $pmt_dat = $p->{DataRiferimentoTerminiPagamento};
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_dat)           ;
+            #-----------------------------*
+            # Giorni Termini Pagamento    *
+            #-----------------------------*
+            $pmt_nam = "GiorniTerminiPagamento";
+            $pmt_dat = $p->{GiorniTerminiPagamento};
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                      $pmt_nam,
+                      $pmt_dat)           ;
+
+
+
+        #---------------------------------*
+        # Scadenza pagamento              *
+        #---------------------------------*
+        $val_dat = $p->{DataScadenzaPagamento};
+        $val_dat = &trt_dat ($val_dat)    ;
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+   "DataScadenzaPagamento",
+                  $val_dat)               ;
+        #---------------------------------*
+        # Importo di pagamento            *
+        #---------------------------------*
+        my $doc_pag_imp = $p->{ImportoPagamento};
+        if ($doc_pag_imp)
+        {
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+            "ImportoPagamento",
+                  $doc_pag_imp)           ;
+        }
+        #---------------------------------*
+        # IBAN                            *
+        #---------------------------------*
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                    "IBAN",
+                $p->{IBAN})               ;
+        #---------------------------------*
+        # ABI                             *
+        #---------------------------------*
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                     "ABI",
+                 $p->{ABI})               ;
+        #---------------------------------*
+        # CAB                             *
+        #---------------------------------*
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                     "CAB",
+                 $p->{CAB})               ;
+        #---------------------------------*
+        # Beneficiario                    *
+        #---------------------------------*
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+            "Beneficiario",
+        $p->{Beneficiario})               ;
+        #---------------------------------*
+        # Istituto Finanziario            *
+        #---------------------------------*
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+     "IstitutoFinanziario",
+ $p->{IstitutoFinanziario})               ;
+            }
+        }
+         else
+        {
+            #-----------------------------*
+            # Se una sola linea Pagamento *
+            #-----------------------------*
+            my $pmt_dpa = $data->{FatturaElettronicaBody}
+                               ->{DatiPagamento}
+                               ->{DettaglioPagamento};
+            #-----------------------------*
+            # Modalita' di pagamento      *
+            #-----------------------------*
+            my $doc_pag_mod = $pmt_dpa->{ModalitaPagamento};
+            #
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+           "ModalitaPagamento",
+                      $doc_pag_mod)       ;
+            #-----------------------------*
+            # Scadenza pagamento          *
+            #-----------------------------*
+            my $doc_pag_scd = $pmt_dpa->{DataScadenzaPagamento};
+            #
+            if ($doc_pag_scd)
+            {
+                $doc_pag_scd = &trt_dat ($doc_pag_scd);
+                #
+                &pmt_val ($wrk_nam,
+                          $tip_rec,
+                          $tip_ele,
+           "DataScadenzaPagamento",
+                          $doc_pag_scd)   ;
+        }
+
+        #----------------------------------*
+        # Importo pagamento                *
+        #----------------------------------*
+        my $doc_pag_imp = $pmt_dpa->{ImportoPagamento};
+        #
+        if ($doc_pag_imp)
+        {
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+            "ImportoPagamento",
+                      $doc_pag_imp)       ;
+        }
+        #----------------------------------*
+        # IBAN                             *
+        #----------------------------------*
+        if ($pmt_dpa->{IBAN})
+        {
+            &pmt_val ($wrk_nam,
+                      $tip_rec,
+                      $tip_ele,
+                        "IBAN",
+                      $pmt_dpa->{IBAN})   ;
+        }
+        #----------------------------------*
+        # ABI                              *
+        #----------------------------------*
+    if ($pmt_dpa->{ABI})
+    {
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+                     "ABI",
+           $pmt_dpa->{ABI})               ;
+    }
+    #--------------------------------------*
+    # CAB                                 *
+    #--------------------------------------*
+    if ($pmt_dpa->{CAB})
+    {
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+                     "CAB",
+           $pmt_dpa->{CAB})               ;
+    }
+    #--------------------------------------*
+    # Beneficiario                         *
+    #--------------------------------------*
+    if ($pmt_dpa->{Beneficiario})
+    {
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+            "Beneficiario",
+  $pmt_dpa->{Beneficiario})               ;
+    }
+    #--------------------------------------*
+    # Istituto Finanziario                *
+    #--------------------------------------*
+    if ($pmt_dpa->{IstitutoFinanziario})
+    {
+        &pmt_val ($wrk_nam,
+          $tip_rec,
+                     "pie",
+     "IstitutoFinanziario",
+$pmt_dpa->{IstitutoFinanziario})          ;
+#=========================================*
+# Attachment                              *
+#-----------------------------------------*
+# NON GESTITO                             *
+#-----------------------------------------*
+
+    }
+  }
+}
+
+#==========================================*
+# Trattamento Dati DDT                     *
+#------------------------------------------*
+sub pmt_ddt
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $wrk_pth = shift                   ;
+    my $wrk_rec = shift                   ;
+    my $wrk_ele = shift                   ;
+    my $wrk_pmt = shift                   ;
+    #--------------------------------------*
+    # Test se campo multiplo               *
+    #--------------------------------------*
+    if (ref($wrk_pmt->{DatiDDT}) =~ /ARRAY/)
+    {
+        #----------------------------------*
+        # Ciclo su righe riferimento a DDT *
+        #----------------------------------*
+        foreach $ddt (@{$wrk_pmt->{DatiDDT}})
+        {
+        #----------------------------------*
+        # Numero DDT                       *
+        #----------------------------------*
+        $wrk_nom = "NumeroDDT"            ;
+        $wrk_dat = $ddt->{NumeroDDT}      ;
+        #
+        &pmt_val ($wrk_pth,
+                  $wrk_rec,
+                  $wrk_ele,
+                  $wrk_nom,
+                  $wrk_dat)               ;
+        #----------------------------------*
+        # Data DDT                         *
+        #----------------------------------*
+        $wrk_nom = "DataDDT"              ;
+        $wrk_dat = $ddt->{DataDDT}        ;
+        #
+        my $dat_doc = &trt_dat ($wrk_dat) ;
+        #
+        &pmt_val ($wrk_pth,
+                  $wrk_rec,
+                  $wrk_ele,
+                  $wrk_nom,
+                  $dat_doc)               ;
+        #----------------------------------*
+        # Test se Riferimento Numero Linea *
+        # multiplo                         *
+        #----------------------------------*
+        if (ref($ddt->{RiferimentoNumeroLinea}) =~ /ARRAY/)
+        {
+            #------------------------------*
+            # Ciclo su righe riferimento   *
+            #------------------------------*
+            foreach $rrd (@{$ddt->{RiferimentoNumeroLinea}})
+            {
+            #------------------------------*
+            # Riferimento Numero Linea     *
+            #------------------------------*
+            $wrk_nom = "RiferimentoNumeroLinea";
+            $wrk_dat = $rrd               ;
+            #
+            &pmt_val ($wrk_pth,
+                      $wrk_rec,
+                      $wrk_ele,
+                      $wrk_nom,
+                      $wrk_dat)           ;
+            }
+        }
+         else
+        {
+            #------------------------------*
+            # Riferimento Numero Linea     *
+            #------------------------------*
+            $wrk_nom = "RiferimentoNumeroLinea";
+            $wrk_dat = $ddt->{RiferimentoNumeroLinea};
+            #
+            &pmt_val ($wrk_pth,
+                      $wrk_rec,
+                      $wrk_ele,
+                      $wrk_nom,
+                      $wrk_dat)           ;
+        }
+        }
+    }
+     else
+    {
+        #----------------------------------*
+        # Numero DDT                       *
+        #----------------------------------*
+        $wrk_nom = "NumeroDDT"            ;
+        $wrk_dat = $wrk_pmt->{NumeroDDT}  ;
+        #
+        &pmt_val ($wrk_pth,
+                  $wrk_rec,
+                  $wrk_ele,
+                  $wrk_nom,
+                  $wrk_dat)               ;
+        #----------------------------------*
+        # Data DDT                         *
+        #----------------------------------*
+        $wrk_nom = "DataDDT"              ;
+        $wrk_dat = $wrk_pmt->{DataDDT}    ;
+        #
+        &pmt_val ($wrk_pth,
+                  $wrk_rec,
+                  $wrk_ele,
+                  $wrk_nom,
+                  $wrk_dat)               ;
+        #----------------------------------*
+        # Test se Riferimento Numero Linea *
+        # multiplo                         *
+        #----------------------------------*
+        if (ref($wrk_pmt->{RiferimentoNumeroLinea}) =~ /ARRAY/)
+        {
+            #------------------------------*
+            # Ciclo su righe riferimento   *
+            #------------------------------*
+            foreach $rrd (@{$wrk_pmt->{RiferimentoNumeroLinea}})
+            {
+            #------------------------------*
+            # Riferimento Numero Linea     *
+            #------------------------------*
+            $wrk_nom = "RiferimentoNumeroLinea";
+            $wrk_dat = $rrd->{RiferimentoNumeroLinea};
+            #
+            &pmt_val ($wrk_pth,
+                      $wrk_rec,
+                      $wrk_ele,
+                      $wrk_nom,
+                      $wrk_dat)           ;
+            }
+        }
+         else
+        {
+            #------------------------------*
+            # Riferimento Numero Linea     *
+            #------------------------------*
+            $wrk_nom = "RiferimentoNumeroLinea";
+            $wrk_dat = $wrk_pmt->{RiferimentoNumeroLinea};
+            #
+            &pmt_val ($wrk_pth,
+                      $wrk_rec,
+                      $wrk_ele,
+                      $wrk_nom,
+                      $wrk_dat)           ;
+        }
+    }
+    
+    #--------------------------------------*
+    # FINE SUBROUTINE                      *
+    #======================================*
+}
+
+#==========================================*
+# Trattamento Dati Fatture Collegate       *
+#------------------------------------------*
+sub pmt_dfc
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $wrk_pth = shift                   ;
+    my $wrk_rec = shift                   ;
+    my $wrk_ele = shift                   ;
+    my $wrk_pmt = shift                   ;
+    #--------------------------------------*
+    # Riferimento NumeroLinea    (2.1.4.1) *
+    #--------------------------------------*
+    $wrk_nom = "RiferimentoNumeroLinea"   ;
+    $wrk_dat = $wrk_pmt->{RiferimentoNumeroLinea};
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Id Documento               (2.1.4.2) *
+    #--------------------------------------*
+    $wrk_nom = "IdDocumento"              ;
+    $wrk_dat = $wrk_pmt->{IdDocumento}    ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Data                       (2.1.4.3) *
+    #--------------------------------------*
+    $wrk_nom = "Data"                     ;
+    $wrk_dat = $wrk_pmt->{Data}           ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Num Item                   (2.1.4.4) *
+    #--------------------------------------*
+    $wrk_nom = "NumItem"                  ;
+    $wrk_dat = $wrk_pmt->{NumItem}        ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # FINE SUBROUTINE                      *
+    #======================================*
+}
+
+#==========================================*
+# Trattamento Dati Cassa Previdenziale     *
+#------------------------------------------*
+sub pmt_dcp
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $wrk_pth = shift                   ;
+    my $wrk_rec = shift                   ;
+    my $wrk_ele = shift                   ;
+    my $wrk_pmt = shift                   ;
+    #--------------------------------------*
+    # Tipo Cassa               (2.1.1.7.1) *
+    #--------------------------------------*
+    $wrk_nom = "TipoCassa"                ;
+    $wrk_dat = $wrk_pmt->{TipoCassa}      ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Aliquota Cassa           (2.1.1.7.2) *
+    #--------------------------------------*
+    $wrk_nom = "AlCassa"                  ;
+    $wrk_dat = $wrk_pmt->{AlCassa}        ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Importo Contributo Cassa (2.1.1.7.3) *
+    #--------------------------------------*
+    $wrk_nom = "ImportoContributoCassa"   ;
+    $wrk_dat = $wrk_pmt->{ImportoContributoCassa};
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Imponibile Cassa         (2.1.1.7.4) *
+    #--------------------------------------*
+    $wrk_nom = "ImponibileCassa"          ;
+    $wrk_dat = $wrk_pmt->{ImponibileCassa};
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Aliquota IVA             (2.1.1.7.5) *
+    #--------------------------------------*
+    $wrk_nom = "AliquotaIVA"              ;
+    $wrk_dat = $wrk_pmt->{AliquotaIVA}    ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Ritenuta                 (2.1.1.7.6) *
+    #--------------------------------------*
+    $wrk_nom = "Ritenuta"                 ;
+    $wrk_dat = $wrk_pmt->{Ritenuta}       ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Natura                   (2.1.1.7.7) *
+    #--------------------------------------*
+    $wrk_nom = "Natura"                   ;
+    $wrk_dat = $wrk_pmt->{Natura}         ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Riferimento Amministr.   (2.1.1.7.8) *
+    #--------------------------------------*
+    $wrk_nom = "RiferimentoAmministrazione";
+    $wrk_dat = $wrk_pmt->{RiferimentoAmministrazione};
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # FINE SUBROUTINE                      *
+    #======================================*
+}
+
+#==========================================*
+# Trattamento anagrafica                   *
+#------------------------------------------*
+sub pmt_ana
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $wrk_pth = shift                   ;
+    my $wrk_rec = shift                   ;
+    my $wrk_ele = shift                   ;
+    my $wrk_pmt = shift                   ;
+    #--------------------------------------*
+    # ID paese                             *
+    #--------------------------------------*
+    my $wrk_nom = "IdPaese"               ;
+    my $wrk_dat = $wrk_pmt->{IdFiscaleIVA}
+                          ->{IdPaese}     ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # ID codice (partita iva)              *
+    #--------------------------------------*
+    $wrk_nom = "IdCodice"                 ;
+    $wrk_dat = $wrk_pmt->{IdFiscaleIVA}
+                       ->{IdCodice}       ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Codice fiscale                       *
+    #--------------------------------------*
+    $wrk_nom = "CodiceFiscale"            ;
+    $wrk_dat = $wrk_pmt->{CodiceFiscale}  ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Ragione sociale                      *
+    #--------------------------------------*
+    $wrk_nom = "Denominazione"            ;
+    $wrk_dat = $wrk_pmt->{Anagrafica}
+                       ->{Denominazione}  ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Nome (se persona fisica)             *
+    #--------------------------------------*
+    $wrk_nom = "Nome"                     ;
+    $wrk_dat = $wrk_pmt->{Anagrafica}
+                       ->{Nome}           ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Cognome (se persona fisica)          *
+    #--------------------------------------*
+    $wrk_nom = "Cognome"                  ;
+    $wrk_dat = $wrk_pmt->{Anagrafica}
+                       ->{Cognome}        ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Titolo                               *
+    #--------------------------------------*
+    $wrk_nom = "Titolo"                   ;
+    $wrk_dat = $wrk_pmt->{Anagrafica}
+                       ->{Titolo}         ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # CodEORI                              *
+    #--------------------------------------*
+    $wrk_nom = "CodEORI"                  ;
+    $wrk_dat = $wrk_pmt->{Anagrafica}
+                       ->{CodEORI}        ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Indirizzo                            *
+    #--------------------------------------*
+    $wrk_nom = "Indirizzo"                ;
+    $wrk_dat = $wrk_pmt->{Sede}
+                       ->{Indirizzo}      ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # CAP                                  *
+    #--------------------------------------*
+    $wrk_nom = "CAP"                      ;
+    $wrk_dat = $wrk_pmt->{Sede}
+                       ->{CAP}            ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Comune                               *
+    #--------------------------------------*
+    $wrk_nom = "Comune"                   ;
+    $wrk_dat = $wrk_pmt->{Sede}
+                       ->{Comune}        ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Provincia                            *
+    #--------------------------------------*
+    $wrk_nom = "Provincia"                ;
+    $wrk_dat = $wrk_pmt->{Sede}
+                       ->{Provincia}      ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # Nazione                              *
+    #--------------------------------------*
+    $wrk_nom = "Nazione"                  ;
+    $wrk_dat = $wrk_pmt->{Sede}
+                       ->{Nazione}        ;
+    #
+    &pmt_val ($wrk_pth,
+              $wrk_rec,
+              $wrk_ele,
+              $wrk_nom,
+              $wrk_dat)                   ;
+    #--------------------------------------*
+    # FINE SUBROUTINE                      *
+    #======================================*
+}
+
+#=========================================*
+# Trattamento date                        *
+#-----------------------------------------*
+sub trt_dat
+{
+    #=====================================*
+    # Valore in input                     *
+    #--------------------------------------*
+    my $date = shift                      ;
+    #--------------------------------------*
+    # Scomposizione data                  *
+    #--------------------------------------*
+    my @adate = split (/-/, $date)        ;
+    #--------------------------------------*
+    # Formato 'GG/MM/AAAA'                *
+    #--------------------------------------*
+    my $ndate= $adate[2]
+             . "/"
+             . sprintf("%02d", $adate[1])
+             . "/"
+             . sprintf("%04d",$adate[0])  ;
+    #--------------------------------------*
+    # Valore in output                    *
+    #=====================================*
+    return $ndate                         ;
+}
+
+#==========================================*
+# Composizione prompt, valore ed eventuale *
+# descrizione                              *
+#------------------------------------------*
+sub pmt_val
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $nam = shift                       ;
+    my $rec = shift                       ;
+    my $tip = shift                       ;
+    my $pmt = shift                       ;
+    my $val = shift                       ;
+    #--------------------------------------*
+    # Trattamento valore                   *
+    #--------------------------------------*
+    if (!$val){return}                    ;
+    #--------------------------------------*
+    # Eliminazione spazi superflui valore  *
+    #--------------------------------------*
+    $val =~ s/^\s+|\s+$//g                ;
+    #--------------------------------------*
+    # Eliminazione eventuali caratteri     *
+    # accentati valore                     *
+    #--------------------------------------*
+    my $wrk = NFKD($val)                  ;
+       $wrk =~ s/\p{NonspacingMark}//g    ;
+       $val = $wrk                        ;
+    #--------------------------------------*
+    # Pulizia eventuali ' valore           *
+    #--------------------------------------*
+    $qvl = $dtb_con->quote($val)          ;
+    #--------------------------------------*
+    # Scrittura                            *
+    #--------------------------------------*
+    my $ins_dat = "INSERT INTO "
+                . $dtb_tbr
+                . " (nam_xml, "
+                . "tip_rec, "
+                . "tip_ele, "
+                . "pmt_ele, "
+                . "val_ele) "
+                . " VALUES ('"
+                . $nam
+                . "', '"
+                . $rec
+                . "', '"
+                . $tip
+                . "', '"
+                . $pmt
+                . "',"
+                . $qvl
+                . ")"                     ;
+    #--------------------------------------*
+    # Preparazione                         *
+    #--------------------------------------*
+    my $sth_dtb = $dtb_con->prepare($ins_dat);
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth_dtb->execute()                   ;
+    #--------------------------------------*
+    # FINE SUBROUTINE                      *
+    #======================================*
+}
+
+#==========================================*
+# Aggiornamento tabella testate            *
+#------------------------------------------*
+sub upd_xml
+{
+    #======================================*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $fil_upd = shift                   ;
+    #--------------------------------------*
+    # Scrittura                            *
+    #--------------------------------------*
+    my $upd_dat = "UPDATE "
+                . $dtb_tbt
+                . " SET "
+                . "dat_sql = NOW()"
+                . " WHERE nam_xml = '"
+                . $fil_upd
+                . "' LIMIT 1"             ;
+    #--------------------------------------*
+    # Preparazione                         *
+    #--------------------------------------*
+    my $sth_dtb = $dtb_con->prepare($upd_dat);
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth_dtb->execute()                   ;
+    #--------------------------------------*
+    # FINE SUBROUTINE                      *
+    #======================================*
+}
+
+

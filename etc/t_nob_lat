@@ -1,0 +1,124 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl chiamato da 'paut1500' per   *
+# inviare le fatture 'latte'               *
+#                                          *
+# t_nob_lat                                *
+#                                          *
+# SU MISURA PER NOBILI                     *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 31/01/19   *
+#   Ultima revisione:   wip del 31/01/19   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ___ IN LAVORAZIONE ___                   *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use DBI()                                 ;
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di lavoro                      *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_nob_lat.ini";
+my %cnf_ele = do $cfg_bas                 ;
+my $dtab = 'latte'                        ;
+
+#==========================================*
+# Connessione al Database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database="
+              .$cnf_ele{db}
+              .";host="
+              .$cnf_ele{dbserver}
+              ."", $cnf_ele{user},
+                   $cnf_ele{password})    ;
+
+#==========================================*
+# Assegnazione protocollo                  *
+#------------------------------------------*
+my $prt_inv = &prot()                     ;
+
+#==========================================*
+# Scansione cartella contenente 'zip' per  *
+# creare la lista dei documenti da zippare *
+#------------------------------------------*
+
+#==========================================*
+# Richiamo dello script di invio           *
+#------------------------------------------*
+my $sys_cmd = "/abd/etc/t_sender_ssl ______";
+#system($sys_cmd)                         ;
+
+
+
+
+
+
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Assegnazione protocollo                  *
+#------------------------------------------*
+sub prot
+{
+    #--------------------------------------*
+    # Normalizzazione preliminare          *
+    #--------------------------------------*
+    my $prt = 0                           ;
+    #--------------------------------------*
+    # Select                               *
+    #--------------------------------------*
+    my $sel = "SELECT `protocollo` FROM "
+            . $dtab
+            . " ORDER BY `protocollo`"
+            . " DESC LIMIT 1"             ;
+    my $sth = $dbh->prepare($sel)         ;
+    $sth->execute()                       ;
+    #--------------------------------------*
+    # Risultato                            *
+    #--------------------------------------*
+    my $ref = $sth->fetchrow_hashref()    ;
+    #--------------------------------------*
+    # Incremento protocollo                *
+    #--------------------------------------*
+    $prt = ($ref->{'protocollo'})+1       ;
+    #--------------------------------------*
+    # Aggiornamento protocollo             *
+    #--------------------------------------*
+    my $upd = "UPDATE `"
+            . $dtab
+            . "` SET `protocollo` = "
+            . $prt                        ;
+    #--------------------------------------*
+    # Preparazione inserimento             *
+    #--------------------------------------*
+    $sth = $dbh->prepare($upd)            ;
+    #--------------------------------------*
+    # Esecuzione inserimento               *
+    #--------------------------------------*
+    $sth->execute()                       ;
+    #--------------------------------------*
+    # Disconnessione Database              *
+    #--------------------------------------*
+    $dbh->disconnect                      ;
+    #--------------------------------------*
+    # Valore in output                     *
+    #--------------------------------------*
+    return($prt)                          ;
+}
+

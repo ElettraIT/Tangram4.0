@@ -1,0 +1,126 @@
+     ############ /abd/etc/aggint
+     #
+     # Procedura per l'aggiornamento via Internet
+     #
+     # Input     $1: Pathname dell'unita' a nastro magnetico che deve
+     #               essere utilizzata
+     #
+     # Nota      Se non viene passato alcun parametro viene utilizzata
+     #           l'unita' per aggiornamento software definita dal
+     #           contenuto del file /abd/tar/agipat
+     #           (Normalmente "/abd/asc/agg/aggint.tar"
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "               # Errore per il comando 'aggint' #                " ;
+       echo "              ------------------------------------               " ;
+       echo "                                                                 " ;
+       echo " Il comando puo' essere eseguito solamente dall'utente 'master'  " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# Controllo sul numero di parametri e sul loro valore
+###
+
+case $# in
+       0)
+          if [ ! -f /abd/tar/agipat ]
+             then
+                 echo "                                                                 " ;
+                 echo "-----------------------------------------------------------------" ;
+                 echo "               # Errore per il comando 'aggint' #                " ;
+                 echo "         -------------------------------------------------       " ;
+                 echo "                                                                 " ;
+                 echo " Errore : Non esiste il file /abd/tar/agipat per la definizione  " ;
+                 echo "          del pathname relativo all'unita' a nastro magnetico    " ;
+                 echo "          da utilizzarsi per gli aggiornamenti software.         " ;
+                 echo "                                                                 " ;
+                 echo " Nota   : Si ricorda che, in alternativa, sarebbe stato possibi- " ;
+                 echo "          le passare al comando un parametro per indicare tale   " ;
+                 echo "          pathname specificamente per questa operazione; invece  " ;
+                 echo "          il comando e' stato richiamato senza alcun parametro,  " ;
+                 echo "          pertanto non e' possibile stabilire quale debba essere " ;
+                 echo "          l'unita' a nastro magnetico che deve essere utilizza-  " ;
+                 echo "          ta.                                                    " ;
+                 echo "                                                                 " ;
+                 echo " Il comando pertanto non e' stato eseguito.                      " ;
+                 echo "-----------------------------------------------------------------" ;
+                 echo "                                                                 " ;
+                 exit 0;
+             fi
+          altervx50=`cat /abd/tar/agipat`;
+          ;;
+       1)
+          altervx50=$1;
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "          # Errore nei parametri per il comando 'aggint' #       " ;
+          echo "        ----------------------------------------------------     " ;
+          echo "                                                                 " ;
+          echo " Errore : E' ammesso in input al massimo un parametro, indicante " ;
+          echo "          il pathname relativo all'unita' a nastro magnetico che " ;
+          echo "          deve essere utilizzata per l'operazione.               " ;
+          echo "                                                                 " ;
+          echo " Nota   : Omettendo tale parametro il valore per tale pathname   " ;
+          echo "          sarebbe stato determinato dal contenuto del file di    " ;
+          echo "          configurazione /abd/tar/agipat.                        " ;
+          echo "                                                                 " ;
+          echo " Non e' ammesso comunque fornire piu' di un parametro.           " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+         ;;
+     esac
+
+######
+# - Esecuzione procedura di estrazione per mezzo del comando 'tar'
+###
+
+#
+# Spostamento su directory di destinazione
+#
+cd /abd/asc/eps
+
+#
+# Messaggio pre-estrazione
+#
+clear
+echo "                                                                      " ;
+echo "----------------------------------------------------------------------" ;
+echo "                                                                      " ;
+echo "[] Estrazione dati ricevuti via Internet ......                       " ;
+echo "                                                                      " ;
+
+#
+# Comando per l'estrazione
+#
+umask 000
+tar -xvf $altervx50
+
+#
+# Messaggio post-estrazione
+#
+echo "                                                                      " ;
+echo "[] ...... Fine estrazione dati                                        " ;
+echo "                                                                      " ;
+echo "----------------------------------------------------------------------" ;
+echo "                                                                      " ;
+
+######
+# - Fine procedura
+###

@@ -1,0 +1,113 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per invio file a Retarus     *
+#                                          *
+# t_nobili_out                             *
+#                                          *
+# (Richiamato da 'aut700')                 *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 27/04/10    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - file da inviare             *
+#                                          *
+#            - tipo esecuzione             *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::FTP                              ;
+use File::Basename                        ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = '94.199.90.151'                ;
+my $user = 'nobili'                       ;
+my $pass = '*Na4RcCC)gj%'                 ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $file = shift                          ;
+my $texe = shift                          ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$host || !$file || $file eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_nobili_out FILENAME "
+        . "TIPO(T/P)"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Determinazione percorso di destinazione  *
+#------------------------------------------*
+my $pats = "/from_nobili/invoic"          ;
+my $path = ""                             ;
+
+if ($texe eq "T")
+{
+    $path = "/test" . $pats               ;
+}
+ else
+{
+    $path = "/productive" . $pats         ;
+}
+
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+my $ftp = Net::FTP->new($host, Debug => 0)
+  or die "Cannot connect to : $@"         ;
+
+#==========================================*
+# Login                                    *
+#------------------------------------------*
+$ftp->login($user,$pass)
+  or die "Cannot login ", $ftp->message   ;
+
+#==========================================*
+# Directory di output                      *
+#------------------------------------------*
+$ftp->cwd($path)
+  or die "Cannot change working "
+       . "directory ", $ftp->message      ;
+#==========================================*
+# Metodo binario                           *
+#------------------------------------------*
+$ftp->binary()                            ;
+
+#==========================================*
+# Invio vero e proprio                     *
+#------------------------------------------*
+$ftp->put($file)
+  or die "Put failed ", $ftp->message     ;
+
+#==========================================*
+# Rename del file                          *
+#------------------------------------------*
+my $name = basename($file)                ;
+$ftp->rename($name, $name . ".CSV.OK")
+  or die "Rename failed ", $ftp->message  ;
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$ftp->quit                                ;
+

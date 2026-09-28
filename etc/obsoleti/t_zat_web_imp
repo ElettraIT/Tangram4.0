@@ -1,0 +1,373 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# sito di Web Creative                     *
+#                                          *
+# t_zat_web_imp                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 15/02/10    *
+#   Ultima revisione:  NdK del 28/05/13    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+# in Crontab ogni 15 minuti                *
+#                                          *
+# */15 * * * * /abd/etc/t_zat_web_imp      *
+#           1>/abd/asc/log/ord_imp.log     *
+#           2>/abd/asc/log/ord_imp_err.log *
+#                                          *
+# N.B.: seguito dal programma 'pgtv7200'   *
+#                                          *
+# ---------------------------------------- *
+# Nome file : Ordine_gg_mm_aa-ora-min.txt  *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+use MIME::Lite                            ;
+use Net::SMTP_auth                        ;
+use DBI()                                 ;
+use File::Basename                        ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = "195.138.243.55"               ;
+my $user = 'gestionale'                   ;
+my $cert = "/home/master/.ssh/id_rsa"     ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/imp/web/'            ;
+my $path = '/home/gestionale/export/'     ;
+my $msql = '/abd/etc/dbase_conf'          ;
+my $lord = 'lastOrder_*.txt'              ;
+
+#==========================================*
+# Parametri di posta                       *
+#------------------------------------------*
+my $isps = "smtp.zatti.it"                ;
+my $indi = "noreply"                      ;
+my $domn = "zatti.it"                     ;
+my $uidx = "zatti\@zatti.it"              ;
+my $pwdx = "chopper1957"                  ;
+#
+my $mitt = $indi . '@' . $domn            ;
+my $dest = $indi . '@' . $domn            ;
+my $desb = $indi . '@' . $domn            ;
+
+#==========================================*
+# Modulo Perl per configurazione database  *
+#------------------------------------------*
+my %conf = do $msql                       ;    
+my $dtab = "web_orders"                   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database="
+                       .$conf{dbas}
+                       .";host="
+                       .$conf{dbsr}
+                       ."",
+                        $conf{user},
+                        $conf{pass},
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+    #--------------------------------------*
+    # Preparazione argomenti per chiamata  *
+    #--------------------------------------*
+    my %args = (user => $user,
+            key_path => $cert,
+                more => [qw(-o PreferredAuthentications=publickey)]
+        );
+
+    #--------------------------------------*
+    # Chiamata                             *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Posizionamento directory             *
+    #--------------------------------------*
+    $sftp->setcwd($path)
+        or die "Cambio directory "
+       . "non "
+       . "riuscito", $sftp->message       ;
+
+    #--------------------------------------*
+    # Lettura contenuto directory per la   *
+    # rilevazione del file 'Last_Order'    *
+    #--------------------------------------*
+    my $last = $sftp->glob($lord, names_only => 1);
+
+    #--------------------------------------*
+    # Se non trovato: uscita               *
+    #--------------------------------------*
+    if (!$last || $last == 0 || $last > 1)
+    {
+        $sftp->disconnect                 ;
+        exit ()                           ;
+    }
+    
+    #--------------------------------------*
+    # Determinazione numero ultimo ordine  *
+    #--------------------------------------*
+    my @fil = $sftp->glob($lord, names_only => 1);
+    $sftp->error and die "Non trovato: " . $sftp->error;
+
+    my $lnum = 0;
+    for my $file (@fil)
+    {
+        ($lnum) = $file =~ /(\d+)/     ;
+    }
+    
+    #--------------------------------------*
+    # Lettura contenuto directory          *
+    #--------------------------------------*
+    my @files = $sftp->ls                 ;
+
+    foreach my $f ( @files )
+    {
+        #----------------------------------*
+        # Scansione                        *
+        #----------------------------------*
+        foreach my $file_ref ( @{$f} )
+        {
+            #------------------------------*
+            # Scomposizione nome file      *
+            #                              *
+            # a = nome file                *
+            # b = percorso relativo        *
+            # c = estensione               *
+            #------------------------------*
+            (my $a, my $b, my $c) = fileparse($file_ref->{'filename'},qr"\..[^.]*$");
+
+            #------------------------------*
+            # DEBUG                        *
+            #------------------------------*
+#           print "a =$a\n"               ;
+#           print "b =$b\n"               ;
+#           print "c =$c\n"               ;
+
+            #------------------------------*
+            # Controllo provvisorio        *
+            # ___ da sistemare ___         *
+            #------------------------------*
+            $flst = substr ($a, 0, 9)     ;
+            next if ($flst eq "lastOrder");
+            #------------------------------*
+            # DEBUG                        *
+            #------------------------------*
+#           print $flst . "\n"            ;
+
+            #------------------------------*
+            # Solo files '.txt'            *
+            #------------------------------*
+            if ($c eq ".txt")
+            {
+                #--------------------------*
+                # Nome file                *
+                #--------------------------*
+                my $file = "$a$c"         ;
+                #--------------------------*
+                # Determinazione numero    *
+                # ordine per assicurarsi   *
+                # che sia inferiore o      *
+                # uguale all'ultimo        *
+                #--------------------------*
+                my @numw = split(/_/, $a) ;
+                my $wnum = $numw[0]       ;
+
+                if (!$wnum || $wnum > $lnum)
+                {
+                    $sftp->disconnect     ;
+                    exit ()               ;
+                }
+    
+                #--------------------------*
+                # DEBUG                    *
+                #--------------------------*
+                # print "$wnum\n"         ;
+                # print "$lnum\n"         ;
+                # exit ()                 ;
+
+                #--------------------------*
+                # Lettura elemento         *
+                #--------------------------*
+                my $sel = "SELECT path "
+                        . "FROM "
+                        . $dtab
+                        . " WHERE path = '"
+                        . $file
+                        . "'"             ;
+                my $sth = $dbh->prepare($sel);
+                      
+                #--------------------------*
+                # Esecuzione               *
+                #--------------------------*
+                $sth->execute()           ;
+
+                #--------------------------*
+                # Test su esito lettura    *
+                #--------------------------*
+                $row = $sth->rows         ;
+
+                #--------------------------*
+                # Record non trovati       *
+                #--------------------------*
+                if ($row == 0)
+                {
+                    #----------------------*
+                    # Trattamento          *
+                    #----------------------*
+                    &not_found($sftp)     ;
+                }
+            }
+        }
+    #--------------------------------------*
+    # Fine ciclo di lettura                *
+    #--------------------------------------*
+    }
+
+#------------------------------------------*
+# Uscita da FTP                            *
+#==========================================*
+$sftp->disconnect                         ;
+
+#------------------------------------------*
+# Disconnessione dal database              *
+#==========================================*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Trattamento files non trovati            *
+#------------------------------------------*
+sub not_found 
+{
+    #--------------------------------------*
+    # Recupero dei file remoti             *
+    #--------------------------------------*
+    my @files = $sftp->ls                 ;
+
+    foreach my $f ( @files )
+    {
+        foreach my $file_ref ( @{$f} )
+        {
+            (my $a, my $b, my $c) = fileparse($file_ref->{'filename'},qr"\..[^.]*$");
+
+            if ($c eq ".txt")
+            {
+                #--------------------------*
+                # Recupero                 *
+                #--------------------------*
+                my $fget = "$a$c"         ;
+                $sftp->get($fget, $base . $fget)
+                       or die "recupero fallito!";
+                #--------------------------*
+                # Aggiornamento database   *
+                #--------------------------*
+                my $ins = "INSERT INTO "
+                        . $dtab
+                        . " VALUES ('"
+                        . $fget
+                        . "', '', NOW(),"
+                        . " '', '', '', '')";
+                my $sth = $dbh->prepare($ins);
+                #--------------------------*
+                # Esecuzione               *
+                #--------------------------*
+                $sth->execute()           ;
+                #--------------------------*
+                # Chiusura database        *
+                #--------------------------*
+                $sth->finish()            ;
+                #--------------------------*
+                # Messaggio di posta       *
+                #--------------------------*
+                &messaggio($fget)         ;
+
+                }
+            }
+        }
+    #--------------------------------------*
+    # Fine recupero                        *
+    #--------------------------------------*
+}
+
+#==========================================*
+# Trattamento messaggio di posta           *
+#------------------------------------------*
+sub messaggio 
+{
+    #--------------------------------------*
+    # Nome file ricevuto                   *
+    #--------------------------------------*
+    my $name = shift                      ;
+    #--------------------------------------*
+    # Determinazione numero documento      *
+    # (da perfezionare)                    *
+    #--------------------------------------*
+    my @numr = split(/_/, $name)          ;
+    my $rnum = $numr[0]                   ;
+    #--------------------------------------*
+    # Forzatura nome file                  *
+    #--------------------------------------*
+    my $clie = "Sito WEB"                 ;
+    #--------------------------------------*
+    # Composizione soggetto                *
+    #--------------------------------------*
+    my $subj = "Ordine in ingresso da "
+             . $clie
+             . " NR. "
+             . $rnum                      ;
+    #--------------------------------------*
+    # Composizione testo messaggio         *
+    #--------------------------------------*
+    my $mess = "Ordine "
+             . $name
+             . " da "
+             . $clie
+             . " NR. "
+             . $rnum                      ;
+    #--------------------------------------*
+    # Messaggio di posta                   *
+    #--------------------------------------*
+    $msg = MIME::Lite->new(
+           From     =>$mitt,
+           To       =>$dest,
+           Subject  =>$subj,
+           Data     =>$mess)              ;
+    #--------------------------------------*
+    # Invio                                *
+    #--------------------------------------*
+    my $smtp = Net::SMTP_auth -> new($isps, debug=>1);
+    
+    $smtp -> auth( 'LOGIN', $uidx, $pwdx);
+    
+    $smtp->mail($mitt)                ;
+    $smtp->to($dest)                  ;
+    $smtp -> data()                   ;
+    
+    $smtp -> datasend( $msg->as_string());
+    $smtp -> dataend()                ;
+    $smtp -> quit                     ;
+}
+
+

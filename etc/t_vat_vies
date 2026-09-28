@@ -1,0 +1,239 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per il Check di una Partita  *
+# IVA della Comunita' Europea              *
+#                                          *
+# t_vat_vies_0                             *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 12/11/13    *
+#   Ultima revisione:  NdK del 16/04/19    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - Partita Iva                 *
+#            - Codice Nazione Europea      *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Esempio  : t_vat_vies 815214341 DE       *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl di base                      *
+#------------------------------------------*
+use Business::Tax::VAT::Validation        ;
+
+#==========================================*
+# Variabili in input                       *
+#------------------------------------------*
+my $vat = shift                           ;
+my $naz = shift                           ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$vat || !$naz || $vat eq "-help")
+{
+    print "\n"
+        . "============================="
+        . "\n"
+        . "USO     :"
+        . "\n"
+        . "> t_vat_vies VAT NZ "
+        . "\n"
+        . "\n"
+        . "-----------------------------"
+        . "\n"
+        . "ESEMPIO :"
+        . "\n"
+        . "\n"
+        . "> t_vat_vies 815214341 DE "
+        . "\n"
+        . "\n"
+        . "-----------------------------"
+        . "\n"
+        . "RELEASE : 16/04/2019"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip"
+        . "\n"
+        . "============================="
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Comodi per ciclo                         *
+#------------------------------------------*
+my $ctr = 0                               ;
+my $max = 3                               ;
+
+#==========================================*
+# Chiamata modulo                          *
+#------------------------------------------*
+my $vtc=Business::Tax::VAT::Validation->new();
+
+#==========================================*
+# Open file di LOG                         *
+#------------------------------------------*
+my $bas = '/abd/asc/'                     ;
+my $log = $bas . 'log/t_vat_vies.log'     ;
+open (LOG_FIL, ">$log") or die 
+        "Impossibile aprire '$log'"       ;
+
+#==========================================*
+# Ciclo 0 > max                            *
+#------------------------------------------*
+while ($ctr < $max)
+{
+
+#==========================================*
+# Check Partita IVA                        *
+#------------------------------------------*
+if ($vtc->check($vat, $naz))
+{
+    #--------------------------------------*
+    # Se OK                                *
+    #--------------------------------------*
+    $ctr = $max;
+    # print LOG_FIL "Partita Iva " . $naz . $vat . " valida\n";
+    print LOG_FIL "(Partita Iva valida)\n";
+} else
+{
+    #--------------------------------------*
+    # Se Errore                            *
+    #--------------------------------------*
+    my $ans = $vtc->get_last_error        ;
+    my $err = $vtc->get_last_error_code() ;
+
+    #--------------------------------------*
+    # Decodifica Errore                    *
+    #--------------------------------------*
+    #                                      *
+    #  -1 The provided VAT number is valid *
+    #                                      *
+    #   0 Unknown MS code : Internal       *
+    #     checkup failed (Specified Member *
+    #     State does not exist)            *
+    #                                      *
+    #   1 Invalid VAT number format : In-  *
+    #     ternal checkup failed (bad syn-  *
+    #     tax)                             *
+    #                                      *
+    #   2 This VAT number doesn't exist    *
+    #     in EU database : distant checkup *
+    #                                      *
+    #   3 This VAT number contains errors  * 
+    #     - distant checkup               *
+    #                                      *
+    #  17 Time out connecting to the data- *
+    #     base : Temporary error when the  *
+    #     connection to the database times *
+    #     out                              *
+    #                                      *
+    #  18 Member Sevice Unavailable: The   *
+    #     EU database is unable to reach   *
+    #     the requested member's database. *
+    #                                      *
+    #  19 The EU database is too busy.     *
+    #                                      *
+    #  20 Connexion to the VIES database   *
+    #     failed.                          *
+    #                                      *
+    #  21 The VIES interface failed to     *
+    #     parse a stream. This error       *
+    #     occurs unpredictabely, so you    *
+    #     should retry your validation     *
+    #     request.                         *
+    #                                      *
+    # 257 Invalid response, please contact *
+    #     the author of this module. :     *
+    #     This normally only happens if    *
+    #     this software doesn't recognize  *
+    #     any valid pattern into the res-  *
+    #     ponse document: this generally   *
+    #     means that the database interfa- *
+    #     ce has been modified, and you'll *
+    #     make the author happy by submit- *
+    #     ting the returned response !!!   *
+    #                                      *
+    # 500 The VIES server encountered an   *
+    #     internal server error. Error     *
+    #     500 : soap:Server TIMEOUT Error  *
+    #     500 : soap:Server MS_UNAVAILABLE *
+    #--------------------------------------*
+     if ($err == 0)
+    {
+        print LOG_FIL "(Stato membro non trovato!)\n";
+        $ctr = $max;
+    }   
+     elsif ($err == 1)
+    {
+        print LOG_FIL "(Formato Partita Iva errato!)\n";
+        $ctr = $max;
+    }   
+     elsif ($err == 2)
+    {
+        print LOG_FIL "(Partita Iva non nel database!)\n";
+        $ctr = $max;
+    }   
+     elsif ($err == 3)
+    {
+        print LOG_FIL "(P. Iva formalmente incorretta!)\n";
+        $ctr = $max;
+    }   
+     elsif ($err == 17)
+    {    
+        print LOG_FIL "(Server sovraccarico: riprovare!)\n";
+    }
+     elsif ($err == 18)
+    {
+        print LOG_FIL "(Servizio al momento inattivo!)\n";
+        $ctr = $max;
+    }
+     elsif ($err == 19)
+    {
+        print LOG_FIL "(Database occupato!)\n";
+    }
+     elsif ($err == 20)
+    {
+        print LOG_FIL "(Connessione fallita!)\n";
+    }
+     elsif ($err == 21)
+    {
+        print LOG_FIL "(Errore indeterminato: riprovare!)\n";
+    }
+     elsif ($err == 257)
+    {
+        print LOG_FIL "(Impossibile connettersi: riprovare!)\n";
+        $ctr = $max;
+    }   
+     elsif ($err == 500)
+    {
+        print LOG_FIL "(Errore di timeout!)\n";
+        $ctr = $max;
+    }   
+     else
+    {
+        print LOG_FIL "(Formato dati errato!)\n";
+        $ctr = $max;
+    }
+    #--------------------------------------*
+    # Incremento contatore ciclo > max     *
+    #--------------------------------------*
+    $ctr++;
+}
+
+#------------------------------------------*
+# FINE : Ciclo 0 > max                     *
+#==========================================*
+}
+
+#=========================================*
+# Close file di LOG                       *
+#=========================================*
+close LOG_FIL                             ;

@@ -1,0 +1,75 @@
+     ############ /abd/etc/mkdbps
+     #
+     # Procedura di creazione della subdirectory 'bps' di '/abd'
+     #
+     # Input : $1:Pathname completo per la directory al cui interno deve
+     #                     essere creata la subdirectory 'bps'
+     #
+     ######
+
+######
+# Controllo identita' utente
+###
+
+altervx88=`whoami`
+if [ $altervx88 != "master" ]
+   then
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                # Errore per il comando 'mkdbps' #               " ;
+       echo "                ----------------------------------               " ;
+       echo "                                                                 " ;
+       echo " Il comando puo' essere eseguito solamente dall'utente 'master'  " ;
+       echo "                                                                 " ;
+       echo "-----------------------------------------------------------------" ;
+       echo "                                                                 " ;
+       exit 0;
+   fi
+
+######
+# Controllo sul numero di parametri
+###
+
+case $# in
+       1)
+          ;;
+       *)
+          echo "                                                                 " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "          # Errore nei parametri per il comando 'mkdbps' #       " ;
+          echo "         -------------------------------------------------       " ;
+          echo "                                                                 " ;
+          echo " Errore : E' richiesto in input il parametro per il pathname     " ;
+          echo "          della directory al cui interno deve essere creata      " ;
+	  echo "          la subdirectory 'bps'.                                 " ;
+          echo "                                                                 " ;
+          echo "          Non e' ammesso omettere il parametro, ne' fornirne     " ;
+          echo "          piu' di uno.                                           " ;
+          echo "-----------------------------------------------------------------" ;
+          echo "                                                                 " ;
+          exit 0;
+	  ;;
+     esac
+
+######
+# - Creazione directory 'bps'
+###
+
+mkdir           $1/bps
+chmod  0750     $1/bps
+
+######
+# - Simbolic link, se necessario, a '/abd/bps'
+###
+
+case $1 in
+     /abd)
+          ;;
+        *)
+          ln -s $1/bps /abd/bps ;
+	  ;;
+     esac
+
+######
+# - Fine procedura
+###

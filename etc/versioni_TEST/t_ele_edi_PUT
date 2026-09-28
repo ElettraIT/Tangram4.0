@@ -1,0 +1,71 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per test connessione SFTP    *
+# con Metel                                *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Parametri di configurazione              *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_ele_edi_out.ini";
+my %cnf_ele = do $cfg_bas                 ;
+#
+my $hst_ftp = $cnf_ele{hst_ftp}           ;
+my $hst_usr = $cnf_ele{hst_usr}           ;
+my $hst_pwd = $cnf_ele{hst_pwd}           ;
+
+#==========================================*
+# Variabili di comodo                      *
+# ___ !!! ___                              *
+#------------------------------------------*
+my $file = "prova_put.txt"      ;
+my $base = "/abd/asc/exp/edi/"            ;
+my $path = "./upload/confermeordine/"                  ;
+
+# my $cert = "/home/master/.ssh/id_rsa"     ;
+
+
+
+#==========================================*
+# Cancellazione file remoto                *
+#==========================================*
+
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+my %args = (user => $hst_usr,
+        password => $hst_pwd,
+            port => 22,
+            more => '-v'
+#            more => [qw(-o PreferredAuthentications=publickey)]
+    );
+
+my $sftp = Net::SFTP::Foreign->new($hst_ftp, %args)
+  or die "Connessione non riuscita a : $@";
+
+#==========================================*
+# Posizionamento directory                 *
+#------------------------------------------*
+$sftp->setcwd($path)
+    or die "Cambio directory "
+   . "non "
+   . "riuscito"       ;
+
+#==========================================*
+# Raccolta file di prova                   *
+#------------------------------------------*
+$sftp->put($base . $file, $file)
+       or die "invio fallito!";
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+
+
+

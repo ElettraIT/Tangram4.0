@@ -1,0 +1,448 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# Retarus                                  *
+#                                          *
+# SU MISURA PER NOBILI                     *
+#                                          *
+# t_nobili_in                              *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 15/02/10    *
+#   Ultima revisione:  NdK del 22/10/19    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+# in Crontab ogni ora (alle '50)           *
+#                                          *
+# 50 * * * *      /abd/etc/t_nobili_in     *
+#   1>/abd/asc/log/t_nobili_in.log         *
+#   2>/abd/asc/log/t_nobili_in_err.log     *
+#                                          *
+# N.B.: seguito dal programma 'paut6000'   *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Descrizione modulo:                      *
+#                                          *
+# Collegamento FTP al sito di Retarus per  *
+# prelevare i documenti nell' apposita di- *
+# rectory col il path che termina con la   *
+# estensione .CSV.OK. Contestualmente, per *
+# ogni file prelevato e trasferito nella   *
+# directory locale (/abd/asc/imp) si scri- *
+# ve un record del Database MySQL relativo *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::FTP                              ;
+use MIME::Lite                            ;
+use DBI()                                 ;
+use PostScript::Simple                    ;
+
+#==========================================*
+# Variabili di connessione                 *
+#------------------------------------------*
+my $host = '94.199.90.151'                ;
+my $user = 'nobili'                       ;
+my $pass = '*Na4RcCC)gj%'                 ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$host || !$user || $host eq "-help")
+{
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_nobili_in"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - dKb"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $path = "/productive/to_nobili/orders" ;
+# my $path = "/test/to_nobili/orders"     ;
+my $patl = "/abd/asc/imp/"                ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dhst = "localhost"                    ;
+my $dusr = "root"                         ;
+# my $dpwd = "alter1"                       ;
+my $dpwd = "loppio2"                      ;
+my $dtbs = "nob"                          ;
+my $dtab = "retarus"                      ;
+
+#==========================================*
+# Parametri di posta                       *
+#------------------------------------------*
+my $isps = "192.168.1.251"                ;
+my $indi = "info"                         ;
+my $domn = "iformagginobili.it"           ;
+my $mitt = $indi . '@' . $domn            ;
+my $dest = $indi . '@' . $domn            ;
+my $desb = $indi . '@' . $domn            ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtbs;host=$dhst",
+                       $dusr,
+                       $dpwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+my $ftp = Net::FTP->new($host, Debug => 0)
+  or die "Connessione non riuscita a : $@";
+
+#==========================================*
+# Login                                    *
+#------------------------------------------*
+$ftp->login($user,$pass)
+  or die "Fallito il login ", $ftp->message;
+
+#==========================================*
+# Directory di input                       *
+#------------------------------------------*
+$ftp->cwd($path)
+  or die "Cambio directory "
+       . "non "
+       . "riuscito", $ftp->message        ;
+
+#==========================================*
+# Recupero dei file remoti                 *
+#------------------------------------------*
+for (grep /\.CSV.OK$/, $ftp->ls)
+{
+    #--------------------------------------*
+    # Lettura elemento                     *
+    #--------------------------------------*
+    my $sel = "SELECT path
+                      FROM "
+                    . $dtab
+                    . " WHERE path = '"
+                    . $_
+                    . "'"                 ;
+    my $sth = $dbh->prepare($sel)         ;
+                      
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth->execute()                       ;
+
+    #--------------------------------------*
+    # Test su esito lettura                *
+    #--------------------------------------*
+    $row = $sth->rows                     ;
+
+    #--------------------------------------*
+    # Record non trovati                   *
+    #--------------------------------------*
+    if ($row == 0)
+    {
+        #----------------------------------*
+        # Recupero dei file remoti         *
+        #----------------------------------*
+        $ftp->get($_, "/abd/asc/imp/" . $_)
+              for grep /\.CSV.OK$/, $ftp->ls ;
+        #----------------------------------*
+        # Aggiornamento database           *
+        #----------------------------------*
+        my $ins = "INSERT INTO "
+                . $dtab
+                . " VALUES ('"
+                . $_
+                . "', '', NOW(),"
+                . " '', '', '', '')";
+        my $sth = $dbh->prepare($ins)     ;
+        #----------------------------------*
+        # Esecuzione                       *
+        #----------------------------------*
+        $sth->execute()                   ;
+        #----------------------------------*
+        # Chiusura operazioni su database  *
+        #----------------------------------*
+        $sth->finish()                    ;
+        #----------------------------------*
+        # Messaggio di posta               *
+        #----------------------------------*
+        &messaggio($_)                    ;
+        #----------------------------------*
+        # Stampa file scaricato            *
+        #----------------------------------*
+        &stampa($_)                       ;
+    }
+    #--------------------------------------*
+    # Fine ciclo di lettura                *
+    #--------------------------------------*
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$ftp->quit                                ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Trattamento messaggio di posta           *
+#------------------------------------------*
+sub messaggio 
+{
+    #--------------------------------------*
+    # Determinazione numero documento      *
+    # (da perfezionare)                    *
+    #--------------------------------------*
+    my $rnum = substr($_, 13, 8)          ;
+    #--------------------------------------*
+    # Estrazione del cliente dal nome      *
+    # file                                 *
+    #--------------------------------------*
+    my $clie = ""                         ;
+    my $wcli = substr($_, 8, 3)           ;
+    
+    if ($wcli eq "PAD")
+    {
+        $clie = "PADIS"                   ;
+    }
+     else
+    {
+        $clie = "PAM"                     ;
+    }
+    #--------------------------------------*
+    # Composizione soggetto                *
+    #--------------------------------------*
+    my $subj = "Ordine in ingresso da "
+             . $clie
+             . " "
+             . $rnum                      ;
+    #--------------------------------------*
+    # Messaggio di posta                   *
+    #--------------------------------------*
+    $msg = MIME::Lite->new(
+           From     =>$mitt,
+           To       =>$dest,
+#           Bcc      =>$desb,
+           Subject  =>$subj,
+           Data     =>"Ordine "
+                    . $_
+                    . " da "
+                    . $clie
+                    . " "
+                    . $rnum)              ;
+    #--------------------------------------*
+    # Invio                                *
+    #--------------------------------------*
+    $msg->send('smtp', $isps, Timeout=>60);
+}
+
+#==========================================*
+# Stampa                                   *
+#------------------------------------------*
+sub stampa 
+{
+    #--------------------------------------*
+    # Apertura file ORDERS ricevuto        *
+    #--------------------------------------*
+    my $pato = $patl . $_                 ;
+    open (ORDERS, "$pato") or die
+         "Impossibile aprire "
+       . "il file '$pato'"                ;
+    #--------------------------------------*
+    # File di output Postscript            *
+    #--------------------------------------*
+    my $out = "/abd/asc/tmp/stampa.ps"    ;
+    #--------------------------------------*
+    # Campi di comodo per la stampa        *
+    #--------------------------------------*
+    my @titl = split('_', $_)             ;
+    my $date = $titl[3]                   ;
+    my @datx = split('\.', $date)         ;
+    my $data = $datx[0]                   ;
+
+    #--------------------------------------*
+    # Nuova pagina Postscript              *
+    #--------------------------------------*
+    $p = new PostScript::Simple(papersize => "A4",
+                                colour => 1,
+                                eps => 0,
+                                units => "in");
+    $p->newpage                           ;
+    $p->setfont("Times-Roman", 12)        ;
+
+    #--------------------------------------*
+    # Normalizzazione contatore righe      *
+    #--------------------------------------*
+    my $row = 0                           ;
+    
+    #--------------------------------------*
+    # Ciclo di scansione                   *
+    #--------------------------------------*
+    while (<ORDERS>)
+    {
+        #----------------------------------*
+        # I riga - titolo                  *
+        #----------------------------------*
+        if ($row == 0)
+        {
+        
+            #------------------------------*
+            # Estrazione data              *
+            #------------------------------*
+            my $gior = substr($data, 0, 2);
+            my $mese = substr($data, 2, 2);
+            my $anno = substr($data, 4, 4);
+            #------------------------------*
+            # Estrazione del cliente dal   *
+            # nome file                    *
+            #------------------------------*
+            my $clis = ""                 ;
+            my $wcls = substr($_, 8, 3)   ;
+    
+            if ($wcls eq "PAD")
+            {
+                $clis = "PADIS"           ;
+            }
+             else
+            {
+                $clis = "PAM"             ;
+            }
+            #------------------------------*
+            # Titolo                       *
+            #------------------------------*
+            $titolo = $clis 
+                . " - Ordine del "
+                . $gior
+                . "/"
+                . $mese
+                . "/"
+                . $anno                   ;
+
+            $p->text(2.5,11, $titolo)     ;
+    
+            $p->box(2.4,10.8, 6,11.2)     ;    
+    
+        }
+
+        #----------------------------------*
+        # Righe successive                 *
+        #----------------------------------*
+        if ($row > 0)
+        {
+
+            #------------------------------*
+            # Split della riga             *
+            #------------------------------*
+            my @Fld = split(',', $_)      ;
+
+            #------------------------------*
+            # Decodifica codice prodotto   *
+            #------------------------------*
+            my $nobi =""                  ;
+
+            if    ($Fld[3] == "624008"){$nobi = " 15"}
+            elsif ($Fld[3] == "624372"){$nobi = "012"}
+            elsif ($Fld[3] == "624375"){$nobi = "010"}
+            elsif ($Fld[3] == "624377"){$nobi = "011"}
+            elsif ($Fld[3] == "764457"){$nobi = "013"}
+            elsif ($Fld[3] == "805251"){$nobi = " 24"}
+            elsif ($Fld[3] == "799576"){$nobi = "24P"}
+            elsif ($Fld[3] == "792316"){$nobi = " 56"}
+            elsif ($Fld[3] == "792317"){$nobi = " 55"}
+            elsif ($Fld[3] == "36116"){$nobi = "57X2"}
+            # PAM
+            elsif ($Fld[3] == "5476828"){$nobi = "013PAM"}
+            elsif ($Fld[3] == "5476859"){$nobi = "010PAM"}
+            elsif ($Fld[3] == "6985749"){$nobi = "012PAM"}
+            else {$nobi = "???"}          ;
+
+            #------------------------------*
+            # Coefficienti prodotto        *
+            #------------------------------*
+            my $coef =""                  ;
+
+            # Codice prodotto 15
+            if    ($Fld[3] == "624008"){$coef = "*"}
+            # Codice prodotto 24
+            elsif ($Fld[3] == "805251"){$coef = "*"}
+            # Codice prodotto 24P
+            elsif ($Fld[3] == "799576"){$coef = "*"}
+            # Codice prodotto 012
+            elsif ($Fld[3] == "624372"){$coef = "*"}
+            # Codice prodotto 010
+            elsif ($Fld[3] == "624375"){$coef = "*"}
+            # Codice prodotto 013
+            elsif ($Fld[3] == "764457"){$coef = "*"}
+            # Codice prodotto 012 PAM
+            elsif ($Fld[3] == "6985749"){$coef = "*"}
+            # Codice prodotto 010 PAM
+            elsif ($Fld[3] == "5476859"){$coef = "*"}
+            # Codice prodotto 013 PAM
+            elsif ($Fld[3] == "5476828"){$coef = "*"}
+            else {$coef = ""}             ;
+
+            #------------------------------*
+            # Linea di stampa              *
+            #------------------------------*
+            $p->line(1,10-($row/2)-0.05, 4.5,10-($row/2)-0.05);
+
+            $p->text(0.5,10-($row/2), $nobi);
+            $p->text(1.0,10-($row/2), $Fld[5]);
+            $p->text({align => 'right'},5.3,10-($row/2), $Fld[6]);
+            $p->text(5.8,10-($row/2), $coef);
+            $p->text({align => 'right'},6.7,10-($row/2), $Fld[7]);
+       }
+
+        #----------------------------------*
+        # Incremento contatore             *
+        #----------------------------------*
+        $row++                            ;
+    }
+
+    #--------------------------------------*
+    # Chiusura file ORDERS ricevuto        *
+    #--------------------------------------*
+    close ORDERS                          ;
+
+    #--------------------------------------*
+    # Inclusione logo                      *
+    #--------------------------------------*
+    my $logo = "/abd/asc/mod/nobili_logo.eps";
+    $e = new PostScript::Simple::EPS(file => $logo);
+    $e->scale(0.015)                      ;
+    $p->importeps($e, 0.1,-0.7)           ;
+
+    #--------------------------------------*
+    # Generazione file Postscript          *
+    #--------------------------------------*
+    $p->output($out)                      ;
+
+    #--------------------------------------*
+    # Stampa file Postscript               *
+    #--------------------------------------*
+    my $printer = "mfp"                   ;
+    system("cat $out | lpr -P$printer")   ;
+}
+
+

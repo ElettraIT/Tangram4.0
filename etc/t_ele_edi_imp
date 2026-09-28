@@ -1,0 +1,1113 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file EDI da  *
+# Metel                                    *
+#                                          *
+# SU MISURA PER ELETTRA                    *
+#                                          *
+# t_ele_edi_imp                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/06/23    *
+#   Ultima revisione:  NdK del 09/04/24    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+# in Crontab ogni ora (alle '50)           *
+#                                          *
+# 50 * * * *      /abd/etc/t_ele_edi_imp   *
+#                                          *
+# N.B.: seguito dal programma 'pedi6000'   *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Descrizione modulo:                      *
+#                                          *
+# Collegamento SFTP al sito di Metel per   *
+# prelevare i documenti nell' apposita di- *
+# rectory col il path che termina con la   *
+# estensione '.xml'. Contestualmente, per  *
+# ogni file prelevato e trasferito nella   *
+# directory locale (/abd/asc/imp) si scri- *
+# ve un record del Database MySQL relativo *
+#                                          *
+# ---------------------------------------- *
+# Per creare il database                   *
+#                                          *
+# CREATE TABLE IF NOT EXISTS `metel` (     *
+# `path` varchar(80) NOT NULL default '',  *
+# `flag` char(1) NOT NULL default '',      *
+# `upld` datetime NOT NULL default         *
+#                   '0000-00-00 00:00:00', *
+# `trtd` datetime NOT NULL default         *
+#                   '0000-00-00 00:00:00', *
+# `utet` varchar(8) NOT NULL default '',   *
+# `buyr` varchar(30) NOT NULL default '',  *
+# `nrif` varchar(30) NOT NULL default '',  *
+# UNIQUE KEY `path` (`path`)               *
+# ) TYPE=MyISAM;                           *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Configurazione : - 't_ele_edi_imp.ini'   *
+#                  - 'dtb.ini'             *
+#                                          *
+# File di Log    : - 't_ele_edi_imp.log'   *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+use DBI()                                 ;
+use File::Basename                        ;
+use XML::Simple                           ;
+
+#==========================================*
+# Parametri di configurazione              *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_ele_edi_imp.ini";
+my %cnf_ele = do $cfg_bas                 ;
+#
+my $hst_ftp = $cnf_ele{hst_ftp}           ;
+my $hst_usr = $cnf_ele{hst_usr}           ;
+my $hst_pwd = $cnf_ele{hst_pwd}           ;
+my $pth_inp = $cnf_ele{pth_inp}           ;
+my $pth_out = $cnf_ele{pth_out}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+
+#==========================================*
+# Parametri di posta (SMTP)                *
+#------------------------------------------*
+my $eml_srv = $cnf_ele{eml_srv}           ;
+my $eml_usr = $cnf_ele{eml_usr}           ;
+my $eml_pwd = $cnf_ele{eml_pwd}           ;
+my $eml_mit = $cnf_ele{eml_mit}           ;
+my $eml_dst = $cnf_ele{eml_dst}           ;
+my $eml_dcc = $cnf_ele{eml_dcc}           ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+#
+my $dtb_azi = "ele"                       ;
+my $dtb_tbl = "metel"                     ;
+my $dtb_tbm = "msg"                       ;
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+$theTime = &sys_tim                       ;
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = $pth_bas
+            . 'log/t_ele_edi_imp.log'     ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtb_azi;host=$dtb_hst",
+                       $dtb_usr,
+                       $dtb_pwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Connessione FTP                          *
+#------------------------------------------*
+my %args = (user => $hst_usr,
+        password => $hst_pwd,
+#           more => '-v'
+            port => 22)                   ;
+
+my $sftp = Net::SFTP::Foreign->new($hst_ftp, %args)
+   or &log_msg("Connessione SFTP fallita") ;
+
+#------------------------------------------*
+# Directory di input                       *
+#------------------------------------------*
+$sftp->setcwd($pth_inp)
+  or &log_msg("Cambio directory non "
+            . "riuscito: ")               ;
+
+
+#==========================================*
+# Recupero dei file remoti                 *
+# ___ SISTEMARE ___                        *
+#------------------------------------------*
+$remotefiles=$sftp->ls('./')              ; 
+    
+foreach (@$remotefiles)
+{
+    #--------------------------------------*
+    # Test se file                         *
+    #--------------------------------------*
+    $file=$_                              ;
+    $filename=$file->{filename}           ;
+    if($filename ne "." && $filename ne "..")
+    {
+        #----------------------------------*
+        # Lettura elemento                 *
+        #----------------------------------*
+        my $sel = "SELECT path FROM "
+                . $dtb_tbl
+                . " WHERE path = '"
+                . $filename
+                . "'"                     ;
+        #----------------------------------*
+        # Preparazione select              *
+        #----------------------------------*
+        my $sth = $dbh->prepare($sel)     ;
+        #----------------------------------*
+        # Esecuzione                       *
+        #----------------------------------*
+        $sth->execute()                   ;
+        #----------------------------------*
+        # Test su esito lettura           *
+        #----------------------------------*
+        $row = $sth->rows                 ;
+        #----------------------------------*
+        # Se record non trovati            *
+        #----------------------------------*
+        if ($row == 0)
+        {
+            #------------------------------*
+            # Recupero dei file remoti     *
+            #------------------------------*
+            $sftp->get($filename, $pth_out . $filename);
+            #------------------------------*
+            # DEBUG                        *
+            #------------------------------*
+#           print "File : $filename" . "\n";
+            #------------------------------*
+            # Aggiornamento database       *
+            #------------------------------*
+            my $ins = "INSERT INTO "
+                    . $dtb_tbl
+                    . " VALUES ('"
+                    . $filename
+                    . "', '', NOW(),"
+                    . " '', '', '', '')"  ;
+            my $sth = $dbh->prepare($ins) ;
+            #------------------------------*
+            # Esecuzione                   *
+            #------------------------------*
+        $sth->execute()                   ;
+            #------------------------------*
+            # Chiusura database            *
+            #------------------------------*
+        $sth->finish()                    ;
+            #------------------------------*
+            # Trattamento file XML -> CSV  *
+            #------------------------------*
+        &xml2csv($filename)               ;
+    }
+    
+    }
+    
+    #--------------------------------------*
+    # Fine ciclo di lettura                *
+    #--------------------------------------*
+}
+
+#==========================================*
+# Uscita da FTP                            *
+#------------------------------------------*
+$sftp->disconnect                         ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# Subroutines                              *
+#==========================================*
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+     $daylightSavings) = localtime()      ;
+    #--------------------------------------*
+    # Correttivi                           *
+    #--------------------------------------*
+    my $anno = 1900 + $yearOffset         ;
+    #
+    my $mese = $month + 1                 ;
+    my $mesx = sprintf ("%02d", $mese)    ;
+    #
+    my $gior = $dayOfMonth                ;
+    my $giox = sprintf ("%02d", $gior)    ;
+    #
+    my $orax = sprintf ("%02d", $hour)    ;
+    my $minx = sprintf ("%02d", $minute)  ;
+    my $secx = sprintf ("%02d", $second)  ;
+    #--------------------------------------*
+    # Data in output                       *
+    #--------------------------------------*
+    $sysTime = "$anno $mesx $giox "
+             . "$orax:$minx:$secx"        ;
+    return $sysTime                       ;
+#------------------------------------------*
+# Data di sistema per LOG             FINE *
+#==========================================*
+}
+
+#==========================================*
+# Emissione LOG                            *
+#------------------------------------------*
+sub log_msg 
+{
+    #--------------------------------------*
+    # Testo messaggio in input             *
+    #--------------------------------------*
+    my $msg_txt = shift                   ;
+    #--------------------------------------*
+    # Test se presente $fil_nam            *
+    #--------------------------------------*
+    if (!$fil_nam)
+        {my $fil_nam = ''}                ;
+    #--------------------------------------*
+    # Test se presente $msg_txt            *
+    #--------------------------------------*
+    if (!$msg_txt)
+        {$msg_txt = ''}                   ;
+    #--------------------------------------*
+    # Fincatura per il LOG                 *
+    #--------------------------------------*
+    print LOG_FIL "----------------------"
+                . "----------------------"
+                . "----------------------"
+                . "\n"                    ;
+    #--------------------------------------*
+    # Messaggio per il LOG                 *
+    #--------------------------------------*
+    if ($theTime && $fil_nam && $msg_txt)
+    {
+    
+        print LOG_FIL $theTime
+	             . " - File: "
+	             . $fil_nam
+	             . " : "
+	             . $msg_txt
+                    . "\n"                ;
+
+    }
+#------------------------------------------*
+# Emissione LOG                       FINE *
+#==========================================*
+}
+
+#==========================================*
+# Subroutine di conversione da XML a CSV   *
+#------------------------------------------*
+sub xml2csv 
+{
+    my $fil_xml = shift                   ;
+    #--------------------------------------*
+    # Estrazione nome file                 *
+    #--------------------------------------*
+    (my $fil_nam,
+     my $fil_pth,
+     my $fil_ext) = fileparse($fil_xml, qr/\.[^.]*/);
+    #--------------------------------------*
+    # File di input                        *
+    #--------------------------------------*
+    my $pat_inp = $pth_out
+                . $fil_nam
+                . ".xml"                  ;
+    #--------------------------------------*
+    # File di output                       *
+    #--------------------------------------*
+    my $pat_out = $pth_out
+                . $fil_nam
+                . ".csv"                  ;
+                
+    #--------------------------------------*
+    # DEBUG                                *
+    #--------------------------------------*
+#    print"XML is $pat_inp" . "\n";
+#    print"CSV is $pat_out" . "\n";
+                
+    #--------------------------------------*
+    # Open del file di output              *
+    #--------------------------------------*
+    open (OUTFILE, ">$pat_out") or die
+         "Impossibile aprire il file"     ;
+    #--------------------------------------*
+    # Caricamento file                     *
+    #--------------------------------------*
+    my $xml = XML::Simple->new()          ;
+    my $data = XMLin($pat_inp)            ;
+
+    #======================================*
+    # Normalizzazione preliminare testata  *
+    #--------------------------------------*
+    my $val_tes = ""                      ;
+    my $tip_rec = ""                      ;
+    my $vat_sel = ""                      ;
+    my $vat_buy = ""                      ;
+    my $num_ord = ""                      ;
+    my $dat_ord = ""                      ;
+    my $tip_ord = ""                      ;
+    my $tip_doc = ""                      ;
+    my $cod_dpz = ""                      ;
+    my $cod_vlt = ""                      ;
+    my $tip_ind = ""                      ;
+    our $rag_soc = ""                     ;
+    my $via_cli = ""                      ;
+    my $loc_cli = ""                      ;
+    my $prv_cli = ""                      ;
+    my $cap_cli = ""                      ;
+    my $cod_naz = ""                      ;
+
+    #======================================*
+    # Tipo record : testata                *
+    #--------------------------------------*
+    $tip_rec = "T"                        ;
+    #--------------------------------------*
+    # Partita Iva venditore                *
+    #--------------------------------------*
+    if($data->{Header}
+            ->{VatSeller})
+    {
+        $vat_sel = $data->{Header}
+                        ->{VatSeller}     ;
+    }                    
+    #--------------------------------------*
+    # Partita Iva acquirente               *
+    #--------------------------------------*
+    if($data->{Header}
+            ->{VatBuyer})
+    {
+        $vat_buy = $data->{Header}
+                        ->{VatBuyer}      ;
+    }                    
+    #--------------------------------------*
+    # Numero ordine                        *
+    #--------------------------------------*
+    if($data->{Header}
+            ->{OrderNumber})
+    {
+        $num_ord = $data->{Header}
+                        ->{OrderNumber}   ;
+    }                    
+    #--------------------------------------*
+    # Data ordine                          *
+    #--------------------------------------*
+    if($data->{Header}
+            ->{OrderDate})
+    {
+        $dat_ord = $data->{Header}
+                        ->{OrderDate}     ;
+    }                    
+    #--------------------------------------*
+    # Tipo ordine                          *
+    #--------------------------------------*
+    if($data->{Header}
+            ->{OrderType})
+    {
+        $tip_ord = $data->{Header}
+                        ->{OrderType}     ;
+    }                    
+    #--------------------------------------*
+    # Tipo documento                       *
+    #--------------------------------------*
+    if($data->{Header}
+            ->{DocType})
+    {
+        $tip_doc = $data->{Header}
+                        ->{DocType}       ;
+    }                    
+    #--------------------------------------*
+    # Codice dipendenza Cliente            *
+    #--------------------------------------*
+    if($data->{Header}
+            ->{DeliveryPoint})
+    {
+        $cod_dpz = $data->{Header}
+                        ->{DeliveryPoint} ;
+    }                    
+    #--------------------------------------*
+    # Codice valuta                        *
+    #======================================*
+    if($data->{Header}
+            ->{CurrencyCode})
+    {
+        $cod_vlt = $data->{Header}
+                        ->{CurrencyCode}  ;
+    }                    
+    #======================================*
+    # Tipo indirizzo                       *
+    #--------------------------------------*
+    if($data->{Address}
+            ->{AddressQualifier})
+    {
+        $tip_ind = $data->{Address}
+                        ->{AddressQualifier};
+    }                    
+    #--------------------------------------*
+    # Ragione sociale                      *
+    #                                      *
+    # Variabile globale                    *
+    #--------------------------------------*
+    if($data->{Address}
+            ->{CompanyName})
+    {
+        $rag_soc = $data->{Address}
+                        ->{CompanyName}   ;
+    }                    
+    #--------------------------------------*
+    # Indirizzo                            *
+    #--------------------------------------*
+    if($data->{Address}
+            ->{Address})
+    {
+        $via_cli = $data->{Address}
+                        ->{Address}       ;
+    }                    
+    #--------------------------------------*
+    # Localita'                            *
+    #--------------------------------------*
+    if($data->{Address}
+            ->{City})
+    {
+        $loc_cli = $data->{Address}
+                        ->{City}          ;
+    }                    
+    #--------------------------------------*
+    # Provincia                            *
+    #--------------------------------------*
+    if($data->{Address}
+            ->{Province})
+    {
+        $prv_cli = $data->{Address}
+                        ->{Province}      ;
+    }                    
+    #--------------------------------------*
+    # CAP                                  *
+    #--------------------------------------*
+    if($data->{Address}
+            ->{PostalCode})
+    {
+        $cap_cli = $data->{Address}
+                        ->{PostalCode}    ;
+    }                    
+    #--------------------------------------*
+    # Nazione                              *
+    #--------------------------------------*
+    if($data->{Address}
+            ->{Nation})
+    {
+        $cod_naz = $data->{Address}
+                        ->{Nation}        ;
+    }                    
+    #======================================*
+    # Preparazione testata                 *
+    #--------------------------------------*
+    $val_tes = $vat_sel
+             . ";"
+             . $vat_buy
+             . ";"
+             . $num_ord
+             . ";"
+             . $dat_ord
+             . ";"
+             . $tip_ord
+             . ";"
+             . $tip_doc
+             . ";"
+             . $cod_dpz
+             . ";"
+             . $cod_vlt
+             . ";"
+             . $tip_ind
+             . ";"
+             . $rag_soc
+             . ";"
+             . $via_cli
+             . ";"
+             . $loc_cli
+             . ";"
+             . $prv_cli
+             . ";"
+             . $cap_cli
+             . ";"
+             . $cod_naz
+             . ";"                        ;
+    #--------------------------------------*
+    # Emissione testata                    *
+    #--------------------------------------*
+    &pmt_val ($tip_rec,
+              $val_tes)                   ;
+
+    #======================================*
+    # Tipo record : commento testata       *
+    #--------------------------------------*
+    $tip_rec = "C"                        ;
+
+    #======================================*
+    # Test se piu' righe di commento       *
+    # per la testata                       *
+    #                                      *
+    # ___ IMPLEMENTARE <TextQualifier>     *
+    # ___ se serve ?!?                     *
+    #--------------------------------------*
+    if (ref($data->{HeaderFreeText}) =~ /ARRAY/)
+    {
+        #---------------------------------*
+        # Se piu' righe di commento       *
+        #---------------------------------*
+        foreach $e (@{$data->{HeaderFreeText}})
+        {
+            #-----------------------------*
+            # Testo commento              *
+            #-----------------------------*
+            $val_dat = $e->{HeaderFreeNote};
+            $val_dat = &pul_str($val_dat) ;
+            #-----------------------------*
+            # Emissione commento          *
+            #-----------------------------*
+            my $val_com = $val_dat
+                        . ";"             ;
+            #-----------------------------*
+            # Emissione                   *
+            #-----------------------------*
+            &pmt_val ($tip_rec,
+                      $val_com)           ;
+            #-----------------------------*
+            # Scrittura su database       *
+            #-----------------------------*
+            &wrt_com ($val_dat)           ;
+        }
+    }
+     else
+    {
+        #---------------------------------*
+        # Se una sola riga di commento    *
+        #---------------------------------*
+        if($data->{HeaderFreeText})
+        {
+            #-----------------------------*
+            # Prompt comune               *
+            #-----------------------------*
+            $row_pmt = $data->{HeaderFreeText};
+            #-----------------------------*
+            # Testo commento              *
+            #-----------------------------*
+            $val_dat = $row_pmt->{HeaderFreeNote};
+            $val_dat = &pul_str($val_dat);
+            #-----------------------------*
+            # Emissione commento          *
+            #-----------------------------*
+            my $val_com = $val_dat
+                        . ";"             ;
+            #-----------------------------*
+            # Emissione                   *
+            #-----------------------------*
+            &pmt_val ($tip_rec,
+                      $val_com)           ;
+            #-----------------------------*
+            # Scrittura su database       *
+            #-----------------------------*
+            &wrt_com ($val_dat)           ;
+        }
+    }
+    #--------------------------------------*
+    # Fine testata                         *
+    #======================================*
+
+    #======================================*
+    # Tipo record : righe                  *
+    #--------------------------------------*
+    $tip_rec = "R"                        ;
+    
+    #--------------------------------------*
+    # Test se piu' righe di commento       *
+    # per le righe                         *
+    # ___ LineFreeText ___                 *
+    #--------------------------------------*
+    
+    #======================================*
+    # Normalizzazione preliminare riga     *
+    #--------------------------------------*
+    my $num_lin = ""                      ;
+    my $alf_pro = ""                      ;
+    my $brd_pro = ""                      ;
+    my $des_pro = ""                      ;
+    my $qta_ord = ""                      ;
+    my $del_dat = ""                      ;
+    my $uni_mis = ""                      ;
+    my $prz_ord = ""                      ;
+    my $imp_rig = ""                      ;
+    my $ean_cod = ""                      ;
+    my $bit_cod = ""                      ;
+    my $not_rig = ""                      ;
+
+    #--------------------------------------*
+    # Test se piu' righe di dettaglio      *
+    #--------------------------------------*
+    if (ref($data->{LineItem}) =~ /ARRAY/)
+    {
+        #---------------------------------*
+        # Se piu' righe di dettaglio      *
+        #---------------------------------*
+        foreach $e (@{$data->{LineItem}})
+        {
+            #-----------------------------*
+            # Numero riga                 *
+            #-----------------------------*
+            if ($e->{OrderLineNumber})
+            {$num_lin = $e->{OrderLineNumber}};
+            #-----------------------------*
+            # Codice prodotto             *
+            #-----------------------------*
+            if ($e->{ItemCode})
+            {$alf_pro = $e->{ItemCode}}   ;
+            #-----------------------------*
+            # Codice brand prodotto       *
+            #-----------------------------*
+            if ($e->{SellerBrandID})
+            {$brd_pro = $e->{SellerBrandID}};
+            #-----------------------------*
+            # Descrizione                 *
+            #-----------------------------*
+            if ($e->{ItemDescription} && $e->{ItemDescription} ne "")
+            {
+                $des_pro = $e->{ItemDescription};
+            }
+            #-----------------------------*
+            # Quantita'                   *
+            #-----------------------------*
+            if ($e->{OrderedQuantity})
+            {$qta_ord = $e->{OrderedQuantity}};
+            #-----------------------------*
+            # Quantita' confermata        *
+            # ___                         *
+            #-----------------------------*
+            #-----------------------------*
+            # Data consegna               *
+            #-----------------------------*
+            if ($e->{DeliveryDate})
+            {$del_dat = $e->{DeliveryDate}};
+            #-----------------------------*
+            # Unita' di misura            *
+            #-----------------------------*
+            if ($e->{MeasureUnit})
+            {$uni_mis = $e->{MeasureUnit}};
+            #-----------------------------*
+            # Prezzo                      *
+            #-----------------------------*
+            if ($e->{Price})
+            {$prz_ord = $e->{Price}}      ;
+            #-----------------------------*
+            # Importo in riga             *
+            #-----------------------------*
+            if ($e->{LineTotalAmount})
+            {$imp_rig = $e->{LineTotalAmount}};
+            #-----------------------------*
+            # Codice EAN                  *
+            #-----------------------------*
+            if ($e->{EanCode})
+            {
+                if ($ean_cod)
+                {
+                    $ean_cod = $e->{EanCode};
+                    if ($ean_cod ne "")
+                    {
+                        $ean_cod = &pul_str($ean_cod);
+                    }
+                }
+            }
+            #-----------------------------*
+            # Codice prodotto del cliente *
+            #-----------------------------*
+            if ($e->{BuyerItemCode})
+            {
+                if ($bit_cod)
+                {
+                    $bit_cod = $e->{BuyerItemCode};
+                    if ($bit_cod ne "")
+                    {
+                        $bit_cod = &pul_str($bit_cod);
+                    }
+                }
+            }
+            #-----------------------------*
+            # Nota in riga                *
+            #-----------------------------*
+            if ($e->{LineFreeText}
+                    {LineFreeNote})
+            {
+                if ($not_rig)
+                {
+                    $not_rig = $e->{LineFreeText}
+                                  {LineFreeNote};
+                    $not_rig = &pul_str($not_rig);
+                }
+            };
+            #=============================*
+            # Check elementi riga         *
+            #-----------------------------*
+            if (!$num_lin){$num_lin = ""};
+            if (!$alf_pro){$alf_pro = ""};
+            if (!$brd_pro){$brd_pro = ""};
+            if (!$des_pro){$des_pro = ""};
+            if (!$qta_ord){$qta_ord = ""};
+            if (!$del_dat){$del_dat = ""};
+            if (!$uni_mis){$uni_mis = ""};
+            if (!$prz_ord){$prz_ord = ""};
+            if (!$imp_rig){$imp_rig = ""};
+            if (!$ean_cod){$ean_cod = ""};
+            if (!$bit_cod){$bit_cod = ""};
+            if (!$not_rig){$not_rig = ""};
+            #=============================*
+            # Preparazione riga           *
+            #-----------------------------*
+            my $val_rig = $num_lin
+                        . ";"
+                        . $alf_pro
+                        . ";"
+                        . $brd_pro
+                        . ";"
+                        . $des_pro
+                        . ";"
+                        . $qta_ord
+                        . ";"
+                        . $del_dat
+                        . ";"
+                        . $uni_mis
+                        . ";"
+                        . $prz_ord
+                        . ";"
+                        . $imp_rig
+                        . ";"
+                        . $ean_cod
+                        . ";"
+                        . $bit_cod
+                        . ";"
+                        . $not_rig
+                        . ";"             ;
+            #-----------------------------*
+            # Emissione riga              *
+            #-----------------------------*
+            &pmt_val ($tip_rec,
+                      $val_rig)           ;
+            #-----------------------------*
+            # Fine riga                   *
+            #=============================*
+        }
+    }
+     else
+    {
+        #---------------------------------*
+        # Se una sola riga di dettaglio   *
+        #---------------------------------*
+            #-----------------------------*
+            # Prompt comune dettaglio     *
+            #-----------------------------*
+            $row_pmt = $data->{LineItem}  ;
+            #-----------------------------*
+            # Numero riga                 *
+            #-----------------------------*
+            if ($row_pmt->{OrderLineNumber})
+            {$num_lin = $row_pmt->{OrderLineNumber}};
+            #-----------------------------*
+            # Codice prodotto             *
+            #-----------------------------*
+            if ($row_pmt->{ItemCode})
+            {$alf_pro = $row_pmt->{ItemCode}};
+            #-----------------------------*
+            # Codice brand prodotto       *
+            #-----------------------------*
+            if ($row_pmt->{SellerBrandID})
+            {$brd_pro = $e->{SellerBrandID}};
+            #-----------------------------*
+            # Descrizione                 *
+            #-----------------------------*
+            if ($row_pmt->{ItemDescription} && $row_pmt->{ItemDescription} ne "")
+            {
+                $des_pro = $e->{ItemDescription};
+            };
+            if ($des_pro && $des_pro ne "")
+            {
+                $des_pro = &pul_str($des_pro);
+            };
+            #-----------------------------*
+            # Quantita'                   *
+            #-----------------------------*
+            if ($row_pmt->{OrderedQuantity})
+            {$qta_ord = $row_pmt->{OrderedQuantity}};
+            #-----------------------------*
+            # Quantita' confermata        *
+            # ___                         *
+            #-----------------------------*
+            #-----------------------------*
+            # Data consegna               *
+            #-----------------------------*
+            if ($row_pmt->{DeliveryDate})
+            {$del_dat = $row_pmt->{DeliveryDate}};
+            #-----------------------------*
+            # Unita' di misura            *
+            #-----------------------------*
+            if ($row_pmt->{MeasureUnit})
+            {$uni_mis = $row_pmt->{MeasureUnit}};
+            #-----------------------------*
+            # Prezzo                      *
+            #-----------------------------*
+            if ($row_pmt->{Price})
+            {$prz_ord = $row_pmt->{Price}};
+            #-----------------------------*
+            # Importo in riga             *
+            #-----------------------------*
+            if ($row_pmt->{LineTotalAmount})
+            {$imp_rig = $row_pmt->{LineTotalAmount}};
+            #-----------------------------*
+            # Codice EAN                  *
+            #-----------------------------*
+            if ($row_pmt->{EanCode} && $row_pmt->{EanCode} ne "")
+            {
+                $ean_cod = $e->{EanCode};
+            };
+            if ($ean_cod && $ean_cod ne "")
+            {
+                $ean_cod = &pul_str($ean_cod);
+            };
+            #-----------------------------*
+            # Codice prodotto del cliente *
+            #-----------------------------*
+            if ($row_pmt->{BuyerItemCode} && $row_pmt->{BuyerItemCode} ne "")
+            {
+                $bit_cod = $e->{BuyerItemCode};
+            };
+            if ($bit_cod && $bit_cod ne "")
+            {
+                $bit_cod = &pul_str($bit_cod);
+            };
+            #-----------------------------*
+            # Nota in riga                *
+            #-----------------------------*
+            if ($row_pmt->{LineFreeText}
+                          {LineFreeNote})
+            {
+                if ($not_rig)
+                {
+                    $not_rig = $e->{LineFreeText}
+                                   {LineFreeNote};
+                    $not_rig = &pul_str($not_rig);
+                }
+            };
+            #=============================*
+            # Check elementi riga         *
+            #-----------------------------*
+            if (!$num_lin){$num_lin = ""};
+            if (!$alf_pro){$alf_pro = ""};
+            if (!$brd_pro){$brd_pro = ""};
+            if (!$des_pro){$des_pro = ""};
+            if (!$qta_ord){$qta_ord = ""};
+            if (!$del_dat){$del_dat = ""};
+            if (!$uni_mis){$uni_mis = ""};
+            if (!$prz_ord){$prz_ord = ""};
+            if (!$imp_rig){$imp_rig = ""};
+            if (!$ean_cod){$ean_cod = ""};
+            if (!$bit_cod){$bit_cod = ""};
+            if (!$not_rig){$not_rig = ""};
+            #=============================*
+            # Preparazione riga           *
+            #-----------------------------*
+            my $val_rig = $num_lin
+                        . ";"
+                        . $alf_pro
+                        . ";"
+                        . $brd_pro
+                        . ";"
+                        . $des_pro
+                        . ";"
+                        . $qta_ord
+                        . ";"
+                        . $del_dat
+                        . ";"
+                        . $uni_mis
+                        . ";"
+                        . $prz_ord
+                        . ";"
+                        . $imp_rig
+                        . ";"
+                        . $ean_cod
+                        . ";"
+                        . $bit_cod
+                        . ";"             ;
+            #-----------------------------*
+            # Emissione riga              *
+            #-----------------------------*
+            &pmt_val ($tip_rec,
+                      $val_rig)           ;
+            #-----------------------------*
+            # Fine riga                   *
+            #=============================*
+    }
+    #--------------------------------------*
+    # Close file di output                 *
+    #--------------------------------------*
+    close (OUTFILE)                       ;
+#------------------------------------------*
+# Subroutine di conversione da XML a CSV   *
+#                                          *
+# FINE                                     *
+#==========================================*
+}
+
+#==========================================*
+# Subroutine di composizione prompt, valo- *
+# re ed eventuale descrizione              *
+#------------------------------------------*
+sub pmt_val
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $tip = shift                       ;
+    my $val = shift                       ;
+    #--------------------------------------*
+    # DEBUG                                *
+    #--------------------------------------*
+#    print "Tipo   : " . $tip . "\n";
+#    print "Valore : " . $val . "\n";
+    #--------------------------------------*
+    # Trattamento valore                   *
+    #--------------------------------------*
+    if (!$val){return}                    ;
+    #--------------------------------------*
+    # Pulizia return e newline             *
+    #--------------------------------------*
+    $val =~ s/\r//g                       ;
+    $val =~ s/\n//g                       ;
+    #--------------------------------------*
+    # Composizione stringa                 *
+    #--------------------------------------*
+    my $lin = sprintf "%-s", $val         ;
+    #--------------------------------------*
+    # Output stringa                       *
+    #--------------------------------------*
+    print OUTFILE $tip . ";" . $lin . "\n";
+#------------------------------------------*
+# Subroutine di composizione prompt, valo- *
+# re ed eventuale descrizione              *
+#                                          *
+# FINE                                     *
+#==========================================*
+}
+
+#==========================================*
+# Pulizia stringhe                         *
+#------------------------------------------*
+sub pul_str
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $wrk_str = shift                   ;
+    #--------------------------------------*
+    # Pulizia stringa se contiene dati     *
+    #--------------------------------------*
+    if ($wrk_str && $wrk_str ne "")
+    {
+        #----------------------------------*
+        # Sostituzione eventuali ';'       *
+        #                    con ','       *
+        #----------------------------------*
+        $wrk_str =~ s/;/,/g               ;
+        #----------------------------------*
+        # Eliminazione eventuali caratteri *
+        # strani                           *
+        #----------------------------------*
+        $wrk_str=~s/[^\x00-\x7f]//g       ;
+        #----------------------------------*
+        # Eliminazione spazi superflui     *
+        #----------------------------------*
+        $wrk_str =~ s/^\s+|\s+$//g        ;
+    }
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $wrk_str                       ;
+}
+
+#==========================================*
+# Subroutine di scrittura della riga di    *
+# commento nel database                    *
+#------------------------------------------*
+sub wrt_com
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $val = shift                       ;
+    #--------------------------------------*
+    # Pulizia eventuali '                  *
+    #--------------------------------------*
+    $val =~ s/\'//g                       ;
+    #--------------------------------------*
+    # Pulizia eventuali ;                  *
+    #--------------------------------------*
+    $val =~ s/\;//g                       ;
+    #--------------------------------------*
+    # Scrittura record                     *
+    #--------------------------------------*
+    my $ins = "INSERT INTO "
+            . $dtb_tbm
+            . " VALUES ('"
+                    . $filename
+                    . "', 'NOTA','"
+                    . $val
+                    . "', '', '')"        ;
+    my $sth = $dbh->prepare($ins)         ;
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth->execute()                       ;
+    #--------------------------------------*
+    # Chiusura database                    *
+    #--------------------------------------*
+    $sth->finish()                        ;
+}
+

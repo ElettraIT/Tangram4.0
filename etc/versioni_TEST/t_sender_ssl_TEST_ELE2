@@ -1,0 +1,51 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta con autenti-  *
+# cazione SSL                              *
+#                                          *
+# t_sender_ssl TEST                        *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Net::SMTP::SSL                        ;
+
+my $srvr = 'server.pec-email.com';
+my $user = 'elettra@pec.elettra.it';
+my $pass = 'Pwd_elettra';
+my $mitt = 'elettra@pec.elettra.it';
+my $dest = 'wip@gigapec.it';
+my $testo = 'CONTENUTO MESSAGGIO';
+
+    #--------------------------------------*
+    # Invio vero e proprio                 *
+    #--------------------------------------*
+    $smtp = Net::SMTP->new($srvr,
+                        SSL => 1,
+                      Hello => 'pec.elettra.it',
+                    Timeout => 60,
+                       Port => 465,
+                      Debug => 1);    
+    
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+    $smtp->auth($user, $pass)
+     || die "Autenticazione fallita!\n"   ;
+
+    $smtp->mail($mitt)                    ;
+    $smtp->to($dest)                      ;
+    $smtp->data();
+    $smtp->datasend("To: " . $dest . "\n");
+    $smtp->datasend("Subject: PROVA\n")   ;
+
+    #--------------------------------------*
+    # Chiusura invio                       *
+    #--------------------------------------*
+    $smtp->datasend("\n")                 ;
+    $smtp->datasend($testo . "\n")        ;
+    $smtp->dataend()                      ;
+    $smtp->quit                           ;

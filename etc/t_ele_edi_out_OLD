@@ -1,0 +1,218 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per invio file a Metel       *
+#                                          *
+# t_ele_edi_out                            *
+#                                          *
+# (Richiamato da 'pedi7000' e 'porc540c')  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/06/23    *
+#   Ultima revisione:  NdK del 23/10/23    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - file da inviare             *
+#                                          *
+#            - tipo esecuzione             *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Configurazione : - 't_ele_edi_out.ini'   *
+#                                          *
+# File di Log    : - 't_ele_edi_out.log'   *
+#                                          *
+# (Per test da terminale)                  *
+#                                          *
+# sftp light_elettra@cloudbiom.metel.it    *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use Net::SFTP::Foreign                    ;
+use File::Basename                        ;
+
+#==========================================*
+# Parametri di configurazione              *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/t_ele_edi_out.ini";
+my %cnf_ele = do $cfg_bas                 ;
+#
+my $hst_ftp = $cnf_ele{hst_ftp}           ;
+my $hst_usr = $cnf_ele{hst_usr}           ;
+my $hst_pwd = $cnf_ele{hst_pwd}           ;
+my $pth_exp = $cnf_ele{pth_exp}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_tst = $cnf_ele{pth_tst}           ;
+my $pth_pro = $cnf_ele{pth_pro}           ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $fil_out = shift                       ;
+my $tip_exe = shift                       ;
+my $fil_nam = basename($fil_out)          ;
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+$theTime = &sys_tim                       ;
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = $pth_bas
+            . 'log/t_ele_edi_out.log'     ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Determinazione percorso di destinazione  *
+#------------------------------------------*
+my $pat_exe = ""                          ;
+if ($tip_exe eq "T")
+{
+    $pat_exe = $pth_tst                   ;
+}
+ else
+{
+    $pat_exe = $pth_pro                   ;
+}
+
+
+#==========================================*
+# DEBUG PROVVISORIO                        *
+#------------------------------------------*
+    print LOG_FIL "======================"
+                . "======================"
+                . "======================"
+                . "\n"                    ;
+
+print LOG_FIL " - Path: " . $fil_out . "\n";
+print LOG_FIL " - File: " . $fil_nam . "\n";
+print LOG_FIL " - Pexe: " . $pat_exe . "\n";
+
+    print LOG_FIL "======================"
+                . "======================"
+                . "======================"
+                . "\n"                    ;
+
+
+
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+my %args = (user => $hst_usr,
+        password => $hst_pwd,
+            port => 22)                   ;
+
+my $sftp = Net::SFTP::Foreign->new($hst_ftp, %args)
+   or &log_msg("Connessione SFTP fallita") ;
+#------------------------------------------*
+# Directory di output                      *
+#------------------------------------------*
+$sftp->setcwd($pat_exe)
+  or &log_msg("Cambio directory fallito") ;
+#------------------------------------------*
+# Metodo binario                           *
+#                                          *
+# N.B.: non supportato da SFTP             *
+#------------------------------------------*
+# $sftp->binary()                           ;
+#------------------------------------------*
+# Invio vero e proprio                     *
+#------------------------------------------*
+$sftp->put($fil_out, $fil_nam)
+  or &log_msg("Invio fallito")            ;
+#------------------------------------------*
+# Uscita da FTP                            *
+#==========================================*
+$sftp->disconnect                         ;
+
+#==========================================*
+# Messaggio di scrittura file              *
+#------------------------------------------*
+&log_msg("Trasmissione conclusa")         ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+     $daylightSavings) = localtime()      ;
+    #--------------------------------------*
+    # Correttivi                           *
+    #--------------------------------------*
+    my $anno = 1900 + $yearOffset         ;
+    #
+    my $mese = $month + 1                 ;
+    my $mesx = sprintf ("%02d", $mese)    ;
+    #
+    my $gior = $dayOfMonth                ;
+    my $giox = sprintf ("%02d", $gior)    ;
+    #
+    my $orax = sprintf ("%02d", $hour)    ;
+    my $minx = sprintf ("%02d", $minute)  ;
+    my $secx = sprintf ("%02d", $second)  ;
+    #--------------------------------------*
+    # Data in output                       *
+    #--------------------------------------*
+    $sysTime = "$anno $mesx $giox "
+             . "$orax:$minx:$secx"        ;
+    return $sysTime                       ;
+}
+
+#==========================================*
+# Emissione LOG                            *
+#------------------------------------------*
+sub log_msg 
+{
+    #--------------------------------------*
+    # Testo messaggio in input             *
+    #--------------------------------------*
+    my $msg_txt = shift                   ;
+    #--------------------------------------*
+    # Fincatura per il LOG                 *
+    #--------------------------------------*
+    print LOG_FIL "----------------------"
+                . "----------------------"
+                . "----------------------"
+                . "\n"                    ;
+    #--------------------------------------*
+    # Messaggio per il LOG                 *
+    #--------------------------------------*
+    print LOG_FIL $theTime
+	         . " - File: "
+	         . $fil_nam
+	         . " : "
+	         . $msg_txt
+                . "\n"                    ;
+}
+

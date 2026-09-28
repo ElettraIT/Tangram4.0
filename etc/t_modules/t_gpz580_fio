@@ -1,0 +1,209 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl formattazione file di testo  *
+#                                          *
+# t_gpz580_fio                             *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 25/09/11   *
+#   Ultima revisione:   NdK del 12/12/11   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Il modulo legge il sequenziale prodotto  *
+# da Tangram con 'gpz580' ed emette un     *
+# file nel formato CSV da esportare via    *
+# FTP ad un Server esterno                 *
+#                                          *
+# N.B.: 'pgpz5800' in crontab              *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Basename                        ;
+use Net::FTP                              ;
+use LWP::UserAgent                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/'                    ;
+my $basl = '/abd/asc/log/'                ;
+my $outp = 'liscli.csv'                   ;
+my $inpt = 'liscli.txt'                   ;
+
+my $user = 'fiocchi'                      ;
+my $pass = 'venti2zero9'                  ;
+my $dest = 'upload_articoli'              ;
+
+my $usew = 'fiocchi'                      ;
+my $pasw = 'st3fano'                      ;
+my $urlw = 'http://www.fiocchistefano'
+         . '.it/admin/batch/import.php'   ;
+
+# my $urlw = 'http://fiocchistefano.prova'
+#          . '.smart.it/admin/batch/import'
+#          . '.php'                         ;
+
+my $logw = 'smart.log'                    ;
+
+#==========================================*
+# Sub-routine di scansione file in Input   *
+#------------------------------------------*
+print "Scansione ... "                    ;
+&input_file                               ;
+
+#==========================================*
+# Invio finale del file al Server          *
+#------------------------------------------*
+print "Invio file ... "                   ;
+&ftpf                                     ;
+
+#==========================================*
+# Caricamento via http AUTH                *
+#------------------------------------------*
+print "Autenticazione = "                 ;
+&http_auth                                ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# File in Input                            *
+#------------------------------------------*
+sub input_file
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (OUTFILE, ">$base$outp") or die
+         "Impossibile aprire il file "
+       . "$base$outp"                     ;
+
+    open (INPFILE, "$base$inpt") or die
+         "Impossibile aprire il file "
+       . "$base$inpt"                     ;
+
+    #--------------------------------------*
+    # Ciclo di scansione file              *
+    #--------------------------------------*
+
+    @stri = <INPFILE>                     ;
+
+    foreach $stri (@stri)
+    {
+    
+        chomp($stri)                      ;
+        $codi = substr( $stri, 0, 15 )    ;
+        $desc = substr( $stri, 15, 41 )   ;
+        $eanc = substr( $stri, 112, 15 )  ;
+        $clac = substr( $stri, 127, 6 )   ;
+        $clad = substr( $stri, 133, 41 )  ;
+        $sta1 = substr( $stri, 180, 6 )   ;
+        $giac = substr( $stri, 218, 14 )  ;
+        $data = substr( $stri, 232, 8 )   ;
+        
+        print OUTFILE $codi
+                    . $desc
+                    . $eanc
+                    . $clac
+                    . $clad
+                    . $sta1
+                    . $giac
+                    . $data
+                    . "\n"                ;   
+    }
+
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close (INPFILE)                       ;
+    close (OUTFILE)                       ;
+}
+
+#==========================================*
+# Subroutine di trasferimento del file     *
+#------------------------------------------*
+sub ftpf
+{
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    $ftp = Net::FTP->new("ftp.smart.it",
+                         Debug => 0)
+           or die "Non connesso a: $@"    ;
+
+    #--------------------------------------*
+    # Login connessione                    *
+    #--------------------------------------*
+    $ftp->login($user,$pass)
+          or die "Login errato ",
+                 $ftp->message            ;
+    
+    #--------------------------------------*
+    # Modalita' Binary                     *
+    #--------------------------------------*
+    $ftp->binary
+          or die "Binary NO",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Posizionamento cartella destinazione *
+    #--------------------------------------*
+    $ftp->cwd($dest) 
+          or die "Cartella errata",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Trasferimento                        *
+    #--------------------------------------*
+    $ftp->put("$base$outp")
+          or die "put fallita ",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Chiusura FTP                         *
+    #--------------------------------------*
+    $ftp->quit                            ;
+}
+
+#==========================================*
+# Subroutine di Autenticazione             *
+#------------------------------------------*
+sub http_auth
+{
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    my $ua = LWP::UserAgent->new( )       ;
+
+    #--------------------------------------*
+    # Richiesta                            *
+    #--------------------------------------*
+    my $req = HTTP::Request->new( GET => $urlw);
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+    $req->authorization_basic( $usew, $pasw );
+
+    #--------------------------------------*
+    # Salvataggio risposta                 *
+    #--------------------------------------*
+    my $res = $ua->request( $req,"$basl$logw" );
+    print $res->status_line, "\n";
+
+    #--------------------------------------*
+    # Check risposta                       *
+    #--------------------------------------*
+    if ( !$res->is_success )
+    {
+        die $res->status_line             ;
+    }
+}
+
+

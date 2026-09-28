@@ -1,0 +1,301 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta Mail::Sender  *
+#                                          *
+# t_sender_siri                            *
+#                                          *
+# Invio di messaggi ad una lista di        *
+# indirizzi e con i relativi allegati PDF  *
+# (utilizzato per i lotti di fatture PDF)  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 08/02/07   *
+#   Ultima revisione:   NdK del 06/07/09   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#            - server SMTP                 *
+#            - mittente                    *
+#            - username (opzionale)        *
+#            - password (opzionale)        *
+#                                          *
+# ---------------------------------------- *
+# N.B.: i campi in input sono separati da  *
+#       virgola ','                        *
+#                                          *
+# SU MISURA PER SIRI                       *
+#                                          *
+# (NON PIU' UTILIZZATO ...)                * OBSOLETO !!!!!!
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Mail::Sender                          ;
+use File::Basename                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/'                    ;
+my $temp = '/tmp/'                        ;
+my $sogg = 'sogg.txt'                     ;
+my $mess = 'mess.txt'                     ;
+my $indi = 'indi.txt'                     ;
+
+#    *-------------------------------------*
+#    * Azienda Tangram                     *
+#    *-------------------------------------*
+my $atgm = "doc"                          ;
+#    *-------------------------------------*
+#    * Server SMTP                         *
+#    *-------------------------------------*
+my $srvr = "192.1.1.2"                    ;
+#    *-------------------------------------*
+#    * Mittente                            *
+#    *-------------------------------------*
+my $mitt = "invoice\@siri-el.com"         ;
+#    *-------------------------------------*
+#    * Username autenticazione             *
+#    *-------------------------------------*
+my $user = "fatturazione"                 ;
+#    *-------------------------------------*
+#    * Password autenticazione             *
+#    *-------------------------------------*
+my $pass = "alter1"                       ;
+
+#==========================================*
+# Debug (da scommentare)                   *
+#------------------------------------------*
+#    print $vars[0] . "\n";
+#    print $vars[1] . "\n";
+#    print $vars[2] . "\n";
+#    print $vars[3] . "\n";
+#    print $vars[4] . "\n";
+#    exit ();
+
+#==========================================*
+# Sub-routine per lettura soggetto         *
+#------------------------------------------*
+&soggetto                                 ;
+
+#==========================================*
+# Sub-routine per lettura testo            *
+#------------------------------------------*
+&messaggio                                ;
+
+#==========================================*
+# Sub-routine di spedizione a lista        *
+#------------------------------------------*
+&lista                                    ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# Apertura file contenente il soggetto     *
+#------------------------------------------*
+sub soggetto
+{
+    #--------------------------------------*
+    # Composizione directory               *
+    #--------------------------------------*
+    my $wdir = $base
+             . $atgm
+             . $temp
+             . $sogg                      ;
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (SOGGETTO, "$wdir")or die
+         "Impossibile aprire file '$wdir'";
+    @subject=<SOGGETTO>                   ;
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close SOGGETTO                        ;
+}
+
+#==========================================*
+# Apertura file contenente il messaggio    *
+#------------------------------------------*
+sub messaggio
+{
+    #--------------------------------------*
+    # Composizione directory               *
+    #--------------------------------------*
+    my $wdir = $base
+             . $atgm
+             . $temp
+             . $mess                      ;
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (MESSAGE, "$wdir")
+          or die
+         "Impossibile aprire file '$mess'";
+    @message=<MESSAGE>                    ;
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close MESSAGE                         ;
+    #--------------------------------------*
+    # Compattazione testo letto            *
+    #--------------------------------------*
+    $testo = qq{@message}                 ;
+}
+
+#==========================================*
+# Invio ad una lista                       *
+#------------------------------------------*
+sub lista
+{
+    #--------------------------------------*
+    # Composizione directory               *
+    #--------------------------------------*
+    my $wdir = $base
+             . $atgm
+             . $temp
+             . $indi                      ;
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (INDIRIZZI, "$wdir")or die
+        "Impossibile aprire file indirizzi";
+    @indirizzo = <INDIRIZZI>              ;
+    #--------------------------------------*
+    # Ciclo di scansione file              *
+    #--------------------------------------*
+    foreach $indirizzo (@indirizzo)
+    {
+        @elem = split(/,/, $indirizzo)    ;
+        if ($elem[0] !~ /\@/)
+            {next}
+            else {&send}                  ;
+    }
+
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close (INDIRIZZI)                     ;
+}
+
+#==========================================*
+# Singolo invio                            *
+#------------------------------------------*
+sub send
+{
+    #--------------------------------------*
+    # Test se autenticazione necessaria    *
+    #--------------------------------------*
+    if (!$pass)
+    {
+        #----------------------------------*
+        # Senza autenticazione             *
+        #----------------------------------*
+        $sender = new Mail::Sender
+        {
+            #------------------------------*
+            # Server SMTP                  *
+            #------------------------------*
+            smtp => $srvr,
+            #------------------------------*
+            # Mittente                     *
+            #------------------------------*
+            from => $mitt,
+            #------------------------------*
+            # Gestione errori              *
+            #------------------------------*
+            on_errors => undef,
+        }
+        or die "Errore: $Mail::Sender::Error\n";
+    } else
+    {
+        #----------------------------------*
+        # Con autenticazione               *
+        #----------------------------------*
+        $sender = new Mail::Sender
+        {
+            #------------------------------*
+            # Server SMTP                  *
+            #------------------------------*
+            smtp => $srvr,
+            #------------------------------*
+            # Username e password          *
+            #------------------------------*
+          authid => $user,
+         authpwd => $pass,
+            #------------------------------*
+            # Mittente                     *
+            #------------------------------*
+            from => $mitt,
+            #------------------------------*
+            # Gestione errori              *
+            #------------------------------*
+            on_errors => undef,
+        }
+        or die "Errore: $Mail::Sender::Error\n";
+    }
+
+    #--------------------------------------*
+    # Connessione                          *
+    #--------------------------------------*
+    $sender = new Mail::Sender
+    {
+        #----------------------------------*
+        # Server SMTP                      *
+        #----------------------------------*
+        smtp => $srvr,
+        #----------------------------------*
+        # Mittente                         *
+        #----------------------------------*
+        from => $mitt,
+        #----------------------------------*
+        # Gestione errori                  *
+        #----------------------------------*
+        on_errors => 'code',
+    }
+        or die "Errore: $Mail::Sender::Error\n";
+    #--------------------------------------*
+    # Estrazione nome allegato             *
+    #--------------------------------------*
+    my $fname = basename($elem[1])        ;
+    #--------------------------------------*
+    # Composizione soggetto e allegato     *
+    #--------------------------------------*
+    my $ogge = qq{@subject}
+             . " - " 
+             .  $fname                    ;
+    #--------------------------------------*
+    # Destinazione                         *
+    #--------------------------------------*
+    $sender->OpenMultipart({
+            to => $elem[0],
+           bcc => $mitt,
+       subject => $ogge,
+         ctype => 'text/html',
+      encoding => 'quoted-printable'})    ;
+    #--------------------------------------*
+    # Corpo messaggio                      *
+    #--------------------------------------*
+    $sender->Body                         ;
+    $sender->SendEnc($testo)              ;
+    #--------------------------------------*
+    # Attachement                          *
+    #--------------------------------------*
+    $sender->Attach({
+  description => 'Documento PDF',
+        ctype => 'application/pdf',
+  disposition => 'attachment; filename=' . $fname . '; type="PDF archive"',
+         file => $elem[1]
+ });
+    #--------------------------------------*
+    # Close messaggio                      *
+    #--------------------------------------*
+    $sender->Close                        ;
+}
+

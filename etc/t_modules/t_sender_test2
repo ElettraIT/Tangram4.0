@@ -1,0 +1,35 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta Mail::Sender  *
+#                                          *
+# t_sender_test                            *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Mail::Sender                          ;
+
+my $host = 'smtp.guttadauro.net'          ;
+my $mitt = 'fatture@elettromat.it'        ;
+my $dest = 'dkb@dkb.it'                   ;
+my $user = 'fatture@elettromat.it'        ;
+my $pass = 'fastway'                      ;
+
+$sender = new Mail::Sender
+{
+    smtp => $host,
+    from => $mitt,
+    to => $dest,
+    subject => 'Messaggio di prova t_sender',
+    msg => "Prova dal server\nArrivata?",
+    auth => 'NTLM',
+    authid => $user,
+    authpwd => $pass,
+    on_errors => 'code',
+    debug => "/abd/asc/tmp/t_sender.log",
+    debug_level => '4',
+} or die "Errore: $Mail::Sender::Error\n";
+
+$sender->Close                        ;

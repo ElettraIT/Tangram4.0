@@ -1,0 +1,251 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Prove di stampa su stampante Zebra       *
+#                                          *
+# Ad hoc ELETTRA                           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/09/2023 *
+#   Ultima revisione:   wip del 13/09/2023 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Parametri in input : Si/no stampa        *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use PostScript::Simple                    ;
+
+#==========================================*
+# Variabili in input                       *
+#------------------------------------------*
+my $snx_stp = uc($ARGV[0])               ;
+
+if (!$ARGV[0])
+{ exit();}
+
+if ($snx_stp ne "S" && $snx_stp ne "N")
+{ exit();}
+
+
+
+
+#------------------------------------------*
+# Codice stampante                         *
+#------------------------------------------*
+my $cod_stp = "zebra_1"                    ;
+
+#==========================================*
+# Preparazione pagina                      *
+#------------------------------------------*
+my $ps = new PostScript::Simple::(colour => 1,
+                               landscape => 0,
+                                   units => "bp",
+                                   xsize => 282,
+                                   ysize => 430,                                     
+                                     eps => 0);
+
+#==========================================*
+# Percorsi file                            *
+#------------------------------------------*
+my $pth_tmp = "/abd/spl/"                 ;
+my $out_stp = "/abd/spl/zebra.ps"         ;
+my $out_pdf = "/abd/spl/zebra.pdf"        ;
+
+
+#==========================================*
+# Dimensioni barcode EPS                   *
+#                                          *
+# (QR_CODE)                                *
+#------------------------------------------*
+my $eps_alt = 90                          ;
+my $eps_lun = 90                          ;
+
+#==========================================*
+# Lettura del modulo 'barcode.ps'          *
+#                                          *
+# (QR_CODE)                                *
+#------------------------------------------*
+my $gen_bcd = "/abd/asc/cfg/barcode.ps"   ;
+open(PS,$gen_bcd) || die 'File di '
+   . 'configurazione non trovato'         ;
+$_=join('',<PS>)                          ;
+close(PS)                                 ;
+
+#==========================================*
+# Estrazione dal modulo 'barcode.ps'       *
+# del TEMPLATE da richiamare               *
+#                                          *
+# (QR_CODE)                                *
+#------------------------------------------*
+m/
+    %\ --BEGIN\ TEMPLATE--
+    (.*)
+    %\ --END\ TEMPLATE--
+    /sx || die 'Unable to parse out the template';
+
+#==========================================*
+# Completamento del TEMPLATE               *
+#                                          *
+# (QR_CODE)                                *
+#------------------------------------------*
+my $template=''                           ;
+$template.="%!PS-Adobe-2.0 EPSF-2.0\n"    ;
+$template.="%%BoundingBox: 0 0 [% width %] [% height %]\n";
+$template.="%%EndComments"                ;
+$template.=$1                             ;
+$template.="10 7 moveto\n"                ;
+$template.="[% call %]\n"                 ;
+$template.="showpage\n"                   ;
+
+#==========================================*
+# Trattamento stampa                       *
+#------------------------------------------*
+$ps->newpage(1)                           ;
+
+$ps->setlinewidth(1)                      ;
+$ps->box(5,5, 275,425)                    ;
+
+$ps->setfont("Helvetica-Bold", 36)        ;
+$ps->text({rotate =>90}, 50, 180, "OS 25492/23")         ;
+
+$ps->line(50,170, 260,170)                ;
+
+#==========================================*
+# Inclusione barcode EPS                   *
+#------------------------------------------*
+my $pth_eps = "/abd/asc/bcd/1230/123010000980.eps"    ;
+
+
+$ps->importepsfile($pth_eps,
+                        30,
+                        50,
+                       150,
+                        90)               ;
+
+#==========================================*
+# Inclusione logo EPS                      *
+#------------------------------------------*
+$pth_eps = "/abd/asc/mod/elettra.eps";
+
+
+$e = new PostScript::Simple::EPS(file => $pth_eps);
+$e->rotate(90);
+$e->scale(0.3);
+ 
+
+$ps->importeps($e,40,20)          ;
+
+#==========================================*
+# Inclusione barcode QR                    *
+#------------------------------------------*
+&inc_eps ("123010000980","123010000980", 150);
+
+
+#==========================================*
+# Generazione file Postscript              *
+#------------------------------------------*
+$ps->output($out_stp)                     ;
+
+#==========================================*
+# Stampa file Postscript e PDF             *
+#------------------------------------------*
+system("ps2pdf $out_stp $out_pdf")        ;
+if ($snx_stp eq "N")
+{ exit();}
+system("cat $out_pdf | lpr -P$cod_stp")   ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+#==========================================*
+# Trattamento EPS - QR code                *
+#------------------------------------------*
+sub inc_eps
+{
+#   *-----------------------------------------------------------*
+#   * Valore in input                                           *
+#   *-----------------------------------------------------------*
+    my $nom_cmp = shift                                        ;
+    my $val_cmp = shift                                        ;
+    my $pos_cmp = shift                                        ;
+    my $cur_lin = 50                                           ;
+#   *-----------------------------------------------------------*
+#   * Determinazione coordinate barcode EPS                     *
+#   *-----------------------------------------------------------*
+    my $eps_x01 = $pos_cmp                                     ;
+    my $eps_y01 = $cur_lin-1.5                                 ;
+    my $eps_x02 = $eps_x01+$eps_lun                            ;
+    my $eps_y02 = $cur_lin+$eps_alt-1.5                        ;
+    
+    
+#   *-----------------------------------------------------------*
+#   * DEBUG                                                     *
+#   *-----------------------------------------------------------*
+#   print "eps_x01 = " . $eps_x01 . "\n";
+#   print "eps_y01 = " . $eps_y01 . "\n";
+#   print "eps_x02 = " . $eps_x02 . "\n";
+#   print "eps_y02 = " . $eps_y02 . "\n\n";
+    
+    
+#   *-----------------------------------------------------------*
+#   * Percorso file barcode EPS                                 *
+#   *-----------------------------------------------------------*
+    my $pth_eps = $pth_tmp
+                . $nom_cmp
+                . ".eps"                                       ;
+
+
+
+#   *-----------------------------------------------------------*
+#   * Parametri per generazione tramite modulo 'barcode.ps'     *
+#   *-----------------------------------------------------------*
+    my $filename=$pth_eps                                      ;
+    my $width=95                                              ;
+    my $height=95                                             ;
+    my $contents = "("
+                 . $val_cmp
+                 . ") (includetext) /qrcode "
+                 . "/uk.co.terryburton.bwipp "
+                 . "findresource exec"                    ;
+#   *-----------------------------------------------------------*
+#   * Completamento per EPS                                     *
+#   *-----------------------------------------------------------*
+    my $barcode=$template                                      ;
+    $barcode=~s/\[% call %\]/$contents/                        ;
+    $barcode=~s/\[% width %\]/$width/                          ;
+    $barcode=~s/\[% height %\]/$height/                        ;
+
+#   *-----------------------------------------------------------*
+#   * DEBUG                                                     *
+#   *-----------------------------------------------------------*
+#    print $filename . "\n";
+#    print $width . "\n";
+#    print $height . "\n";
+#    print $contents . "\n";
+
+
+#   *-----------------------------------------------------------*
+#   * Apertura e generazione del file EPS                       *
+#   *-----------------------------------------------------------*
+    open(OUT,"> $filename")                                ;
+    print OUT $barcode                                         ;
+    close(OUT)                                                 ;
+#   *-----------------------------------------------------------*
+#   * Inclusione barcode EPS                                    *
+#   *-----------------------------------------------------------*
+    $ps->importepsfile($pth_eps,
+                       $eps_x01,
+                       $eps_y01,
+                       $eps_x02,
+                       $eps_y02)                               ;
+}
+

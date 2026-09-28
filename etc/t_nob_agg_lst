@@ -1,0 +1,336 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per inviare una PEC ai cli-  *
+# enti, da scansione di una cartella che   *
+# contiene i listini PDF                   *
+#                                          *
+# t_nob_agg_lst                            *
+#                                          *
+# SU MISURA PER NOBILI                     *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 28/02/22   *
+#   Ultima revisione:   wip del 26/04/22   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : (nessun input)                *
+#                                          *
+# ---------------------------------------- *
+#           NOTE PER L'UTILIZZO            *
+# ---------------------------------------- *
+#                                          *
+# - Impostare '$dir_lst'                   *
+#                                          *
+# - Verificare l'assenza di blank nei nomi *
+#   dei files PDF                          *
+#                                          *
+# - Sbloccare il comando (*) se LOG OK     *
+#                                          *
+# - L'invio richiede molto tempo e pro-    *
+#   duce segnalazioni a video              *
+#                                          *
+# - A fine esecuzione verificare il LOG    *
+#  '/abd/asc/log/t_sender_ssl.log'         *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use DBI()                                 ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+
+#==========================================*
+# Test su valori in input                  *
+#------------------------------------------*
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+# Pathname per files di LOG                *
+#------------------------------------------*
+my $pth_log = "/abd/asc/log/"             ;
+#------------------------------------------*
+# Lista di spedizione                      *
+#------------------------------------------*
+my $pth_lst = "/abd/asc/nob/tmp/list.txt" ;
+#------------------------------------------*
+# Directory di lavoro                      *
+#------------------------------------------*
+#my $dir_lst = "LISTINI_MAGGIO_2022"       ;
+my $dir_lst = "2022_05"                    ;
+my $dir_pdf = "/abd/asc/lst/"
+            . $dir_lst                    ;
+
+#------------------------------------------*
+# Comando preliminare di aggiornamento     *
+# degli indirizzi PEC nel database         *
+#------------------------------------------*
+system("/abd/etc/pxpg7000 nob")           ;
+
+#------------------------------------------*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+$theTime = &sys_tim                       ;
+
+#------------------------------------------*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dtb_azi = "nob"                       ;
+#
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+my $dtb_tbt = "adc"                       ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dtb_con = DBI->connect("DBI:"
+                         . "mysql:database="
+                         . "$dtb_azi;"
+                         . "host=$dtb_hst",
+                                  $dtb_usr,
+                                  $dtb_pwd,
+                          {RaiseError => 1,
+                           PrintError => 0});
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = $pth_log
+            . "t_nob_agg_lst.log"         ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Ciclo di scansione cartella              *
+#------------------------------------------*
+opendir(DIR, $dir_pdf)                    ;
+my @dir=grep { !/^\.+$/ } readdir(DIR)    ;
+closedir(DIR)                             ;
+
+#==========================================*
+# Open del file di output                  *
+#------------------------------------------*
+open (OUTFILE, ">$pth_lst") or die
+         "Impossibile aprire il file"     ;
+
+#==========================================*
+# Scansione elenco dei file                *
+#------------------------------------------*
+foreach my $fil_dir (@dir)
+{
+    #--------------------------------------*
+    # Skip directory                       *
+    #--------------------------------------*
+    if(-d $fil_dir)
+    { next;}                              ;
+    #--------------------------------------*
+    # Skip dei file "."                    *
+    #--------------------------------------*
+    if($fil_dir eq "." || $fil_dir eq "..")
+    { next;}                              ;
+    #--------------------------------------*
+    # Skip dei file che iniziano  "._"     *
+    #--------------------------------------*
+    my $prffil = substr($fil_dir,0,2)     ;
+    if($prffil eq "._")
+    { next;}                              ;
+    #--------------------------------------*
+    # Test che non sia una directory il    *
+    # file trattato                        *
+    #--------------------------------------*
+    if (! -d $fil_dir)
+    {
+    
+        #----------------------------------*
+        # Estrazione del codice cliente    *
+        #----------------------------------*
+        my @ele_cli = split (/_/, $fil_dir)   ;
+        #----------------------------------*
+        # Lettura database per email PEC   *
+        #----------------------------------*
+        my $det_pec = &let_pec($ele_cli[0]);
+        #----------------------------------*
+        # Test se email PEC determinata    *
+        #----------------------------------*
+        if (!$det_pec)
+        {
+            #------------------------------*
+            # Cliente senza PEC            *
+            #------------------------------*
+            print LOG_FIL $theTime
+	                 . " - Cliente : "
+                        . $ele_cli[0]
+                        . " SENZA PEC\n"  ;
+            #------------------------------*
+            # Skip del cliente             *
+            #------------------------------*
+            next()                        ;
+        }
+        #----------------------------------*
+        # Composizione linea               *
+        #----------------------------------*
+        my $lin_fmt = $det_pec
+                    . ","
+                    . $dir_pdf
+                    . "/"
+                    . $fil_dir
+                    . ","                 ;
+        #----------------------------------*
+        # Scrittura su file di output      *
+        #----------------------------------*
+        print OUTFILE $lin_fmt . "\n"     ;
+    }
+}
+
+#==========================================*
+# Close file di output                     *
+#------------------------------------------*
+close (OUTFILE)                           ;
+
+#==========================================*
+# Comando di invio mail                    *
+#------------------------------------------*
+# Parametri di invio                       *
+#                                          *
+# - Modulo di invio (t_sender_ssl)         *
+# - Codice azienda  (nob)                  *
+# - Server di posta SMTP                   *
+# - Mittente                               *
+# - Username                               *
+# - Password                               *
+# - Indirizzi (list.txt)                   *
+# - Soggetto  (slst.txt)                   *
+# - messaggio (mlst.txt)                   *
+#------------------------------------------*
+my $eml_mod = "t_sender_ssl"              ;
+my $eml_azi = "nob"                       ;
+my $eml_srv = "sendm.cert.legalmail.it"   ;
+my $eml_mit = "vendite.nobili\@legalmail.it";
+my $eml_usr = "vendite.nobili\@legalmail.it";
+my $eml_pwd = "Elena-2019"                ;
+my $eml_ind = "list.txt"                  ;
+my $eml_sog = "slst.txt"                  ;
+my $eml_mes = "mlst.txt"                  ;
+#------------------------------------------*
+# Comando di invio                         *
+#------------------------------------------*
+my $sys_clr = $eml_mod
+            . " "
+            . $eml_azi
+            . ","
+            . $eml_srv
+            . ","
+            . $eml_mit
+            . ","
+            . $eml_usr
+            . ","
+            . $eml_pwd
+            . ","
+            . $eml_ind
+            . ","
+            . $eml_sog
+            . ","
+            . $eml_mes
+            . ","                         ;
+            
+#==========================================*
+# DEBUG                                    *
+#------------------------------------------*
+# print "sys_clr = " . $sys_clr . "\n"    ;
+# exit()                                  ;
+
+#------------------------------------------*
+# Esecuzione comando                       *
+#                                          *
+# (*) DA SBLOCCARE                         *
+#------------------------------------------*
+#system($sys_clr)                          ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Determinazione PEC cliente               *
+#------------------------------------------*
+sub let_pec
+{
+    #--------------------------------------*
+    # Codice cliente in input              *
+    #--------------------------------------*
+    my $cod_cli = shift                   ;
+    #--------------------------------------*
+    # Lettura database                     *
+    #--------------------------------------*
+    my $sel_dtb = "SELECT num_con FROM "
+                . $dtb_tbt
+                . " WHERE "
+                . "tip_arc = '2' AND "
+                . "cod_arc = '"
+                . $cod_cli
+                . "' AND "
+                . "tip_con = 'PEC'   "    ;
+    #--------------------------------------*
+    # Preparazione                         *
+    #--------------------------------------*
+    my $sth_dtb = $dtb_con->prepare($sel_dtb);
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth_dtb->execute()                   ;
+    #--------------------------------------*
+    # Test su esito lettura                *
+    #--------------------------------------*
+    my $row_val = $sth_dtb->fetchrow_array;    
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $row_val                       ;
+}
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my @months   = qw(Gen Feb Mar Apr Mag Giu Lug Ago Set Ott Nov Dic);
+    my @weekDays = qw(Dom Lun Mar Mer Gio Ven Sab Dom);
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+$daylightSavings) = localtime()           ;
+     my $year = 1900 + $yearOffset        ;
+     $sysTime = "$hour:$minute:$second, "
+              . "$weekDays[$dayOfWeek] "
+              . "$months[$month] "
+              . "$dayOfMonth, $year"      ;
+    return $sysTime                       ;
+}
+

@@ -1,0 +1,57 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta con autenti-  *
+# cazione SSL                              *
+#                                          *
+# t_sender_tst TEST                        *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use Net::SMTP::TLS                        ;
+
+my $srvr = 'smtp.office365.com';
+my $user = 'export@formagginobili.it';
+my $pass = 'zT390!ECGg';
+my $mitt = 'commerciale@formagginobili.it';
+my $dest = 'wip@wip-info.it';
+my $testo = 'CONTENUTO MESSAGGIO';
+
+    #--------------------------------------*
+    # Normalizzazione preliminare          *
+    #--------------------------------------*
+    my $smtp                              ;
+
+    #--------------------------------------*
+    # Invio vero e proprio                 *
+    #--------------------------------------*
+    if (not $smtp = Net::SMTP::TLS->new($srvr,
+                              Port => 587,
+                              User  => $user,
+                              Password=> $pass,
+                              Debug => 1))
+       {
+           die "Connessione al server "
+             . "fallita\n"                ;
+       }
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+
+    $smtp->mail($mitt)                    ;
+    $smtp->to($dest)                      ;
+    $smtp->data();
+    $smtp->datasend("To: " . $dest . "\n")  ;
+    $smtp->datasend("Subject: PROVA\n")   ;
+
+    #--------------------------------------*
+    # Chiusura invio                       *
+    #--------------------------------------*
+    $smtp->datasend("\n")                 ;
+    $smtp->datasend("Content-Type: text/html; charset=UTF-8\n\n");
+    $smtp->datasend($testo . "\n")        ;
+    $smtp->dataend()                      ;
+    $smtp->quit                           ;

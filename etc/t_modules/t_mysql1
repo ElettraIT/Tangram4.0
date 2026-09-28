@@ -1,0 +1,122 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per creazione tabelle MySQL *
+#                                         *
+# t_mysql                                 *
+#                                         *
+# Ultimo aggiornamento 06/12/04           *
+#-----------------------------------------*
+
+#=========================================*
+# Modulo Perl MIME::Lite                  *
+#-----------------------------------------*
+use DBI();
+
+#=========================================*
+# Variabili statiche                      *
+# --------------------------------------- *
+#  - Pathname di base per i file 'sql'    *
+#  - Pathname di base per i file 'txt'    *
+#-----------------------------------------*
+$base = '/abd/sql/';
+$txtf = '/abd/ftx/';
+
+#=========================================*
+# Variabili lette in input                *
+# --------------------------------------- *
+#  - $hstn : Hostname                     *
+#  - $usrn : Username                     *
+#  - $dtbs : Database                     *
+#  - $pass : Password                     *
+#  - $area : Area gestionale              *
+#  - $tbla : Tabella                      *
+#-----------------------------------------*
+$hstn = $ARGV[0];
+$usrn = $ARGV[1];
+$dtbs = $ARGV[2];
+$pass = $ARGV[3];
+$area = $ARGV[4];
+$tbla = $ARGV[5];
+
+#=========================================*
+# Altre variabili                         *
+#-----------------------------------------*
+$file= '';
+$impr = "$txtf$dtbs/$tbla.txt";
+
+#=========================================*
+# Sub-routine per lettura tabella di      *
+# definizione 'sql' dl file               *
+#-----------------------------------------*
+&tabella;
+
+#=========================================*
+# Connessione al database                 *
+#-----------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=siriel;host=10.254.254.194",
+                       "web_user",
+                       "HomerBart1970",
+                       {RaiseError => 1,
+                        PrintError => 0});
+
+#=========================================*
+# Valutazione preliminare DROP tabella    *
+#-----------------------------------------*
+if (esiste_tabella($dbh, $tbla))
+    {$dbh->do("DROP TABLE $tbla")}
+
+#=========================================*
+# Creazione tabella                       *
+#-----------------------------------------*
+$dbh->do("CREATE TABLE IF NOT EXISTS $tbla ($file)");
+
+#=========================================*
+# Comando di caricamento                  *
+#-----------------------------------------*
+$dbh->do("LOAD DATA INFILE \"$impr\"
+          INTO TABLE $tbla
+          FIELDS TERMINATED BY ','
+          ENCLOSED BY '\\\"'
+          ESCAPED BY '\\\\'
+          LINES TERMINATED BY '\\n'");
+
+#=========================================*
+# Disconnetti dal database                *
+#-----------------------------------------*
+$dbh->disconnect();
+
+#=========================================*
+# Apertura file contenente tabella        *
+#-----------------------------------------*
+sub tabella
+{
+    #-------------------------------------*
+    # Open                                *
+    #-------------------------------------*
+    open (TABELLA, "$base$area/$tbla.sql")
+          or die
+         "Impossibile aprire il file '$tbla'";
+    @tabella=<TABELLA>;
+    close TABELLA;
+    #-------------------------------------*
+    # Compattazione testo letto           *
+    #-------------------------------------*
+    $file = qq{@tabella};
+}
+
+#=========================================*
+# Controllo esistenza tabella             *
+#-----------------------------------------*
+sub esiste_tabella
+{
+    my $dbh = shift                       ;
+    my $tabella = shift                   ;
+    eval
+    {
+        $dbh->selectall_arrayref(
+            qq{SELECT * FROM $tbla
+               WHERE 1 = 0})              ;
+    };
+    return !$@                            ;
+}
+

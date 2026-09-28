@@ -1,0 +1,61 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per preparare un unico file  *
+# sequenziale da inviare manualmente al    *
+# corriere BRT                             *
+#                                          *
+# t_ele_brt_fil                            *
+#                                          *
+# N.B.: Utilizzato da 'dglfexe0'           *
+#                                          *
+# SU MISURA PER ELETTRA                    *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 22/07/22    *
+#   Ultima revisione:  NdK del 22/07/22    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input       : - Nome file da accodare *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $nam_inp = shift                       ;
+
+#==========================================*
+# Variabili di base                        *
+#------------------------------------------*
+my $dir_bas = "/abd/asc/executive/BRT/tmp/";
+my $fil_inp = $dir_bas . $nam_inp         ;
+my $fil_out = $dir_bas . "BRT.TXT"        ;
+
+#==========================================*
+# Main script                              *
+#------------------------------------------*
+open( my $dat_inp, "<", $fil_inp ) or die $!;
+open( my $dat_out, ">>", $fil_out )    or die $!;
+
+while ( my $lin_out = <$dat_inp> )
+{
+    print {$dat_out} $lin_out             ;
+}
+
+#==========================================*
+# Esecuzione comando per privilegi         *
+#------------------------------------------*
+system("chmod 0777 "
+       . $fil_out)                        ;
+
+#==========================================*
+# Close files                              *
+#------------------------------------------*
+close $dat_inp                            ;
+close $dat_out                            ;

@@ -1,0 +1,45 @@
+#!/usr/bin/perl -w
+#========================================================================*
+#                                                                        *
+# Parser per scorporare testo da file HTML                               *
+#                                                                        *
+# ---------------------------------------------------------------------- *
+#                                                                        *
+# Parametri in input : - file HTML da leggere (percorso)                 *
+#                      - file TXT da scrivere (percorso)                 *
+#                                                                        *
+# ---------------------------------------------------------------------- *
+#                                                                        *
+# Utilizzo :                                                             *
+#                                                                        *
+# $ t_parse /percorso/FILE.HTML /percorso/FILE.TXT                       *
+#                                                                        *
+#========================================================================*
+
+my $pt_i = $ARGV[0]                                     ;
+my $pt_o = $ARGV[1]                                     ;
+
+package Example                                         ;
+use strict                                              ;
+require HTML::Parser                                    ;
+
+@Example::ISA = qw(HTML::Parser)                        ;
+
+my $parser = Example->new                               ;
+$parser->parse_file($pt_i)                              ;
+
+#=========================================*
+# Scrittura in file di testo              *
+#-----------------------------------------*
+open (FILEHANDLE, ">$pt_o") or die "NON TROVATO"        ;
+print FILEHANDLE $parser->{TEXT}                        ;
+close (FILEHANDLE)                                      ;
+
+#=========================================*
+# Parsing del testo                       *
+#-----------------------------------------*
+sub text
+ {
+    my ($self,$text) = @_                               ;
+    $self->{TEXT} .= $text                              ;
+ }

@@ -1,0 +1,129 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per lista contenuto di una  *
+# directory 'PDF' per Utente di Tangram   *
+#                                         *
+# t_dir_pdf                               *
+#                                         *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 19/04/13   *
+#   Ultima revisione:  NdK del 19/04/13   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : - utente Tangram             *
+#                                         *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use File::Basename                        ;
+
+#=========================================*
+# Variabili lette in input                *
+#-----------------------------------------*
+my $user = shift                          ;
+
+#==========================================*
+# Test iniziale                            *
+#------------------------------------------*
+if (!$user)
+{
+    #--------------------------------------*
+    # Messaggio di errore                  *
+    #--------------------------------------*
+    print "\n"
+        . "Manca il codice Utente!\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#=========================================*
+# Variabili statiche                      *
+# --------------------------------------- *
+#  - Pathname di base da leggere          *
+#  - Pathname per il file di appoggio     *
+#  - Nome file di appoggio                *
+#-----------------------------------------*
+my $base = "/abd/asc/"                    ;
+
+my $dpdf = $base
+         . $user
+         . "/pdf/"                        ;
+
+my $path = $base
+         . $user
+         . "/tmp/"                        ;
+
+my $fapp = "LISTA"                        ;
+
+#==========================================*
+# Open del file di appoggio                *
+#------------------------------------------*
+open (LISTA, ">$path$fapp") or die
+         "Impossibile aprire il file LISTA";
+
+#==========================================*
+# Lista directory                          *
+#------------------------------------------*
+opendir (DIR,$dpdf)                       ;
+
+#------------------------------------------*
+# Ciclo interno alla directory             *
+#------------------------------------------*
+LINE: foreach $name (sort readdir(DIR))
+{
+    #--------------------------------------*
+    # Tipo file dall'estensione            *
+    #--------------------------------------*
+    (my $namx,
+     my $dirx,
+     my $extx) = fileparse($name,'\..*')  ;
+
+    #--------------------------------------*
+    # Eliminazione NON pdf                 *
+    #--------------------------------------*
+    if ($extx ne ".pdf")
+       {next(LINE)}                       ;
+       
+    #--------------------------------------*
+    # Dimensione del file                  *
+    #--------------------------------------*
+    my $file = $dpdf . $name              ;
+    my @dime = stat($file)                ;            
+    my $fkby = $dime[07]                  ;
+
+    #--------------------------------------*
+    # Prompt                               *
+    #--------------------------------------*
+    $pmtk = " Kb"                         ;
+
+    #--------------------------------------*
+    # Separatore migliaia                  *
+    #--------------------------------------*
+    $fkby = reverse $fkby                 ;
+    $fkby =~ s/(\d{3})/$1./g              ;
+    $fkby = reverse $fkby                 ;
+    $fkby =~ s/^\.//                      ;       
+    
+    $fkby = sprintf ("%10s",$fkby)        ;
+    
+    $name = sprintf ("%-40s",$name)       ;
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print LISTA "$name$fkby$pmtk\n"       ;
+}
+
+#------------------------------------------*
+# Chiusura directory                       *
+#------------------------------------------*
+closedir (DIR)                            ;
+#------------------------------------------*
+# Close del file di appoggio               *
+#------------------------------------------*
+close LISTA                               ;

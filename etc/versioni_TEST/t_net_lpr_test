@@ -1,0 +1,34 @@
+#!/usr/bin/perl -w
+
+use strict;
+use vars '@ARGV';
+
+use Net::LPR;
+use IO::File;
+
+die "usage: $0 <filename> <printer> <queue>\n" if (@ARGV != 3);
+
+my $lp = new Net::LPR(
+      StrictRFCPorts => 0,
+      RemoteServer => $ARGV[1],
+      RemotePort => 515,
+      PrintErrors => 0,
+      RaiseErrors => 0,
+) or die "Can't create print context\n";
+
+my $fh = new IO::File $ARGV[0], O_RDONLY or die "Can't open $ARGV[0]: $!\n";
+my $size = ($fh->stat())[7]; # Hope file doesn't change while printing
+
+$lp->connect() or die "Can't connect to printer: ".$lp->error."\n";
+my $jobkey = $lp->new_job() or die "Can't create new job: ".$lp->error."\n";
+$lp->send_jobs('lp') or die "Can't send jobs: ".$lp->error."\n";
+# Can easily print postscript by changing method to job_mode_postscript
+$lp->job_mode_text($jobkey) or die "Can't set job mode to text: ".$lp->error."\n";
+$lp->job_send_control_file($jobkey) or die "Can't send control file: ".$lp->error."\n";
+$lp->job_send_data($jobkey, '', $size);
+
+while (my $line = $fh->getline()) {
+      $lp->job_send_data($jobkey, $line);
+}
+
+$lp->disconnect();

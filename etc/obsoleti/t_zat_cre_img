@@ -1,0 +1,345 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl su misura                    *
+#                                          *
+# t_zat_cre_img                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 09/11/11   *
+#   Ultima revisione:   NdK del 27/05/13   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# N.B.: in Crontab nel server Tangram      *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use File::Basename                        ;
+use Net::SFTP::Foreign                    ;
+use DBI()                                 ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $user = 'gestionale'                   ;
+my $path = "/home/master/.ssh/id_rsa"     ;
+my $host = "195.138.243.55"               ;
+#
+my $base = "/abd/asc/img/"                ;
+my $bimg = "/home/gestionale/import/img/" ;
+
+#==========================================*
+# Modulo Perl per configurazione database  *
+#------------------------------------------*
+my %conf = do '/abd/etc/dbase_conf'       ;    
+my $dtab = "img"                          ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database="
+                       .$conf{dbas}
+                       .";host="
+                       .$conf{dbsr}
+                       ."",
+                        $conf{user},
+                        $conf{pass},
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Creazione della lista di invio           *
+#------------------------------------------*
+    #--------------------------------------*
+    # Data di sistema (AAAA) - Anno (est.) *
+    #--------------------------------------*
+    my $ann = sprintf("%04d",
+                     (localtime)[5]+1900) ;
+    #--------------------------------------*
+    # Data di sistema (MM) - Mese          *
+    #--------------------------------------*
+    my $mes = sprintf("%02d",
+                     (localtime)[4]+1)    ;
+    #--------------------------------------*
+    # Data di sistema (GG) - Giorno        *
+    #--------------------------------------*
+    my $gio = sprintf("%02d",
+                     (localtime)[3])      ;
+    #--------------------------------------*
+    # Nome file                            *
+    #--------------------------------------*
+    my $pthl = "/abd/asc/img/log/"        ;
+    my $naml = "img_inv_"
+            . $ann
+            . "_"
+            . $mes
+            . "_"
+            . $gio
+            . ".txt"                      ;
+    #--------------------------------------*
+    # Apertura lista                       *
+    #--------------------------------------*
+    open (LISTA, ">$pthl$naml") or die
+        "Impossibile aprire il file $nam" ;
+    #--------------------------------------*
+    # Scrittura prima linea lista          *
+    #--------------------------------------*
+    print LISTA "File inviati\n\n"        ;   
+
+#==========================================*
+# Scansione directory di base              *
+#------------------------------------------*
+for($inx=0; $inx<100; $inx++)
+{
+    #--------------------------------------*
+    # Variabili di lavoro                  *
+    #--------------------------------------*
+    my $ind = sprintf ("%02d",$inx)       ;
+    my $dir = $base . $ind . "/"          ;
+    
+    #--------------------------------------*
+    # Open directory                       *
+    #--------------------------------------*
+    opendir (DIR,$dir)                    ;
+    
+    #--------------------------------------*
+    # Ciclo interno alla directory         *
+    #--------------------------------------*
+    LINE: foreach $nam (sort readdir(DIR))
+    {
+        #----------------------------------*
+        # Variabili di comodo              *
+        #                                  *
+        # Si utilizza la funzione stat che *
+        # ritorna informazioni sul file in *
+        # forma di array                   *
+        #----------------------------------*
+        my $fil = $dir . $nam             ;
+        my @time = stat($fil)             ;            
+        my $tim = $time[9]                ;            
+        my $type = -f $fil                ;
+        #----------------------------------*
+        # Estrazione della data modifica   *
+        #----------------------------------*
+        my $aaa = 1900+(localtime($tim))[5];
+        my $mmm = (localtime($tim))[4]    ;
+        my $ggg = (localtime($tim))[3]    ;
+        #----------------------------------*
+        my $ann = sprintf ("%04d",$aaa)   ;
+        my $mes = sprintf ("%02d",$mmm+1) ;
+        my $gio = sprintf ("%02d",$ggg)   ;
+        #----------------------------------*
+        my $upd  = $ann . "-"
+                        . $mes
+                        . "-"
+                        . $gio            ;
+        #----------------------------------*
+        # Test che non sia un file Windows *
+        #----------------------------------*
+        if ($nam eq "Thumbs.db")
+           {next(LINE)}                   ;
+        #----------------------------------*
+        # Test che non sia un file MAC     *
+        #----------------------------------*
+        if ($nam eq ".DS_Store")
+           {next(LINE)}                   ;
+        #----------------------------------*
+        # Test che il nome file non inizi  *
+        # con '.'                          *
+        #----------------------------------*
+        my $ini = substr($nam, 0, 1)      ;
+        if ($ini eq ".")
+           {next(LINE)}                   ;
+
+        #----------------------------------*
+        # Test che non sia una directory   *
+        #----------------------------------*
+        if (! -d $fil)
+        {
+            #------------------------------*
+            # Test di congruenza tra il    *
+            # nome file ed il nome della   *
+            # directory                    *
+            #------------------------------*
+            my $prf = substr($nam,0,2)    ;
+            if ($prf ne $ind)
+               {    
+                   print "$nam in "
+                       . "directory "
+                       . "$ind\n"         ;
+                   next(LINE)             ;
+               }                          ;
+            
+            #------------------------------*
+            # Lettura tabella              *
+            #                              *
+            # Estrazione del nome file     *
+            # senza estensione             *
+            #------------------------------*
+           (my $fnams,
+            my $direc,
+            my $exten) = fileparse($nam,'\..*');
+            
+            my $img = $fnams               ;
+            
+            my $sth = $dbh->prepare("SELECT "
+                                  . "img_upd "
+                                  . "FROM "
+                                  . $dtab
+                                  . " WHERE "
+                                  . "img_ide = '"
+                                  . $img . "'");
+            $sth->execute();
+
+            my $ref = $sth->fetchrow_hashref()   ;
+            
+            my $dtu = $ref->{'img_upd'}          ;
+            
+            #------------------------------*
+            # Se lettura OK                *
+            #------------------------------*
+            if ($dtu)
+            {
+                #--------------------------*
+                # Confronto date           *
+                #--------------------------*
+                if ($dtu ne $upd)
+                {
+                    #----------------------*
+                    # Aggiornamento        *
+                    #----------------------*
+                    &update_rec($img,
+                                $tim,
+                                $upd)     ;
+                    #----------------------*
+                    # Invio                *
+                    #----------------------*
+                    &send_img($dir,
+                              $fil,
+                              $ind)       ;
+                }
+            } else
+            #------------------------------*
+            # Se lettura non OK            *
+            #------------------------------*
+            {
+                #--------------------------*
+                # Inserimento              *
+                #--------------------------*
+                &insert_rec($img,
+                            $tim,
+                            $upd)         ;
+                #--------------------------*
+                # Invio                    *
+                #--------------------------*
+                &send_img($dir,
+                          $fil,
+                          $ind)           ;
+            }
+        }
+    }
+    
+    #--------------------------------------*
+    # Close directory                      *
+    #--------------------------------------*
+    closedir (DIR);
+}
+
+#==========================================*
+# Chiusura lista                           *
+#------------------------------------------*
+close LISTA                               ;
+
+#==========================================*
+# Subroutine di scrittura                  *
+#------------------------------------------*
+sub insert_rec
+{
+    my $ccc = shift                       ;
+    my $ttt = shift                       ;
+    my $uuu = shift                       ;
+    $dbh->do("INSERT "
+           . "INTO "
+           . $dtab
+           . " (img_ide, "
+           . "img_dtm, "
+           . "img_dat, "
+           . "img_upd) "
+           . "VALUES "
+           . "('$ccc', "
+           . "'$ttt', "
+           . "NOW(), "
+           . "'$uuu')")   ;
+}
+
+#==========================================*
+# Subroutine di modifica                   *
+#------------------------------------------*
+sub update_rec
+{
+    my $ccc = shift                       ;
+    my $ttt = shift                       ;
+    my $uuu = shift                       ;
+    $dbh->do("UPDATE "
+           . $dtab
+           . " SET "
+           . "img_dtm = '$ttt', "
+           . "img_dat = NOW(), "
+           . "img_upd = '$uuu' "
+           . "WHERE img_ide = '$ccc'")    ;
+}
+
+#==========================================*
+# Subroutine di trasferimento              *
+#------------------------------------------*
+sub send_img
+{
+    my $cdr = shift                       ;
+    my $pat = shift                       ;
+    my $din = shift                       ;
+
+    #--------------------------------------*
+    # Argomenti                            *
+    #--------------------------------------*
+    my %args = (user => $user,
+            key_path => $path,
+                more => [qw(-o PreferredAuthentications=publickey)]
+        );
+
+    #--------------------------------------*
+    # Connessione                          *
+    #--------------------------------------*
+    my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+    #--------------------------------------*
+    # Posizionamento directory             *
+    #--------------------------------------*
+    my $idir = $bimg . $din               ;
+    $sftp->setcwd($idir)
+        or die "Cambio directory "
+       . "non "
+       . "riuscito"                       ;
+    #--------------------------------------*
+    # Invio file                           *
+    #--------------------------------------*
+    $sftp->put($pat, $idir . "/" . basename($pat))
+       or die "invio fallito: " . $sftp->error;
+    #--------------------------------------*
+    # Aggiornamento LISTA                  *
+    #--------------------------------------*
+    &print_lista($pat)                    ;
+}
+
+#==========================================*
+# Subroutine di scrittura in LISTA         *
+#------------------------------------------*
+sub print_lista
+{
+    my $nome = shift                      ;
+    print LISTA "$nome\n"                 ;   
+}
+

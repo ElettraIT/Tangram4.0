@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di scaricamento immagini da  *
+# sito criptato (https)                    *
+#                                          *
+# t_zat_img_flo                            *
+#                                          *
+# SU MISURA PER ZATTI                      *
+#                                          *
+# N.B.: funziona anche con codici 9 chr.   *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 26/03/09   *
+#   Ultima revisione:   NdK del 07/03/11   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use LWP::UserAgent;
+use strict;
+
+#==========================================*
+# Variabili autenticazione 'http'          *
+#------------------------------------------*
+my $user = "fiocchi"                      ;
+my $pass = "st3fano"                      ;
+my $urlx = 'http://fiocchistefano.prova.smart.it/admin/batch/import.php';
+
+
+#print "Content-type: text/html\n\n";
+
+# Create a new user agent for HTTP request
+  my $ua = LWP::UserAgent->new( );
+
+
+ # Create HTTP request object
+  my $req =  HTTP::Request->new( GET => $urlx);
+
+ # Authenticate the user
+  $req->authorization_basic( $user, $pass );
+
+  # Send the HTTP request to the user agent
+  my $res = $ua->request( $req,"/abd/asc/tmp/smart_log.txt" );
+
+  print $res->status_line, "\n";
+
+  # Check if the response is successful
+  if ( !$res->is_success )
+  {
+    die $res->status_line;
+  }

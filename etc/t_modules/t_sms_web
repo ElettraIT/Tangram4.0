@@ -1,0 +1,190 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per invio SMS tramite servi- *
+# zio esterno via WEB fornito da 'rdcom.it'*
+#                                          *
+# t_sms_web                                *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 11/12/12   *
+#   Ultima revisione:   NdK del 11/12/12   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Il modulo legge il file sequenziale      *
+# contenente i numeri dei destinatari      *
+#                                          *
+# ___ IN LAVORAZIONE ___                   *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use File::Basename                        ;
+use Net::FTP                              ;
+use LWP::UserAgent                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = '/abd/asc/'                    ;
+my $basl = '/abd/asc/log/'                ;
+my $outp = 'sms.csv'                      ;
+my $inpt = 'sms.txt'                      ;
+
+my $user = 'UTENTE'                       ;
+my $pass = 'PASSWORD'                     ;
+my $dest = 'upload_articoli'              ;
+
+my $usew = 'UTENTE'                       ;
+my $pasw = 'PASSWORD'                     ;
+my $urlw = 'http://www.umssoft.it/script/'
+         . 'sendsmsbatch.php'             ;
+
+my $logw = 'rdcom.log'                    ;
+
+#==========================================*
+# Sub-routine di scansione file in Input   *
+#------------------------------------------*
+print "Scansione ... "                    ;
+&input_file                               ;
+
+#==========================================*
+# Invio finale del file al Server          *
+#------------------------------------------*
+print "Invio file ... "                   ;
+&ftpf                                     ;
+
+#==========================================*
+# Caricamento via http AUTH                *
+#------------------------------------------*
+print "Invio file ... "                   ;
+&http_auth                                ;
+
+#==========================================*
+# SUB-ROUTINES                             *
+#==========================================*
+
+#==========================================*
+# File in Input                            *
+#------------------------------------------*
+sub input_file
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (OUTFILE, ">$base$outp") or die
+         "Impossibile aprire il file "
+       . "$base$outp"                     ;
+
+    open (INPFILE, "$base$inpt") or die
+         "Impossibile aprire il file "
+       . "$base$inpt"                     ;
+
+    #--------------------------------------*
+    # Ciclo di scansione file              *
+    #--------------------------------------*
+
+    @stri = <INPFILE>                     ;
+
+    foreach $stri (@stri)
+    {
+    
+        chomp($stri)                      ;
+        $nsms = substr( $stri, 0, 15 )    ;
+        
+        print OUTFILE "+39"
+                    . $nsms
+                    . "\n"                ;   
+    }
+
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close (INPFILE)                       ;
+    close (OUTFILE)                       ;
+}
+
+#==========================================*
+# Subroutine di trasferimento del file     *
+#------------------------------------------*
+sub ftpf
+{
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    $ftp = Net::FTP->new("ftp.smart.it",
+                         Debug => 0)
+           or die "Non connesso a: $@"    ;
+
+    #--------------------------------------*
+    # Login connessione                    *
+    #--------------------------------------*
+    $ftp->login($user,$pass)
+          or die "Login errato ",
+                 $ftp->message            ;
+    
+    #--------------------------------------*
+    # Modalita' Binary                     *
+    #--------------------------------------*
+    $ftp->binary
+          or die "Binary NO",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Posizionamento cartella destinazione *
+    #--------------------------------------*
+    $ftp->cwd($dest) 
+          or die "Cartella errata",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Trasferimento                        *
+    #--------------------------------------*
+    $ftp->put("$base$outp")
+          or die "put fallita ",
+                 $ftp->message            ;
+
+    #--------------------------------------*
+    # Chiusura FTP                         *
+    #--------------------------------------*
+    $ftp->quit                            ;
+}
+
+#==========================================*
+# Subroutine di Autenticazione             *
+#------------------------------------------*
+sub http_auth
+{
+    #--------------------------------------*
+    # Apertura connessione                 *
+    #--------------------------------------*
+    my $ua = LWP::UserAgent->new( )       ;
+
+    #--------------------------------------*
+    # Richiesta                            *
+    #--------------------------------------*
+    my $req = HTTP::Request->new( GET => $urlw);
+
+    #--------------------------------------*
+    # Autenticazione                       *
+    #--------------------------------------*
+    $req->authorization_basic( $usew, $pasw );
+
+    #--------------------------------------*
+    # Salvataggio risposta                 *
+    #--------------------------------------*
+    my $res = $ua->request( $req,"$basl$logw" );
+    print $res->status_line, "\n";
+
+    #--------------------------------------*
+    # Check risposta                       *
+    #--------------------------------------*
+    if ( !$res->is_success )
+    {
+        die $res->status_line             ;
+    }
+}
+
+

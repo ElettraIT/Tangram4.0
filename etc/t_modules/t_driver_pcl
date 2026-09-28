@@ -1,0 +1,22 @@
+#!/usr/bin/perl -w
+
+# Funziona !!!
+
+# VEDI 't_driver_ps' ___ !!!
+
+
+
+use PCL::Simple qw( PCL_pre PCL_post )                         ;
+
+open PLAIN,  '</abd/prf/pf050475'      or die                  ;
+open SNAZZY, '>/abd/prf/pf050475.pcl'  or die;
+
+print SNAZZY PCL_pre( -w => 132, -lpp => 66 );
+print SNAZZY while (<PLAIN>);
+print SNAZZY PCL_post;
+
+close PLAIN;
+close SNAZZY;
+my $cod_stp = "hp"                                         ;
+
+system("cat /abd/prf/pf050475.pcl | lpr -P$cod_stp")                     ;

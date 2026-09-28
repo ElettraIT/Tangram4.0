@@ -1,0 +1,50 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl di invio posta a GMAIL senza *
+# autenticazione                           *
+#                                          *
+# t_sender_TEST_ELE2             04/12/23  *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+
+use strict                                ;
+use warnings                              ;
+use Email::Send::SMTP::Gmail              ;
+
+#==========================================*
+# Parametri di invio                       *
+#------------------------------------------*
+my $srvr = 'smtp-relay.gmail.com'         ;
+my $mitt = 'documenti@elettra.it'         ;
+my $dest = 'ordini@elettra.it'            ;
+my $subj = 'MESSAGGIO DI PROVA'           ;
+my $body = 'CONTENUTO DEL MESSAGGIO DI PROVA';
+my $att;
+$att->[0]->{file}='/abd/asc/file.pdf';
+ 
+#==========================================*
+# Connessione                              *
+#------------------------------------------*
+my $mail=Email::Send::SMTP::Gmail->new( -smtp=>$srvr,
+                                       -layer=>'none',
+                                        -auth=>'none');
+ 
+#==========================================*
+# Invio                                    *
+#------------------------------------------*
+$mail->send(-to=>$dest,
+          -from=>$mitt,
+           -bcc=>$mitt,
+       -subject=>$subj,
+          -body=>$body,
+   -contenttype=>'text/html',
+-attachmentlist=>$att)                    ;
+
+#==========================================*
+# Chiusura                                 *
+#------------------------------------------*
+$mail->bye                                ;

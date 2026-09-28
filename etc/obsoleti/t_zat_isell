@@ -1,0 +1,397 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per lettura tabelle MySQL    *
+# ---------------------------------------- *
+# Versione originale:  001 del 01/04/12    *
+#   Ultima revisione:  NdK del 11/03/14    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# Su misura per    : ZATTI                 *
+#                                          *
+# Utilizzato da    : gtv720  iSell         *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use strict                                ;
+use DBI()                                 ;
+
+#==========================================*
+# Parametri di connessione                 *
+#------------------------------------------*
+my $hst = "localhost"                     ;
+my $usr = "root"                          ;
+my $pwd = "alter1"                        ;
+my $dtb = "sc2"                           ;
+
+#==========================================*
+# Connessione al database                  *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:mysql:database=$dtb;host=$hst",
+                       $usr,
+                       $pwd,
+                       {RaiseError => 1,
+                        PrintError => 0});
+
+#==========================================*
+# Open dei file di appoggio                *
+#------------------------------------------*
+my $pth = "/abd/asc/imp/"                 ;
+my $doc = "ISDOC"                         ;
+
+open (ISDOC, ">$pth$doc") or die
+         "Impossibile aprire il file ISDOC";
+
+#==========================================*
+# Lettura dati da tabella testate          *
+#------------------------------------------*
+my $sth = ""                              ;
+
+$sth = $dbh->prepare("SELECT * "
+                   . "FROM oct_pel t "
+                   . "WHERE "
+                   . "t.flg_bl1 = 'T'")   ;
+
+$sth->execute();
+
+#==========================================*
+# Ciclo di lettura testate                 *
+#------------------------------------------*
+while (my $ref = $sth->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Tipo riga                            *
+    #--------------------------------------*
+    my $ttt = "T"                         ;
+
+    #--------------------------------------*
+    # ID ordine                            *
+    #--------------------------------------*
+    my $oid = sprintf ("%11s",$ref->{'num_prt'});
+
+    #--------------------------------------*
+    # Codice agente                        *
+    #--------------------------------------*
+    my $age = ""                          ;
+    if ($ref->{'cod_age'})
+    {
+        $age = sprintf ("%03s",$ref->{'cod_age'});
+    }
+     else
+    {
+        $age = sprintf ("%03s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Codice cliente                       *
+    #--------------------------------------*
+    my $cli = ""                          ;
+    if ($ref->{'cod_arc'})
+    {
+        $cli = sprintf ("%07s",$ref->{'cod_arc'});
+    }
+     else
+    {
+        $cli = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Codice dipendenza cliente            *
+    #--------------------------------------*
+    my $dpz = ""                          ;
+    if ($ref->{'dpz_arc'})
+    {
+        $dpz = sprintf ("%7s",$ref->{'dpz_arc'});
+    }
+     else
+    {
+        $dpz = sprintf ("%7s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Numero documento                     *
+    #--------------------------------------*
+    my $ndo = ""                          ;
+    if ($ref->{'num_doc'})
+    {
+        $ndo = sprintf ("%-11s",$ref->{'num_doc'});
+    }
+     else
+    {
+        $ndo = sprintf ("%-11s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Data documento                       *
+    #--------------------------------------*
+    my $ddo = ""                          ;
+    if ($ref->{'dat_doc'})
+    {
+        $ddo = sprintf ("%10s",$ref->{'dat_doc'});
+    }
+     else
+    {
+        $ddo = sprintf ("%10s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Codice pagamento                     *
+    #--------------------------------------*
+    my $fop = ""                          ;
+    if ($ref->{'cod_fop'})
+    {
+        $fop = sprintf ("%07s",$ref->{'cod_fop'});
+    }
+     else
+    {
+        $fop = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Acconto                              *
+    #--------------------------------------*
+    my $act = ""                          ;
+    if ($ref->{'pag_act'})
+    {
+        $act = sprintf ("%11s",$ref->{'pag_act'});
+    }
+     else
+    {
+        $act = sprintf ("%11s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Codice Porto                         *
+    #                                      *
+    # Per convenzione in addebito spese    *
+    # bollo                                *
+    #--------------------------------------*
+    my $por = ""                          ;
+    if ($ref->{'add_spb'})
+    {
+        $por = sprintf ("%-3s",$ref->{'add_spb'});
+    }
+     else
+    {
+        $por = sprintf ("%-3s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Data consegna                        *
+    #--------------------------------------*
+    my $dcn = ""                          ;
+    if ($ref->{'dat_cns'})
+    {
+        $dcn = sprintf ("%10s",$ref->{'dat_cns'});
+    }
+     else
+    {
+        $dcn = sprintf ("%10s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Commento                             *
+    #--------------------------------------*
+    my $com = ""                          ;
+    if ($ref->{'com_int'})
+    {
+        $com = sprintf ("%-120s",
+                        $ref->{'com_int'});
+    }
+     else
+    {
+        $com = sprintf ("%-120s"," ")     ;
+    }
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print ISDOC "$ttt $oid $age $cli $dpz $ndo $ddo $fop $act $por $dcn $com\n";   
+}
+
+$sth->finish();
+
+#==========================================*
+# Lettura dati da tabella righe            *
+#------------------------------------------*
+my $st2 = ""                              ;
+
+$st2 = $dbh->prepare("SELECT * "
+                   . "FROM ocr_pel r "
+                   . "WHERE "
+                   . "r.flg_bl1 = 'T' "
+                   . "ORDER BY "
+                   . "r.num_prt, "
+                   . "r.num_prg")         ;
+
+$st2->execute();
+
+#==========================================*
+# Ciclo di lettura righe                   *
+#------------------------------------------*
+while (my $ref = $st2->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Tipo riga                            *
+    #--------------------------------------*
+    my $rrr = "R"                         ;
+
+    #--------------------------------------*
+    # ID ordine e progressivo riga         *
+    #--------------------------------------*
+    my $pid = sprintf ("%11s",$ref->{'num_prt'});
+    my $rid = sprintf ("%05s",$ref->{'num_prg'});
+
+    #--------------------------------------*
+    # Codice alfanumerico prodotto         *
+    #--------------------------------------*
+    my $alf = ""                          ;
+    if ($ref->{'alf_mag'})
+    {
+        $alf = sprintf ("%-14s",$ref->{'alf_mag'});
+    }
+     else
+    {
+        $alf = sprintf ("%-14s"," ")      ;
+    }
+
+    #--------------------------------------*
+    # Codice numerico prodotto             *
+    #--------------------------------------*
+    my $num = ""                          ;
+    if ($ref->{'num_mag'})
+    {
+        $num = sprintf ("%7s",$ref->{'num_mag'});
+    }
+     else
+    {
+        $num = sprintf ("%7s","")         ;
+    }
+    $num = substr ($num, 0, 7)            ;
+
+    #--------------------------------------*
+    # Prezzo di listino                    *
+    #--------------------------------------*
+    my $lst = ""                          ;
+    if ($ref->{'prz_ven'})
+    {
+        $lst = sprintf ("%10s",$ref->{'prz_ven'});
+    }
+     else
+    {
+        $lst = sprintf ("%10s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Prezzo netto                         *
+    #--------------------------------------*
+    my $nts = ""                          ;
+    if ($ref->{'prz_net'})
+    {
+        $nts = sprintf ("%10s",$ref->{'prz_net'});
+    }
+     else
+    {
+        $nts = sprintf ("%10s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Sconto in riga 1                     *
+    #--------------------------------------*
+    my $sr1 = ""                          ;
+    if ($ref->{'per_sr1'})
+    {
+        $sr1 = sprintf ("%07s",$ref->{'per_sr1'});
+    }
+     else
+    {
+        $sr1 = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Sconto in riga 2                     *
+    #--------------------------------------*
+    my $sr2 = ""                          ;
+    if ($ref->{'per_sr2'})
+    {
+        $sr2 = sprintf ("%07s",$ref->{'per_sr2'});
+    }
+     else
+    {
+        $sr2 = sprintf ("%07s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Sconto in riga 3                     *
+    #--------------------------------------*
+    my $sr3 = ""                          ;
+    if ($ref->{'per_sr3'})
+    {
+        $sr3 = sprintf ("%07s",$ref->{'per_sr3'});
+    }
+     else
+    {
+        $sr3 = sprintf ("%07s"," ");
+    }
+
+    #--------------------------------------*
+    # Quantita'                            *
+    #--------------------------------------*
+    my $qta = ""                          ;
+    if ($ref->{'qta_ord'})
+    {
+        $qta = sprintf ("%14s",$ref->{'qta_ord'});
+    }
+     else
+    {
+        $qta = sprintf ("%14s"," ")       ;
+    }
+
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print ISDOC "$rrr $pid $rid $alf $num $lst $nts $sr1 $sr2 $sr3 $qta\n";   
+}
+
+#==========================================*
+# Flag di trattamento TESTATE eseguito     *
+#------------------------------------------*
+my $upd = "UPDATE oct_pel"
+                . " SET "
+                . " flg_bl1 = 'P' "
+                . " WHERE flg_bl1 = 'T'"  ;
+                
+$sth = $dbh->prepare($upd)                ;
+
+$sth->execute()                           ;
+
+#==========================================*
+# Flag di trattamento RIGHE eseguito       *
+#------------------------------------------*
+$upd = "UPDATE ocr_pel"
+                . " SET "
+                . " flg_bl1 = 'P' "
+                . " WHERE flg_bl1 = 'T'"  ;
+                
+$sth = $dbh->prepare($upd)                ;
+
+$sth->execute()                           ;
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$st2->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close dei file di appoggio               *
+#------------------------------------------*
+close ISDOC                               ;

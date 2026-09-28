@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per ricevimento file da      *
+# Metel                                    *
+#                                          *
+# t_ele_edi_sel                            *
+#                                          *
+# (Richiamato da 'edi600')                 *
+#                                          *
+# ___ NON UTILIZZATO ___ (15/08/2023)      *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 11/08/23    *
+#   Ultima revisione:  NdK del 11/08/23    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : (no input)                    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Descrizione modulo:                      *
+#                                          *
+# Lettura del Database MySQL relativo per  *
+# generare una lista di documenti da trat- *
+# tare                                     *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+use File::Basename                        ;
+
+#==========================================*
+# Variabili di comodo                      *
+#------------------------------------------*
+my $pth = "/abd/asc/imp/edi/"             ;
+my $nam = "ORDERS_LIST"                   ;
+
+#==========================================*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+#
+my $dtb_azi = "ele"                       ;
+my $dtb_tbl = "metel"                     ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dbh = DBI->connect("DBI:"
+                     . "mysql:database="
+                     . "$dtb_azi;host=$dtb_hst",
+                       $dtb_usr,
+                       $dtb_pwd,
+                      {RaiseError => 1,
+                       PrintError => 0})  ;
+
+#==========================================*
+# Open dei file di appoggio                *
+#------------------------------------------*
+open (LISTA, ">$pth$nam") or die
+        "Impossibile aprire il file $nam";
+
+#==========================================*
+# Lettura dati da tabella                  *
+#------------------------------------------*
+my $sel = "SELECT path FROM "
+       . $dtb_tbl
+       . " WHERE flag = ' '"              ;
+my $sth = $dbh->prepare($sel)             ;
+$sth->execute()                           ;
+
+#==========================================*
+# Ciclo di lettura testate                 *
+#------------------------------------------*
+while (my $ref = $sth->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Codice cliente                       *
+    #--------------------------------------*
+    my $file = ""                         ;
+    if ($ref->{'path'})
+    {
+        $file = $ref->{'path'}            ;
+    }
+     else
+    {
+        $file = " "                       ;
+    }
+    #--------------------------------------*
+    # Estrazione nome file                 *
+    #--------------------------------------*
+   (my $fil_nam,
+    my $fil_pat,
+    my $fil_ext) = fileparse($file, qr/\.[^.]*/);
+
+    my $fil_csv = $fil_nam . ".csv"       ;
+    #--------------------------------------*
+    # Scrittura file di appoggio           *
+    #--------------------------------------*
+    print LISTA "$fil_csv\n"              ;   
+}
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close del file di appoggio               *
+#------------------------------------------*
+close LISTA                               ;

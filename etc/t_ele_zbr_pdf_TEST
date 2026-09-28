@@ -1,0 +1,102 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Prove di utilizzo modulo di emissione    *
+# PDF                                      *
+#                                          *
+# ___ IN LAVORAZIONE 24/09/23 ___          *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/09/2023 *
+#   Ultima revisione:   wip del 19/09/2023 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Parametri in input : - file parametri    *
+#                                          *
+# ---------------------------------------- *
+#                                          *
+# Note : lo script prepara un file PDF     *
+#        da inviare alla stampante che lo  *
+#        tratta con l'emulatore            *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use PDF::Reuse                            ;
+
+#------------------------------------------*
+# Codice stampante                         *
+#------------------------------------------*
+my $cod_stp = "zebra_1"                    ;
+
+
+my $doc_pdf = "/abd/spl/stdfat0.pdf"        ;
+my $out_pdf = "/abd/spl/prove.pdf"        ;
+
+
+
+
+
+
+
+#==========================================*
+# Inizializzazione file                    *
+#------------------------------------------*
+prFile($out_pdf)                          ;
+
+#==========================================*
+# Impostazione pagina 'A4'                 *
+#------------------------------------------*
+prMbox(0, 0, 595, 842);
+
+#------------------------------------------*
+# Box pagina                               *
+#------------------------------------------*
+prAdd("q 1 1 1 rg 20 20 550 800 re b Q")  ;
+#------------------------------------------*
+# Fincatura superiore              *
+#------------------------------------------*
+prAdd("q 50 10 m 50 410 l S Q")           ; 
+
+
+
+
+
+
+
+
+prFont('Helvetica');
+prFontSize(36);       
+
+
+
+#prText(10, 10, 'Hello World !');
+prText(80, 20, 'RAGIONE SOCIALE','','q3');
+#------------------------------------------*
+# Logo Elettra                             *
+#------------------------------------------*
+prImage(  { file    => '/abd/asc/mod/elettra.pdf',
+            page    => 1,
+            imageNo => 1,
+            x       => 20,
+            y       => 30,
+            rotate  => 'q3',
+            size    => 0.5 }  );
+
+#------------------------------------------*
+# Logo AEG                                 *
+#------------------------------------------*
+prImage(  { file    => '/abd/asc/mod/aeg.pdf',
+            page    => 1,
+            imageNo => 1,
+            x       => 20,
+            y       => 300,
+            rotate  => 'q3',
+            size    => 0.6 }  );
+
+
+prEnd();                              # Mandatory
+

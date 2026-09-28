@@ -1,0 +1,59 @@
+#!/usr/bin/perl -w
+#=========================================*
+# Modulo Perl per caricare una fattura    *
+# in formato XML (tipo PA 1.2.1)          *
+#                                         *
+# t_fat_xml_imp                           *
+#                                         *
+# --------------------------------------- *
+# Versione originale:  001 del 10/11/17   *
+#   Ultima revisione:  NdK del 10/11/17   *
+# --------------------------------------- *
+#             Autore:  Nicola de Kunovich *
+# --------------------------------------- *
+#                                         *
+# In input : file da importare            *
+#                                         *
+# ___ OBSOLETO ___                        *
+# ___ VEDI 't_xml_scf_imp' ___            *
+#                                         *
+#-----------------------------------------*
+
+#=========================================*
+# Moduli Perl                             *
+#-----------------------------------------*
+use XML::LibXML;
+
+my $filename = shift;
+
+my $dom = XML::LibXML->load_xml(location => $filename);
+
+foreach my $file ($dom->findnodes('//DettaglioLinee')) {
+    print 'Linea      : ', $file->findvalue('./NumeroLinea') . "\n";
+    print 'Descrizione: ', $file->findvalue('./Descrizione') . "\n";
+    print 'Quantita   : ', $file->findvalue('./Quantita') . "\n";
+    print 'Prezzo     : ', $file->findvalue('./PrezzoTotale') . "\n";
+    print "\n";
+}
+
+foreach my $test ($dom->findnodes('//IdFiscaleIVA')) {
+    print 'IdPaese    : ', $test->findvalue('./IdPaese') . "\n";
+    print 'IdCodice   : ', $test->findvalue('./IdCodice') . "\n";
+    print "\n";
+}
+
+foreach my $test ($dom->findnodes('//DatiDDT')) {
+    print 'DDT nr.    : ', $test->findvalue('./NumeroDDT') . "\n";
+    print 'DDT data   : ', $test->findvalue('./DataDDT') . "\n";
+    print "\n";
+}
+
+foreach my $test ($dom->findnodes('//DatiGeneraliDocumento')) {
+    print 'Tipo       : ', $test->findvalue('./TipoDocumento') . "\n";
+    print 'Valuta     : ', $test->findvalue('./Divisa') . "\n";
+    print 'Data       : ', $test->findvalue('./Data') . "\n";
+    print 'Nr.        : ', $test->findvalue('./Numero') . "\n";
+    print 'Sconto     : ', $test->findvalue('./ScontoMaggiorazione/Importo') . "+\n";
+    print "\n";
+}
+

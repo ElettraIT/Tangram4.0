@@ -1,0 +1,211 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per estrarre da una tabella  *
+# MySQL delle righe e metterle su file in  *
+# formato testo                            *
+#                                          *
+# t_xml_for_txt                            *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:  001 del 13/04/07    *
+#   Ultima revisione:  NdK del 23/04/21    *
+# ---------------------------------------- *
+#             Autore:  Nicola de Kunovich  *
+# ---------------------------------------- *
+#                                          *
+# In input : - azienda                     *
+#                                          *
+#            - nome file XML               *
+#                                          *
+# ___ VERSIONE SPERIMENTALE ___            *
+#                                          *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use DBI()                                 ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $cod_azi = shift                       ;
+my $fil_xml = shift                       ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$cod_azi || $cod_azi eq "-help")
+{
+    my $sys_clr = "clear"                 ;
+    system($sys_clr)                      ;
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_xml_for_txt {AZI} {FILENAME}"
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip - 20 aprile 2021"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di configurazione base         *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/"
+            . "t_xml_for.ini"             ;
+
+my %cnf_ele = do $cfg_bas                 ;
+my $pth_scf = $cnf_ele{pth_scf}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_wrk = $cnf_ele{pth_wrk}           ;
+my $pth_att = $cnf_ele{pth_att}           ;
+my $pth_ini = $cnf_ele{pth_ini}           ;
+#------------------------------------------*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dtb_azi = $cod_azi                    ;
+my $cfg_dtb = $pth_bas
+            . $cod_azi
+            . "/"
+            . $pth_ini
+            . "/dtb.ini"                  ;
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+my $dtb_tbt = $cnf_dtb{dtb_tbt}           ;
+
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dtb_con = DBI->connect("DBI:"
+                         . "mysql:database="
+                         . "$dtb_azi;"
+                         . "host=$dtb_hst",
+                                  $dtb_usr,
+                                  $dtb_pwd,
+                          {RaiseError => 1,
+                           PrintError => 0});
+
+#=========================================*
+# Open del file di output                 *
+#-----------------------------------------*
+open (OUTFILE, ">$pth_csv") or die
+         "Impossibile aprire il file $pth_csv";
+
+#==========================================*
+# Lettura dati da tabella                  *
+#------------------------------------------*
+my $sel_dtb = "SELECT nam_xml FROM "
+            . $dtb_tbt
+            . " WHERE nam_xml = '"
+            . $nam_fil
+            . "'"                         ;
+my $sth_dtb = $dtb_con->prepare($sel_dtb) ;
+#------------------------------------------*
+# Esecuzione                               *
+#------------------------------------------*
+$sth_dtb->execute()                       ;
+
+#==========================================*
+# Ciclo di lettura testate                 *
+#------------------------------------------*
+while (my $ref = $sth_dtb->fetchrow_hashref())
+{
+    #--------------------------------------*
+    # Tipo record                          *
+    #--------------------------------------*
+    my $tip_rec = ""                      ;
+    if ($ref->{'tip_rec'})
+    {
+        $tip_rec = $ref->{'tip_rec'}      ;
+    }
+     else
+    {
+        $tip_rec = ""                     ;
+    }
+    #--------------------------------------*
+    # Tipo elemento                        *
+    #--------------------------------------*
+    my $tip_ele = ""                      ;
+    if ($ref->{'tip_ele'})
+    {
+        $tip_ele = $ref->{'tip_ele'}      ;
+    }
+     else
+    {
+        $tip_ele = ""                     ;
+    }
+    #--------------------------------------*
+    # Prompt elemento                      *
+    #--------------------------------------*
+    my $pmt_ele = ""                      ;
+    if ($ref->{'pmt_ele'})
+    {
+        $pmt_ele = $ref->{'pmt_ele'}      ;
+    }
+     else
+    {
+        $pmt_ele = ""                     ;
+    }
+    #--------------------------------------*
+    # Valore elemento                      *
+    #--------------------------------------*
+    my $val_ele = ""                      ;
+    if ($ref->{'val_ele'})
+    {
+        $val_ele = $ref->{'val_ele'}      ;
+    }
+     else
+    {
+        $val_ele = ""                     ;
+    }
+    #-------------------------------------*
+    # Eliminazione spazi superflui        *
+    #-------------------------------------*
+    $val_ele =~ s/^\s+|\s+$//g            ;
+    #-------------------------------------*
+    # Eliminazione eventuali caratteri    *
+    # accentati                           *
+    #-------------------------------------*
+    my $wrk = NFKD($val_ele)              ;
+       $wrk =~ s/\p{NonspacingMark}//g    ;
+       $val_ele = $wrk                    ;
+    #-------------------------------------*
+    # Composizione stringa                *
+    #-------------------------------------*
+    my $lin = sprintf "%-25s ;%-s", $pmt, $val;
+    #-------------------------------------*
+    # Output stringa                      *
+    #-------------------------------------*
+    print OUTFILE $tip_rec . ";"
+                . $tip_ele . ";"
+                . $pmt_ele . ";"
+                . $val_ele . ";"
+                . "\n"                    ;
+    #-------------------------------------*
+    # Scrittura                           *
+    #-------------------------------------*
+    print OUTFILE "$file\n"               ;   
+}
+
+#==========================================*
+# Chiusura operazioni su database          *
+#------------------------------------------*
+$sth->finish()                            ;
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dbh->disconnect()                        ;
+
+#==========================================*
+# Close del file di appoggio               *
+#------------------------------------------*
+close OUTFILE                             ;

@@ -1,0 +1,106 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Prove di stampa su stampante Zebra       *
+#                                          *
+# Ad hoc ELETTRA                           *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/09/2023 *
+#   Ultima revisione:   wip del 13/09/2023 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Parametri in input : Si/no stampa        *
+#                                          *
+#==========================================*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use PostScript::Simple                    ;
+
+#==========================================*
+# Variabili in input                       *
+#------------------------------------------*
+my $snx_stp = uc($ARGV[0])               ;
+
+if (!$ARGV[0])
+{ exit();}
+
+if ($snx_stp ne "S" && $snx_stp ne "N")
+{ exit();}
+
+
+
+
+#------------------------------------------*
+# Codice stampante                         *
+#------------------------------------------*
+my $cod_stp = "zebra_1"                    ;
+
+#==========================================*
+# Preparazione pagina                      *
+#------------------------------------------*
+my $ps = new PostScript::Simple::(colour => 1,
+                               landscape => 0,
+                                   units => "bp",
+                                   xsize => 282,
+                                   ysize => 430,                                     
+                                     eps => 0);
+
+#==========================================*
+# Percorsi file                            *
+#------------------------------------------*
+my $pth_tmp = "/abd/spl/"                 ;
+my $out_stp = "/abd/spl/zebra.ps"         ;
+my $out_pdf = "/abd/spl/zebra.pdf"        ;
+
+#==========================================*
+# Trattamento stampa                       *
+#------------------------------------------*
+
+
+
+^XA
+^PW366
+^CI28
+^RW24,24,A2
+^FS
+^RS8,B10,200,3,E
+^FS
+^RB96,8,3,3,24,20,38
+^FS
+^RFW,E
+^FD48,0,5,6438092,0,#Serial#
+^FS
+^FN3^RFR,H
+^FS
+^HV3
+^FT8,24^A0N,26,26^FD#ProductCode#
+^FS
+^FO8,36^A0N,26,26^FB300,10,,100^FD#ProductName#
+^FS
+^FT8,105^A0N,26,26^FD#Quantity#
+^FS
+^FT130,105^A0N,26,26^FD#UnitOfQuantity#
+^FS
+^FT8,128^A0N,26,26^FDASK.QA
+^FS
+^FT134,128^A0N,26,26^FD#Serial#
+^FS
+^XZ
+
+
+if ($snx_stp eq "N")
+{ exit();}
+system("cat $out_pdf | lpr -P$cod_stp")   ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+

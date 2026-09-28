@@ -1,0 +1,1534 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per importare le fatture     *
+# fornitori in formato 'xml' o 'p7m' con   *
+# aggiornamento del database e creazione   *
+# della versione 'html' del file           *
+#                                          *
+# Nome del modulo: t_xml_for_imp           *
+#                                          *
+# N.B.: Utilizzato da 'pscf8000'           *
+#                                          *
+# NOTA IMPORTANTE : le 'testate' conten-   *
+#                   gono l'estensione      *
+#                   'p7m' mentre le        *
+#                   'righe' no!!!          *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 19/04/2021 *
+#   Ultima revisione:   wip del 21/02/2025 *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input       : - codice azienda        *
+#                                          *
+# (Configurazione: - 't_xml_for.ini'       *
+#                  - 'dtb.ini')            *
+#                                          *
+# (LOG           : - 't_xml_for_imp.log'   *
+#                                          *
+# ---------------------------------------- *
+# Per creare il database                   *
+#                                          *
+# CREATE TABLE `{AZI}`.`xml_for` (         *
+# `nam_xml` VARCHAR( 40 ) NOT NULL ,       *
+# `tip_doc` VARCHAR( 20 ) NOT NULL ,       *
+# `num_doc` VARCHAR( 40 ) NOT NULL ,       *
+# `dat_doc` DATE NOT NULL ,                *
+# `ide_fis` VARCHAR( 20 ) NOT NULL ,       *
+# `den_azi` VARCHAR( 80 ) NOT NULL ,       *
+# `att_pth` VARCHAR( 80 ) NOT NULL ,       *
+# `dat_imp` DATETIME NOT NULL ,            *
+# `dat_sql` DATETIME NOT NULL ,            *
+# `dat_tgm` DATETIME NOT NULL ,            *
+# PRIMARY KEY ( `nam_xml` )                *
+# ) ENGINE = MYISAM;                       *
+#                                          *
+# (Utilizzato da 't_xml_for_wrt')          *
+#                                          *
+# CREATE TABLE `{AZI}`.`xml_frr` (         *
+# `nam_xml` varchar(40) NOT NULL,          *
+# `tip_rec` tinytext NOT NULL,             *
+# `tip_ele` varchar(5) NOT NULL,           *
+# `ctr_ele` varchar(5) NOT NULL,           *
+# `pmt_ele` varchar(60) NOT NULL,          *
+# `val_ele` mediumtext NOT NULL,           *
+# `dat_imp` datetime NOT NULL              *
+# ) ENGINE = MYISAM;                       *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use DBI()                                 ;
+use XML::Simple                           ;
+use File::Basename                        ;
+use File::Copy                            ;
+use Unicode::Normalize                    ;
+use MIME::Base64 qw(decode_base64)        ;
+use XML::LibXSLT                          ;
+use Archive::Zip                          ;
+
+#==========================================*
+# Valori in input                          *
+#------------------------------------------*
+my $cod_azi = shift                       ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+if (!$cod_azi || $cod_azi eq "-help")
+{
+    my $sys_clr = "clear"                 ;
+    system($sys_clr)                      ;
+    print "\n"
+        . "Uso :"
+        . "\n"
+        . "> t_xml_for_imp {AZI} "
+        . "\n"
+        . "\n"
+        . "(C) Copyright - wip - 3 giugno 2021"
+        . "\n"
+        . "\n"                            ;
+    exit()                                ;
+}
+
+#==========================================*
+# Variabili definite                       *
+#------------------------------------------*
+#------------------------------------------*
+# Directory di configurazione base         *
+#------------------------------------------*
+my $cfg_bas = "/abd/asc/cfg/"
+            . "t_xml_for.ini"             ;
+#
+my %cnf_ele = do $cfg_bas                 ;
+my $pth_scf = $cnf_ele{pth_scf}           ;
+my $pth_bas = $cnf_ele{pth_bas}           ;
+my $pth_tmp = $cnf_ele{pth_tmp}           ;
+my $pth_att = $cnf_ele{pth_att}           ;
+my $pth_htm = $cnf_ele{pth_htm}           ;
+my $pth_xsl = $cnf_ele{pth_xsl}           ;
+#------------------------------------------*
+# Parametri di connessione al database     *
+#------------------------------------------*
+my $dtb_azi = $cod_azi                    ;
+#
+my $cfg_dtb = "/abd/asc/cfg/dtb.ini"      ;
+#
+my %cnf_dtb = do $cfg_dtb                 ;
+my $dtb_hst = $cnf_dtb{dtb_hst}           ;
+my $dtb_usr = $cnf_dtb{dtb_usr}           ;
+my $dtb_pwd = $cnf_dtb{dtb_pwd}           ;
+my $dtb_tbt = $cnf_dtb{dtb_tbt}           ;
+#
+my $dtb_fnt = "fnt"                       ;
+#------------------------------------------*
+# Directory per lettura dei file           *
+#------------------------------------------*
+my $dir_xml = $pth_bas
+            . $cod_azi
+            . "/"
+            . $pth_scf                    ;
+#------------------------------------------*
+# Directory per Attachement                *
+#------------------------------------------*
+my $dir_att = $pth_bas
+            . $cod_azi
+            . "/"
+            . $pth_att                    ;
+#------------------------------------------*
+# Directory per file 'index.html'          *
+#------------------------------------------*
+my $dir_ind = $pth_bas
+            . $cod_azi
+            . "/"
+            . $pth_htm
+            . "scf800.html"               ;
+#------------------------------------------*
+# Normalizzazioni                          *
+#------------------------------------------*
+my $new_pth = ""                          ;
+my $old_pth = ""                          ;
+#------------------------------------------*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+$theTime = &sys_tim                       ;
+#------------------------------------------*
+# Data di sistema - Giorno                 *
+#------------------------------------------*
+my $gio_lct = (localtime)[3]              ;
+my $gio_wrk = int($gio_lct)               ;
+my $gio_fmt = sprintf ("%02d",$gio_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Mese                   *
+#------------------------------------------*
+my $mes_lct = (localtime)[4]              ;
+my $mes_wrk = int($mes_lct)               ;
+   $mes_wrk = $mes_wrk + 1                ;
+my $mes_fmt = sprintf ("%02d",$mes_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Anno                   *
+#------------------------------------------*
+my $ann_lct = (localtime)[5]              ;
+my $ann_wrk = int($ann_lct)               ;
+   $ann_wrk = $ann_wrk + 1900             ;
+my $ann_fmt = sprintf ("%04d",$ann_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Ora                    *
+#------------------------------------------*
+my $ora_lct = (localtime)[2]              ;
+my $ora_wrk = int($ora_lct)               ;
+my $ora_fmt = sprintf ("%02d",$ora_wrk)   ;
+#------------------------------------------*
+# Data di sistema - Minuti                 *
+#------------------------------------------*
+my $min_lct = (localtime)[1]              ;
+my $min_wrk = int($min_lct)               ;
+my $min_fmt = sprintf ("%02d",$min_wrk)   ;
+
+#------------------------------------------*
+# Normalizzazione contatore righe html     *
+#------------------------------------------*
+my $ctr_ind = 0                           ;
+
+#==========================================*
+# Open file di 'index.html'                *
+#------------------------------------------*
+&opn_ind                                  ;
+
+#==========================================*
+# DEBUG                                    *
+#------------------------------------------*
+# print "dir_xml = " . $dir_xml . "\n"    ;
+# print "dir_new = " . $pth_tmp . "\n"    ;
+# exit()                                  ;
+            
+#==========================================*
+# Connessione database                     *
+#------------------------------------------*
+my $dtb_con = DBI->connect("DBI:"
+                         . "mysql:database="
+                         . "$dtb_azi;"
+                         . "host=$dtb_hst",
+                                  $dtb_usr,
+                                  $dtb_pwd,
+                          {RaiseError => 1,
+                           PrintError => 0});
+
+#==========================================*
+# Open del file di LOG                     *
+#------------------------------------------*
+my $log_fil = $pth_bas
+            . 'log/t_xml_for_imp.log'     ;
+open (LOG_FIL, ">>$log_fil") or die 
+        "Impossibile aprire '$log_fil'"   ;
+
+#==========================================*
+# Ciclo di scansione cartella              *
+#------------------------------------------*
+opendir(DIR, $dir_xml)                    ;
+my @dir=grep { !/^\.+$/ } sort readdir(DIR);
+closedir(DIR)                             ;
+
+#==========================================*
+# Scansione elenco dei file                *
+#------------------------------------------*
+foreach my $fil_for (@dir)
+{
+    #--------------------------------------*
+    # Skip directory                       *
+    #--------------------------------------*
+    if(-d $fil_for)
+        { next;}                          ;
+    #--------------------------------------*
+    # Skip dei file "."                    *
+    #--------------------------------------*
+    if($fil_for eq "." || $fil_for eq "..")
+        { next;}                          ;
+    #--------------------------------------*
+    # Skip dei file che iniziano  "._"     *
+    #--------------------------------------*
+    my $sys_fil = substr($fil_for,0,2)    ;
+    if($sys_fil eq "._")
+        { next;}                          ;
+    #--------------------------------------*
+    # Se il file trattato non e' una di-   *
+    # rectory                              *
+    #--------------------------------------*
+    if (! -d $fil_for)
+    {
+        #----------------------------------*
+        # Estrazione nome file             *
+        #----------------------------------*
+       (my $fil_nam,
+        my $fil_pat,
+        my $fil_ext) = fileparse($fil_for, qr/\.[^.]*/);
+        #----------------------------------*
+        # Test se nome file duplicato se   *
+        # proveniente da ambiente MAC      *
+        #----------------------------------*
+        my $substr = "xml-1"              ;
+        if (index($fil_nam, $substr) != -1)
+        {next;}
+        #----------------------------------*
+        # Test se nome file contiene spazi *
+        #----------------------------------*
+        my $fil_wrk = $fil_nam            ;
+           $fil_wrk =~ s/^\s+|\s+$//g     ;
+        if ( $fil_nam ne $fil_wrk)
+        {next;}
+        #----------------------------------*
+        # Skip dei file NON '.xml' o 'p7m' *
+        #----------------------------------*
+        if ($fil_ext ne ".xml"
+         && $fil_ext ne ".XML"
+         && $fil_ext ne ".p7m"
+         && $fil_ext ne ".P7M")
+        {next;}                           ;
+        #----------------------------------*
+        # Verifica che non si tratti di un *
+        # file metadati                    *
+        #                                  *
+        # ___ VALUTARE ALTRE AZIONI ___    *
+        # ___ VEDI 't_xml_for_sdi'  ___    *
+        #----------------------------------*
+        my $und_scr = "_"                 ;
+        my @mat_che = $fil_nam =~ /($und_scr)/g;
+        my $und_cnt = @mat_che            ;
+        if ($und_cnt == 3){next;}         ;
+        #----------------------------------*
+        # Verifica preliminare se file gia *
+        # importato nel database           *
+        #----------------------------------*
+        my $det_sts = &det_exi($fil_for)  ;
+        if ($det_sts > 0)
+        {
+            #------------------------------*
+            # Messaggio nel LOG            *
+            #------------------------------*
+            print LOG_FIL
+                $theTime
+	         . " - File: "
+	         . $fil_for
+	         . " gia' caricato"
+                . "\n"                    ;
+            #------------------------------*
+            # Messaggio in 'Index.html'    *
+            #------------------------------*
+            &row_err("Gia' caricato!",
+                                  "-",
+                                  "-",
+                             $fil_for,
+                                   "-")   ;
+            #------------------------------*
+            # A file successivo            *
+            #------------------------------*
+            next                          ;
+        }
+        #----------------------------------*
+        # Eventuale estrazione preliminare *
+        # se estensione 'p7m'              *
+        #----------------------------------*
+        if ($fil_ext eq ".p7m" || $fil_ext eq ".P7M")
+        {
+            #------------------------------*
+            # Nuovo path                   *
+            #------------------------------*
+            $old_pth = $dir_xml
+                     . $fil_for           ;
+            $new_pth = $pth_tmp
+                     . $fil_nam           ;
+            #------------------------------*
+            # Test per file codificati in  *
+            # base64                       *
+            #                              *
+            # Attualmente si riconoscono   *
+            # dal nome file, cioe' dalla   *
+            # Partita Iva del Fornitore    *
+            #                              *
+            # ___ MIGLIORARE ___           *
+            #                              *
+            # ___ VEDI 't_b64_dec_p7m' ___ *
+            #                              *
+            #------------------------------*
+            my $skp_wrk = substr $fil_nam, 0, 13;
+            my $sys_cmd = ""              ;
+            #
+            if ($skp_wrk eq "IT03632460485" ||
+                $skp_wrk eq "IT04402180279" ||
+                $skp_wrk eq "IT12293460155" ||
+                $skp_wrk eq "IT01336610587" ||
+                $skp_wrk eq "IT02757620592" ||
+                $skp_wrk eq "IT04370040232" ||
+                $skp_wrk eq "IT03217580269")
+            {
+                #--------------------------*
+                # Comando di estrazione    *
+                # per file in Base64       *
+                #--------------------------*
+                $sys_cmd = "cat "
+                         . $old_pth
+                         . " | tr -d '\r\n' "
+                         . "| openssl base64"
+                         . " -d -A | openssl"
+                         . " cms -verify "
+                         . "-inform DER "
+                         . "-noverify -out "
+                         . $new_pth       ;
+            }
+             else
+            {
+                #--------------------------*
+                # Comando di estrazione    *
+                #--------------------------*
+                $sys_cmd = "openssl cms -verify "
+                         . "-noverify -in "
+                         . $old_pth
+                         . " -inform DER -out "
+                         . $new_pth       ;
+            }
+            #------------------------------*
+            # Esecuzione                   *
+            #------------------------------*
+            system($sys_cmd . "  >/dev/null 2>&1");
+            #------------------------------*
+            # Assegnazione nome file       *
+            #------------------------------*
+            my $fil_pth = $new_pth        ;
+        }
+         else
+        {
+            #------------------------------*
+            # Nuovo path                   *
+            #------------------------------*
+            $old_pth = $dir_xml
+                     . $fil_for           ;
+            $new_pth = $pth_tmp
+                     . $fil_nam
+                     . $fil_ext           ;
+            #------------------------------*
+            # Copia del file nella cartel- *
+            # la di lavoro                 *
+            #------------------------------*
+	     copy($old_pth, $new_pth) or print LOG_FIL
+                $theTime
+	         . " - copia del file "
+	         . $old_pth
+	         . " -> "
+	         . $new_pth
+	         . " fallita: $!"
+                . "\n"                    ;
+        }
+        
+        #----------------------------------*
+        # Check preliminare                *
+        #----------------------------------*
+        my $chk_xml = XML::Simple->new()  ;
+        my $chk_dat = eval{XMLin($new_pth)};
+        if ($@) 
+        { 
+            print LOG_FIL $new_pth
+                        . " : Errore - $@";
+            next;
+        }
+        #----------------------------------*
+        # Lettura dati singolo file        *
+        #----------------------------------*
+        my @rea_dat = ()                  ;
+           @rea_dat = &rea_doc($new_pth,
+                               $fil_nam)  ;
+        #----------------------------------*
+        # Partita Iva                      *
+        #----------------------------------*
+        my $rea_piv = $rea_dat[0]         ;
+        #----------------------------------*
+        # Tipo documento                   *
+        #----------------------------------*
+        my $rea_tdo = $rea_dat[1]         ;
+        #----------------------------------*
+        # Data documento                   *
+        #----------------------------------*
+        my $rea_ddo = $rea_dat[2]         ;
+        #----------------------------------*
+        # Numero documento                 *
+        #----------------------------------*
+        my $rea_ndo = $rea_dat[3]         ;
+        #----------------------------------*
+        # Ragione sociale                  *
+        #----------------------------------*
+        my $rea_rag = $rea_dat[4]         ;
+           $rea_rag =~ s/^\s+|\s+$//g     ;
+        #----------------------------------*
+        # Percorso Attachment eventuale    *
+        #----------------------------------*
+        my $rea_att = ""                  ;
+        if (defined $rea_dat[5] && $rea_dat[5] ne "")
+        {
+            $rea_att = $rea_dat[5]        ;
+        }
+        #----------------------------------*
+        # Scrittura su database            *
+        #----------------------------------*
+        &inp_dtb($rea_tdo,
+                 $rea_ddo,
+                 $rea_ndo,
+                 $rea_piv,
+                 $fil_for,
+                 $rea_rag,
+                 $rea_att)                ;
+        #----------------------------------*
+        # Creazione 'html' singolo file    *
+        #----------------------------------*
+        &wrt_htm($new_pth,
+                 $fil_nam,
+                 $rea_ddo,
+                 $rea_ndo,
+                 $rea_piv,
+                 $rea_rag,
+                 $rea_att)                ;
+        #----------------------------------*
+        # Estrazione anno documento        *
+        #----------------------------------*
+        my $ann_doc = substr($rea_ddo,0,4);
+        #----------------------------------*
+        # Percorso documento in base al-   *
+        # l'anno                           *
+        #----------------------------------*
+        $ann_pth = $dir_xml
+                 . $ann_doc
+                 . "/" 
+                 . $fil_for               ;
+                 
+        #----------------------------------*
+        # DEBUG                            *
+        #----------------------------------*
+#       print "old_pth = " . $old_pth . "\n"    ;
+#       print "new_pth = " . $new_pth . "\n\n"    ;
+#       print "dir_xml = " . $dir_xml . "\n"    ;
+#       print "ann_pth = " . $ann_pth . "\n"    ;
+#       print "rea_ddo = " . $rea_ddo . "\n"    ;
+#       exit()                                  ;
+
+        #----------------------------------*
+        # Privilegi                        *
+        # ___ SOPPRESSO ___                *
+        #----------------------------------*
+#       chmod(0666, $old_pth) or print LOG_FIL
+#              $theTime
+#              . " - cambio privilegi del file "
+#              . $old_pth
+#              . " fallita: $!"
+#              . "\n"                    ;
+        #----------------------------------*
+        # Rinomina del file per posizio-   *
+        # narlo nell'anno di competenza    *
+        # in base alla data del documento  *
+        #----------------------------------*
+	 rename($old_pth, $ann_pth) or print LOG_FIL
+               $theTime
+	        . " - copia del file "
+	        . $old_pth
+	        . " -> "
+	        . $ann_pth
+	        . " fallita: $!"
+               . "\n"                    ;
+                 
+    #--------------------------------------*
+    # Fine ciclo di scansione              *
+    #======================================*
+    }
+}
+
+#==========================================*
+# Disconnessione dal database              *
+#------------------------------------------*
+$dtb_con->disconnect()                    ;
+
+#==========================================*
+# Close file 'index.html'                  *
+#------------------------------------------*
+&cls_ind                                  ;
+
+#==========================================*
+# Close file di LOG                        *
+#------------------------------------------*
+close LOG_FIL                             ;
+
+#------------------------------------------*
+# Fine script                              *
+#==========================================*
+
+#==========================================*
+# SUBROUTINES                              *
+#==========================================*
+
+#==========================================*
+# Apertura file 'index.html'               *
+#------------------------------------------*
+sub opn_ind
+{
+    #--------------------------------------*
+    # Open                                 *
+    #--------------------------------------*
+    open (IND_HTM, ">$dir_ind") or die 
+        "Impossibile aprire '$dir_ind'"   ;
+    #--------------------------------------*
+    # Trattamento data di sistema          *
+    #--------------------------------------*
+    my $dat_sys = $gio_fmt
+                . "/"
+                . $mes_fmt
+                . "/"
+                . $ann_fmt                ;
+    #--------------------------------------*
+    # Intestazione 'index.html'            *
+    #--------------------------------------*
+    &wrt_ind ("<!DOCTYPE html>")          ;
+    &wrt_ind ("<head><title>DOCUMENTI "
+            . "'XML' "
+            . "RICEVUTI"
+            . "</title>")                 ;
+    #--------------------------------------*
+    # CSS generico                         *
+    #--------------------------------------*
+    &wrt_ind ("<link rel='stylesheet' "
+            . "type='text/css' "
+            . "href='../../"
+            . "tmp/ind/css/index.css'>")  ;
+    #--------------------------------------*
+    # CSS: per sort tabella                *
+    #--------------------------------------*
+    &wrt_ind ("<style>th {cursor: "
+            . "pointer;}</style>")        ;
+    &wrt_ind ("</head>")                  ;
+    #--------------------------------------*
+    # Body 'index.html'                    *
+    #--------------------------------------*
+    &wrt_ind ("<body bgcolor=#777777 "
+            . "style=color:#dddddd;"
+            . "font-size:14px;"
+            . "font-family:Arial;>")      ;
+    &wrt_ind ("<center>")                 ;
+    &wrt_ind ("<br>")                     ;
+    &wrt_ind ("<h1>Documenti 'XML' "
+            . "caricati il "
+            . $dat_sys
+            . " alle "
+            . $ora_fmt
+            . ":"
+            . $min_fmt
+            . "</h1>")                    ;
+    &wrt_ind ("<br>")                     ;
+    #--------------------------------------*
+    # Tabella 'index.html'                 *
+    #--------------------------------------*
+    &wrt_ind ("<table id='tabella' width=100% "
+            . "border='1' "
+            . "bordercolor=#CCCCCC "
+            . "cellspacing='1' "
+            . "cellpadding='2'>")         ;
+    #--------------------------------------*
+    # Intestazione tabella 'index.html'    *
+    #--------------------------------------*
+    &wrt_ind ("<tr bgcolor=#CCCCCC "
+            . "style=color:#000000;>")    ;
+    &wrt_ind ("<th>NR</th>")              ;
+    &wrt_ind ("<th>CODICE</th>")          ;
+    &wrt_ind ("<th>FORNITORE</th>")       ;
+    &wrt_ind ("<th>NUMERO</th>")          ;
+    &wrt_ind ("<th>DATA</th>")            ;
+    &wrt_ind ("<th>LINK</th>")            ;
+    &wrt_ind ("<th>ATTACHMENT</th>")      ;
+    &wrt_ind ("</tr>")                    ;
+}
+
+#==========================================*
+# Riga tabella file 'index.html'           *
+#------------------------------------------*
+sub row_ind
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $ddo_row = shift                   ;
+    my $ndo_row = shift                   ;
+    my $rdo_row = shift                   ;
+    my $piv_row = shift                   ;
+    my $pth_row = shift                   ;
+    my $att_row = shift                   ;
+    #--------------------------------------*
+    # Contatore righe emesse               *
+    #--------------------------------------*
+    $ctr_ind++                            ;
+    #--------------------------------------*
+    # Trattamento data in input            *
+    #--------------------------------------*
+    my @dat_row = split (/-/, $ddo_row)   ;
+    #
+    my $day_row = sprintf ("%02d",
+                           $dat_row[2])   ;
+    my $mon_row = sprintf ("%02d",
+                           $dat_row[1])   ;
+    my $yea_row = sprintf ("%04d",
+                           $dat_row[0])   ;
+    #
+    my $dat_wrt = $day_row
+                . "/"
+                . $mon_row
+                . "/"
+                . $yea_row               ;
+    #--------------------------------------*
+    # Trattamento filename in input        *
+    #--------------------------------------*
+    my @dir_row = split (/\//, $pth_row)  ;
+    my $nw1_row = $dir_row[6]             ;
+    my $nw2_row = $dir_row[7]             ;
+    my $new_row = "./"
+                . $nw1_row
+                . "/"
+                . $nw2_row                ;
+    #--------------------------------------*
+    # Trattamento attachment in input      *
+    #--------------------------------------*
+    my $nea_row = ""                      ;
+    if ($att_row ne "no")
+    {
+        $nea_row = "../att/"
+                 . $nw1_row
+                 . "/"
+                 . $att_row               ;
+    }
+    #--------------------------------------*
+    # Riga tabella                         *
+    #--------------------------------------*
+    &wrt_ind ("<tr align=center>")        ;
+    #--------------------------------------*
+    # Colonna progressivo                  *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $ctr_ind
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Lettura database per determinare il  *
+    # codice fornitore                     *
+    #--------------------------------------*
+    my $det_cod = &let_fnt($piv_row)      ;
+    if (!$det_cod){$det_cod = ""}         ;
+    #--------------------------------------*
+    # Colonna 'Codice'                     *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $det_cod
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'Fornitore'                  *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $rdo_row
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'Numero documento'           *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $ndo_row
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'Data documento'             *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $dat_wrt
+            . "</td>")                ;
+    #--------------------------------------*
+    # Colonna 'Link documento'             *
+    #--------------------------------------*
+    &wrt_ind ("<td align=center>"
+            . "<a href='"
+            . $new_row
+            . "' target='_blank'<p>"
+            . $nw2_row
+            . "</p></a></td>")            ;
+    #--------------------------------------*
+    # Colonna 'Link Attachment'            *
+    #--------------------------------------*
+    my $str_out = ""                      ;
+    if ($att_row eq "no")
+    {
+        $str_out = "<td>"
+                 . $att_row
+                 . "</td>"                ;
+        &wrt_ind ($str_out)               ;
+    }
+     else
+    {
+        $str_out = "<td>"
+                 . "<a href='"
+                 . $nea_row
+                 . "' target='_blank'<p>"
+                 . $att_row
+                 . "</p></a></td>"        ;
+        &wrt_ind ($str_out)               ;
+    }
+    #--------------------------------------*
+    # Riga tabella - fine                  *
+    #--------------------------------------*
+    &wrt_ind ("</tr>")                    ;
+}
+
+#==========================================*
+# Riga tabella file 'index.html' - Errori  *
+#------------------------------------------*
+sub row_err
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $er1_row = shift                   ;
+    my $er2_row = shift                   ;
+    my $er3_row = shift                   ;
+    my $er4_row = shift                   ;
+    my $er5_row = shift                   ;
+    #--------------------------------------*
+    # Contatore righe emesse               *
+    #--------------------------------------*
+    $ctr_ind++                            ;
+    #--------------------------------------*
+    # Riga tabella                         *
+    #--------------------------------------*
+    &wrt_ind ("<tr align=center>")        ;
+    #--------------------------------------*
+    # Colonna progressivo                  *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $ctr_ind
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'errore 0'                   *
+    #--------------------------------------*
+    &wrt_ind ("<td></td>")                ;
+    #--------------------------------------*
+    # Colonna 'errore 1'                   *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $er1_row
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'errore 2'                   *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $er2_row
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'errore 3'                   *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $er3_row
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'errore 4'                   *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $er4_row
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Colonna 'errore 5'                   *
+    #--------------------------------------*
+    &wrt_ind ("<td>"
+            . $er5_row
+            . "</td>")                    ;
+    #--------------------------------------*
+    # Riga tabella - fine                  *
+    #--------------------------------------*
+    &wrt_ind ("</tr>")                    ;
+}
+
+#==========================================*
+# Scrittura su file 'index.html'           *
+#------------------------------------------*
+sub wrt_ind
+{
+    #--------------------------------------*
+    # Stringa in input                     *
+    #--------------------------------------*
+    my $str_wrt = shift                   ;
+    #--------------------------------------*
+    # Scrittura                            *
+    #--------------------------------------*
+    print IND_HTM $str_wrt . "\n"         ;
+}
+
+#==========================================*
+# Apertura file 'index.html'               *
+#------------------------------------------*
+sub cls_ind
+{
+    #--------------------------------------*
+    # Chiusura 'index.html'                *
+    #--------------------------------------*
+    &wrt_ind ("</table>")                 ;
+    &wrt_ind ("<script src='../../tmp/"
+            . "ind/jsc/jquery.js'>"
+            . "</script>")                ;
+    &wrt_ind ("<script src='../../tmp/"
+            . "ind/jsc/table.js'>"
+            . "</script>")                ;
+#    &wrt_ind ("<script src='../../tmp/"
+#            . "ind/jsc/tasti.js'>"
+#            . "</script>")                ;
+    &wrt_ind ("</center>")                ;
+    &wrt_ind ("</body>")                  ;
+    &wrt_ind ("</html>")                  ;
+    #--------------------------------------*
+    # Close                                *
+    #--------------------------------------*
+    close IND_HTM                         ;
+}
+
+#==========================================*
+# Determinazione dati dal documento        *
+#------------------------------------------*
+sub rea_doc 
+{
+    #--------------------------------------*
+    # File in input                        *
+    #--------------------------------------*
+    my $pth_doc = shift                   ;
+    my $nam_doc = shift                   ;
+    #--------------------------------------*
+    # Normalizzazione contatore documenti  *
+    #--------------------------------------*
+    my $wrk_ctr = ""                      ;
+    #--------------------------------------*
+    # Test preliminare file                *
+    #--------------------------------------*
+    &tst_fil ($pth_doc)                   ;
+    #--------------------------------------*
+    # Caricamento file                     *
+    #--------------------------------------*
+    my $xml = XML::Simple->new()          ;
+    my $data = XMLin($pth_doc)            ;
+    #--------------------------------------*
+    # Partita Iva Cedente Prestatore       *
+    #            (Fornitore)               *
+    #--------------------------------------*
+    my $pmt_doc = $data->{FatturaElettronicaHeader}
+                       ->{CedentePrestatore}
+                       ->{DatiAnagrafici}
+                       ->{IdFiscaleIVA}   ;
+    my $prt_iva = $pmt_doc->{IdCodice}    ;
+    #--------------------------------------*
+    # Ragione sociale cedente              *
+    #--------------------------------------*
+    $pmt_doc = $data->{FatturaElettronicaHeader}
+                    ->{CedentePrestatore}
+                    ->{DatiAnagrafici}
+                    ->{Anagrafica}        ;
+    my $rag_soc = $pmt_doc->{Denominazione};
+    #
+    if($rag_soc)
+    {
+        $rag_soc = &pul_str($rag_soc)     ;
+    }
+     else
+    {
+        $rag_soc = "???"                  ;
+    }
+    #--------------------------------------*
+    # Cognome cedente (se persona fisica)  *
+    #--------------------------------------*
+    $pmt_doc = $data->{FatturaElettronicaHeader}
+                       ->{CedentePrestatore}
+                       ->{DatiAnagrafici}
+                       ->{Anagrafica}     ;
+    my $cog_nom = $pmt_doc->{Cognome}     ;
+    #
+    if($cog_nom)
+    {
+        $cog_nom = &pul_str($cog_nom)     ;
+    }
+     else
+    {
+        $cog_nom = "???"                  ;
+    }
+    
+    #--------------------------------------*
+    # Nome cedente (se persona fisica)     *
+    #--------------------------------------*
+    $pmt_doc = $data->{FatturaElettronicaHeader}
+                       ->{CedentePrestatore}
+                       ->{DatiAnagrafici}
+                       ->{Anagrafica}     ;
+    my $nom_nom = $pmt_doc->{Nome}        ;
+    #
+    if($nom_nom)
+    {
+        $nom_nom = &pul_str($nom_nom)     ;
+    }
+     else
+    {
+        $nom_nom = "???"                  ;
+    }
+    #--------------------------------------*
+    # Assemblaggio Nome e Cognome          *
+    #--------------------------------------*
+    my $nom_cog = ""                      ;
+    if($cog_nom && $nom_nom)
+    {
+        $nom_cog = $nom_nom
+                 . " "
+                 . $cog_nom               ;
+    }
+    #--------------------------------------*
+    # Utilizzare o l'uno o l'altro         *
+    #--------------------------------------*
+    if($nom_cog && $rag_soc eq "???")
+    {
+        $rag_soc = $nom_cog               ;
+    }
+    #--------------------------------------*
+    # Tipo documento                       *
+    #--------------------------------------*
+       $pmt_doc = $data->{FatturaElettronicaBody}
+                       ->{DatiGenerali}
+                       ->{DatiGeneraliDocumento};
+    my $tip_doc = $pmt_doc->{TipoDocumento};
+    #--------------------------------------*
+    # Data documento                       *
+    #--------------------------------------*
+       $pmt_doc = $data->{FatturaElettronicaBody}
+                       ->{DatiGenerali}
+                       ->{DatiGeneraliDocumento};
+    my $dat_doc = $pmt_doc->{Data}        ;
+    #--------------------------------------*
+    # Numero documento                     *
+    #--------------------------------------*
+       $pmt_doc = $data->{FatturaElettronicaBody}
+                       ->{DatiGenerali}
+                       ->{DatiGeneraliDocumento};
+    my $num_doc = $pmt_doc->{Numero}      ;
+    
+    #======================================*
+    # Test se presenti allegati            *
+    #--------------------------------------*
+    my $att_nom = ""                      ;
+    my $att_per = ""                      ;
+    #--------------------------------------*
+    # Test                                 *
+    #--------------------------------------*
+    if (! ref($data->{FatturaElettronicaBody}
+                   ->{Allegati}))
+    {
+        #----------------------------------*
+        # Se nessun Allegato               *
+        #----------------------------------*
+        $att_nom = ""                     ;
+        $att_per = ""                     ;
+    }
+     else
+    {
+        #----------------------------------*
+        # Se Allegati documento            *
+        #----------------------------------*
+        #----------------------------------*
+        # Contatore per piu' allegati      *
+        #----------------------------------*
+        my $loc_ctr = 0                   ;
+        #----------------------------------*
+        # Test se uno o piu' allegati      *
+        #----------------------------------*
+        if (ref($data->{FatturaElettronicaBody}
+                     ->{Allegati}) =~ /ARRAY/)
+        {
+            #------------------------------*
+            # Se piu' righe di allegato    *
+            #------------------------------*
+            foreach $a (@{$data->{FatturaElettronicaBody}
+                               ->{Allegati}})
+            {
+            #------------------------------*
+            # Tipo allegato                *
+            #------------------------------*
+            $wrk_fmt = $a->{FormatoAttachment};
+            #------------------------------*
+            # Contatore elementi           *
+            #------------------------------*
+            $loc_ctr++                    ;
+            $wrk_ctr = sprintf "%03d", $loc_ctr;
+            #------------------------------*
+            # Nome e percorso attachment   *
+            #------------------------------*
+            ($att_nom,
+             $att_per) = &det_att($pth_doc, 
+                                  $wrk_ctr,
+                                  $wrk_fmt,
+                                  $dat_doc);
+            #------------------------------*
+            # Estrazione Attachment        *
+            #------------------------------*
+            $b64_fil = $a->{Attachment}   ;
+            #------------------------------*
+            # Apertura file attachment     *
+            #------------------------------*
+            open (ATTACH, ">$att_per") or print LOG_FIL
+                $theTime
+	         . " - impossibile aprire il file "
+                . $att_per
+                . "\n"                    ;
+            binmode ATTACH                ;
+            #------------------------------*
+            # Scrittura file attachment    *
+            #------------------------------*
+            print ATTACH decode_base64($b64_fil);
+            #------------------------------*
+            # Chiusura file attachment     *
+            #------------------------------*
+            close ATTACH                  ;
+            }
+        }
+         else
+        {
+            #------------------------------*
+            # Se una sola riga di allegato *
+            #------------------------------*
+            #------------------------------*
+            # Tipo allegato                *
+            #------------------------------*
+            $wrk_fmt = $data->{FatturaElettronicaBody}
+                            ->{Allegati}
+                            ->{FormatoAttachment};
+            #------------------------------*
+            # Contatore elementi           *
+            #------------------------------*
+            $wrk_ctr = ""                 ;
+            #------------------------------*
+            # Nome e percorso attachment   *
+            #------------------------------*
+            ($att_nom,
+             $att_per) = &det_att($pth_doc, 
+                                  $wrk_ctr,
+                                  $wrk_fmt,
+                                  $dat_doc);
+            #------------------------------*
+            # Estrazione Attachment        *
+            #------------------------------*
+            $b64_fil = $data->{FatturaElettronicaBody}
+                            ->{Allegati}
+                            ->{Attachment};
+            #------------------------------*
+            # Apertura file attachment     *
+            #------------------------------*
+            open (ATTACH, ">$att_per") or print LOG_FIL
+                $theTime
+	         . " - impossibile aprire il file "
+                . $att_per
+                . "\n"                    ;
+            binmode ATTACH                ;
+            #------------------------------*
+            # Scrittura file attachment    *
+            #------------------------------*
+            print ATTACH decode_base64($b64_fil);
+            #------------------------------*
+            # Chiusura file attachment     *
+            #------------------------------*
+            close ATTACH                  ;
+        }
+    }
+
+    #======================================*
+    # Valori restituiti                    *
+    #--------------------------------------*
+    #--------------------------------------*
+    # Contatore elementi                   *
+    #                                      *
+    # N.B: attualmente al posto del nome   *
+    #      allegato                        *
+    #                                      *
+    # ___ NO: RIVEDERE ___                 *
+    #--------------------------------------*
+    if (!$wrk_ctr)
+    {
+        $wrk_ctr = ""                    ;
+    }
+    #--------------------------------------*
+    # Nome allegato                        *
+    #--------------------------------------*
+    if (!$att_nom or $att_nom eq "")
+    {
+        $att_nom = "no"                  ;
+    }
+    #--------------------------------------*
+    # Push elementi letti                  *
+    #--------------------------------------*
+    my @val_dat                           ;
+    push (@val_dat, $prt_iva)             ;
+    push (@val_dat, $tip_doc)             ;
+    push (@val_dat, $dat_doc)             ;
+    push (@val_dat, $num_doc)             ;
+    push (@val_dat, $rag_soc)             ;
+    push (@val_dat, $att_nom)             ;
+    return @val_dat                       ;
+    #--------------------------------------*
+    # Fine subroutine 'rea_doc'            *
+    #======================================*
+}
+
+#==========================================*
+# Determinazione se file gia' caricato     *
+#------------------------------------------*
+sub det_exi
+{
+    #--------------------------------------*
+    # Nome file in input                   *
+    #--------------------------------------*
+    my $nam_fil = shift                   ;
+    #--------------------------------------*
+    # Lettura database                     *
+    #--------------------------------------*
+    my $sel_dtb = "SELECT nam_xml FROM "
+                . $dtb_tbt
+                . " WHERE nam_xml = '"
+                . $nam_fil
+                . "'"                     ;
+    my $sth_dtb = $dtb_con->prepare($sel_dtb);
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth_dtb->execute()                   ;
+    #--------------------------------------*
+    # Test su esito lettura                *
+    #--------------------------------------*
+    my $row_det = $sth_dtb->rows          ;
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $row_det                       ;
+}
+
+#==========================================*
+# Scrittura record in tabella              *
+#------------------------------------------*
+sub inp_dtb
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $inp_tdo = shift                   ;
+    my $inp_ddo = shift                   ;
+    my $inp_ndo = shift                   ;
+    my $inp_piv = shift                   ;
+    my $inp_nam = shift                   ;
+    my $inp_rag = shift                   ;
+    my $inp_att = shift                   ;
+    #--------------------------------------*
+    # Normalizzazione eventuale attachment *
+    #--------------------------------------*
+    if (!$inp_att){$inp_att = "."}        ;
+    #--------------------------------------*
+    # Eliminazione eventuali ' o "         *
+    #--------------------------------------*
+       $inp_ndo = $dtb_con->quote($inp_ndo);
+       $inp_rag = $dtb_con->quote($inp_rag);
+    #--------------------------------------*
+    # Scrittura                            *
+    #--------------------------------------*
+    my $ins_dat = "INSERT INTO "
+                . $dtb_tbt
+                . " (nam_xml, "
+                . "tip_doc, "
+                . "num_doc, "
+                . "dat_doc, "
+                . "ide_fis, "
+                . "den_azi, "
+                . "att_pth, "
+                . "dat_imp, "
+                . "dat_sql, "
+                . "dat_tgm) "
+                . " VALUES ('"
+                . $inp_nam
+                . "', '"
+                . $inp_tdo
+                . "', "
+                . $inp_ndo
+                . ", '"
+                . $inp_ddo
+                . "', '"
+                . $inp_piv
+                . "', "
+                . $inp_rag
+                . ", '"
+                . $inp_att
+                . "', NOW(),0,0)"         ;
+    my $sth_dtb = $dtb_con->prepare($ins_dat);
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth_dtb->execute()                   ;
+    #--------------------------------------*
+    # Chiusura operazioni su database      *
+    #--------------------------------------*
+    $sth_dtb->finish()                    ;
+}
+
+#==========================================*
+# Percorso file attachment                 *
+#------------------------------------------*
+sub det_att
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $inp_fil = shift                   ;
+    my $inp_ctr = shift                   ;
+    my $inp_fmt = shift                   ;
+    my $inp_dat = shift                   ;
+    #--------------------------------------*
+    # Estrazione anno documento            *
+    #--------------------------------------*
+    my $inp_ann = substr($inp_dat,0,4)    ;
+    #--------------------------------------*
+    # Normalizzazione formato              *
+    #--------------------------------------*
+    if (!$inp_fmt)
+    {
+        $inp_fmt = "pdf"                  ;
+    }
+    if ($inp_fmt eq "")
+    {
+        $inp_fmt = "pdf"                  ;
+    }
+    $inp_fmt = lc $inp_fmt                ;
+    #--------------------------------------*
+    # Estrazione nome file                 *
+    #--------------------------------------*
+    (my $wrk_nam,
+     my $wrk_pat,
+     my $wrk_ext) = fileparse($inp_fil, qr/\.[^.]*/);
+    #--------------------------------------*
+    # Eventuale contatore                  *
+    #--------------------------------------*
+    my $wrk_new = ""                      ;
+    if ($inp_ctr ne "000" && $inp_ctr ne "")
+    {
+        $wrk_new = $wrk_nam
+                 . "."
+                 . $inp_ctr               ;
+    }
+     else
+    {
+        $wrk_new = $wrk_nam               ;
+    }
+    #--------------------------------------*
+    # Nome file attachment                 *
+    #--------------------------------------*
+    $nom_att = $wrk_new
+             . "."
+             . $inp_fmt                   ;
+    #--------------------------------------*
+    # Percorso attachment                  *
+    #--------------------------------------*
+    my $per_att = ""                      ;
+    $per_att = $dir_att
+             . $inp_ann
+             . "/"
+             . $nom_att                   ;
+
+    #======================================*
+    # DEBUG                                *
+    #--------------------------------------*
+#    print "inp_dat = " . $inp_dat . "\n"    ;
+#    print "inp_ctr = " . $inp_ctr . "\n"    ;
+#    print "inp_fmt = " . $inp_fmt . "\n"    ;
+#    print "inp_dat = " . $inp_dat . "\n\n"    ;
+#    print "dir_att = " . $dir_att . "\n\n"    ;
+#    print "nom_att = " . $nom_att . "\n"    ;
+#    print "per_att = " . $per_att . "\n"    ;
+#    exit()                                  ;
+
+    #--------------------------------------*
+    # Valori restituiti                    *
+    #======================================*
+    return $nom_att, $per_att             ;
+}
+
+#==========================================*
+# Pulizia stringhe                         *
+#------------------------------------------*
+sub pul_str
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $wrk_str = shift                   ;
+    #--------------------------------------*
+    # Pulizia caratteri accentati          *
+    #--------------------------------------*
+    $wrk_str = NFKD($wrk_str)             ;
+    $wrk_str =~ s/\p{NonspacingMark}//g   ;
+    #--------------------------------------*
+    # Eliminazione eventuali caratteri     *
+    # strani                               *
+    #--------------------------------------*
+    $wrk_str=~s/[^\x00-\x7f]//g           ;
+    #--------------------------------------*
+    # Eliminazione spazi superflui valore  *
+    #--------------------------------------*
+    $wrk_str =~ s/^\s+|\s+$//g            ;
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $wrk_str                       ;
+}
+
+#==========================================*
+# Test preliminare file                    *
+#------------------------------------------*
+sub tst_fil
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $inp_fil = shift                   ;
+
+    my $xml = new XML::Simple(ForceArray=>1,
+                              'KeyAttr' =>'image');
+    #--------------------------------------*
+    # Primo controllo                      *
+    #--------------------------------------*
+    my $tst_dat = eval { $xml->XMLin($inp_fil) };
+    #--------------------------------------*
+    # Tentativo di riparazione errore      *
+    #--------------------------------------*
+    if ($@)
+    {
+        $inp_fil =~ s/\?\/?(desc|en|es|de|fl)>/<\/$1>/g;
+        $tst_dat = eval { $xml->XMLin($inp_fil) };
+        if ($@) 
+        {
+            print LOG_FIL "Errori in lettura : "
+                        . $inp_fil
+                        . "\n"
+                        . "- "
+                        . $@
+                        . "\n"            ;
+        }
+    }
+}
+
+#==========================================*
+# Scrittura 'html' documento               *
+#------------------------------------------*
+sub wrt_htm 
+{
+    #--------------------------------------*
+    # Valori in input                      *
+    #--------------------------------------*
+    my $pth_inp = shift                   ;
+    my $fil_inp = shift                   ;
+    my $ddo_inp = shift                   ;
+    my $ndo_inp = shift                   ;
+    my $piv_inp = shift                   ;
+    my $rdo_inp = shift                   ;
+    my $att_inp = shift                   ;
+    #--------------------------------------*
+    # Estrazione anno documento            *
+    #--------------------------------------*
+    my $ann_inp = substr($ddo_inp,0,4)    ;
+    #--------------------------------------*
+    # Estrazione nome file                 *
+    #--------------------------------------*
+    (my $wrk_nam,
+     my $wrk_pat,
+     my $wrk_ext) = fileparse($fil_inp, qr/\.[^.]*/);
+    #--------------------------------------*
+    # Pathname nuovo 'html'                *
+    #--------------------------------------*
+    my $htm_out = $pth_bas
+                . $cod_azi
+                . "/"
+                . $pth_htm
+                . $ann_inp
+                . "/"
+                . $wrk_nam
+                . ".html"                 ;
+    #--------------------------------------*
+    # Creazione 'html'                     *
+    #--------------------------------------*
+    my $new_xsl = XML::LibXSLT->new       ;
+    my $new_htm = $new_xsl->parse_stylesheet_file($pth_xsl);
+    my $res_htm = $new_htm->transform_file($pth_inp);
+       $new_htm->output_file($res_htm, $htm_out);
+    #--------------------------------------*
+    # Aggiornamento pagina 'index.html'    *
+    #--------------------------------------*
+    &row_ind($ddo_inp,
+             $ndo_inp,
+             $rdo_inp,
+             $piv_inp,
+             $htm_out,
+             $att_inp)                     ;
+}
+
+#==========================================*
+# Determinazione codice fornitore          *
+#------------------------------------------*
+sub let_fnt
+{
+    #--------------------------------------*
+    # Partita Iva fornitore in input       *
+    #--------------------------------------*
+    my $piv_fnt = shift                   ;
+    #--------------------------------------*
+    # Lettura database                     *
+    #--------------------------------------*
+    my $sel_dtb = "SELECT cod_fnt FROM "
+                . $dtb_fnt
+                . " WHERE "
+                . "prt_iva = '"
+                . $piv_fnt
+                . "' LIMIT 1 "            ;
+    #--------------------------------------*
+    # Preparazione                         *
+    #--------------------------------------*
+    my $sth_dtb = $dtb_con->prepare($sel_dtb);
+    #--------------------------------------*
+    # Esecuzione                           *
+    #--------------------------------------*
+    $sth_dtb->execute()                   ;
+    #--------------------------------------*
+    # Test su esito lettura                *
+    #--------------------------------------*
+    my $row_val = $sth_dtb->fetchrow_array;    
+    #--------------------------------------*
+    # Valore restituito                    *
+    #======================================*
+    return $row_val                       ;
+}
+
+#==========================================*
+# Data di sistema per LOG                  *
+#------------------------------------------*
+sub sys_tim 
+{
+    #--------------------------------------*
+    # Data di sistema                      *
+    #--------------------------------------*
+    my @months   = qw(Gen Feb Mar Apr Mag Giu Lug Ago Set Ott Nov Dic);
+    my @weekDays = qw(Dom Lun Mar Mer Gio Ven Sab Dom);
+    my ($second,
+        $minute,
+          $hour,
+    $dayOfMonth,
+         $month,
+    $yearOffset,
+     $dayOfWeek,
+     $dayOfYear,
+$daylightSavings) = localtime()           ;
+     my $year = 1900 + $yearOffset        ;
+     $sysTime = "$hour:$minute:$second, "
+              . "$weekDays[$dayOfWeek] "
+              . "$months[$month] "
+              . "$dayOfMonth, $year"      ;
+    return $sysTime                       ;
+}
+

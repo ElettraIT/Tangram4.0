@@ -1,0 +1,28 @@
+#!/usr/bin/perl -w
+# 2. Invio di posta funzionante con : Perl
+
+use strict;
+use warnings;
+use Mail::Sendmail;
+use Net::SMTP::SSL;
+
+my %mail = (
+From=> 'zatt@zatti.it',
+To=> 'dkb@dkb.it',
+# Cc will appear in the header. (Bcc will not)
+Subject => 'Messaggio di prova da Tangram',
+'X-Mailer' => "Mail::Sendmail version $Mail::Sendmail::VERSION",
+);
+
+$mail{Smtp} = Net::SMTP::SSL->new("smtp.zatti.it", Port=> 465, Debug=>1);
+$mail{auth} = {user=>'zatti@zatti.it', password=>"chopper1957", required=>1 };
+$mail{'X-custom'} = 'My custom additionnal header';
+$mail{Message} = "Questo e' solo un testo di prova";
+# cheat on the date:
+$mail{Date} = Mail::Sendmail::time_to_date( time() - 86400 );
+if (sendmail %mail) { print "Mail sent OK.\n" }
+else { print "Error sending mail: $Mail::Sendmail::error \n" }
+
+print "\n\$Mail::Sendmail::log says:\n", $Mail::Sendmail::log;
+
+

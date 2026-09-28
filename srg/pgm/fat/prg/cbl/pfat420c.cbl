@@ -8,7 +8,7 @@
       *                                   Fase:    fat420              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 27/06/05    *
-      *                       Ultima revisione:    NdK del 22/02/22    *
+      *                       Ultima revisione:    NdK del 28/09/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -21,6 +21,9 @@
       *                    mente creazione della distinta in formato   *
       *                    'html' per la consultazione tramite il file *
       *                    'index.html'                                *
+      *                                                                *
+      *                    A fine generazione, viene preparato il file *
+      *                    'zip' che contiene tutti i file XML         *
       *                                                                *
       *================================================================*
 
@@ -347,6 +350,10 @@
       *    * Records logici                                            *
       *    *-----------------------------------------------------------*
       *        *-------------------------------------------------------*
+      *        * [ada]                                                 *
+      *        *-------------------------------------------------------*
+           copy      "pgm/azi/fls/rec/rfada"                          .
+      *        *-------------------------------------------------------*
       *        * [ddx]                                                 *
       *        *-------------------------------------------------------*
            copy      "pgm/fat/fls/rec/rfddx"                          .
@@ -364,11 +371,12 @@
       *    *-----------------------------------------------------------*
        01  f-xxx.
            05  f-xxx-ann                  pic  x(04)                  .
-           05  f-xxx-dfp                  pic  x(13)                  .
+           05  f-xxx-dfp                  pic  x(14)                  .
            05  f-xxx-ppb                  pic  x(40)                  .
            05  f-xxx-pat                  pic  x(80)                  .
            05  f-xxx-fln                  pic  x(50)                  .
            05  f-xxx-fla                  pic  x(50)                  .
+           05  f-xxx-ptc                  pic  x(17)                  .
 
       *    *===========================================================*
       *    * Work-area richieste per stampa serie 'fat420'             *
@@ -397,24 +405,6 @@
                10  filler                 pic  x(01)                  .
 
       *    *===========================================================*
-      *    * Work per subroutines di Let                               *
-      *    *-----------------------------------------------------------*
-       01  w-let.
-      *        *-------------------------------------------------------*
-      *        * Work per Let su archivio [dcc]                        *
-      *        *-------------------------------------------------------*
-           05  w-let-arc-dcc.
-               10  w-let-arc-dcc-flg      pic  x(01)                  .
-               10  w-let-arc-dcc-tle      pic  x(01)                  .
-               10  w-let-arc-dcc-cod      pic  9(07)                  .
-               10  w-let-arc-dcc-dpz      pic  x(04)                  .
-               10  w-let-arc-dcc-rag      pic  x(40)                  .
-               10  w-let-arc-dcc-via      pic  x(40)                  .
-               10  w-let-arc-dcc-loc      pic  x(40)                  .
-               10  w-let-arc-dcc-naz      pic  x(03)                  .
-               10  w-let-arc-dcc-cpf      pic  x(15)                  .
-
-      *    *===========================================================*
       *    * Work per subroutines di Det                               *
       *    *-----------------------------------------------------------*
        01  w-det.
@@ -435,6 +425,19 @@
                10  w-det-sec-att-ctr      pic  9(02)                  .
                10  w-det-sec-att-max      pic  9(02) value 9          .
       *        *-------------------------------------------------------*
+      *        * Work per Det codice fiscale azienda                   *
+      *        *-------------------------------------------------------*
+           05  w-det-cfi-azi.
+               10  w-det-det-cfi-azi      pic  x(16)                  .
+      *        *-------------------------------------------------------*
+      *        * Work per Det di ridefinizione protocollo distinta     *
+      *        *-------------------------------------------------------*
+           05  w-det-prt-dst.
+               10  w-det-prt-dst-num      pic  x(09)                  .
+               10  w-det-prt-dst-ann      pic  x(04)                  .
+               10  w-det-prt-dst-san      pic  x(01)                  .
+               10  w-det-prt-dst-dat      pic  9(07)                  .
+      *        *-------------------------------------------------------*
       *        * Work per Det file 'html'                              *
       *        *-------------------------------------------------------*
            05  w-det-fil-htm.
@@ -444,6 +447,47 @@
                10  w-det-fil-htm-pth      pic  x(80)                  .
                10  w-det-fil-htm-tag.
                    15  filler occurs 132  pic  x(01)                  .
+
+      *    *===========================================================*
+      *    * Work per subroutines di Let                               *
+      *    *-----------------------------------------------------------*
+       01  w-let.
+      *        *-------------------------------------------------------*
+      *        * Work per Let su archivio [dcc]                        *
+      *        *-------------------------------------------------------*
+           05  w-let-arc-dcc.
+               10  w-let-arc-dcc-flg      pic  x(01)                  .
+               10  w-let-arc-dcc-tle      pic  x(01)                  .
+               10  w-let-arc-dcc-cod      pic  9(07)                  .
+               10  w-let-arc-dcc-dpz      pic  x(04)                  .
+               10  w-let-arc-dcc-rag      pic  x(40)                  .
+               10  w-let-arc-dcc-via      pic  x(40)                  .
+               10  w-let-arc-dcc-loc      pic  x(40)                  .
+               10  w-let-arc-dcc-naz      pic  x(03)                  .
+               10  w-let-arc-dcc-cpf      pic  x(15)                  .
+
+      *    *===========================================================*
+      *    * Work per manipolazione di valori binari                   *
+      *    *-----------------------------------------------------------*
+       01  w-bin.
+      *        *-------------------------------------------------------*
+      *        * Indice per selezione di w-bin-byt                     *
+      *        *-------------------------------------------------------*
+           05  w-bin-inx                  pic  9(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Valore numerico da 000 a 255                          *
+      *        *-------------------------------------------------------*
+           05  w-bin-num                  pic s9(04)       comp-1     .
+           05  w-bin-nur redefines
+               w-bin-num.
+      *            *---------------------------------------------------*
+      *            * Byte corrispondente al valore numerico            *
+      *            *---------------------------------------------------*
+               10  w-bin-byt occurs 2     pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Comodi per calcolo                                    *
+      *        *-------------------------------------------------------*
+           05  w-bin-wrk                  pic  9(04)                  .
 
       *    *===========================================================*
       *    * Area di comunicazione per generazione fatture 'XML'       *
@@ -1350,6 +1394,7 @@
            move      s-num                to   c-cdc                  .
            move      s-adx (01 : 20)      to   c-des                  .
            move      s-adx (21 : 20)      to   c-din                  .
+       pre-exe-pgm-100.
       *              *-------------------------------------------------*
       *              * Lettura personalizzazioni                       *
       *              *-------------------------------------------------*
@@ -1357,6 +1402,11 @@
       *                  * Numero secondi di attesa per preparazione   *
       *                  *---------------------------------------------*
            perform   prs-sec-att-000      thru prs-sec-att-999        .
+       pre-exe-pgm-200.
+      *              *-------------------------------------------------*
+      *              * Determinazione Codice Fiscale Azienda           *
+      *              *-------------------------------------------------*
+           perform   det-cfi-azi-000      thru det-cfi-azi-999        .
        pre-exe-pgm-999.
            exit.
 
@@ -1389,6 +1439,64 @@
            if        w-prs-sec-att-inv    =    zero
                      move  2              to   w-prs-sec-att-inv      .
        prs-sec-att-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione Codice Fiscale Azienda                     *
+      *    *-----------------------------------------------------------*
+       det-cfi-azi-000.
+      *              *-------------------------------------------------*
+      *              * [ada]                                           *
+      *              *-------------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/azi/fls/ioc/obj/iofada"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ada                 .
+      *              *-------------------------------------------------*
+      *              * Normalizzazione [ada]                           *
+      *              *-------------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/azi/fls/ioc/obj/iofada"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ada                 .
+      *              *-------------------------------------------------*
+      *              * Lettura [ada] Sede                              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODDPZ    "         to   f-key                  .
+           move      zero                 to   rf-ada-cod-dpz         .
+           move      "pgm/azi/fls/ioc/obj/iofada"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ada                 .
+      *              *-------------------------------------------------*
+      *              * Codice fiscale azienda determinato              *
+      *              *-------------------------------------------------*
+           move      rf-ada-cod-fis       to   w-det-det-cfi-azi      .
+      *              *-------------------------------------------------*
+      *              * [ada]                                           *
+      *              *-------------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/azi/fls/ioc/obj/iofada"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ada                 .
+       det-cfi-azi-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     det-cfi-azi-999.
+       det-cfi-azi-999.
            exit.
 
       *    *===========================================================*
@@ -1547,6 +1655,66 @@
       *              *-------------------------------------------------*
            move      zero                 to   w-det-rec-fil-rec      .
            move      zero                 to   w-det-rec-fil-agg      .
+       stp-srt-inp-050.
+      *              *-------------------------------------------------*
+      *              * Pathname di base da segreteria                  *
+      *              *-------------------------------------------------*
+           move      "PB"                 to   s-ope                  .
+           move      "asc "               to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                          using s                      .
+           move      s-pat                to   f-xxx-ppb              .
+      *              *-------------------------------------------------*
+      *              * Editing del numero protocollo distinta          *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      09                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "9"                  to   p-edm                  .
+           move      rr-num-dst           to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-edt                to   f-xxx-dfp              .
+      *              *-------------------------------------------------*
+      *              * Sigla anno per nome lista                       *
+      *              *-------------------------------------------------*
+           move      rr-num-dst
+                    (01 : 03)             to   w-bin-wrk              .
+           subtract  53                   from w-bin-wrk              .
+           move      2                    to   w-bin-inx              .
+           move      w-bin-wrk            to   w-bin-num              .
+           move      w-bin-byt(w-bin-inx) to   w-det-prt-dst-san      .
+      *              *-------------------------------------------------*
+      *              * Estensione per nome lista                       *
+      *              *-------------------------------------------------*
+           move      14                   to   w-all-str-lun          .
+           move      03                   to   w-all-str-num          .
+           move      w-det-prt-dst-san    to   w-all-str-cat (1)      .
+           move      f-xxx-dfp            to   w-all-str-cat (2)      .
+           move      ".txt"               to   w-all-str-cat (3)      .
+           perform   all-str-cat-000      thru all-str-cat-999        .
+           move      w-all-str-alf        to   f-xxx-dfp              .
+      *              *-------------------------------------------------*
+      *              * Preparazione pathname                           *
+      *              *-------------------------------------------------*
+           move      spaces               to   f-xxx-pat              .
+           string    f-xxx-ppb  delimited by   spaces
+                     "/"        delimited by   size
+                     rr-prm-inv (2)
+                                delimited by   spaces
+                     "/tmp/"    delimited by   size
+                     f-xxx-dfp  delimited by   spaces
+                                          into f-xxx-pat              .
+      *              *-------------------------------------------------*
+      *              * Apertura del file in output                     *
+      *              *-------------------------------------------------*
+           move      "OO"                 to   j-ope                  .
+           move      "seq "               to   j-nam                  .
+           move      f-xxx-pat            to   j-pat                  .
+           call      "swd/mod/prg/obj/mcvoju"
+                                         using j                      .
        stp-srt-inp-100.
       *              *-------------------------------------------------*
       *              * Start per numero distinta                       *
@@ -1682,6 +1850,40 @@
       *              * Rilascio del record al Sort                     *
       *              *-------------------------------------------------*
            release   srt-rec                                          .
+       stp-srt-inp-750.
+      *              *-------------------------------------------------*
+      *              * Scrittura record su file                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Estrazione filename per la lista            *
+      *                  *---------------------------------------------*
+           move      rf-ddx-eml-all       to   w-all-str-alf          .
+           move      "/"                  to   w-all-str-del          .
+           perform   all-str-ext-000      thru all-str-ext-999        .
+      *                  *---------------------------------------------*
+      *                  * Test se estensione firma digitale prevista  *
+      *                  *---------------------------------------------*
+           if        rr-prm-inv (8)       not  = "p7m"
+______*              move  w-all-str-cat (8)
+                     move  rf-ddx-eml-all
+                                          to   j-rec
+                     go to stp-srt-inp-780.
+      *                  *---------------------------------------------*
+      *                  * Aggiunta estensione per firma digitale      *
+      *                  *---------------------------------------------*
+           move      40                   to   w-all-str-lun          .
+           move      02                   to   w-all-str-num          .
+           move      w-all-str-cat (8)    to   w-all-str-cat (1)      .
+           move      ".p7m"               to   w-all-str-cat (2)      .
+           perform   all-str-cat-000      thru all-str-cat-999        .
+           move      w-all-str-alf        to   j-rec                  .
+       stp-srt-inp-780.
+      *              *-------------------------------------------------*
+      *              * Scrittura su sequenziale                        *
+      *              *-------------------------------------------------*
+           move      "PN"                 to   j-ope                  .
+           call      "swd/mod/prg/obj/mcvoju"
+                                         using j                      .
        stp-srt-inp-800.
       *              *-------------------------------------------------*
       *              * Riciclo a record successivo                     *
@@ -1816,7 +2018,185 @@
            move      rr-num-dst           to   s-num                  .
            call      "swd/mod/prg/obj/msegrt"
                                          using s                      .
+      *              *-------------------------------------------------*
+      *              * Preparazione file 'zip'                         *
+      *              *-------------------------------------------------*
+           perform   prn-fin-cic-zip-000  thru prn-fin-cic-zip-999    .
        prn-fin-cic-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Ciclo Report Program : Esecuzione per fine ciclo          *
+      *    *                                                           *
+      *    * Subroutine di preparazione file 'zip'                     *
+      *    *-----------------------------------------------------------*
+       prn-fin-cic-zip-000.
+      *              *-------------------------------------------------*
+      *              * Prompt per Esecuzione comando di zip            *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      28                   to   v-car                  .
+           move      23                   to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      "Compressione in corso .....:"
+                                          to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Salvataggio immagine video                      *
+      *              *-------------------------------------------------*
+           move      "SV"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       prn-fin-cic-zip-050.
+      *              *-------------------------------------------------*
+      *              * Pathname generico                               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Pathname dei comandi da segreteria          *
+      *                  *---------------------------------------------*
+           move      "PB"                 to   s-ope                  .
+           move      "etc "               to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                          using s                     .
+           move      s-pat                to   f-xxx-ptc              .
+       prn-fin-cic-zip-100.
+      *              *-------------------------------------------------*
+      *              * Scomposizione protocollo distinta per ricavare  *
+      *              * anno e numero                                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-det-prt-dst-ann      .
+           move      spaces               to   w-det-prt-dst-san      .
+      *                  *---------------------------------------------*
+      *                  * Editing del numero protocollo               *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      09                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "9"                  to   p-edm                  .
+           move      rr-num-dst           to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-edt                to   w-det-prt-dst-num      .
+      *                  *---------------------------------------------*
+      *                  * Editing del numero protocollo per l'anno    *
+      *                  *                                             *
+      *                  * N.B.: vedi convenzioni modulo 'mscfxml0'    *
+      *                  *---------------------------------------------*
+           if        rr-num-dst           <    118000000
+                     move  "X"            to   w-det-prt-dst-san
+                     go to prn-fin-cic-zip-200.
+      *
+           move      rr-num-dst
+                    (01 : 03)             to   w-bin-wrk              .
+           subtract  53                   from w-bin-wrk              .
+           move      2                    to   w-bin-inx              .
+           move      w-bin-wrk            to   w-bin-num              .
+           move      w-bin-byt(w-bin-inx) to   w-det-prt-dst-san      .
+      *                  *---------------------------------------------*
+      *                  * Editing del numero protocollo per l'anno    *
+      *                  * per esteso                                  *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      09                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "<B"                 to   p-edm                  .
+      *
+           move      rr-num-dst
+                    (01 : 03)             to   p-num                  .
+           add       1900                 to   p-num                  .
+      *
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+           move      p-edt                to   w-det-prt-dst-ann      .
+       prn-fin-cic-zip-200.
+      *              *-------------------------------------------------*
+      *              * Comando di compressione ZIP dei documenti       *
+      *              *                                                 *
+      *              *   - Codice azienda            (da referenze)    *
+      *              *   - Area                      (forzato a 'fat') *
+      *              *   - Sigla Anno                (da 'rr-num-dst') *
+      *              *   - Anno per esteso           (da 'rr-num-dst') *
+      *              *   - Numero distinta           (da 'rr-num-dst') *
+      *              *   - Prefisso                  ('IT99999999999') *
+      *              *-------------------------------------------------*
+           move      spaces               to   o-shs                  .
+      *
+           string    f-xxx-ptc  delimited by   spaces
+                     "/t_zip_add_ann"
+                                delimited by   size
+                     " "        delimited by   size
+                     rr-prm-inv (2)
+                                delimited by   spaces
+                     ","        delimited by   size
+                     "fat"
+                                delimited by   size
+                     ","        delimited by   size
+                     w-det-prt-dst-san
+                                delimited by   spaces
+                     ","        delimited by   size
+                     w-det-prt-dst-ann
+                                delimited by   spaces
+                     ","        delimited by   size
+                     w-det-prt-dst-san
+                                delimited by   spaces
+                     w-det-prt-dst-num
+                                delimited by   spaces
+                     ","        delimited by   size
+                     "IT"       delimited by   size
+                     w-det-det-cfi-azi
+                                delimited by   spaces
+                                          into o-shs                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo 'mopsys'                    *
+      *              *-------------------------------------------------*
+           move      "SH"                 to   o-ope                  .
+           call      "swd/mod/prg/obj/mopsys"
+                                         using o                      .
+      *              *-------------------------------------------------*
+      *              * Erase video                                     *
+      *              *-------------------------------------------------*
+           move      "ER"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       prn-fin-cic-zip-900.
+      *              *-------------------------------------------------*
+      *              * Ripristino immagine video                       *
+      *              *-------------------------------------------------*
+           move      "RS"                 to   v-ope                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Prompt per invio eseguito                       *
+      *              *-------------------------------------------------*
+           move      "DS"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      08                   to   v-car                  .
+           move      23                   to   v-lin                  .
+           move      72                   to   v-pos                  .
+           move      "ESEGUITO"           to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Attesa di 2 secondi                             *
+      *              *-------------------------------------------------*
+           move      "WT"                 to   s-ope                  .
+           move      02                   to   s-num                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                         using s                      .
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     prn-fin-cic-zip-999.
+       prn-fin-cic-zip-999.
            exit.
 
       *    *===========================================================*

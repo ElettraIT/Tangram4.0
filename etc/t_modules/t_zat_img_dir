@@ -1,0 +1,67 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per FTP                      *
+#                                          *
+# t_zat_img_dir                            *
+#                                          *
+# Per creare le directory nel sito web     *
+#------------------------------------------*
+
+#==========================================*
+# Moduli Perl                              *
+#------------------------------------------*
+use File::Basename                        ;
+use Net::SFTP::Foreign                    ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+# my $user = 'root'                         ;
+# my $pass = '901823087123'                 ;
+my $user = 'gestionale'                   ;
+my $cert = "/home/master/.ssh/id_rsa"     ;
+my $host = "195.138.243.55"               ;
+#
+my $base = "/abd/asc/img/"                ;
+my $bas = "/home/gestionale/import/img/" ;
+#
+my $tbli = "img"                          ;
+my $datb = "zat"                          ;
+my $dhos = "localhost"                    ;
+my $dusr = "root"                         ;
+my $dpwd = "alter1"                       ;
+
+#--------------------------------------*
+# Preparazione argomenti per chiamata  *
+#--------------------------------------*
+my %args = (user => $user,
+        key_path => $cert,
+            more => [qw(-o PreferredAuthentications=publickey)]
+    );
+
+#--------------------------------------*
+# Chiamata                             *
+#--------------------------------------*
+my $sftp = Net::SFTP::Foreign->new($host, %args);
+
+#==========================================*
+# Scansione directory di base              *
+#------------------------------------------*
+for($inx=0; $inx<100; $inx++)
+{
+
+    #--------------------------------------*
+    # Variabili di lavoro                  *
+    #--------------------------------------*
+    my $ind = sprintf ("%02d",$inx)       ;
+    my $dir = $bas . $ind                 ;
+
+    #--------------------------------------*
+    # Creazione directory                  *
+    #--------------------------------------*
+    $sftp->mkdir($dir)
+        or die "Costruzione directory "
+       . "non "
+       . "riuscito"                       ;
+}
+
