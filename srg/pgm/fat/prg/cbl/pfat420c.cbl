@@ -8,7 +8,7 @@
       *                                   Fase:    fat420              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 27/06/05    *
-      *                       Ultima revisione:    NdK del 28/09/26    *
+      *                       Ultima revisione:    NdK del 29/09/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -447,6 +447,11 @@
                10  w-det-fil-htm-pth      pic  x(80)                  .
                10  w-det-fil-htm-tag.
                    15  filler occurs 132  pic  x(01)                  .
+      *        *-------------------------------------------------------*
+      *        * Work per Det di scrittura file 'zip'                  *
+      *        *-------------------------------------------------------*
+           05  w-det-scr-zip.
+               10  w-det-scr-zip-dst      pic  x(80)                  .
 
       *    *===========================================================*
       *    * Work per subroutines di Let                               *
@@ -1655,66 +1660,6 @@
       *              *-------------------------------------------------*
            move      zero                 to   w-det-rec-fil-rec      .
            move      zero                 to   w-det-rec-fil-agg      .
-       stp-srt-inp-050.
-      *              *-------------------------------------------------*
-      *              * Pathname di base da segreteria                  *
-      *              *-------------------------------------------------*
-           move      "PB"                 to   s-ope                  .
-           move      "asc "               to   s-nam                  .
-           call      "swd/mod/prg/obj/msegrt"
-                                          using s                      .
-           move      s-pat                to   f-xxx-ppb              .
-      *              *-------------------------------------------------*
-      *              * Editing del numero protocollo distinta          *
-      *              *-------------------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "N"                  to   p-tip                  .
-           move      09                   to   p-car                  .
-           move      zero                 to   p-dec                  .
-           move      spaces               to   p-sgn                  .
-           move      "9"                  to   p-edm                  .
-           move      rr-num-dst           to   p-num                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-           move      p-edt                to   f-xxx-dfp              .
-      *              *-------------------------------------------------*
-      *              * Sigla anno per nome lista                       *
-      *              *-------------------------------------------------*
-           move      rr-num-dst
-                    (01 : 03)             to   w-bin-wrk              .
-           subtract  53                   from w-bin-wrk              .
-           move      2                    to   w-bin-inx              .
-           move      w-bin-wrk            to   w-bin-num              .
-           move      w-bin-byt(w-bin-inx) to   w-det-prt-dst-san      .
-      *              *-------------------------------------------------*
-      *              * Estensione per nome lista                       *
-      *              *-------------------------------------------------*
-           move      14                   to   w-all-str-lun          .
-           move      03                   to   w-all-str-num          .
-           move      w-det-prt-dst-san    to   w-all-str-cat (1)      .
-           move      f-xxx-dfp            to   w-all-str-cat (2)      .
-           move      ".txt"               to   w-all-str-cat (3)      .
-           perform   all-str-cat-000      thru all-str-cat-999        .
-           move      w-all-str-alf        to   f-xxx-dfp              .
-      *              *-------------------------------------------------*
-      *              * Preparazione pathname                           *
-      *              *-------------------------------------------------*
-           move      spaces               to   f-xxx-pat              .
-           string    f-xxx-ppb  delimited by   spaces
-                     "/"        delimited by   size
-                     rr-prm-inv (2)
-                                delimited by   spaces
-                     "/tmp/"    delimited by   size
-                     f-xxx-dfp  delimited by   spaces
-                                          into f-xxx-pat              .
-      *              *-------------------------------------------------*
-      *              * Apertura del file in output                     *
-      *              *-------------------------------------------------*
-           move      "OO"                 to   j-ope                  .
-           move      "seq "               to   j-nam                  .
-           move      f-xxx-pat            to   j-pat                  .
-           call      "swd/mod/prg/obj/mcvoju"
-                                         using j                      .
        stp-srt-inp-100.
       *              *-------------------------------------------------*
       *              * Start per numero distinta                       *
@@ -2021,7 +1966,7 @@ ______*              move  w-all-str-cat (8)
       *              *-------------------------------------------------*
       *              * Preparazione file 'zip'                         *
       *              *-------------------------------------------------*
-           perform   prn-fin-cic-zip-000  thru prn-fin-cic-zip-999    .
+           perform   prn-fin-cic-snd-000  thru prn-fin-cic-snd-999    .
        prn-fin-cic-999.
            exit.
 
@@ -2030,7 +1975,7 @@ ______*              move  w-all-str-cat (8)
       *    *                                                           *
       *    * Subroutine di preparazione file 'zip'                     *
       *    *-----------------------------------------------------------*
-       prn-fin-cic-zip-000.
+       prn-fin-cic-snd-000.
       *              *-------------------------------------------------*
       *              * Prompt per Esecuzione comando di zip            *
       *              *-------------------------------------------------*
@@ -2049,89 +1994,20 @@ ______*              move  w-all-str-cat (8)
            move      "SV"                 to   v-ope                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
-       prn-fin-cic-zip-050.
-      *              *-------------------------------------------------*
-      *              * Pathname generico                               *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Pathname dei comandi da segreteria          *
-      *                  *---------------------------------------------*
-           move      "PB"                 to   s-ope                  .
-           move      "etc "               to   s-nam                  .
-           call      "swd/mod/prg/obj/msegrt"
-                                          using s                     .
-           move      s-pat                to   f-xxx-ptc              .
-       prn-fin-cic-zip-100.
-      *              *-------------------------------------------------*
-      *              * Scomposizione protocollo distinta per ricavare  *
-      *              * anno e numero                                   *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Normalizzazione preliminare                 *
-      *                  *---------------------------------------------*
-           move      spaces               to   w-det-prt-dst-ann      .
-           move      spaces               to   w-det-prt-dst-san      .
-      *                  *---------------------------------------------*
-      *                  * Editing del numero protocollo               *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "N"                  to   p-tip                  .
-           move      09                   to   p-car                  .
-           move      zero                 to   p-dec                  .
-           move      spaces               to   p-sgn                  .
-           move      "9"                  to   p-edm                  .
-           move      rr-num-dst           to   p-num                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-           move      p-edt                to   w-det-prt-dst-num      .
-      *                  *---------------------------------------------*
-      *                  * Editing del numero protocollo per l'anno    *
-      *                  *                                             *
-      *                  * N.B.: vedi convenzioni modulo 'mscfxml0'    *
-      *                  *---------------------------------------------*
-           if        rr-num-dst           <    118000000
-                     move  "X"            to   w-det-prt-dst-san
-                     go to prn-fin-cic-zip-200.
-      *
-           move      rr-num-dst
-                    (01 : 03)             to   w-bin-wrk              .
-           subtract  53                   from w-bin-wrk              .
-           move      2                    to   w-bin-inx              .
-           move      w-bin-wrk            to   w-bin-num              .
-           move      w-bin-byt(w-bin-inx) to   w-det-prt-dst-san      .
-      *                  *---------------------------------------------*
-      *                  * Editing del numero protocollo per l'anno    *
-      *                  * per esteso                                  *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "N"                  to   p-tip                  .
-           move      09                   to   p-car                  .
-           move      zero                 to   p-dec                  .
-           move      spaces               to   p-sgn                  .
-           move      "<B"                 to   p-edm                  .
-      *
-           move      rr-num-dst
-                    (01 : 03)             to   p-num                  .
-           add       1900                 to   p-num                  .
-      *
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-           move      p-edt                to   w-det-prt-dst-ann      .
-       prn-fin-cic-zip-200.
+       prn-fin-cic-snd-100.
+       prn-fin-cic-snd-200.
       *              *-------------------------------------------------*
       *              * Comando di compressione ZIP dei documenti       *
       *              *                                                 *
       *              *   - Codice azienda            (da referenze)    *
       *              *   - Area                      (forzato a 'fat') *
-      *              *   - Sigla Anno                (da 'rr-num-dst') *
-      *              *   - Anno per esteso           (da 'rr-num-dst') *
-      *              *   - Numero distinta           (da 'rr-num-dst') *
-      *              *   - Prefisso                  ('IT99999999999') *
+      *              *   - file HTML della distinta                    *
+      *              *   - nome zip (facoltativo)                      *
       *              *-------------------------------------------------*
            move      spaces               to   o-shs                  .
       *
            string    f-xxx-ptc  delimited by   spaces
-                     "/t_zip_add_ann"
+                     "/abd/etc/t_zip_html"
                                 delimited by   size
                      " "        delimited by   size
                      rr-prm-inv (2)
@@ -2140,19 +2016,7 @@ ______*              move  w-all-str-cat (8)
                      "fat"
                                 delimited by   size
                      ","        delimited by   size
-                     w-det-prt-dst-san
-                                delimited by   spaces
-                     ","        delimited by   size
-                     w-det-prt-dst-ann
-                                delimited by   spaces
-                     ","        delimited by   size
-                     w-det-prt-dst-san
-                                delimited by   spaces
-                     w-det-prt-dst-num
-                                delimited by   spaces
-                     ","        delimited by   size
-                     "IT"       delimited by   size
-                     w-det-det-cfi-azi
+                     w-det-scr-zip-dst
                                 delimited by   spaces
                                           into o-shs                  .
       *              *-------------------------------------------------*
@@ -2167,22 +2031,22 @@ ______*              move  w-all-str-cat (8)
            move      "ER"                 to   v-ope                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
-       prn-fin-cic-zip-900.
       *              *-------------------------------------------------*
       *              * Ripristino immagine video                       *
       *              *-------------------------------------------------*
            move      "RS"                 to   v-ope                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
+       prn-fin-cic-snd-300.
       *              *-------------------------------------------------*
-      *              * Prompt per invio eseguito                       *
+      *              * Prompt per compressione eseguita                *
       *              *-------------------------------------------------*
            move      "DS"                 to   v-ope                  .
            move      "A"                  to   v-tip                  .
            move      08                   to   v-car                  .
            move      23                   to   v-lin                  .
-           move      72                   to   v-pos                  .
-           move      "ESEGUITO"           to   v-alf                  .
+           move      30                   to   v-pos                  .
+           move      "ESEGUITA"           to   v-alf                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *              *-------------------------------------------------*
@@ -2195,8 +2059,8 @@ ______*              move  w-all-str-cat (8)
       *              *-------------------------------------------------*
       *              * Uscita                                          *
       *              *-------------------------------------------------*
-           go to     prn-fin-cic-zip-999.
-       prn-fin-cic-zip-999.
+           go to     prn-fin-cic-snd-999.
+       prn-fin-cic-snd-999.
            exit.
 
       *    *===========================================================*
@@ -2820,6 +2684,7 @@ ______*              move  w-all-str-cat (8)
                      "/"        delimited by   size
                      f-xxx-dfp  delimited by   spaces
                                           into f-xxx-pat              .
+           move      f-xxx-pat            to   w-det-scr-zip-dst      .
       *              *-------------------------------------------------*
       *              * Apertura del file in output                     *
       *              *-------------------------------------------------*

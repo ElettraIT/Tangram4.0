@@ -8,7 +8,7 @@
       *                                   Fase:    bol301              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 21/02/92    *
-      *                       Ultima revisione:    NdK del 27/07/20    *
+      *                       Ultima revisione:    NdK del 02/10/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -563,6 +563,8 @@
                10  w-tot-gen-tiv          pic s9(11)                  .
                10  w-tot-gen-vpf          pic  x(03)                  .
                10  w-tot-gen-dpf          pic  9(01)                  .
+               10  w-tot-gen-cli          pic  9(07)                  .
+               10  w-tot-gen-bol          pic  9(07)                  .
       *        *-------------------------------------------------------*
       *        * Totali per cliente                                    *
       *        *-------------------------------------------------------*
@@ -628,6 +630,15 @@
       *    * Work-area per conversioni rispetto alla valuta base       *
       *    *-----------------------------------------------------------*
            copy      "swd/std/prg/cpy/wcvsvlt0.cpw"                   .
+
+      *    *===========================================================*
+      *    * Work-area per allineamenti a destra o a sinistra oppure   *
+      *    * al centro di campi alfanumerici di varia lunghezza, fi-   *
+      *    * no ad un massimo di 240 caratteri, oppure per il conca-   *
+      *    * tenamento, con o senza separazione, di max 10 substrin-   *
+      *    * ghe in una unica substringa                               *
+      *    *-----------------------------------------------------------*
+           copy      "swd/std/prg/cpy/wallstr0.cpw"                   .
 
       *    *===========================================================*
       *    * Work area per controllo rotture di livello                *
@@ -4192,6 +4203,8 @@
       *              *-------------------------------------------------*
            move      zero                 to   w-tot-gen-tot          .
            move      zero                 to   w-tot-gen-tiv          .
+           move      zero                 to   w-tot-gen-cli          .
+           move      zero                 to   w-tot-gen-bol          .
            move      rf-bit-sgl-vpf       to   w-tot-gen-vpf          .
            move      rf-bit-dec-vpf       to   w-tot-gen-dpf          .
       *              *-------------------------------------------------*
@@ -4279,6 +4292,10 @@
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *                      *-----------------------------------------*
+      *                      * Routine per totale clienti e documenti  *
+      *                      *-----------------------------------------*
+           perform   qry-fin-cic-std-000  thru qry-fin-cic-std-999    .
+      *                      *-----------------------------------------*
       *                      * Richiamo routine per stampa valori      *
       *                      *-----------------------------------------*
            move      "Totale generale   " to   w-stp-val-tot-pmt      .
@@ -4290,6 +4307,80 @@
            move      w-tot-gen-tiv        to   w-stp-val-tot-tiv      .
            perform   stp-val-tot-000      thru stp-val-tot-999        .
        qry-fin-cic-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Interrogazione : Esecuzione per fine ciclo                *
+      *    *                                                           *
+      *    * Subroutine per stampa totale clienti e documenti          *
+      *    *-----------------------------------------------------------*
+       qry-fin-cic-std-000.
+      *              *-------------------------------------------------*
+      *              * Editing totale clienti                          *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "<BG"                to   v-edm                  .
+           move      w-tot-gen-cli        to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Assemblaggio 1                                  *
+      *              *-------------------------------------------------*
+           move      40                   to   w-all-str-lun          .
+           move      03                   to   w-all-str-num          .
+           move      "[Clienti"           to   w-all-str-cat (1)      .
+           move      v-edt                to   w-all-str-cat (2)      .
+           move      "- Bolle"            to   w-all-str-cat (3)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+      *              *-------------------------------------------------*
+      *              * Editing totale documenti                        *
+      *              *-------------------------------------------------*
+           move      "ED"                 to   v-ope                  .
+           move      "N"                  to   v-tip                  .
+           move      07                   to   v-car                  .
+           move      zero                 to   v-dec                  .
+           move      spaces               to   v-sgn                  .
+           move      "<BG"                to   v-edm                  .
+           move      w-tot-gen-bol        to   v-num                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+      *              *-------------------------------------------------*
+      *              * Assemblaggio 2                                  *
+      *              *-------------------------------------------------*
+           move      40                   to   w-all-str-lun          .
+           move      02                   to   w-all-str-num          .
+           move      w-all-str-alf        to   w-all-str-cat (1)      .
+           move      v-edt                to   w-all-str-cat (2)      .
+           perform   all-str-csb-000      thru all-str-csb-999        .
+      *              *-------------------------------------------------*
+      *              * Assemblaggio 2                                  *
+      *              *-------------------------------------------------*
+           move      40                   to   w-all-str-lun          .
+           move      02                   to   w-all-str-num          .
+           move      w-all-str-alf        to   w-all-str-cat (1)      .
+           move      "]"                  to   w-all-str-cat (2)      .
+           perform   all-str-cat-000      thru all-str-cat-999        .
+      *              *-------------------------------------------------*
+      *              * Stampa                                          *
+      *              *-------------------------------------------------*
+           move      "PF"                 to   v-ope                  .
+           move      "A"                  to   v-tip                  .
+           move      40                   to   v-car                  .
+           move      v-lnr                to   v-lin                  .
+           move      01                   to   v-pos                  .
+           move      w-all-str-alf        to   v-alf                  .
+           call      "swd/mod/prg/obj/mvideo"
+                                         using v                      .
+       qry-fin-cic-std-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     qry-fin-cic-std-999.
+       qry-fin-cic-std-999.
            exit.
 
       *    *===========================================================*
@@ -4538,10 +4629,11 @@
       *              *-------------------------------------------------*
            move      spaces               to   w-cnt-qry-flg-int      .
       *              *-------------------------------------------------*
-      *              * Aggiornamento totale generale                   *
+      *              * Aggiornamento totali generali                   *
       *              *-------------------------------------------------*
            add       w-tot-cli-tot        to   w-tot-gen-tot          .
            add       w-tot-cli-tiv        to   w-tot-gen-tiv          .
+           add       1                    to   w-tot-gen-cli          .
            if        w-tot-cli-vpf        not  = w-tot-gen-vpf
                      move  spaces         to   w-tot-gen-vpf          .
       *              *-------------------------------------------------*
@@ -4633,6 +4725,11 @@
       *              * Normalizzazione flag di interruzione forzata    *
       *              *-------------------------------------------------*
            move      spaces               to   w-cnt-qry-flg-int      .
+      *              *-------------------------------------------------*
+      *              * Aggiornamento totali documento                  *
+      *              *-------------------------------------------------*
+           add       1                    to   w-tot-gen-bol          .
+       qry-liv-det-050.
       *              *-------------------------------------------------*
       *              * Determinazione totali documento                 *
       *              *-------------------------------------------------*
@@ -6086,6 +6183,15 @@
            move      "S"                  to   w-spg-snx-gat          .
        tst-spg-gat-999.
            exit.
+
+      *    *===========================================================*
+      *    * Subroutines per allineamenti a destra o a sinistra oppure *
+      *    * al centro di campi alfanumerici di varia lunghezza, fi-   *
+      *    * no ad un massimo di 240 caratteri, oppure per il conca-   *
+      *    * tenamento, con o senza separazione, di max 10 substrin-   *
+      *    * ghe in una unica substringa                               *
+      *    *-----------------------------------------------------------*
+           copy      "swd/std/prg/cpy/wallstr0.cps"                   .
 
       *    *===========================================================*
       *    * Subroutines per l'accettazione codice cliente commerciale *

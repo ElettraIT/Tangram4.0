@@ -1,0 +1,244 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per Zippare una lista di     *
+# files in un unico archivio, con chiamate *
+# ripetute (una per ogni file)             *
+#                                          *
+# t_zip_add_xml                            *
+#                                          *
+# ___ MAI UTILIZZATO ___                   *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 07/02/19   *
+#   Ultima revisione:   NdK del 29/09/26   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# Operazioni (1a posizione, testo o num.): *
+#                                          *
+#  NEW (1) : AZIENDA,AREA,ANNO,NOMEZIP     *
+#            inizializza la sessione       *
+#  ADD (2) : AZIENDA,NOMEZIP,FILE          *
+#            accoda un file da zippare     *
+#  END (3) : AZIENDA,NOMEZIP               *
+#            crea lo zip e chiude          *
+#  DEL (4) : AZIENDA,NOMEZIP               *
+#            annulla la sessione           *
+#                                          *
+# Es.: t_zip_add_xml NEW,01,FAT,2026,IT..  *
+#                                          *
+# N.B.: i campi in input sono separati da  *
+#       virgola ','                        *
+#------------------------------------------*
+
+use strict                                ;
+use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+use File::Basename                        ;
+use Fcntl qw( :flock )                    ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = "/abd/asc/"                    ;
+
+#==========================================*
+# Lettura input / Help                     *
+#------------------------------------------*
+my $inpt = $ARGV[0]                       ;
+
+if (!defined($inpt) || $inpt eq "" || $inpt eq "-help")
+{
+    help()                                ;
+    exit(0)                               ;
+}
+
+#    *-------------------------------------*
+#    * Tipo operazione (testo o numero)    *
+#    *-------------------------------------*
+my ($oper, $resto) = split(/,/, $inpt, 2) ;
+$oper  = uc($oper)                        ;
+$resto = "" unless defined($resto)        ;
+
+my %alias = ( '1' => 'NEW', '2' => 'ADD',
+              '3' => 'END', '4' => 'DEL' );
+$oper = $alias{$oper} if exists $alias{$oper};
+
+if    ($oper eq 'NEW') { op_new($resto) }
+elsif ($oper eq 'ADD') { op_add($resto) }
+elsif ($oper eq 'END') { op_end($resto) }
+elsif ($oper eq 'DEL') { op_del($resto) }
+else
+{
+    die "Operazione sconosciuta: $oper (usa -help)\n";
+}
+
+exit(0)                                   ;
+
+#==========================================*
+# Nome del file lista di appoggio          *
+#------------------------------------------*
+sub nome_lista
+{
+    my ($azie, $nzip) = @_                ;
+    return $base . $azie . "/tmp/" . $nzip . ".lst";
+}
+
+#==========================================*
+# Normalizza il nome zip (no path, .zip)   *
+#------------------------------------------*
+sub norm_zip
+{
+    my ($nzip) = @_                       ;
+    $nzip = basename($nzip)               ;
+    $nzip .= ".zip" unless $nzip =~ /\.zip$/i;
+    return $nzip                          ;
+}
+
+#==========================================*
+# NEW : AZIENDA,AREA,ANNO,NOMEZIP          *
+#------------------------------------------*
+sub op_new
+{
+    my ($azie, $area, $anno, $nzip) = split(/,/, $_[0], 4);
+
+    die "NEW: parametri mancanti (AZIENDA,AREA,ANNO,NOMEZIP)\n"
+        unless $azie && $area && $anno && $nzip;
+
+    $nzip = norm_zip($nzip)               ;
+
+    my $dire = $base . $azie . "/" . $area
+             . "/xml/" . $anno            ;
+    die "NEW: directory inesistente $dire\n" unless -d $dire;
+
+    my $list = nome_lista($azie, $nzip)   ;
+
+    # Prima riga = directory di lavoro
+    open(LISTA, ">", $list)
+        or die "NEW: impossibile creare $list\n";
+    print LISTA $dire . "\n"              ;
+    close(LISTA)                          ;
+}
+
+#==========================================*
+# ADD : AZIENDA,NOMEZIP,FILE               *
+# (il nome file puo' contenere virgole)    *
+#------------------------------------------*
+sub op_add
+{
+    my ($azie, $nzip, $file) = split(/,/, $_[0], 3);
+
+    die "ADD: parametri mancanti (AZIENDA,NOMEZIP,FILE)\n"
+        unless $azie && $nzip && defined($file) && $file ne "";
+
+    $nzip = norm_zip($nzip)               ;
+    my $list = nome_lista($azie, $nzip)   ;
+
+    die "ADD: sessione non inizializzata (manca NEW per $nzip)\n"
+        unless -e $list                   ;
+
+    open(LISTA, ">>", $list)
+        or die "ADD: impossibile aprire $list\n";
+    flock(LISTA, LOCK_EX)                 ;
+    print LISTA $file . "\n"              ;
+    close(LISTA)                          ;
+}
+
+#==========================================*
+# END : AZIENDA,NOMEZIP                    *
+#------------------------------------------*
+sub op_end
+{
+    my ($azie, $nzip) = split(/,/, $_[0], 2);
+
+    die "END: parametri mancanti (AZIENDA,NOMEZIP)\n"
+        unless $azie && $nzip             ;
+
+    $nzip = norm_zip($nzip)               ;
+    my $list = nome_lista($azie, $nzip)   ;
+
+    open(LISTA, "<", $list)
+        or die "END: sessione non trovata ($list)\n";
+    my @righe = <LISTA>                   ;
+    close(LISTA)                          ;
+
+    #--------------------------------------*
+    # Prima riga = directory di lavoro     *
+    #--------------------------------------*
+    my $dire = shift(@righe)              ;
+    $dire =~ s/[\r\n]+$//                 ;
+    chdir($dire) or die "END: impossibile accedere a $dire\n";
+
+    my $obj  = Archive::Zip->new()        ;
+    my $tot  = 0                          ;
+    my %visti                             ;
+
+    foreach my $elem (@righe)
+    {
+        $elem =~ s/[\r\n]+$//             ;
+        next if $elem eq ""               ;
+        next if $visti{$elem}++           ;   # evita doppioni
+
+        if (-e $elem)
+        {
+            $obj->addFile($elem, basename($elem));
+            $tot++                        ;
+        }
+        else
+        {
+            print "non trovato = " . $elem . "\n";
+        }
+    }
+
+    die "END: nessun file da zippare, zip non creato\n"
+        if $tot == 0                      ;
+
+    #--------------------------------------*
+    # Scrittura su temporaneo + rename     *
+    # (niente zip a meta' se si interrompe)*
+    #--------------------------------------*
+    my $temp = $nzip . ".tmp"             ;
+    unless ($obj->writeToFileNamed($temp) == AZ_OK)
+    {
+        unlink($temp)                     ;
+        die "Errore nella scrittura di $nzip\n";
+    }
+    rename($temp, $nzip)
+        or die "Errore nel rinominare $temp in $nzip\n";
+
+    unlink($list)                         ;
+}
+
+#==========================================*
+# DEL : AZIENDA,NOMEZIP (annulla)          *
+#------------------------------------------*
+sub op_del
+{
+    my ($azie, $nzip) = split(/,/, $_[0], 2);
+
+    die "DEL: parametri mancanti (AZIENDA,NOMEZIP)\n"
+        unless $azie && $nzip             ;
+
+    unlink(nome_lista($azie, norm_zip($nzip)));
+}
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+sub help
+{
+    print "\n"
+        . "Uso : (parametri separati da virgola)\n"
+        . "\n"
+        . "> t_zip_add_xml NEW,AZIENDA,AREA,ANNO(9999),NOMEZIP\n"
+        . "> t_zip_add_xml ADD,AZIENDA,NOMEZIP,FILE   (n volte)\n"
+        . "> t_zip_add_xml END,AZIENDA,NOMEZIP\n"
+        . "> t_zip_add_xml DEL,AZIENDA,NOMEZIP        (annulla)\n"
+        . "\n"
+        . "NEW/ADD/END/DEL equivalgono a 1/2/3/4\n"
+        . "\n"
+        . "Release : 29/09/2026\n"
+        . "\n"
+        . "(C) Copyright - wip\n"
+        . "\n"                            ;
+}

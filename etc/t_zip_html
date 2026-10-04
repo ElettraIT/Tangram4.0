@@ -1,0 +1,164 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo Perl per Zippare i file XML       *
+# elencati in una distinta HTML            *
+#                                          *
+# t_zip_html                               *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 29/09/26   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - codice azienda              *
+#            - area                        *
+#            - file HTML della distinta    *
+#            - nome zip (facoltativo)      *
+#                                          *
+# Dai link della distinta                  *
+#   .../arc/2026/IT99999999999_I9999.html  *
+# ricava i file                            *
+#   /abd/asc/AZIE/AREA/xml/2026/           *
+#                  IT99999999999_I9999.xml *
+#                                          *
+# N.B.: i campi in input sono separati da  *
+#       virgola ','                        *
+#------------------------------------------*
+
+use strict                                ;
+use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+use File::Basename                        ;
+
+#==========================================*
+# Variabili statiche                       *
+#------------------------------------------*
+my $base = "/abd/asc/"                    ;
+
+#==========================================*
+# Help                                     *
+#------------------------------------------*
+my $inpt = $ARGV[0]                       ;
+
+if (!defined($inpt) || $inpt eq "" || $inpt eq "-help")
+{
+    print "\n"
+        . "Uso : (parametri separati da virgola)\n"
+        . "\n"
+        . "> t_zip_html AZIENDA,AREA,FILEHTML[,NOMEZIP]\n"
+        . "\n"
+        . "Se NOMEZIP manca, si usa il nome del file HTML\n"
+        . "\n"
+        . "Release : 29/09/2026\n"
+        . "\n"
+        . "(C) Copyright - wip\n"
+        . "\n"                            ;
+    exit(0)                               ;
+}
+
+#==========================================*
+# Log diagnostico (stdout + stderr)        *
+#------------------------------------------*
+my $log = "/tmp/t_zip_html.log"           ;
+if (open(LOG, ">>", $log))
+{
+    open(STDOUT, ">&", \*LOG)             ;
+    open(STDERR, ">&", \*LOG)             ;
+    select(STDERR); $| = 1                ;
+    select(STDOUT); $| = 1                ;
+    my $uten = getpwuid($<) || $<         ;
+    print scalar(localtime) . " [$$] utente=$uten input=$inpt\n";
+}
+
+#==========================================*
+# Parametri                                *
+#------------------------------------------*
+my ($azie, $area, $html, $nzip) = split(/,/, $inpt, 4);
+
+die "Parametri mancanti (AZIENDA,AREA,FILEHTML[,NOMEZIP])\n"
+    unless $azie && $area && $html        ;
+
+#==========================================*
+# Lettura della distinta HTML              *
+#------------------------------------------*
+open(HTML, "<", $html)
+    or die "Impossibile aprire $html: $!\n";
+my $pagina = join("", <HTML>)             ;
+close(HTML)                               ;
+
+#==========================================*
+# Anno: dal campo nascosto 'ann'           *
+#       o, in mancanza, dal percorso link  *
+#------------------------------------------*
+my $anno = ""                             ;
+if ($pagina =~ /id=['"]?ann['"]?[^>]*value=['"]?(\d{4})/i)
+{
+    $anno = $1                            ;
+}
+elsif ($pagina =~ /href=['"][^'"]*\/(\d{4})\/[^'"\/]+\.html['"]/i)
+{
+    $anno = $1                            ;
+}
+die "Anno non trovato in $html\n" unless $anno;
+
+#==========================================*
+# Nomi file: dai link .html                *
+# (ordine della distinta, senza doppioni)  *
+#------------------------------------------*
+my @file                                  ;
+my %visti                                 ;
+while ($pagina =~ /href=['"]([^'"]+)\.html['"]/gi)
+{
+    my $nome = basename($1) . ".xml"      ;
+    push(@file, $nome) unless $visti{$nome}++;
+}
+die "Nessun link trovato in $html\n" unless @file;
+
+#==========================================*
+# Directory di lavoro e nome zip           *
+#------------------------------------------*
+my $dire = $base . $azie . "/" . $area
+         . "/xml/" . $anno                ;
+
+unless ($nzip)
+{
+    $nzip = basename($html)               ;
+    $nzip =~ s/\.[^.]*$//                 ;
+}
+$nzip = basename($nzip)                   ;
+$nzip .= ".zip" unless $nzip =~ /\.zip$/i ;
+
+print "dir=$dire zip=$nzip file=" . scalar(@file) . "\n";
+
+chdir($dire) or die "Impossibile accedere a $dire: $!\n";
+
+#==========================================*
+# Aggiunta file                            *
+#------------------------------------------*
+my $obj = Archive::Zip->new()             ;
+my $tot = 0                               ;
+
+foreach my $elem (@file)
+{
+    if (-e $elem)
+    {
+        $obj->addFile($elem, $elem)       ;
+        $tot++                            ;
+    }
+    else
+    {
+        print "non trovato = " . $dire . "/" . $elem . "\n";
+    }
+}
+
+die "Nessun file da zippare, zip non creato\n" if $tot == 0;
+
+#==========================================*
+# Scrittura archivio zip                   *
+#------------------------------------------*
+unless ($obj->writeToFileNamed($nzip) == AZ_OK)
+{
+    die "Errore nella scrittura di $dire/$nzip: $!\n";
+}
+
+print "creato $dire/$nzip con $tot file\n";
