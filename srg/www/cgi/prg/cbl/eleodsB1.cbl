@@ -8,7 +8,7 @@
       *                                   Fase:    eleods              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 04/07/06    *
-      *                       Ultima revisione:    NdK del 05/05/25    *
+      *                       Ultima revisione:    NdK del 05/10/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -3171,6 +3171,11 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              * Box di dialogo per messaggi - livello 2         *
       *              *-------------------------------------------------*
            display   "<div id='dlg_ms2' name='dlg_ms2' title=''>"     .                                 .
+           display   "</div>"                                         .
+      *              *-------------------------------------------------*
+      *              * Box di dialogo per commenti                     *
+      *              *-------------------------------------------------*
+           display   "<div id='dlg_com' name='dlg_com' title=''>"     .                                 .
            display   "</div>"                                         .
       *              *-------------------------------------------------*
       *              * Chiusura allineamento centrato                  *
