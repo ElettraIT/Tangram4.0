@@ -1,4 +1,7 @@
       *    *===========================================================*
+      *    * Ultimo aggiornamento: 06/10/26                            *
+      *    *===========================================================*
+      *    *===========================================================*
       *    * Emissione tag 'xml'                                       *
       *    *                                                           *
       *    * N.B.: normalizzare sempre 'w-sta-emi-xml-inx'             *
@@ -18,6 +21,15 @@
       *              * Filtraggio preliminare valore per eliminare     *
       *              * eventuali caratteri incompatibili con XML       *
       *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Filtraggio carattere: il carattere \x{0B}   *
+      *                  * (o \x0b) e' il Vertical Tab (tabulazione    *
+      *                  * verticale), un carattere di controllo       *
+      *                  * invisibile che spesso sporca i testi        *
+      *                  *---------------------------------------------*
+           inspect   w-sta-emi-xml-val
+                                replacing all  X"0B"
+                                          by   " "                    .
       *                  *---------------------------------------------*
       *                  * Sostituzione caratteri con sequenze HTML    *
       *                  *                                             *

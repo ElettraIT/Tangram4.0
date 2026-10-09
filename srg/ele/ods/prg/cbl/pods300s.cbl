@@ -8,16 +8,23 @@
       *                                   Fase:    ods300              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 28/03/95    *
-      *                       Ultima revisione:    NdK del 02/06/25    *
+      *                       Ultima revisione:    NdK del 06/10/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
-      *================================================================*
+      * ============================================================== *
       *                                                                *
       * Descrizione pgm:   Modulo di stampa documento : Ordine di      *
       *                                                 spedizione     *
       *                                                                *
       *                    VERSIONE SU MISURA PER ELETTRA (in uso)     *
       *                                                                *
+      * ============================================================== *
+      *                                                                *
+      *                    NOTA IMPORTANTE                             *
+      *                                                                *
+      * Viene determinato il codice stampante e se appartiene alla     *
+      * serie 'z...' (zebra), invece della stampa esegue lo script     *
+      * che genera l'etichetta PDF (t_ele_zbr_stp)                     *
       *================================================================*
 
       ******************************************************************
@@ -70,6 +77,17 @@
       *    * Area di definizione della valuta base                     *
       *    *-----------------------------------------------------------*
            copy      "swd/mod/int/c"                                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per moduli di input-output su files *
+      *    * di tipo line sequential                                   *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/g"                                  .
+
+      *    *===========================================================*
+      *    * Area di comunicazione per modulo                 "mopsys" *
+      *    *-----------------------------------------------------------*
+           copy      "swd/mod/int/o"                                  .
 
       *    *===========================================================*
       *    * Work-area per la ridefinizione della variabile di i.p.c.  *
@@ -858,6 +876,47 @@
                10  w-det-des-zvf-cod      pic  x(03)                  .
                10  w-det-des-zvf-lng      pic  x(03)                  .
                10  w-det-des-zvf-des      pic  x(25)                  .
+      *        *-------------------------------------------------------*
+      *        * Work per Det pathname file sequenziale in output      *
+      *        *                                                       *
+      *        * ELETTRA                                               *
+      *        *-------------------------------------------------------*
+           05  w-det-pth-fso.
+               10  w-det-pth-fso-pth      pic  x(40)                  .
+      *        *-------------------------------------------------------*
+      *        * Per Fine riga                                         *
+      *        *-------------------------------------------------------*
+           05  w-det-fin-rig.
+      *            *---------------------------------------------------*
+      *            * Separatore 'CR'                                   *
+      *            *---------------------------------------------------*
+______*        10  w-det-fin-rig-chr      pic  x(01)   value H"0D"    .
+               10  w-det-fin-rig-chr      pic  x(01)   value ";"    .
+
+      *    *===========================================================*
+      *    * Work-area per bufferizzazione dati da stampare nelle      *
+      *    * etichette segnacolli                                      *
+      *    *                                                           *
+      *    * ELETTRA                                                   *
+      *    *-----------------------------------------------------------*
+       01  w-out.
+      *        *-------------------------------------------------------*
+      *        * Dati etichette                                        *
+      *        *-------------------------------------------------------*
+           05  w-out-eti.
+      *            *---------------------------------------------------*
+      *            * Tipo record                                       *
+      *            *---------------------------------------------------*
+               10  w-out-eti-tip-rec      pic  x(07)                  .
+               10  w-out-eti-sep-001      pic  x(01)                  .
+      *            *---------------------------------------------------*
+      *            * Valore record                                     *
+      *            *---------------------------------------------------*
+               10  w-out-eti-val-rec      pic  x(40)                  .
+      *            *---------------------------------------------------*
+      *            * Carattere di fine riga                            *
+      *            *---------------------------------------------------*
+               10  w-out-eti-fin-rig      pic  x(01)                  .
 
       *    *===========================================================*
       *    * Area di comunicazione per determinazione ubicazione       *
@@ -1566,6 +1625,29 @@
       *              *-------------------------------------------------*
            if        w-cnt-sts-flg-sst    not  = "S"
                      go to exe-fun-stp-999.
+      *              *-------------------------------------------------*
+      *              * Test se stampante Zebra                         *
+      *              *                                                 *
+      *              * ELETTRA                                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Test                                        *
+      *                  *---------------------------------------------*
+           if        p-sel-stp-sel        not  = "z1      " and
+                     p-sel-stp-sel        not  = "z2      " and
+                     p-sel-stp-sel        not  = "z3      " and
+                     p-sel-stp-sel        not  = "z4      "
+                     go to exe-fun-stp-300.
+       exe-fun-stp-200.
+      *                  *---------------------------------------------*
+      *                  * Stampa etichette Zebra                      *
+      *                  *---------------------------------------------*
+           perform   prn-eti-zbr-000      thru prn-eti-zbr-999        .
+      *                  *---------------------------------------------*
+      *                  * Uscita                                      *
+      *                  *---------------------------------------------*
+           go to     exe-fun-stp-999.
+       exe-fun-stp-300.
       *              *-------------------------------------------------*
       *              * Se Begin non eseguito                           *
       *              *-------------------------------------------------*
@@ -8231,6 +8313,925 @@ ______*    perform   box-int-pag-000      thru box-int-pag-999        .
       *                  *---------------------------------------------*
            go to     det-des-zvf-999.
        det-des-zvf-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esecuzione stampa etichette segnacolli                    *
+      *    *                                                           *
+      *    * Parametri file di spool                                   *
+      *    * -----------------------                                   *
+      *    * cod_stp;z4                                                *
+      *    * tip_eti;4                                                 *
+      *    * num_eti;1                                                 *
+      *    * num_doc;999999                                            *
+      *    * tip_doc;XXXXX                                             *
+      *    * cod_cli;9999999                                           *
+      *    * rag_cli;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * rag_spd;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * rag_sp2;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * via_spd;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * loc_spd;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * tra_cur;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * cod_vet;9999999                                           *
+      *    * rag_vet;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * cod_por;                                                  *
+      *    * des_por;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * spe_spd;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * ann_sp1;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * ann_sp2;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * ann_sp3;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    * ann_sp4;Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx          *
+      *    *-----------------------------------------------------------*
+       prn-eti-zbr-000.
+      *              *-------------------------------------------------*
+      *              * Lettura record testata da stampare              *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-inp-mst-prt        to   rf-ost-num-prt         .
+           move      "pgm/ods/fls/ioc/obj/iofost"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-ost                 .
+      *                  *---------------------------------------------*
+      *                  * Se record trovato : oltre                   *
+      *                  *---------------------------------------------*
+           if        f-sts                not  = e-not-err
+                     go to prn-eti-zbr-900.
+       prn-eti-zbr-050.
+      *              *-------------------------------------------------*
+      *              * Apertura file sequenziale                       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Determinazione pathname file sequenziale in *
+      *                  * output                                      *
+      *                  *---------------------------------------------*
+           perform   det-pth-fso-000      thru det-pth-fso-999        .
+      *                  *---------------------------------------------*
+      *                  * Apertura del file in output                 *
+      *                  *---------------------------------------------*
+           move      "OO"                 to   g-ope                  .
+           move      "seq "               to   g-nam                  .
+           move      w-det-pth-fso-pth    to   g-pat                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+       prn-eti-zbr-070.
+      *              *-------------------------------------------------*
+      *              * Lettura record dati aggiuntivi di testata       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione record [osx]                *
+      *                  *---------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/ods/fls/ioc/obj/iofosx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-osx                 .
+      *                  *---------------------------------------------*
+      *                  * Lettura record [osx]                        *
+      *                  *---------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      rf-ost-num-prt       to   rf-osx-num-prt         .
+           move      zero                 to   rf-osx-num-prg         .
+           move      01                   to   rf-osx-tip-rec         .
+           move      "pgm/ods/fls/ioc/obj/iofosx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-osx                 .
+      *                  *---------------------------------------------*
+      *                  * Subroutine di raccolta dati                 *
+      *                  *---------------------------------------------*
+           perform   stp-tes-doc-cli-000  thru stp-tes-doc-cli-999    .
+           perform   stp-tes-doc-ism-000  thru stp-tes-doc-ism-999    .
+           perform   stp-tes-doc-rdv-000  thru stp-tes-doc-rdv-999    .
+       prn-eti-zbr-080.
+      *              *-------------------------------------------------*
+      *              * Lettura dati precablati da 'ods450'             *
+      *              *                                                 *
+      *              * ELETTRA                                         *
+      *              *-------------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "NUMPRT    "         to   f-key                  .
+           move      w-inp-mst-prt        to   rf-hsx-num-prt         .
+           move      "ele/ods/fls/ioc/obj/iofhsx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-hsx                 .
+       prn-eti-zbr-100.
+      *              *-------------------------------------------------*
+      *              * Emissione codice stampante                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "cod_stp"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           if        p-sel-stp-sel        =    spaces
+                     move  "z4"           to   w-out-eti-val-rec
+           else      move  p-sel-stp-sel  to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-150.
+      *              *-------------------------------------------------*
+      *              * Emissione tipo etichette                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "tip_eti"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      "4"                  to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-200.
+      *              *-------------------------------------------------*
+      *              * Emissione numero di etichette                   *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "num_eti"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Sempre '1'                                  *
+      *                  *---------------------------------------------*
+           move      "1"                  to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-225.
+      *              *-------------------------------------------------*
+      *              * Emissione numero documento                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "num_doc"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Editing                                     *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      06                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "<B"                 to   p-edm                  .
+           move      rf-ost-num-prt
+                    (06 :06)              to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      p-edt                to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-250.
+      *              *-------------------------------------------------*
+      *              * Emissione tipo documento suggerito              *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "tip_doc"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      rf-hsx-bcc-tip       to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-275.
+      *              *-------------------------------------------------*
+      *              * Emissione codice cliente                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "cod_cli"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Editing                                     *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      07                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "<B"                 to   p-edm                  .
+           move      rf-ost-cod-arc       to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      p-edt                to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-300.
+      *              *-------------------------------------------------*
+      *              * Emissione ragione sociale cliente               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "rag_cli"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      w-stp-tes-int-rag    to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-300.
+      *              *-------------------------------------------------*
+      *              * Emissione ragione sociale spedizione            *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "rag_spd"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      w-stp-tes-ids-rag    to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-325.
+      *              *-------------------------------------------------*
+      *              * Emissione ragione sociale spedizione 2          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "rag_sp2"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      w-stp-tes-ids-rs2    to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-350.
+      *              *-------------------------------------------------*
+      *              * Emissione indirizzo cliente                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "via_spd"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      w-stp-tes-ids-via    to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-400.
+      *              *-------------------------------------------------*
+      *              * Emissione localita' cliente                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "loc_spd"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      w-stp-tes-ids-loc    to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-450.
+      *              *-------------------------------------------------*
+      *              * Emissione Trasporto a cura                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "tra_cur"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           if        rf-hsx-tra-cur       =    zero
+                     move  "(Non specif.)   "
+                                          to   w-out-eti-val-rec
+           else if   rf-hsx-tra-cur       =    10
+                     move  "MITTENTE        "
+                                          to   w-out-eti-val-rec
+           else if   rf-hsx-tra-cur       =    20
+                     move  "DESTINATARIO    "
+                                          to   w-out-eti-val-rec
+           else if   rf-hsx-tra-cur       =    30
+                     move  "VETTORE         "
+                                          to   w-out-eti-val-rec
+           else      move  "(Non specif.)   "
+                                          to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-475.
+      *              *-------------------------------------------------*
+      *              * Emissione Codice vettore                        *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "cod_vet"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Editing                                     *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "N"                  to   p-tip                  .
+           move      07                   to   p-car                  .
+           move      zero                 to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "<B"                 to   p-edm                  .
+      *
+           if        rf-hsx-tra-cur       =    10
+                     move 0000997         to   p-num
+           else if   rf-hsx-tra-cur       =    30  and
+                     rf-hsx-cod-vet       =    zero
+                     move 0000999         to   p-num
+           else if   rf-hsx-tra-cur       =    20
+                     move 0000998         to   p-num
+           else      move rf-hsx-cod-vet  to   p-num                  .
+      *
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      p-edt                to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-500.
+      *              *-------------------------------------------------*
+      *              * Emissione ragione sociale vettore               *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione iniziale                    *
+      *                  *---------------------------------------------*
+           move      "NO"                 to   f-ope                  .
+           move      "pgm/bol/fls/ioc/obj/iofvet"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-vet                 .
+      *                  *---------------------------------------------*
+      *                  * Test se da stampare                         *
+      *                  *---------------------------------------------*
+           if        rf-hsx-tra-cur       not  = 30
+                     go to prn-eti-zbr-530.
+      *                  *---------------------------------------------*
+      *                  * Test se valore a zero                       *
+      *                  *---------------------------------------------*
+           if        rf-hsx-cod-vet       =    zero
+                     go to prn-eti-zbr-530.
+      *                  *---------------------------------------------*
+      *                  * Lettura record [vet]                        *
+      *                  *---------------------------------------------*
+           move      "RK"                 to   f-ope                  .
+           move      "CODVET    "         to   f-key                  .
+           move      rf-hsx-cod-vet       to   rf-vet-cod-vet         .
+           move      "pgm/bol/fls/ioc/obj/iofvet"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-vet                 .
+       prn-eti-zbr-530.
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "rag_vet"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      rf-vet-rag-soc       to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-550.
+      *              *-------------------------------------------------*
+      *              * Emissione codice Porto                          *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "cod_por"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      rf-hsx-voc-des (2)   to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-575.
+      *              *-------------------------------------------------*
+      *              * Emissione descrizione Porto                     *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "des_por"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Lettura voce descrittiva                    *
+      *                  *---------------------------------------------*
+           move      02                   to   w-det-des-zvf-num      .
+           move      rf-hsx-voc-des (2)   to   w-det-des-zvf-cod      .
+           move      rf-ost-cod-lng       to   w-det-des-zvf-lng      .
+           perform   det-des-zvf-000      thru det-des-zvf-999        .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      w-det-des-zvf-des    to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-600.
+      *              *-------------------------------------------------*
+      *              * Emissione Spese trasporto                       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "spe_spd"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Editing                                     *
+      *                  *---------------------------------------------*
+           move      "ED"                 to   p-ope                  .
+           move      "V"                  to   p-tip                  .
+           move      05                   to   p-car                  .
+           move      c-dec                to   p-dec                  .
+           move      spaces               to   p-sgn                  .
+           move      "<GB"                to   p-edm                  .
+           move      rf-hsx-spe-spd       to   p-num                  .
+           call      "swd/mod/prg/obj/mprint"
+                                         using p                      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           move      p-edt                to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-650.
+      *              *-------------------------------------------------*
+      *              * Emissione Annotazioni 1                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Preparazione dati da stampare               *
+      *                  *---------------------------------------------*
+           perform   stp-tes-doc-rda-000  thru stp-tes-doc-rda-999    .
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "ann_sp1"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           if        rf-hsx-ann-rig (1)   =    spaces
+                     move  rf-osx-rig-aps (1)
+                                          to   w-out-eti-val-rec
+           else      move  rf-hsx-ann-rig (1)
+                                          to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-675.
+      *              *-------------------------------------------------*
+      *              * Emissione Annotazioni 2                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "ann_sp2"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           if        rf-hsx-ann-rig (2)   =    spaces
+                     move  rf-osx-rig-aps (2)
+                                          to   w-out-eti-val-rec
+           else      move  rf-hsx-ann-rig (2)
+                                          to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-700.
+      *              *-------------------------------------------------*
+      *              * Emissione Annotazioni 3                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "ann_sp3"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           if        rf-hsx-ann-rig (3)   =    spaces
+                     move  rf-osx-rig-aps (3)
+                                          to   w-out-eti-val-rec
+           else      move  rf-hsx-ann-rig (3)
+                                          to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-725.
+      *              *-------------------------------------------------*
+      *              * Emissione Annotazioni 4                         *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Normalizzazione preliminare                 *
+      *                  *---------------------------------------------*
+           move      spaces               to   w-out-eti              .
+      *                  *---------------------------------------------*
+      *                  * Tipo record                                 *
+      *                  *---------------------------------------------*
+           move      "ann_sp4"            to   w-out-eti-tip-rec      .
+      *                  *---------------------------------------------*
+      *                  * Separatore                                  *
+      *                  *---------------------------------------------*
+           move      ";"                  to   w-out-eti-sep-001      .
+      *                  *---------------------------------------------*
+      *                  * Valore record                               *
+      *                  *---------------------------------------------*
+           if        rf-hsx-ann-rig (4)   =    spaces
+                     move  spaces         to   w-out-eti-val-rec
+           else      move  rf-hsx-ann-rig (4)
+                                          to   w-out-eti-val-rec      .
+      *                  *---------------------------------------------*
+      *                  * Carattere di fine riga                      *
+      *                  *---------------------------------------------*
+           move      w-det-fin-rig-chr    to   w-out-eti-fin-rig      .
+      *                  *---------------------------------------------*
+      *                  * Scrittura record in output                  *
+      *                  *---------------------------------------------*
+           perform   prn-eti-put-000      thru prn-eti-put-999        .
+       prn-eti-zbr-800.
+      *              *-------------------------------------------------*
+      *              * Stampa tramite apposito script                  *
+      *              *-------------------------------------------------*
+           move      spaces               to   o-shs                  .
+      *
+           string    "t_ele_zbr_stp "  
+                                delimited by   size
+                     rf-ost-num-prt
+                                delimited by   spaces
+                                          into o-shs                  .
+      *              *-------------------------------------------------*
+      *              * Richiamo del modulo 'mopsys'                    *
+      *              *-------------------------------------------------*
+           move      "SH"                 to   o-ope                  .
+           call      "swd/mod/prg/obj/mopsys"
+                                         using o                      .
+       prn-eti-zbr-850.
+      *              *-------------------------------------------------*
+      *              * Chiusura files temporaneo                       *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Chiusura                                    *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+      *                  *---------------------------------------------*
+      *                  * Cancellazione modulo utilizzato             *
+      *                  *---------------------------------------------*
+           cancel    "swd/mod/prg/obj/mcvout"                         .
+       prn-eti-zbr-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     prn-eti-zbr-999.
+       prn-eti-zbr-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Esecuzione stampa etichette segnacolli                    *
+      *    *                                                           *
+      *    * Subroutine di scrittura singola riga                      *
+      *    *-----------------------------------------------------------*
+       prn-eti-put-000.
+      *              *-------------------------------------------------*
+      *              * Scrittura sequenziale                           *
+      *              *-------------------------------------------------*
+           move      w-out-eti            to   g-rec                  .
+           move      "PN"                 to   g-ope                  .
+           call      "swd/mod/prg/obj/mcvout"
+                                         using g                      .
+       prn-eti-put-900.
+      *              *-------------------------------------------------*
+      *              * Uscita                                          *
+      *              *-------------------------------------------------*
+           go to     prn-eti-put-999.
+       prn-eti-put-999.
+           exit.
+
+      *    *===========================================================*
+      *    * Determinazione pathname completo per il file di appoggio  *
+      *    * in output                                                 *
+      *    *-----------------------------------------------------------*
+       det-pth-fso-000.
+      *              *-------------------------------------------------*
+      *              * Preparazione nome file completo                 *
+      *              *-------------------------------------------------*
+           move      spaces               to   w-det-pth-fso-pth      .
+      *              *-------------------------------------------------*
+      *              * Pathname di base da segreteria                  *
+      *              *-------------------------------------------------*
+           move      "PB"                 to   s-ope                  .
+           move      "spl "               to   s-nam                  .
+           call      "swd/mod/prg/obj/msegrt"
+                                          using s                     .
+      *              *-------------------------------------------------*
+      *              * String                                          *
+      *              *-------------------------------------------------*
+           string    s-pat      delimited by   spaces
+                     "/"        delimited by   size
+                     rf-ost-num-prt
+                                delimited by   size
+                     ".csv"     delimited by   size
+                                          into w-det-pth-fso-pth      .
+       det-pth-fso-999.
            exit.
 
       *    *===========================================================*
