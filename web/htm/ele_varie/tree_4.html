@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generazione jsTree da CSV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+</head>
+<body>
+
+    <!-- Contenitore per il tree -->
+    <div id="tree"></div>
+
+    <script>
+        // Funzione per trasformare il CSV in un formato JSON per jsTree
+        function csvToJson(csv) {
+            const lines = csv.trim().split("\n");
+            const nodes = {}; // Mappa per i nodi
+            const result = [];
+
+            let currentFattura = null;
+            let currentBolla = null;
+            let currentOrdineSpedizione = null;
+
+            lines.forEach(line => {
+                const columns = line.split(";");
+
+                // Fattura - primo livello
+                if (columns[0].startsWith("Fattura")) {
+                    currentFattura = { id: columns[0], text: columns[0], children: [] };
+                    result.push(currentFattura); // Aggiungiamo la Fattura alla root
+                }
+
+                // Bolla - secondo livello (figlia di Fattura)
+                if (columns[1] && columns[1].startsWith("Bolla")) {
+                    currentBolla = { id: columns[1], text: columns[1], children: [] };
+                    if (currentFattura) {
+                        currentFattura.children.push(currentBolla); // Aggiungiamo la Bolla alla Fattura
+                    }
+                }
+
+                // Ordine di spedizione - terzo livello (figlio di Bolla)
+                if (columns[2] && columns[2].startsWith("Ordine di spedizione") && currentBolla) {
+                    currentOrdineSpedizione = { id: columns[2], text: columns[2], children: [] };
+                    currentBolla.children.push(currentOrdineSpedizione); // Aggiungiamo l'Ordine di spedizione alla Bolla
+                }
+
+                // Ordine d'acquisto - quarto livello (figlio di Ordine di spedizione)
+                if (columns[3] && columns[3].startsWith("Ordine d'acquisto") && currentOrdineSpedizione) {
+                    const ordineAcquisto = { id: columns[3], text: columns[3], url: columns[4] };
+                    currentOrdineSpedizione.children.push(ordineAcquisto); // Aggiungiamo l'Ordine d'acquisto all'Ordine di spedizione
+                }
+            });
+
+            return result;
+        }
+
+        // Funzione per caricare il CSV da un URL remoto
+        function loadCSVFromUrl(url) {
+            $.ajax({
+                url: url,
+                type: 'GET',
+                dataType: 'text',
+                success: function(csv) {
+                    const jsonData = csvToJson(csv);
+
+                    // Inizializzare jsTree con i dati JSON
+                    $('#tree').jstree({
+                        'core': {
+                            'data': jsonData,
+                            'themes': {
+                                'name': 'default',
+                                'responsive': true
+                            }
+                        },
+                        'plugins': ['wholerow'], // Per migliorare l'interazione con i nodi
+                    });
+
+                    // Gestione del click sui nodi per aprire i link
+                    $('#tree').on('select_node.jstree', function(e, data) {
+                        const url = data.node.original.url;
+                        if (url) {
+                            window.open(url, '_blank');
+                        }
+                    });
+
+                    // Espandere tutti i nodi (Fattura, Bolla, Ordine di spedizione, Ordine d'acquisto)
+                    $('#tree').on('ready.jstree', function() {
+                        $('#tree').jstree('open_all'); // Espandiamo tutti i nodi
+                    });
+                },
+                error: function() {
+                    alert('Errore nel caricamento del file CSV.');
+                }
+            });
+        }
+
+        // Caricare il file CSV da un URL specifico
+        $(document).ready(function() {
+            const csvUrl = 'documenti.csv'; // Cambia con il percorso corretto
+            loadCSVFromUrl(csvUrl);
+            
+            
+        });
+    </script>
+
+</body>
+</html>

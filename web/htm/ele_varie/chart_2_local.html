@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafico con Esportazione</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <canvas id="grafico"></canvas>
+    <br>
+    <button id="btn-jpeg">Esporta in JPEG</button>
+    <button id="btn-csv">Esporta in CSV</button>
+    <button id="btn-pdf">Esporta in PDF</button>
+
+    <script>
+        $(document).ready(function () {
+            // Dati JSON simulati
+            const jsonData = {
+                "2022": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
+                "2023": [15, 25, 35, 45, 55, 65, 75, 85, 95, 105, 115, 125],
+                "2024": [20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130]
+            };
+
+            const labels = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+            const colors = [
+                { bg: "rgba(255, 99, 132, 0.6)", border: "rgba(255, 99, 132, 1)" },
+                { bg: "rgba(54, 162, 235, 0.6)", border: "rgba(54, 162, 235, 1)" },
+                { bg: "rgba(75, 192, 192, 0.6)", border: "rgba(75, 192, 192, 1)" }
+            ];
+
+            // Creazione dei dataset
+            const datasets = Object.keys(jsonData).map((year, index) => ({
+                label: `Anno ${year}`,
+                data: jsonData[year],
+                backgroundColor: colors[index].bg,
+                borderColor: colors[index].border,
+                borderWidth: 1
+            }));
+
+            // Creazione del grafico
+            const ctx = document.getElementById('grafico').getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { stacked: false },
+                        y: { stacked: false, beginAtZero: true }
+                    }
+                }
+            });
+
+            // Esporta in JPEG
+            $("#btn-jpeg").on("click", function () {
+                const link = $("<a>")
+                    .attr("href", $("#grafico")[0].toDataURL('image/jpeg'))
+                    .attr("download", "grafico.jpg")
+                    .appendTo("body");
+                link[0].click();
+                link.remove();
+            });
+
+            // Esporta in CSV
+            $("#btn-csv").on("click", function () {
+                let csvContent = "Mese,2022,2023,2024\n";
+                labels.forEach((month, i) => {
+                    csvContent += `${month},${jsonData["2022"][i]},${jsonData["2023"][i]},${jsonData["2024"][i]}\n`;
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const link = $("<a>")
+                    .attr("href", URL.createObjectURL(blob))
+                    .attr("download", "dati.csv")
+                    .appendTo("body");
+                link[0].click();
+                link.remove();
+            });
+
+            // Esporta in PDF
+            $("#btn-pdf").on("click", function () {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({ orientation: "landscape" });
+            
+                // Titolo
+                doc.setFontSize(16);
+                doc.text("Grafico delle Statistiche", 10, 10);
+            
+                // Aggiunge il grafico come immagine
+                const canvas = document.getElementById('grafico');
+                const imgData = canvas.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', 10, 20, 270, 150); // Adatta larghezza e altezza
+            
+                // Salva il PDF
+                doc.save("grafico.pdf");
+            });
+        });
+    </script>
+</body>
+</html>

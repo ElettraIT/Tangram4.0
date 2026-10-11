@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafico a Torta con Chart.js</title>
+    
+    <link rel='stylesheet' type='text/css' href='../../ele/css/ele.css'>    
+    
+    <script src="../ele/jsc/jquery.min.js"></script>
+    <script src="../ele/jsc/chart.js"></script>
+
+</head>
+<body>
+    <h1>Grafico a Torta con Percentuali nella Legenda</h1>
+    <canvas id="myPieChart" width="400" height="400"></canvas>
+
+    <script>
+        // Funzione per caricare i dati tramite AJAX
+        $.ajax({
+            url: '../cgi-bin/dati_pie3.pl',  // Il percorso al tuo script Perl
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                // Estrai etichette, valori e colori dal JSON
+                const labels = data.map(item => item.label);
+                const values = data.map(item => item.value);
+                const colors = data.map(item => item.color);
+
+                // Calcola il totale per calcolare le percentuali
+                const total = values.reduce((acc, val) => acc + val, 0);
+                const percentages = values.map(val => (val / total * 100).toFixed(2));
+
+                // Crea il grafico a torta
+                const ctx = document.getElementById('myPieChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie', // Tipo di grafico a torta
+                    data: {
+                        labels: labels, // Etichette per ciascun spicchio
+                        datasets: [{
+                            data: values, // Valori per ciascun spicchio
+                            backgroundColor: colors, // Colori per ciascun spicchio
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    generateLabels: function(chart) {
+                                        const original = Chart.overrides.pie.plugins.legend.labels.generateLabels;
+                                        const labels = original(chart);
+
+                                        // Aggiungi la percentuale nella legenda
+                                        labels.forEach(function(label, index) {
+                                            label.text += ' (' + percentages[index] + '%)';
+                                        });
+                                        return labels;
+                                    }
+                                }
+                            },
+                            // Configurazione dei tooltip
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const index = context.dataIndex; // Indice della fetta
+                                        const value = context.raw; // Valore della fetta
+                                        const percentage = ((value / total) * 100).toFixed(2); // Calcolo della percentuale
+                                        return `${context.label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                console.error("Errore durante il caricamento dei dati: ", error);
+            }
+        });
+    </script>
+</body>
+</html>

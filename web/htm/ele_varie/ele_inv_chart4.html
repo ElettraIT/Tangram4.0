@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafico a Torta con Chart.js</title>
+    
+    <link rel='stylesheet' type='text/css' href='../../ele/css/ele.css'>    
+<!--    <script src="ele/jsc/jquery.min.js"></script> -->
+        <script src="../ele/jsc/chart.js"></script>
+
+
+</head>
+<body>
+    <h1>Grafico a Torta con Chart.js</h1>
+    <canvas id="myPieChart" width="400" height="400"></canvas>
+
+<!-- SCRIPT PER IL GRAFICO -->
+
+    <script>
+        // Funzione per caricare i dati JSON da Perl
+        fetch('../cgi-bin/dati_pie2.pl')  // Supponendo che il file Perl generi i dati JSON
+            .then(response => response.json())
+            .then(data => {
+                // Crea il grafico a torta con Chart.js
+                var ctx = document.getElementById('myPieChart').getContext('2d');
+                var myPieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: data,
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(tooltipItem) {
+                                        return tooltipItem.label + ': ' + tooltipItem.raw + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            })
+            .catch(error => console.error('Errore nel caricare i dati:', error));
+    </script>
+
+
+<!-- SCRIPT PER IL GRAFICO - fine -->
+
+
+</body>
+</html>

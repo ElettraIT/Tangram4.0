@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- *********************************** -->
+<!-- * wip - Tutti i diritti riservati * -->
+<!-- *********************************** -->
+<!-- *********************************** -->
+<!-- * .....Aggiornamento : 19/11/2024 * -->
+<!-- *********************************** -->
+<title>
+mario - CONTROLLO INVENTARIO
+</title>
+<link rel='stylesheet' type='text/css' href='../../ele/css/dataTables.min.css'>
+<link rel='stylesheet' type='text/css' href='../../ele/css/buttons.dataTables.min.css'>
+<link rel='stylesheet' type='text/css' href='../../ele/css/jquery.dataTables.min.css'>
+<link rel='stylesheet' type='text/css' href='../../ele/css/jquery-ui.min.css'>
+<link rel='stylesheet' type='text/css' href='../../ele/css/t_datatables.css'>
+<link rel='stylesheet' type='text/css' href='../../ele/css/ele.css'>
+<script src='../../ele/jsc/jquery.js'></script>
+<script src='../../ele/jsc/datatables.min.js'></script>
+<script src='../../ele/jsc/jquery-ui.js'></script>
+<script src='../../ele/jsc/js-cookies.js'></script>
+<script src='../../ele/jsc/jquery.md5.js'></script>
+<script src='../../ele/jsc/jszip.min.js'></script>
+<script src='../../ele/jsc/buttons.html5.min.js'></script>
+<script src='../../ele/jsc/buttons.print.min.js'></script>
+<script src='../../ele/jsc/moment.min.js'></script>
+<script src='../../ele/jsc/datetime-moment.js'></script>
+<script src='../../ele/jsc/t_dtb_inv.js'></script>
+<script src='../../ele/jsc/jquery.redirect.js'></script>
+<script src='../../ele/jsc/eleinv00.js'></script>
+<head>
+<body>
+<form name='inv_000' id='inv_000' method='post' action=''>
+<center>
+<table class='tes' width=80%>
+<tr>
+<td class='td_nb' colspan='3' align='center'>
+<h3>TIPO DI SELEZIONE</h3>
+</tr>
+<tr>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='tip_ord' name='tip_ord' value='P' >PRODOTTO</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='tip_ord' name='tip_ord' value='C' >CLASSE, GRUPPO</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='tip_ord' name='tip_ord' value='U' >UBICAZIONE</label>
+</td>
+</td>
+<td class='td_nb' id='cel_res' name='cel_res'>
+<button type='button'
+id='but_res' name='but_res'
+/>
+<img src='../../icons/gomma.png' width='40'>
+</button>
+</td>
+</tr>
+</table>
+<br>
+<br>
+<table class='snx_rad' width=80%>
+<tr class='td_bi'>
+<td class='td_nb' colspan='4' align='center'>
+<h2 id='grf_rsp' name='grf_rsp'>GIACENZA</h2>
+</tr>
+<tr>
+<td class='td_nb' align='center' width=25%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_gia' name='snx_gia' value='N' checked >Nessuna selezione</label>
+</td>
+<td class='td_nb' align='center' width=25%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_gia' name='snx_gia' value='C' >> 0</label>
+</td>
+<td class='td_nb' align='center' width=25%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_gia' name='snx_gia' value='S' >= 0</label>
+</td>
+<td class='td_nb' align='center' width=25%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_gia' name='snx_gia' value='Z' >0 <</label>
+</td>
+</td>
+</tr>
+</table>
+<br>
+<table class='snx_rad' width=80%>
+<tr class='td_bi'>
+<td class='td_nb' colspan='5' align='center'>
+<h2 id='grf_rsq' name='grf_rsq'>DIFFERENZE</h2>
+</tr>
+<tr>
+<td class='td_nb' align='center' width=20%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_dif' name='snx_dif' value='N' checked >Nessuna selezione</label>
+</td>
+<td class='td_nb' align='center' width=20%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_dif' name='snx_dif' value='P' >+</label>
+</td>
+<td class='td_nb' align='center' width=20%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_dif' name='snx_dif' value='S' >=</label>
+</td>
+<td class='td_nb' align='center' width=20%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_dif' name='snx_dif' value='M' >-</label>
+</td>
+<td class='td_nb' align='center' width=20%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_dif' name='snx_dif' value='X' >+ & -</label>
+</td>
+</td>
+</tr>
+</table>
+<br>
+<table class='snx_rad' width=80%>
+<tr class='td_bi'>
+<td class='td_nb' colspan='3' align='center'>
+<h2>PRODOTTI CLASSE 'Obsoleti'</h2>
+</tr>
+<tr>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_sts' name='snx_sts' value='N' checked >Nessuna selezione</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_sts' name='snx_sts' value='C' >NON obsoleti</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_sts' name='snx_sts' value='S' >Solo obsoleti</label>
+</td>
+</td>
+</tr>
+</table>
+<br>
+<table class='snx_rad' width=80%>
+<tr class='td_bi'>
+<td class='td_nb' colspan='3' align='center'>
+<h2 id='grf_not' name='grf_not'>NOTE</h2>
+</tr>
+<tr>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_ann' name='snx_ann' value='N' checked >Nessuna selezione</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_ann' name='snx_ann' value='C' >Righe con note</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_ann' name='snx_ann' value='S' >Righe senza note</label>
+</td>
+</td>
+</tr>
+</table>
+<br>
+<table class='snx_rad' width=80%>
+<tr class='td_bi'>
+<td class='td_nb' colspan='3' align='center'>
+<h2 id='grf_spn' name='grf_spn'>VISTO MAGAZZINIERI</h2>
+</tr>
+<tr>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_spn' name='snx_spn' value='N' checked >Nessuna selezione</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_spn' name='snx_spn' value='C' >Righe vistate</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_spn' name='snx_spn' value='S' >Righe senza visto</label>
+</td>
+</td>
+</tr>
+</table>
+<br>
+<table class='snx_rad' width=80%>
+<tr class='td_bi'>
+<td class='td_nb' colspan='3' align='center'>
+<h2 id='grf_vst' name='grf_vst'>SPUNTA SUPERVISIONE</h2>
+</tr>
+<tr>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_vst' name='snx_vst' value='N' checked >Nessuna selezione</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_vst' name='snx_vst' value='C' >Righe con spunta</label>
+</td>
+<td class='td_nb' align='center' width=33%>
+
+<label style='font-size:18px;'><input type='radio' id='snx_vst' name='snx_vst' value='S' >Righe senza spunta</label>
+</td>
+</td>
+</tr>
+</table>
+<br>
+<div id='dlg_grf' name='dlg_grf' title=''>
+</div>
+<input type='hidden' name='cod_ute' id='cod_ute' value='mario'>
+<input type='hidden' name='pwd_ute' id='pwd_ute' value='C1cc1o_&'>
+<input type='hidden' name='liv_ope' id='liv_ope' value='1'>
+<input type='hidden' name='ord' id='ord' value=''>
+<input type='hidden' name='gia' id='gia' value=''>
+<input type='hidden' name='dif' id='dif' value=''>
+<input type='hidden' name='sts' id='sts' value=''>
+<input type='hidden' name='ann' id='ann' value=''>
+<input type='hidden' name='spn' id='spn' value=''>
+<input type='hidden' name='spv' id='spv' value=''>
+<div id='msg_err' name='msg_err' title=''>
+</div>
+</form>
+<hr>
+<center>
+<button type='button'
+id='inv_ent' name='inv_ent'
+/>
+<a href='../../ele_inv.html'>
+<img src='../../icons/inventario.png' width='40'>
+</a>
+</button>
+<button type='button'
+id='col_rsp' name='col_rsp'
+/>
+<img src='../../icons/palette.png' width='40'>
+</button>
+<button type='button'
+id='grf_ute' name='grf_ute'
+/>
+<img src='../../icons/rsp.png' width='40'>
+</button>
+<button type='button'
+id='grf_svf' name='grf_svf'
+/>
+<img src='../../icons/chart.png' width='40'>
+</button>
+<br>
+<br>
+<button type='button'
+id='log_out' name='log_out'
+/>
+<img src='../../icons/uscita.png' width='40'>
+</button>
+<br>
+<br>
+<div id='copy' name='copy'>
+<address>
+<font size=3>&copy wip - tangram
+</address>
+</div>
+</center>
+</body>
+</html>
+

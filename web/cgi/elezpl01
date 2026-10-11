@@ -1,0 +1,66 @@
+#!/usr/bin/perl -w
+#==========================================*
+# CGI per stampa diretta file ZPL          *
+#                                          *
+# ---------------------------------------- *
+# Autore : N&A                             *
+# Data   : 20/05/2025                      *
+#==========================================*
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use strict                                ;
+use CGI                                   ;
+use CGI::Util qw(unescape)                ;
+
+#==========================================*
+# Inizializzazione oggetto CGI             *
+#------------------------------------------*
+my $cgi = new CGI                         ;
+
+#==========================================*
+# Logging iniziale per debug               *
+#------------------------------------------*
+open(LOG, ">>/abd/tmp/zpl_debug.log")     ;
+print LOG "ESEGUITO: $$ - ".localtime()."\n";
+print LOG "REQUEST_METHOD = ".($ENV{'REQUEST_METHOD'} || '[undef]')."\n";
+print LOG "CONTENT_LENGTH = ".($ENV{'CONTENT_LENGTH'} || '[undef]')."\n";
+
+#==========================================*
+# Lettura parametro ZPL dal POST           *
+#------------------------------------------*
+my $zpl_raw = $cgi->param('ZPL') || ''    ;
+
+#==========================================*
+# Decodifica URL (per sicurezza)           *
+#------------------------------------------*
+my $zpl_data = unescape($zpl_raw)         ;
+
+#==========================================*
+# Logging contenuto ZPL ricevuto           *
+#------------------------------------------*
+print LOG "ZPL_DATA:\n"                   ;
+print LOG "$zpl_data\n"                   ;
+print LOG "-----------------------------\n";
+close(LOG)                                ;
+
+#==========================================*
+# Scrittura contenuto ZPL su file tempo-   *
+# raneo                                    *
+#------------------------------------------*
+my $tmp_file = "/abd/tmp/etichetta_$$.zpl";
+open(my $fh, '>', $tmp_file) or die "Errore apertura file: $tmp_file ($!)\n";
+print $fh $zpl_data                       ;
+close($fh)                                ;
+
+#==========================================*
+# Invio file alla stampante Zebra          *
+#------------------------------------------*
+my $printer = "zebra_5"                   ;
+system("lpr -P $printer -l $tmp_file")    ;
+
+#==========================================*
+# Risposta al client HTTP                  *
+#------------------------------------------*
+print "Content-type: text/plain\n\n"      ;     
+print "ETICHETTA STAMPATA"                ;

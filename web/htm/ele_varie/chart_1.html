@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafico a Barre con Chart.js</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <canvas id="grafico"></canvas>
+
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('server-script.php'); // Cambia con il tuo script lato server
+                const jsonData = await response.json();
+
+                const labels = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+                const datasets = Object.keys(jsonData).map((year, index) => ({
+                    label: `Anno ${year}`,
+                    data: jsonData[year],
+                    backgroundColor: ["rgba(255, 99, 132, 0.6)", "rgba(54, 162, 235, 0.6)", "rgba(75, 192, 192, 0.6)"][index], 
+                    borderColor: ["rgba(255, 99, 132, 1)", "rgba(54, 162, 235, 1)", "rgba(75, 192, 192, 1)"][index],
+                    borderWidth: 1
+                }));
+
+                const ctx = document.getElementById('grafico').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels, datasets },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { stacked: false },
+                            y: { stacked: false, beginAtZero: true }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error("Errore nel recupero dati:", error);
+            }
+        }
+
+        fetchData();
+    </script>
+</body>
+</html>

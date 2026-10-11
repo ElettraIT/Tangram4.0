@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Odometro con Scala da 1 a 25</title>
+
+    <script src="../../jsc_ele/jquery.min.js"></script>
+    <script src="../../jsc_ele/raphael.min.js"></script>
+    <script src="../../jsc_ele/justgage.js"></script>
+
+
+    <style>
+        .odometro-container {
+            width: 300px;
+            height: 300px;
+            margin: 50px auto;
+            position: relative;
+        }
+        #odometro {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="odometro" class="odometro-container"></div>
+
+    <script>
+        $(document).ready(function() {
+            // Crea l'odometro JustGage
+            var g = new JustGage({
+                id: 'odometro',
+                value: 15,  // Imposta il valore iniziale
+                min: 1,
+                max: 25,
+                title: 'Km',
+                label: 'Progress',
+                levelColors: ['#ff0000'],
+                customSectors: [{
+                    color: "#ff0000",
+                    lo: 0,
+                    hi: 25
+                }],
+                gaugeWidthScale: 0.6,  // Ridimensiona l'odometro
+                donut: true,  // Usa l'effetto "donut"
+                counter: true
+            });
+
+            // Crea il semicerchio usando Raphael
+            var r = Raphael("odometro");
+            var centerX = 150, centerY = 200, radius = 120; // Centro e raggio del semicerchio
+            var startAngle = 135;  // Angolo di inizio (135° per avere 270° di semicerchio)
+            var step = 270 / 25;   // Step di angolo per ogni tacca
+
+            // Disegna l'arco del semicerchio
+            var arc = r.path().attr({
+                path: [
+                    ["M", centerX - radius, centerY], // Inizio arco
+                    ["A", radius, radius, 0, 1, 1, centerX + radius, centerY] // Arco completo
+                ],
+                stroke: "#ccc",
+                "stroke-width": 6,
+                "stroke-linecap": "round"
+            });
+
+            // Disegna le tacche sulla scala
+            for (var i = 0; i <= 25; i++) {
+                var angle = startAngle + (step * i); // Calcola l'angolo per ciascuna tacca
+                var radian = (Math.PI / 180) * angle; // Converte l'angolo in radianti
+
+                // Calcola la posizione della tacca
+                var x1 = centerX + (radius - 10) * Math.cos(radian);
+                var y1 = centerY + (radius - 10) * Math.sin(radian);
+                var x2 = centerX + radius * Math.cos(radian);
+                var y2 = centerY + radius * Math.sin(radian);
+
+                // Disegna la linea della tacca
+                r.path(["M", x1, y1, "L", x2, y2]).attr({ stroke: "#000", "stroke-width": 2 });
+
+                // Aggiungi il numero ogni 5 tacche con una dimensione più piccola
+                if (i % 5 === 0) {
+                    var number = r.text(x2 + 5, y2 + 5, i + 1).attr({
+                        font: "12px Arial",  // Ridotto il font per i numeri
+                        fill: "#000"
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>

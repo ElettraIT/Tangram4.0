@@ -17,8 +17,6 @@
       *                                                                *
       *                    ELETTRA (VERSIONE NUOVA)                    *
       *                                                                *
-      *                    Solo per spunta di controllo                *
-      *                                                                *
       *================================================================*
 
       ******************************************************************
@@ -211,7 +209,6 @@
       *        * Livello operativo                                     *
       *        *-------------------------------------------------------*
            05  w-exe-liv-ope              pic  x(01)                  .
-           05  w-exe-mod-ope              pic  x(01)                  .
       *        *-------------------------------------------------------*
       *        * Parametri in input estratti                           *
       *        *-------------------------------------------------------*
@@ -652,7 +649,6 @@
       *              * Normalizzazioni preliminari                     *
       *              *-------------------------------------------------*
            move      zero                 to   w-exe-liv-ope          .
-           move      "R"                  to   w-exe-mod-ope          .
            move      zero                 to   w-exe-cnv-dst          .
            move      spaces               to   w-exe-tip-ric          .
            move      spaces               to   w-exe-num-dst          .
@@ -667,7 +663,7 @@
       *              * Normalizzazione parametri                       *
       *              *-------------------------------------------------*
            move      "NO"                 to   w-cgi-tip-ope          .
-           move      08                   to   w-cgi-str-num          .
+           move      07                   to   w-cgi-str-num          .
            perform   ope-prm-inp-000      thru ope-prm-inp-999        .
       *              *-------------------------------------------------*
       *              * Lettura della variabile di environment          *
@@ -689,8 +685,6 @@
            move      w-cgi-str-num        to   w-cgi-str-num          .
            perform   ope-prm-inp-000      thru ope-prm-inp-999        .
        ext-prm-500.
-      *    * eleodsB2 dedicato alla consultazione; ordinario eleodsB1.
-           move      "R" to w-exe-mod-ope.
       *              *-------------------------------------------------*
       *              * Regolarizzazioni                                *
       *              *-------------------------------------------------*
@@ -738,8 +732,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  * Preparazione tabella responsabili           *
       *                  *---------------------------------------------*
            perform   det-tbl-rsm-000      thru det-tbl-rsm-999        .
-           if        w-exe-mod-ope = "R"
-                     go to ext-prm-900.
       *                  *---------------------------------------------*
       *                  * Preparazione tabella prodotti da verificare *
       *                  *---------------------------------------------*
@@ -766,9 +758,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Deviazione in funzione del nome campo           *
       *              *-------------------------------------------------*
-           if        w-all-str-cat (1)    =    "mod_ope"
-                     move w-all-str-cat (2) to w-exe-mod-ope
-           else if   w-all-str-cat (1)    =    "liv_ope"
+           if        w-all-str-cat (1)    =    "liv_ope"
                      move  w-all-str-cat (2)
                                           to   w-exe-liv-ope
            else if   w-all-str-cat (1)    =    "tip_ric"
@@ -827,14 +817,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
            move      w-exe-num-ods        to   w-all-str-alf          .
            perform   all-str-lun-000      thru all-str-lun-999        .
-           if        w-exe-mod-ope = "R" and
-                     w-all-str-lun = 11
-                     move "CV" to p-ope
-                     move 11 to p-car
-                     move w-exe-num-ods to p-alf
-                     call "swd/mod/prg/obj/mprint" using p
-                     move p-num to w-slc-num-ost-prt
-                     go to ext-prm-prt-900.
            if        w-all-str-lun        >    6
                      go to ext-prm-prt-900.
        ext-prm-prt-200.
@@ -1195,12 +1177,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              * Normalizzazioni preliminari                     *
       *              *-------------------------------------------------*
        exe-cph-010.
-           if        w-exe-mod-ope        =    "R" and
-                     w-exe-cnv-rsm        =    zero
-                     go to exe-cph-100.
-           if        w-exe-mod-ope        =    "R"
-                     go to exe-cph-850.
-
       *              *-------------------------------------------------*
       *              * Test preliminare su livello operativo           *
       *              *-------------------------------------------------*
@@ -1262,9 +1238,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  * Ad uscita                                   *
       *                  *---------------------------------------------*
            go to     exe-cph-900.
-       exe-cph-850.
-           perform   exe-cph-ro-000 thru exe-cph-ro-999.
-           go to     exe-cph-900.
        exe-cph-900.
       *              *-------------------------------------------------*
       *              * Uscita                                          *
@@ -1278,104 +1251,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *    *                                                           *
       *    * Subroutine per livello '0'                                *
       *    *-----------------------------------------------------------*
-       exe-cph-ro-000.
-           perform   exe-cph-hea-000 thru exe-cph-hea-999.
-           display   "<style type='text/css'>".
-           display   "#rig td:not(.ods-ok),#ro_int td,#ro_operatore".
-           display   "{background-color:#ddd!important;}".
-           display   "#rig input:disabled,#rig select:disabled,".
-           display   "#rig textarea:disabled".
-           display   "{background-color:#ddd!important;}".
-           display   "</style>".
-           display   "<form id='ods_002' name='ods_002' "
-           display   "method='post' action='/cgi-bin/eleodsB2'>".
-           display   "<input type='hidden' id='mod_ope' "
-           display   "name='mod_ope' value='R'>".
-           move      "IH" to h-ope.
-           move      "rsp_doc" to h-nam.
-           move      w-exe-cod-rsm to h-alf.
-           call      "swd/mod/prg/obj/mhtml0" using h.
-           display   "<input type='hidden' id='liv_ope' "
-           display   "name='liv_ope' value='1'>".
-           display   "<center><table class='tes' id='key_lv1'>".
-           display   "<tr><td id='cel_num' align='center'>".
-           display   "<h1>Ordine di spedizione</h1>".
-           display   "<input type='text' id='prt_ods' "
-           display   "name='prt_ods' value=''>".
-           display   "</td><td id='ro_operatore' align='center'>".
-           display   "<h1>Operatore</h1>".
-           move      w-exe-cnv-rsm to w-let-arc-zrm-cod.
-           perform   let-arc-zrm-000 thru let-arc-zrm-999.
-           display   w-let-arc-zrm-des.
-           display   "</td></tr></table></center>".
-           if        w-exe-num-ods = spaces
-                     go to exe-cph-ro-900.
-           move      "RK" to f-ope.
-           move      "NUMPRT    " to f-key.
-           move      w-slc-num-ost-prt to rf-ost-num-prt.
-           move      "pgm/ods/fls/ioc/obj/iofost" to s-pat.
-           call      "swd/mod/prg/obj/mfiltp" using s.
-           call      s-pat using f rf-ost.
-           if        f-sts not = e-not-err
-                     display "<h2>Ordine non trovato</h2>"
-                     go to exe-cph-ro-900.
-           move      "RK" to f-ope.
-           move      "CODCLI" to f-key.
-           move      rf-ost-cod-arc to rf-cli-cod-cli.
-           move      "pgm/cge/fls/ioc/obj/iofcli" to s-pat.
-           call      "swd/mod/prg/obj/mfiltp" using s.
-           call      s-pat using f rf-cli.
-           if        f-sts not = e-not-err
-                     move spaces to rf-cli-rag-soc.
-           display   "<table class='tes' id='ro_int' width='100%'>".
-           display   "<tr>".
-           display   "<th>Ordine di spedizione</th><th>Cliente</th>".
-           display   "</tr><tr><td>".
-           display   w-exe-num-ods.
-           display   "</td><td>".
-           display   rf-cli-rag-soc.
-           display   "</td></tr></table>".
-           move      zero to w-exe-ctr-rig.
-           move      "SK" to f-ope.
-           move      "NUMPRT    " to f-key.
-           move      "NL" to f-cfr.
-           move      w-slc-num-ost-prt to rf-osr-num-prt.
-           move      zero to rf-osr-num-prg.
-           move      "pgm/ods/fls/ioc/obj/iofosr" to s-pat.
-           call      "swd/mod/prg/obj/mfiltp" using s.
-           call      s-pat using f rf-osr.
-           if        f-sts not = e-not-err
-                     go to exe-cph-ro-800.
-       exe-cph-ro-200.
-           move      "RN" to f-ope.
-           move      "NUMPRT    " to f-key.
-           move      "pgm/ods/fls/ioc/obj/iofosr" to s-pat.
-           call      "swd/mod/prg/obj/mfiltp" using s.
-           call      s-pat using f rf-osr.
-           if        f-sts not = e-not-err
-                     go to exe-cph-ro-800.
-           if        rf-osr-num-prt not = w-slc-num-ost-prt
-                     go to exe-cph-ro-800.
-      *    * Esclusione delle sole righe di tipo C.
-           if        rf-osr-tip-rig       =    "C    "
-                     go to exe-cph-ro-200.
-           add       1 to w-exe-ctr-rig.
-           move      spaces to w-exe-flg-spn.
-           perform   exe-cph-lv2-rig-000
-                     thru exe-cph-lv2-rig-999.
-           go to     exe-cph-ro-200.
-       exe-cph-ro-800.
-           if        w-exe-ctr-rig > zero
-                     display "</table>"
-           else      display "<p>Nessuna riga presente.</p>".
-       exe-cph-ro-900.
-           display   "<p id='nbx_status' role='status' "
-           display   "aria-live='polite'></p></form>".
-           perform   emi-htm-cls-000 thru emi-htm-cls-999.
-           go to     exe-cph-ro-999.
-       exe-cph-ro-999.
-           exit.
-
        exe-cph-lv0-000.
       *              *-------------------------------------------------*
       *              * Emissione 'header'                              *
@@ -1437,10 +1312,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
        exe-cph-lv0-700.
-           if        w-exe-mod-ope = "R"
-                     display "<input type='hidden' id='mod_ope' "
-                     display "name='mod_ope' value='R'>".
-
       *              *-------------------------------------------------*
       *              * Livello operativo 'hidden'                      *
       *              *-------------------------------------------------*
@@ -1665,7 +1536,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_fip' name='but_fip' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/check.png' width='40'>"      .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -1921,59 +1792,23 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                      *-----------------------------------------*
            go to     exe-cph-lv1-new-900.
        exe-cph-lv1-new-140.
-      *              *-------------------------------------------------*
-      *              * Test se ordine chiuso                           *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Test                                        *
-      *                  *---------------------------------------------*
-           if        rf-ost-flg-sch       =    spaces
-                     go to exe-cph-lv1-new-160.
-      *                  *---------------------------------------------*
-      *                  * Messaggio di errore                         *
-      *                  *---------------------------------------------*
-           move      "ORDINE DI SPEDIZIONE CHIUSO!"
-                                          to   w-exe-err-msg          .
-           move      "msg_red"            to   w-exe-cla-msg          .
-           perform   err-msg-htm-000      thru err-msg-htm-999        .
-      *                  *---------------------------------------------*
-      *                  * A test se ordine in distinta                *
-      *                  *---------------------------------------------*
-           go to     exe-cph-lv1-new-180.
+      *    * Ammette ordine aperto e tutte le spunte tradizionali.
+           if rf-ost-flg-sch not = spaces
+              move "ORDINE DI SPEDIZIONE CHIUSO!" to w-exe-err-msg
+              go to exe-cph-lv1-new-150.
+           move rf-ost-num-prt to w-det-rig-spn-prt.
+           perform det-rig-spn-000 thru det-rig-spn-999.
+           if w-det-rig-spn-ctr > zero and
+              w-det-rig-spn-ctr = w-det-rig-spn-cts
+              go to exe-cph-lv1-new-180.
+           move "ORDINE NON INTERAMENTE SPUNTATO!"
+              to w-exe-err-msg.
+       exe-cph-lv1-new-150.
+           move "msg_red" to w-exe-cla-msg.
+           perform err-msg-htm-000 thru err-msg-htm-999.
+           go to exe-cph-lv1-new-900.
        exe-cph-lv1-new-160.
-      *              *-------------------------------------------------*
-      *              * Test se ordine evaso                            *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Determinazione status dell'ordine           *
-      *                  *---------------------------------------------*
-           move      "DT"                 to   d-sts-ods-tip-ope      .
-           perform   det-sts-ods-cll-000  thru det-sts-ods-cll-999    .
-      *                  *---------------------------------------------*
-      *                  * Test                                        *
-      *                  *---------------------------------------------*
-           if        d-sts-ods-sts-ord    not  = 03
-                     go to exe-cph-lv1-new-180.
-      *                  *---------------------------------------------*
-      *                  * Assemblaggio                                *
-      *                  *---------------------------------------------*
-           move      80                   to   w-all-str-lun          .
-           move      03                   to   w-all-str-num          .
-           move      "ORDINE DI SPEDIZIONE"
-                                          to   w-all-str-cat (1)      .
-           move      w-exe-num-ods        to   w-all-str-cat (2)      .
-           move      "EVASO!"             to   w-all-str-cat (3)      .
-           perform   all-str-csb-000      thru all-str-csb-999        .
-      *                  *---------------------------------------------*
-      *                  * Messaggio di errore                         *
-      *                  *---------------------------------------------*
-           move      w-all-str-alf        to   w-exe-err-msg          .
-           move      "msg_red"            to   w-exe-cla-msg          .
-           perform   err-msg-htm-000      thru err-msg-htm-999        .
-      *                  *---------------------------------------------*
-      *                  * Ad uscita                                   *
-      *                  *---------------------------------------------*
-           go to     exe-cph-lv1-new-600.
+           go to exe-cph-lv1-new-180.
        exe-cph-lv1-new-180.
       *              *-------------------------------------------------*
       *              * Test se ordine gia' in distinta                 *
@@ -3074,32 +2909,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
-      *              *-------------------------------------------------*
-      *              * Cella per tasto di stampa etichetta Zebra       *
-      *              *-------------------------------------------------*
-           move      "ET"                 to   h-ope                  .
-           move      "td"                 to   h-tag                  .
-           move      "I"                  to   h-sub                  .
-           move      "cel_stp"            to   h-idx                  .
-           move      "cel_stp"            to   h-nam                  .
-           move      "td_nb"              to   h-cla                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *              *-------------------------------------------------*
-      *              * Tasto di stampa                                 *
-      *              *-------------------------------------------------*
-           display   "<button type='button' id='but_zbr' name='but_zbr'>
-      -              ""                                               .
-           display   "<img src='../icons/carp.png' width='40'>"       .
-           display   "</button>"                                      .
-      *              *-------------------------------------------------*
-      *              * Chiusura cella                                  *
-      *              *-------------------------------------------------*
-           move      "ET"                 to   h-ope                  .
-           move      "td"                 to   h-tag                  .
-           move      "C"                  to   h-sub                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
        exe-cph-lv2-400.
       *              *-------------------------------------------------*
       *              * Operatore (responsabile di magazzino)           *
@@ -3118,60 +2927,9 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            display   "</h1>"                                          .
            display   "</td>"                                          .
        exe-cph-lv2-420.
-      *              *-------------------------------------------------*
-      *              * Bottone 'info'                                  *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Apertura cella                              *
-      *                  *---------------------------------------------*
-           display   "<td id='cel_inf' name='cel_inf'>"               .
-      *                  *---------------------------------------------*
-      *                  * Apertura bottone                            *
-      *                  *---------------------------------------------*
-           display   "<button type='button' "                         .
-           display   "id='but_inf' name='but_inf' "                   .
-           display   "class='sem' "                                   .
-           display   "/>"                                             .
-           display   "<img src='../icons/info.png' width='40'>"       .
-           display   "</button>"                                      .
-      *                  *---------------------------------------------*
-      *                  * Chiusura cella                              *
-      *                  *---------------------------------------------*
-           display   "</td>"                                          .
        exe-cph-lv2-430.
-      *              *-------------------------------------------------*
-      *              * Bottone 'semaforo'                              *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Determinazione status ordini in distinta    *
-      *                  *---------------------------------------------*
-           perform   exe-cph-lv2-sem-000  thru exe-cph-lv2-sem-999    .
-      *                  *---------------------------------------------*
-      *                  * Se righe spuntate uguali a righe documenti, *
-      *                  * scrittura giroconti ubicazioni e quantita'  *
-      *                  * in magazzino, se non ancora eseguita        *
-      *                  *---------------------------------------------*
-           if        w-exe-ctr-rid        not  = w-exe-ctr-ris
-                     go to exe-cph-lv2-440.
-      *                  *---------------------------------------------*
-      *                  * Scrittura movimento di magazzino            *
-      *                  *---------------------------------------------*
-           perform   exe-cph-agg-mag-000  thru exe-cph-agg-mag-999    .
        exe-cph-lv2-440.
-      *                  *---------------------------------------------*
-      *                  * Apertura cella                              *
-      *                  *---------------------------------------------*
-           display   "<td id='cel_sem' name='cel_sem'>"               .
-      *                  *---------------------------------------------*
-      *                  * Apertura bottone                            *
-      *                  *---------------------------------------------*
-           if        w-exe-ctr-rid        =    w-exe-ctr-ris
-                     display "<img src='../icons/green.png' width='40'>"
-           else      display "<img src='../icons/red.png' width='40'>".
-      *                  *---------------------------------------------*
-      *                  * Chiusura cella                              *
-      *                  *---------------------------------------------*
-           display   "</td>"                                          .
+      *    * Info, semaforo e scritture automatiche rimossi.
        exe-cph-lv2-450.
       *              *-------------------------------------------------*
       *              * Numero distinta                                 *
@@ -3218,7 +2976,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Codici prodotto da controllare                  *
       *              *-------------------------------------------------*
-           perform   exe-cph-lv2-pdv-000  thru exe-cph-lv2-pdv-999    .
+      *    * Select Da verificare e relativa cella rimosse.
        exe-cph-lv2-520.
       *              *-------------------------------------------------*
       *              * Bottone di conferma fine immissione protocolli  *
@@ -3259,6 +3017,12 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  * Chiusura cella                              *
       *                  *---------------------------------------------*
            display   "</td>"                                          .
+      *    * Icona carrello a destra della bottoniera.
+           display "<td align='right' style='padding-left:16px'>".
+           display "<img src='../icons/trolley-1.jpg' ".
+           display "width='64' height='64' alt='Ordini spedizione' ".
+           display "style='object-fit:contain;vertical-align:middle'>".
+           display "</td>".
        exe-cph-lv2-800.
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
@@ -3394,6 +3158,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move      "C"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<div id='nbx_status' role='status'></div>".
        exe-cph-lv2-600.
       *              *-------------------------------------------------*
       *              * Esecuzione sort per ordinamento                 *
@@ -3688,8 +3453,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                      *-----------------------------------------*
       *                      * Flag di selezione prodotto              *
       *                      *-----------------------------------------*
-           if        w-exe-mod-ope not = "R" and
-                     rf-osd-num-pro       =    w-exe-num-pro
+           if        rf-osd-num-pro       =    w-exe-num-pro
                      move  spaces         to   srt-flg-sel
                      add   1              to   w-exe-ctr-pro
                      add   rf-osr-qta-ven to   w-exe-ctr-qpr
@@ -3837,9 +3601,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              * Letture preliminari                             *
       *              *-------------------------------------------------*
        exe-cph-lv2-rig-010.
-           if        w-exe-mod-ope = "R"
-                     go to exe-cph-lv2-rig-015.
-
       *              *-------------------------------------------------*
       *              * Letture preliminari                             *
       *              *-------------------------------------------------*
@@ -3869,7 +3630,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
       *                  * Lettura prodotto                            *
       *                  *---------------------------------------------*
-       exe-cph-lv2-rig-015.
            move      rf-osr-num-pro       to   w-let-arc-dcp-num      .
            perform   let-arc-dcp-000      thru let-arc-dcp-999        .
        exe-cph-lv2-rig-020.
@@ -3925,32 +3685,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            if        rf-osr-snx-3qt       not  = 0
                      display  " class='spn' "                         .
       *
-           display   "/>"                                             .
-           if        w-exe-mod-ope = "R"
-                     go to exe-cph-lv2-rig-100.
-
-      *              *-------------------------------------------------*
-      *              * Apertura Form                                   *
-      *              *-------------------------------------------------*
-           move      80                   to   w-all-str-lun          .
-           move      04                   to   w-all-str-num          .
-           move      "<form id='frm_"     to   w-all-str-cat (1)      .
-           move      w-exe-ctr-ria        to   w-all-str-cat (2)      .
-           move      "' name='frm_"       to   w-all-str-cat (3)      .
-           move      w-exe-ctr-ria        to   w-all-str-cat (4)      .
-           perform   all-str-cat-000      thru all-str-cat-999        .
-      *
-           move      02                   to   w-all-str-num          .
-           move      w-all-str-alf        to   w-all-str-cat (1)      .
-           move      "action='' method='post'>"
-                                          to   w-all-str-cat (2)      .
-           perform   all-str-csb-000      thru all-str-csb-999        .
-      *
-           display   w-all-str-alf                                    .
-      *              *-------------------------------------------------*
-      *              * Campi 'hidden' per la riga                      *
-      *              *-------------------------------------------------*
-           perform   exe-cph-lv2-hid-000  thru exe-cph-lv2-hid-999    .
+           display ">".
        exe-cph-lv2-rig-100.
       *              *-------------------------------------------------*
       *              * Progressivo riga                                *
@@ -4014,38 +3749,15 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
            perform   exe-cph-lv2-cop-000  thru exe-cph-lv2-cop-999    .
        exe-cph-lv2-rig-300.
-      *              *-------------------------------------------------*
-      *              * Numero ordine                                   *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Test se riferimenti esistenti               *
-      *                  *---------------------------------------------*
-           if        rf-osr-coc-num       =    zero and
-                     rf-osr-coc-dat       =    zero
-                     move  spaces         to   w-all-str-alf
-                     go to exe-cph-lv2-rig-320.
-      *                  *---------------------------------------------*
-      *                  * Editing numero ordine                       *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "P"                  to   p-tip                  .
-           move      06                   to   p-car                  .
-           move      zero                 to   p-dec                  .
-           move      spaces               to   p-sgn                  .
-           move      "<B"                 to   p-edm                  .
-           move      rf-osr-coc-num       to   w-stp-int-ndo          .
-           move      w-stp-int-ndo-saa    to   w-stp-int-npr-saa      .
-           move      w-stp-int-ndo-prg    to   w-stp-int-npr-prg      .
-           move      w-stp-int-npr        to   p-num                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-           move      p-edt                to   w-stp-int-nde          .
-      *                  *---------------------------------------------*
-      *                  * Allineamento a destra                       *
-      *                  *---------------------------------------------*
-           move      08                   to   w-all-str-lun          .
-           move      w-stp-int-nde        to   w-all-str-alf          .
-           perform   all-str-adx-000      thru all-str-adx-999        .
+           move "ED" to p-ope.
+           move "N" to p-tip.
+           move 06 to p-car.
+           move zero to p-dec.
+           move spaces to p-sgn.
+           move "<B" to p-edm.
+           move rf-osr-num-prt (06 : 06) to p-num.
+           call "swd/mod/prg/obj/mprint" using p.
+           move p-edt to w-all-str-alf.
        exe-cph-lv2-rig-320.
       *                  *---------------------------------------------*
       *                  * Valore                                      *
@@ -4060,96 +3772,37 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
        exe-cph-lv2-rig-400.
-      *              *-------------------------------------------------*
-      *              * Residuo quantita' da spedire                    *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Editing                                     *
-      *                  *---------------------------------------------*
-           move      "ED"                 to   p-ope                  .
-           move      "N"                  to   p-tip                  .
-           move      06                   to   p-car                  .
-           move      02                   to   p-dec                  .
-           move      "S"                  to   p-sgn                  .
-           move      "<BGD"               to   p-edm                  .
-           move      rf-osr-qta-ven       to   p-num                  .
-           call      "swd/mod/prg/obj/mprint"
-                                         using p                      .
-      *                  *---------------------------------------------*
-      *                  * Valore                                      *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "td"                 to   h-sub                  .
-           move      p-edt                to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "R"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
        exe-cph-lv2-rig-425.
-      *              *-------------------------------------------------*
-      *              * Quantita' verificata                            *
-      *              *-------------------------------------------------*
-           perform   exe-cph-lv2-qtv-000  thru exe-cph-lv2-qtv-999    .
+      *    * Verificato: sola lettura.
+           move "ED" to p-ope.
+           move "N" to p-tip.
+           move 06 to p-car.
+           move 02 to p-dec.
+           move "S" to p-sgn.
+           move "<BGD" to p-edm.
+           move rf-osr-snx-3qt to p-num.
+           call "swd/mod/prg/obj/mprint" using p.
+           move "TD" to h-ope.
+           move "td" to h-sub.
+           move p-edt to h-alf.
+           move "1" to h-col.
+           move "R" to h-all.
+           move "S" to h-wdt.
+           move "B" to h-stl.
+           call "swd/mod/prg/obj/mhtml0" using h.
        exe-cph-lv2-rig-450.
-      *              *-------------------------------------------------*
-      *              * Spunta                                          *
-      *              *-------------------------------------------------*
-           perform   exe-cph-lv2-spn-000  thru exe-cph-lv2-spn-999    .
+           display "<td align='center'>".
+           display "<input type='checkbox' class='osr-nbx' ".
+           display "aria-label='OK ordine di spedizione' ".
+           display "data-num-prt='" rf-osr-num-prt "' ".
+           display "data-num-prg='" rf-osr-num-prg "' ".
+           if rf-osr-flg-nbx (3) = "#"
+              display "checked ".
+           display "></td>".
        exe-cph-lv2-rig-500.
-      *              *-------------------------------------------------*
-      *              * Barcode EAN                                     *
-      *              *-------------------------------------------------*
        exe-cph-lv2-rig-600.
-      *              *-------------------------------------------------*
-      *              * Determinazione buffer giacenze per ubicazione   *
-      *              *-------------------------------------------------*
-           move      "PU"                 to   d-sld-ubi-tip-ope      .
-           move      w-exe-dat-exe        to   d-sld-ubi-dat-ela      .
-           move      01                   to   d-sld-ubi-cod-dpz      .
-           move      01                   to   d-sld-ubi-tip-mag      .
-           move      rf-osr-num-pro       to   d-sld-ubi-num-mag      .
-           move      spaces               to   d-sld-ubi-cod-ubi      .
-           move      "#"                  to   d-sld-ubi-lit-ubi      .
-           perform   det-sld-ubi-cll-000  thru det-sld-ubi-cll-999    .
-      *              *-------------------------------------------------*
-      *              * Ubicazione                                      *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Apertura cella                              *
-      *                  *---------------------------------------------*
-           display   "<td id='lit_ubi' name ='lit_ubi'><b>"           .
-      *                  *---------------------------------------------*
-      *                  * Valore                                      *
-      *                  *---------------------------------------------*
-           display   d-sld-ubi-lit-ubi                                .
-      *                  *---------------------------------------------*
-      *                  * Chiusura 'bold'                             *
-      *                  *---------------------------------------------*
-           move      "ET"                 to   h-ope                  .
-           move      "b"                  to   h-tag                  .
-           move      "C"                  to   h-sub                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Chiusura cella                              *
-      *                  *---------------------------------------------*
-           move      "ET"                 to   h-ope                  .
-           move      "td"                 to   h-tag                  .
-           move      "C"                  to   h-sub                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
        exe-cph-lv2-rig-700.
-      *              *-------------------------------------------------*
-      *              * Giacenza                                        *
-      *              *-------------------------------------------------*
-           perform   exe-cph-lv2-gia-000  thru exe-cph-lv2-gia-999    .
        exe-cph-lv2-rig-800.
-           if        w-exe-mod-ope = "R"
-                     perform exe-cph-lv2-nbx-000
-                             thru exe-cph-lv2-nbx-999.
-
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
@@ -4158,11 +3811,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move      "C"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
-      *              *-------------------------------------------------*
-      *              * Chiusura Form                                   *
-      *              *-------------------------------------------------*
-           if        w-exe-mod-ope not = "R"
-                     display "</form>".
        exe-cph-lv2-rig-900.
       *              *-------------------------------------------------*
       *              * Uscita                                          *
@@ -4261,151 +3909,12 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *    * Sub-subroutine per intestazione righe prodotto            *
       *    *-----------------------------------------------------------*
        exe-cph-lv2-irg-000.
-      *              *-------------------------------------------------*
-      *              * Intestazione colonne                            *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Apertura tabella per le righe               *
-      *                  *---------------------------------------------*
-           display   "<table class='bordotab' id='rig' name='rig' width=
-      -              "100%>"                                          .
-      *                  *---------------------------------------------*
-      *                  * Apertura riga                               *
-      *                  *---------------------------------------------*
-           move      "ET"                 to   h-ope                  .
-           move      "tr"                 to   h-tag                  .
-           move      "O"                  to   h-sub                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Progressivo riga                *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "NR"                 to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Codice                          *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "Codice"             to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Descrizione                     *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "Descrizione"        to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per codice Produttore               *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "C.Produttore"       to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Ordine                          *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "Ordine"             to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Da spedire                      *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "Da spedire"         to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Quantita' verificata            *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "Verificato"         to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Spunta                          *
-      *                  *---------------------------------------------*
-           display   "<th align='center'>"                            .
-           display   "Spunta"                                         .
-           display   "</th>"                                          .
-      *                  *---------------------------------------------*
-      *                  * Literal per Ubicazione                      *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "Ubicazione"         to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Literal per Giacenza                        *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "th"                 to   h-sub                  .
-           move      "Giacenza"           to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "C"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
-      *                  *---------------------------------------------*
-      *                  * Chiusura riga                               *
-      *                  *---------------------------------------------*
-           if        w-exe-mod-ope = "R"
-                     display "<th align='center'>OK</th>".
-           move      "ET"                 to   h-ope                  .
-           move      "tr"                 to   h-tag                  .
-           move      "C"                  to   h-sub                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
+           display "<table class='bordotab' id='rig' width='100%'>".
+           display "<tr><th>Riga</th><th>Codice</th>".
+           display "<th>Descrizione</th><th>C.Produttore</th>".
+           display "<th>OS</th><th>Verificato</th><th>OK</th></tr>".
        exe-cph-lv2-irg-900.
-      *              *-------------------------------------------------*
-      *              * Uscita                                          *
-      *              *-------------------------------------------------*
-           go to     exe-cph-lv2-irg-999.
+           go to exe-cph-lv2-irg-999.
        exe-cph-lv2-irg-999.
            exit.
 
@@ -4710,10 +4219,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *
            display   w-exe-str-dsp                                    .
        exe-cph-lv2-qtv-600.
-           if        w-exe-mod-ope = "R"
-                     display "disabled "
-                     go to exe-cph-lv2-qtv-700.
-
       *              *-------------------------------------------------*
       *              * Eventuale disabilitazione                       *
       *              *-------------------------------------------------*
@@ -4770,8 +4275,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
       *                  * Apertura cella                              *
       *                  *---------------------------------------------*
-           if        w-exe-mod-ope = "R" or
-                     rf-osr-flg-rch       not  = spaces
+           if        rf-osr-flg-rch       not  = spaces
                      move  "td_ds"        to   w-exe-str-cla
            else      move  "td_nb"        to   w-exe-str-cla          .
            display   "<td id='cel_spn' name='cel_spn' align='center' cla
@@ -4832,19 +4336,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *    *                                                           *
       *    * Subroutine di visualizzazione giacenza                    *
       *    *-----------------------------------------------------------*
-       exe-cph-lv2-nbx-000.
-           display   "<td align='center' class='ods-ok'>".
-           display   "<input type='checkbox' class='osr-nbx' ".
-           display   "data-prt='" rf-osr-num-prt "' ".
-           display   "data-prg='" rf-osr-num-prg "' ".
-           display   "aria-label='OK riga " rf-osr-num-prg "' ".
-           if        rf-osr-flg-nbx (3) = "#"
-                     display "checked ".
-           display   ">".
-           display   "</td>".
-       exe-cph-lv2-nbx-999.
-           exit.
-
        exe-cph-lv2-gia-000.
       *              *-------------------------------------------------*
       *              * Se quantita' progressiva (subtotale)            *

@@ -1,0 +1,100 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo CGI per generazione on fly di     *
+# barcode EAN13 in formato PDF             *
+#                                          *
+# ___ NON UTILIZZATO ___                   *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 13/05/25   *
+#   Ultima revisione:   NdK del 14/05/25   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - valore numerico             *
+#                                          *
+# './elebcd02?COD=12345678901'             *
+#                                          *
+#==========================================*
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use strict                                ;
+use warnings                              ;
+use CGI                                   ;
+use PDF::Reuse                            ;
+use PDF::Reuse::Barcode                   ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $cgi = new CGI                         ;
+my $num_doc = $cgi->param('COD')          ;
+$num_doc = '123456789012' unless defined $num_doc;
+
+#==========================================*
+# Percorsi file                            *
+#------------------------------------------*
+my $out_pdf = "/tmp/barcode_$$.pdf"       ;
+prFile($out_pdf)                          ;
+
+#==========================================*
+# Codice stampante                         *
+#------------------------------------------*
+my $cod_stp = "zebra_5"                   ;
+
+#==========================================*
+# Formato pagina: Etichetta 198x102 pt     *
+#                (≈ 70x36 mm)              *
+#------------------------------------------*
+prMbox(0, 0, 198, 102)                    ;
+
+#==========================================*
+# Barcode EAN-13                           *
+#------------------------------------------*
+PDF::Reuse::Barcode::EAN13(
+    x       => 10,
+    y       => 25,
+    value   => $num_doc,
+    size    => 1.8,
+    rotate  => 0,
+);
+
+#==========================================*
+# Fine preparazione                        *
+#------------------------------------------*
+prEnd()                                   ;
+
+#==========================================*
+# Lettura e invio del PDF al browser       *
+#------------------------------------------*
+open(PDF, "<$out_pdf") or die "Errore apertura PDF: $!";
+binmode(PDF)                              ;
+my $pdf_data = ''                         ;
+my $buffer                                ;
+while (read(PDF, $buffer, 8192))
+{
+    $pdf_data .= $buffer                  ;
+}
+#==========================================*
+# Chiusura del PDF                         *
+#------------------------------------------*
+close(PDF)                                ;
+
+#==========================================*
+# Header per il PDF                        *
+#------------------------------------------*
+print "Content-type: application/pdf\n"   ;
+print "Content-Disposition: inline; filename=barcode_$num_doc.pdf\n\n";
+print $pdf_data                           ;
+
+#==========================================*
+# Stampa file PDF                          *
+#------------------------------------------*
+system("cat $out_pdf | lpr -P$cod_stp")   ;
+
+#==========================================*
+# Pulizia temporaneo                       *
+#------------------------------------------*
+unlink $out_pdf                           ;

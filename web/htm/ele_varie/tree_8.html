@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jsTree con Dati XML e Visualizzazione PDF</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <style>
+        /* Layout della pagina divisa in due colonne */
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+
+        /* Colonna sinistra (gerarchia) */
+        #left {
+            width: 30%;
+            padding: 10px;
+            background-color: #f4f4f4;
+            border-right: 2px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+        }
+
+        /* Colonna destra (iframe per PDF) */
+        #right {
+            width: 70%;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            margin: 10px;
+        }
+
+        /* Personalizzazione del font e delle dimensioni dei nodi */
+        #tree .jstree-anchor {
+            font-size: 18px;
+            color: #4a4a4a;
+            padding: 8px 12px;
+        }
+
+        #tree .jstree-anchor:focus {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        /* Personalizzazione delle icone per tipo di nodo */
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-file-invoice"}'] .jstree-anchor {
+            color: #007bff;
+            font-size: 20px;
+        }
+
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-truck"}'] .jstree-anchor {
+            color: #28a745;
+            font-size: 20px;
+        }
+
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-box"}'] .jstree-anchor {
+            color: #ffc107;
+            font-size: 20px;
+        }
+
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-cart-arrow-down"}'] .jstree-anchor {
+            color: #dc3545;
+            font-size: 20px;
+        }
+
+        /* Distanza tra i nodi */
+        #tree .jstree-node {
+            margin-bottom: 12px;
+        }
+
+        #tree .jstree-last {
+            margin-bottom: 20px;
+        }
+
+        /* Aggiungere uno spazio tra il bordo e l'iframe */
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Sfondo grigio per il jsTree */
+        #tree {
+            background-color: #e1e1e1;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        /* Effetto cornice per entrambi i div */
+        #left, #right {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Colore di sfondo più chiaro per la pagina */
+        body {
+            background-color: #fafafa;
+        }
+
+        /* Stile per il campo di input */
+        #fileInput {
+            margin-bottom: 15px;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Colonna sinistra: Gerarchia -->
+    <div id="left">
+        <input type="file" id="fileInput" accept=".xml" />
+        <div id="tree"></div>
+    </div>
+
+    <!-- Colonna destra: Iframe per PDF -->
+    <div id="right">
+        <iframe id="pdfViewer" src="" frameborder="0"></iframe>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Funzione per caricare e processare il file XML
+            function loadXML(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var xml = e.target.result;
+
+                    // Elaborazione del XML in formato JSON
+                    var treeData = convertXMLToJSON($(xml));
+
+                    // Inizializzazione di jsTree con i dati
+                    $('#tree').jstree(true).settings.core.data = treeData;
+                    $('#tree').jstree(true).refresh();
+                };
+                reader.readAsText(file);
+            }
+
+            // Funzione per convertire il XML in formato JSON per jsTree
+            function convertXMLToJSON(xml) {
+                var jsonResult = [];
+
+                // Estrazione dei dati dal file XML
+                $(xml).find('fat').each(function() {
+                    var fatturaNode = {
+                        "text": $(this).attr('tipo') + ' Nr. ' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                        "icon": 'fa fa-file-invoice',
+                        "a_attr": { "href": $(this).attr('url') },
+                        "children": []
+                    };
+
+                    // Aggiunta delle bolle per ciascuna fattura
+                    $(this).find('bol').each(function() {
+                        var bollaNode = {
+                            "text": $(this).attr('tipo') + ' Nr. ' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                            "icon": 'fa fa-truck',
+                            "a_attr": { "href": $(this).attr('url') },
+                            "children": []
+                        };
+
+                        // Aggiunta degli ordini per ciascuna bolla
+                        $(this).find('ods').each(function() {
+                            var ordineNode = {
+                                "text": $(this).attr('tipo') + ' Nr. ' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                                "icon": 'fa fa-box',
+                                "a_attr": { "href": $(this).attr('url') },
+                                "children": []
+                            };
+
+                            // Aggiunta degli ordini d'acquisto per ciascun ordine
+                            $(this).find('orc').each(function() {
+                                ordineNode.children.push({
+                                    "text": $(this).attr('tipo') + ' Nr. ' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                                    "icon": 'fa fa-cart-arrow-down',
+                                    "a_attr": { "href": $(this).attr('url') }
+                                });
+                            });
+
+                            bollaNode.children.push(ordineNode);
+                        });
+
+                        fatturaNode.children.push(bollaNode);
+                    });
+
+                    jsonResult.push(fatturaNode);
+                });
+
+                return jsonResult;
+            }
+
+            // Gestione del campo di input per caricare un nuovo file XML
+            $('#fileInput').on('change', function(e) {
+                var file = e.target.files[0];
+                if (file) {
+                    loadXML(file);
+                }
+            });
+
+            // Carica un file XML di esempio all'inizio
+            // Eseguiamo una chiamata predefinita per caricare un file XML iniziale
+            // Puoi anche rimuovere questa parte per caricare solo il file tramite il campo di input.
+            // loadXML('documenti.xml');
+        });
+    </script>
+
+</body>
+</html>

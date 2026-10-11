@@ -6,7 +6,7 @@
 #                                          *
 # ---------------------------------------- *
 # Versione originale:   001 del 13/09/2023 *
-#   Ultima revisione:   wip del 05/06/2024 *
+#   Ultima revisione:   wip del 09/10/2026 *
 # ---------------------------------------- *
 #             Autore:   Nicola de Kunovich *
 # ---------------------------------------- *
@@ -23,6 +23,8 @@
 #        Utilizzato da: pbol340a ELETTRA   *
 #                       pbol340b ELETTRA   *
 #                       pbol300s ELETTRA   *
+#                                          *
+#                       pods300s ELETTRA   *
 #                                          *
 #                       pods3700           *
 #                                          *
@@ -56,6 +58,8 @@ if (!$num_prt)
 # Percorsi file                            *
 #------------------------------------------*
 my $pth_tmp = "/abd/spl/"                 ;
+my ($cod_cli, $rag_spd, $rag_sp2, $via_spd, $loc_spd, $tip_doc)
+    = ("", "", "", "", "", "");
 my $log_az1 = "/abd/asc/mod/elettra.pdf"  ;
 my $log_az2 = "/abd/asc/mod/aeg.pdf"      ;
 my $pth_csv = $pth_tmp . $num_prt . ".csv";
@@ -121,7 +125,13 @@ foreach my $row (@linea)
     #--------------------------------------*
     # Test su tipo record                  *
     #--------------------------------------*
-    if  ($rec[0] eq "cod_stp")
+    if ($rec[0] eq "cod_cli") { $cod_cli = defined($rec[1]) ? $rec[1] : ""; }
+    elsif ($rec[0] eq "rag_spd") { $rag_spd = $rec[1] || ""; }
+    elsif ($rec[0] eq "rag_sp2") { $rag_sp2 = $rec[1] || ""; }
+    elsif ($rec[0] eq "tip_doc") { $tip_doc = $rec[1] || ""; }
+    elsif ($rec[0] eq "via_spd") { $via_spd = $rec[1] || ""; }
+    elsif ($rec[0] eq "loc_spd") { $loc_spd = $rec[1] || ""; }
+    elsif ($rec[0] eq "cod_stp")
     {
         #----------------------------------*
         # Codice stampante                 *
@@ -328,10 +338,14 @@ $cod_stp =~ s/^\s+|\s+$//g                ;
 # z1 = zebra_1                             *
 # z2 = zebra_2                             *
 # z3 = zebra_3                             *
+# z4 = zebra_4                             *
+# z5 = zebra_5                             *
 #------------------------------------------*
 if    ($cod_stp eq "z1"){$cod_stp = 'zebra_1'}
 elsif ($cod_stp eq "z2"){$cod_stp = 'zebra_2'}
-elsif ($cod_stp eq "z3"){$cod_stp = 'zebra_3'};
+elsif ($cod_stp eq "z3"){$cod_stp = 'zebra_3'}
+elsif ($cod_stp eq "z4"){$cod_stp = 'zebra_4'}
+elsif ($cod_stp eq "z5"){$cod_stp = 'zebra_5'};
 
 #==========================================*
 # DEBUG                                    *
@@ -359,6 +373,10 @@ if ($tip_eti == 1)
  elsif ($tip_eti == 3)
 {
     &eti_003                              ;
+}
+ elsif ($tip_eti == 4)
+{
+    &eti_004;
 }
  else
 {
@@ -1045,4 +1063,281 @@ sub stp_rif
     # Emissione stringa                    *
     #--------------------------------------*
     prText($xxx, $yyy, $str, '', $rot)    ;
+}
+
+#==========================================*
+# Etichetta di tipo '4' - formato 10 x 15  *
+#                                          *
+# Layout verticale : da ods300s            *
+#                                          *
+# Campi specifici del tracciato:           *
+#                                          *
+# cod_cli          : letto ma non stampato *
+# rag_cli          : ragione soc. cliente  *
+# rag_spd          : destinatario, riga 1  *
+# rag_sp2          : destinatario, riga 2  *
+# via_spd          : indirizzo, riga 3     *
+# loc_spd          : localita', riga 4     *
+# tra_cur          : trasporto a cura      *
+# tip_doc          : tipo documento        *
+# ann_sp1..4       : righe annotazioni     *
+# cod_vet          : codice vettore        *
+# rag_vet          : ragione soc. vettore  *
+#------------------------------------------*
+sub eti_004
+{
+    #======================================*
+    # Conversione millimetri / punti PDF   *
+    #--------------------------------------*
+    my $mm = 72 / 25.4;
+    my $h = 150 * $mm;
+    #--------------------------------------*
+    # Normalizzazione dei valori CSV       *
+    #--------------------------------------*
+    my $clean = sub {
+        my $s = defined($_[0]) ? $_[0] : '';
+        $s =~ s/^\s+|\s+$//g;
+        $s =~ s/[\r\n\t]+/ /g;
+        return $s;
+    };
+    #--------------------------------------*
+    # Composizione della riga cliente      *
+    #--------------------------------------*
+    my $customer = $clean->($rag_cli);
+    #--------------------------------------*
+    # Preparazione quattro righe indirizzo *
+    #--------------------------------------*
+    my @address = map { $clean->($_) } (
+        length($clean->($rag_spd)) ? $rag_spd : $rag_cli,
+        $rag_sp2,
+        length($clean->($via_spd)) ? $via_spd : $via_cli,
+        length($clean->($loc_spd)) ? $loc_spd : $loc_cli);
+    #--------------------------------------*
+    # Scelta del vettore e del logo        *
+    # Nome da rag_vet, oppure dal codice   *
+    # se manca il nome.                    *
+    # Logo: vet<cod_vet>.pdf nella cartel- *
+    # la del logo aziendale.               *
+    # Esempio: cod_vet=15 ->               *
+    # /abd/asc/mod/vet15.pdf.              *
+    # Il percorso viene ricavato da        *
+    # $log_az1, senza duplicarlo.          *
+    # Senza codice si stampa il nome al    *
+    # posto del logo.                      *
+    # Con codice presente, un file assente *
+    # genera errore.                       *
+    #--------------------------------------*
+    my $carrier_code = $clean->($cod_vet);
+    my $carrier = $clean->($rag_vet) || $carrier_code;
+    #--------------------------------------*
+    # I codici convenzionali sono descrit- *
+    # ti dal PDF nel riquadro alto.        *
+    # Nella riga VETTORE si mantiene la    *
+    # label e si lascia vuoto il valore.   *
+    #--------------------------------------*
+    my $carrier_value = $carrier_code =~ /^(997|998|999)$/ ? '' : $carrier;
+    my $logo = '';
+    if (length($carrier_code))
+    {
+        die "Codice vettore non valido: $carrier_code\n"
+            unless $carrier_code =~ /^[A-Za-z0-9_-]+$/;
+        my $logo_dir = $log_az1;
+        $logo_dir =~ s{[^/]*$}{};
+        $logo_dir = './' unless length($logo_dir);
+        $logo = $logo_dir . 'vet' . $carrier_code . '.pdf';
+        die "Logo vettore non trovato o non leggibile: $logo\n"
+            unless -r $logo;
+    }
+    #--------------------------------------*
+    # Controlli sui dati prima della       *
+    # generazione Tipo documento: fino a   *
+    # cinque caratteri. Numero documento:  *
+    # obbligatorio per il barcode.         *
+    # Numero etichette: intero positivo.   *
+    #--------------------------------------*
+    my $document_type = $clean->($tip_doc);
+    die "tip_doc supera cinque caratteri\n" if length($document_type) > 5;
+    my $barcode = $clean->($num_doc);
+    die "Numero documento mancante per eti_004\n" unless length($barcode);
+    die "Numero etichette non valido\n" unless $num_eti =~ /^\s*\d+\s*$/ && $num_eti > 0;
+    #--------------------------------------*
+    # Calcolo del pattern Code128          *
+    # num_doc resta una stringa: conserva  *
+    # gli zeri.                            *
+    # Il modulo restituisce '#' per il     *
+    # nero e spazi per il bianco. Ogni     *
+    # modulo misura 0.30 mm.               *
+    # Si riservano dieci moduli bianchi    *
+    # per lato. Larghezza utile 31 mm nel  *
+    # riquadro da 37 mm: un barcode troppo *
+    # lungo viene rifiutato.               *
+    #--------------------------------------*
+    require Barcode::Code128;  # gia' dipendenza di PDF::Reuse::Barcode
+    my $pattern = Barcode::Code128->new()->barcode($barcode);
+    die "Pattern Code128 non valido\n" unless $pattern =~ /^[# ]+$/;
+    my $module = .30 * $mm;
+    my $barcode_width = (length($pattern) + 20) * $module;
+    die "Barcode troppo lungo per il riquadro eti_004\n"
+        if $barcode_width > 31 * $mm;
+
+    #======================================*
+    # Generazione e stampa di ogni collo   *
+    #--------------------------------------*
+    for my $collo (1 .. $num_eti)
+    {
+        $out_pdf = $pth_tmp . $num_prt . ".pdf";
+        #--------------------------------------*
+        # Pagina e cornice                     *
+        # Pagina 100 x 150 mm, margine est. 3  *
+        # Tratti neri da 0.5 punti             *
+        #--------------------------------------*
+        prFile($out_pdf);
+        prMbox(0, 0, 100 * $mm, $h);
+        prAdd("0 G 0 g 0.5 w\n");
+        prAdd(sprintf("%.6f %.6f %.6f %.6f re S\n", 3*$mm, 3*$mm, 94*$mm, 144*$mm));
+        #--------------------------------------*
+        # Fincatura dei riquadri               *
+        # La funzione riceve due estremi in    *
+        # millimetri.                          *
+        # Separatore barcode/logo a x = 40 mm. *
+        # Separazioni orizzontali a y = 29,    *
+        # 43, 81, 112.                         *
+        # Tipo documento: x = 80..97,          *
+        #                 y = 81..90.          *
+        # Il bordo basso resta sopra il testo  *
+        # della riga VETTORE                   *
+        #--------------------------------------*
+        my $rule = sub {
+            my ($x1,$y1,$x2,$y2) = @_;
+            prAdd(sprintf("%.6f %.6f m %.6f %.6f l S\n",
+                $x1*$mm,$h-$y1*$mm,$x2*$mm,$h-$y2*$mm));
+        };
+        $rule->(40,3,40,29);
+        $rule->(3,$_,97,$_) for (29,43,81,112);
+        $rule->(80,81,80,90);
+        $rule->(80,90,97,90);
+        #--------------------------------------*
+        # Stampa testo con controllo della     *
+        # larghezza                            *
+        # Argomenti: x, y, testo, punti,       *
+        #  grassetto, larghezza massima in     *
+        # millimetri.                          *
+        # Se necessario riduce il font; sotto  *
+        # 6 punti segnala errore per evitare   *
+        # testo illeggibile. Le stringhe vuote *
+        # non vengono stampate.                *
+        #--------------------------------------*
+        my $txt = sub {
+            my ($x,$y,$value,$size,$bold,$max_mm) = @_;
+            $value = $clean->($value);
+            return unless length($value);
+            my $font = $bold ? 'Helvetica-Bold' : 'Helvetica';
+            prFont($font);
+            my $width = prStrWidth($value,$font,$size);
+            $size *= ($max_mm*$mm/$width) if $width > $max_mm*$mm;
+            die "Testo troppo lungo per eti_004: $value\n" if $size < 6;
+            prFontSize($size);
+            prText($x*$mm,$h-$y*$mm,$value);
+        };
+        #--------------------------------------*
+        # Barcode centrato nel riquadro        *
+        #--------------------------------------*
+        my $left = 21.5*$mm - $barcode_width/2 + 10*$module;
+        my $bars = "q 0 g\n";
+        my $run_start = -1;
+        for my $i (0 .. length($pattern))
+        {
+            my $black = $i < length($pattern) && substr($pattern,$i,1) eq '#';
+            $run_start = $i if $black && $run_start < 0;
+            if (!$black && $run_start >= 0)
+            {
+                $bars .= sprintf("%.6f %.6f %.6f %.6f re f\n",
+                    $left+$run_start*$module, $h-19*$mm,
+                    ($i-$run_start)*$module, 13*$mm);
+                $run_start = -1;
+            }
+        }
+        prAdd($bars . "Q\n");
+        #--------------------------------------*
+        # Numero leggibile sotto il barcode    *
+        # Helvetica-Bold 14 punti, centrato    *
+        # sotto le barre                       *
+        #--------------------------------------*
+        my $number_width = prStrWidth($barcode,'Helvetica-Bold',14);
+        $txt->((21.5*$mm-$number_width/2)/$mm,25,$barcode,14,1,31);
+        #--------------------------------------*
+        # Logo del vettore                     *
+        # Il PDF logo fornito misura 36 x 9.85 *
+        # Scala 1.25: larghezza stampata 45 mm.*
+        # Centratura nel riquadro destro,      *
+        # largo 57 mm. 168/614 e' il rapporto  *
+        # altezza/larghezza del logo sorgente. *
+        # Loghi alternativi richiedono un PDF  *
+        # dello stesso formato                 *
+        #--------------------------------------*
+        if ($logo)
+        {
+            my $logo_height = (168 * 36 / 614) * 1.25;
+            prForm({file=>$logo,page=>1,x=>46*$mm,
+                    y=>$h-(16+$logo_height/2)*$mm,size=>1.25});
+        }
+        else { $txt->(46,18,$carrier,22,1,45); }
+        #--------------------------------------*
+        # Ragione sociale cliente              *
+        #--------------------------------------*
+        $txt->(6,38,$customer,17,1,88);
+        #--------------------------------------*
+        # Indirizzo di spedizione: quattro     *
+        # righe                                *
+        #--------------------------------------*
+        $txt->(6,49,'INDIRIZZO DI SPEDIZIONE',8,1,88);
+        for my $i (0..3)
+        { $txt->(6,57+7*$i,$address[$i],12,$i==0,88); }
+        #--------------------------------------*
+        # Trasporto e tipo documento           *
+        #--------------------------------------*
+        $txt->(6,88,'TRASPORTO',10,0,21);
+        $txt->(29,88,':',10,0,2);
+        $txt->(33,88,$tra_cur,10,1,44);
+        my $type_width = prStrWidth($document_type,'Helvetica-Bold',10);
+        my $type_size = 10;
+        $type_size *= 13*$mm/$type_width if $type_width > 13*$mm;
+        $type_width = prStrWidth($document_type,'Helvetica-Bold',$type_size);
+        $txt->((88.5*$mm-$type_width/2)/$mm,88,$document_type,$type_size,1,13);
+        #--------------------------------------*
+        # Vettore, porto e spese               *
+        #--------------------------------------*
+        my $port = join(' - ', grep {length($_)} map {$clean->($_)} ($cod_por,$des_por));
+        for my $row ([94,'VETTORE',$carrier_value], [100,'PORTO',$port], [106,'SPESE',$spe_spd])
+        {
+            my ($y,$label,$value) = @$row;
+            $txt->(6,$y,$label,10,0,21);
+            $txt->(29,$y,':',10,0,2);
+            $txt->(33,$y,$value,10,1,61);
+        }
+        #--------------------------------------*
+        # Annotazioni: quattro righe           *
+        #--------------------------------------*
+        $txt->(6,119,'ANNOTAZIONI',12,1,88);
+        my @notes = ($ann_sp1,$ann_sp2,$ann_sp3,$ann_sp4);
+        for my $i (0..3) { $txt->(6,126+6*$i,$notes[$i],12,0,88); }
+        #--------------------------------------*
+        # Chiusura PDF e invio alla stampante  *
+        #--------------------------------------*
+        prEnd();
+        my $quoted_pdf = $out_pdf;
+        my $quoted_printer = $cod_stp;
+        $quoted_pdf =~ s/'/'"'"'/g;
+        $quoted_printer =~ s/'/'"'"'/g;
+        my $result = system("cat '$quoted_pdf' | lpr -P'$quoted_printer'");
+        if ($result == -1)
+        {
+            die "Impossibile avviare la stampa etichetta $collo: $!\n";
+        }
+        elsif ($result != 0)
+        {
+            die "Errore stampa etichetta $collo sulla coda '$cod_stp': "
+              . "stato $result, codice " . ($result >> 8) . "\n";
+        }
+    }
 }

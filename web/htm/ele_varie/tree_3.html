@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Struttura albero fattura</title>
+    <!-- Inclusione CSS e JS per jsTree -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #tree {
+            margin: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Struttura ad albero della fattura</h1>
+    <div id="tree"></div>
+
+    <script>
+        $(document).ready(function() {
+            // Caricamento del file JSON
+            $.ajax({
+                url: "documenti.json",  // Percorso al tuo file JSON
+                dataType: "json",
+                success: function(data) {
+                    // Inizializzare jsTree con la struttura dell'albero
+                    $('#tree').jstree({
+                        'core': {
+                            'data': data,  // Passiamo il nostro JSON alla configurazione di jsTree
+                            'themes': {
+                                'name': 'default',
+                                'responsive': true
+                            }
+                        },
+                        'plugins': ['wholerow']  // Aggiungi un plugin per migliorare l'interattività
+                    });
+                },
+                error: function() {
+                    alert("Errore nel caricamento del file JSON.");
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

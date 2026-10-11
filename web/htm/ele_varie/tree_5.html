@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jsTree con Dati CSV e Icone Personalizzate</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <style>
+        /* Personalizzazione del font e delle dimensioni dei nodi */
+        #tree .jstree-anchor {
+            font-family: 'Arial', sans-serif;
+            font-size: 16px;
+            color: #333;
+        }
+
+        #tree .jstree-anchor:focus {
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        /* Personalizzazione delle icone per tipo di nodo */
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-file-invoice"}'] .jstree-anchor {
+            color: #007bff;
+            font-size: 20px;
+        }
+
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-truck"}'] .jstree-anchor {
+            color: #28a745;
+            font-size: 20px;
+        }
+
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-box"}'] .jstree-anchor {
+            color: #ffc107;
+            font-size: 20px;
+        }
+
+        #tree .jstree-node[data-jstree='{"icon":"fa fa-cart-arrow-down"}'] .jstree-anchor {
+            color: #dc3545;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="tree"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Funzione per caricare e processare il CSV
+            function loadCSV() {
+                $.ajax({
+                    url: 'documenti.csv', // Assicurati che il percorso sia corretto!
+                    dataType: 'text',
+                    success: function(data) {
+                        // Utilizzo di PapaParse per convertire il CSV in JSON
+                        var jsonData = Papa.parse(data, {
+                            header: false,
+                            skipEmptyLines: true,
+                            complete: function(results) {
+                                console.log("CSV Caricato e Parsato:");
+                                console.log(results.data); // Stampa i dati CSV per il debug
+
+                                // Elaborazione del CSV in formato JSON
+                                var treeData = convertCSVToJSON(results.data);
+                                console.log("Dati JSON preparati per jsTree:");
+                                console.log(treeData); // Stampa i dati JSON
+
+                                // Inizializzazione di jsTree con i dati
+                                $('#tree').jstree({
+                                    'core': {
+                                        'data': treeData,
+                                        'themes': {
+                                            'name': 'default',
+                                            'responsive': true
+                                        }
+                                    },
+                                    'plugins': ['wholerow']
+                                });
+
+                                // Gestione del clic sui nodi per aprire il link
+                                $('#tree').on("select_node.jstree", function (e, data) {
+                                    var nodeUrl = data.node.a_attr.href; // Recupera l'URL associato al nodo
+                                    if (nodeUrl) {
+                                        window.open(nodeUrl, '_blank'); // Apri il link in una nuova finestra
+                                    }
+                                });
+                            }
+                        });
+                    },
+                    error: function() {
+                        console.error("Errore nel caricamento del CSV.");
+                    }
+                });
+            }
+
+            // Funzione per convertire i dati CSV in un formato JSON adatto per jsTree
+            function convertCSVToJSON(csvData) {
+                var jsonResult = [];
+
+                // Creazione di un dizionario per contenere la gerarchia
+                var nodes = {};
+
+                csvData.forEach(function(row) {
+                    var fattura = row[0].trim();
+                    var bolla = row[1].trim();
+                    var ordine = row[2].trim();
+                    var tipo = row[3].trim();  // Tipo di nodo (Fattura, Bolla, Ordine, ecc.)
+                    var url = row[4].trim();  // URL del documento
+
+                    // Debug
+                    console.log("Riga CSV:", row);
+                    console.log("Fattura:", fattura, "Bolla:", bolla, "Ordine:", ordine, "Tipo:", tipo, "URL:", url);
+
+                    // Determinazione delle icone e dei tipi per i nodi
+                    var icon = getIconForType(tipo);
+                    
+                    if (!nodes[fattura]) {
+                        nodes[fattura] = {
+                            "text": fattura,
+                            "icon": icon,
+                            "a_attr": { "href": url },
+                            "children": []
+                        };
+                    }
+
+                    var bollaNode = nodes[fattura].children.find(function(child) {
+                        return child.text === bolla;
+                    });
+
+                    if (!bollaNode) {
+                        bollaNode = {
+                            "text": bolla,
+                            "icon": 'fa fa-truck',
+                            "a_attr": { "href": url },
+                            "children": []
+                        };
+                        nodes[fattura].children.push(bollaNode);
+                    }
+
+                    bollaNode.children.push({
+                        "text": ordine,
+                        "icon": 'fa fa-box',
+                        "a_attr": { "href": url },
+                        "children": [
+                            {
+                                "text": "Ordine d'acquisto",
+                                "icon": 'fa fa-cart-arrow-down',
+                                "a_attr": { "href": url }
+                            }
+                        ]
+                    });
+                });
+
+                // Trasformare i nodi in un array di risultato
+                for (var key in nodes) {
+                    jsonResult.push(nodes[key]);
+                }
+
+                return jsonResult;
+            }
+
+            // Funzione per determinare l'icona basata sul tipo
+            function getIconForType(type) {
+                switch (type) {
+                    case 'Fattura':
+                        return 'fa fa-file-invoice';
+                    case 'Bolla':
+                        return 'fa fa-truck';
+                    case 'Ordine di spedizione':
+                        return 'fa fa-box';
+                    case 'Ordine d\'acquisto':
+                        return 'fa fa-cart-arrow-down';
+                    default:
+                        return 'fa fa-file';  // Icona di default
+                }
+            }
+
+            // Caricare i dati dal CSV quando la pagina è pronta
+            loadCSV();
+        });
+    </script>
+
+</body>
+</html>

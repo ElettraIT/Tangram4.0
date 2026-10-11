@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drag and Drop con jQuery UI</title>
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <style>
+#fixedDiv {
+  margin-top: 50px;
+  margin-left: 50px;
+}
+
+#utente_b {
+  position: absolute;
+  cursor: pointer;
+}
+  </style>
+</head>
+<body>
+
+<div id="fixedDiv" style="width: 200px; height: 200px; background-color: #3498db; position: relative;">
+  Div fisso e colorato
+</div>
+
+<div id="utente" style="width: 100px; height: 100px; background-color: transparent; border: 1px solid #ccc;">
+  CODICE UTENTE (draggabile)
+</div>
+
+<div id="utente_b" style="width: 100px; height: 100px; background-color: transparent; border: 1px solid #ccc;">
+  CODICE UTENTE (fisso)
+</div>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <script>
+      $(document).ready(function() {
+        // Abilita il drag sul div draggabile
+        $("#utente").draggable({
+//          revert: "invalid" // fa tornare indietro il div se non viene rilasciato dentro il target
+        });
+      
+        // Imposta il div fisso come target di rilascio
+        $("#fixedDiv").droppable({
+//          accept: "#utente", // Accetta solo il div draggabile
+          drop: function(event, ui) {
+            // Quando il div draggable viene rilasciato dentro il div fisso
+            var color = $(this).css("background-color"); // Ottieni il colore del div fisso
+            $("#utente_b").css("background-color", color); // Cambia il colore del div draggabile
+            
+            $("#utente").hide(); // Cambia il colore del div draggabile
+
+            
+          }
+        });
+      });
+  </script>
+</body>
+</html>

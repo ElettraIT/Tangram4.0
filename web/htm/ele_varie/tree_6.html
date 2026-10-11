@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jsTree con Dati XML e Tipo Documento</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+<style>
+    /* Personalizzazione del font e delle dimensioni dei nodi */
+    #tree .jstree-anchor {
+        font-family: 'Arial', sans-serif; /* Font più comune */
+        font-size: 18px;  /* Aumentato il font */
+        color: #4a4a4a;   /* Colore grigio scuro (meno intenso del nero) */
+        padding: 8px 12px; /* Distanziamento orizzontale e verticale */
+    }
+
+    #tree .jstree-anchor:focus {
+        color: #007bff;
+        font-weight: bold;
+    }
+
+    /* Personalizzazione delle icone per tipo di nodo */
+    #tree .jstree-node[data-jstree='{"icon":"fa fa-file-invoice"}'] .jstree-anchor {
+        color: #007bff;
+        font-size: 20px; /* Icone più grandi */
+    }
+
+    #tree .jstree-node[data-jstree='{"icon":"fa fa-truck"}'] .jstree-anchor {
+        color: #28a745;
+        font-size: 20px; /* Icone più grandi */
+    }
+
+    #tree .jstree-node[data-jstree='{"icon":"fa fa-box"}'] .jstree-anchor {
+        color: #ffc107;
+        font-size: 20px; /* Icone più grandi */
+    }
+
+    #tree .jstree-node[data-jstree='{"icon":"fa fa-cart-arrow-down"}'] .jstree-anchor {
+        color: #dc3545;
+        font-size: 20px; /* Icone più grandi */
+    }
+
+    /* Distanza tra i nodi (per separare meglio i livelli) */
+    #tree .jstree-node {
+        margin-bottom: 12px; /* Maggiore distanza tra i nodi */
+    }
+
+    /* Aggiungere uno spazio tra i nodi di livello superiore */
+    #tree .jstree-last {
+        margin-bottom: 20px; /* Più spazio per l'ultimo nodo */
+    }
+</style>
+</head>
+<body>
+
+    <div id="tree"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Funzione per caricare e processare il file XML
+            function loadXML() {
+                $.ajax({
+                    url: 'documenti.xml', // Assicurati che il percorso sia corretto!
+                    dataType: 'xml',
+                    success: function(xml) {
+                        // Debug: stampa il contenuto del file XML
+                        console.log("XML Caricato:");
+                        console.log(xml);
+
+                        // Elaborazione del XML in formato JSON
+                        var treeData = convertXMLToJSON(xml);
+                        console.log("Dati JSON preparati per jsTree:");
+                        console.log(treeData); // Stampa i dati JSON
+
+                        // Inizializzazione di jsTree con i dati
+                        $('#tree').jstree({
+                            'core': {
+                                'data': treeData,
+                                'themes': {
+                                    'name': 'default',
+                                    'responsive': true
+                                }
+                            },
+                            'plugins': ['wholerow']
+                        });
+
+                        // Gestione del clic sui nodi per aprire il link
+                        $('#tree').on("select_node.jstree", function (e, data) {
+                            var nodeUrl = data.node.a_attr.href; // Recupera l'URL associato al nodo
+                            if (nodeUrl) {
+                                window.open(nodeUrl, '_blank'); // Apri il link in una nuova finestra
+                            }
+                        });
+                    },
+                    error: function() {
+                        console.error("Errore nel caricamento del file XML.");
+                    }
+                });
+            }
+
+            // Funzione per convertire il XML in formato JSON per jsTree
+            function convertXMLToJSON(xml) {
+                var jsonResult = [];
+
+                // Estrazione dei dati dal file XML
+                $(xml).find('fat').each(function() {
+                    var fatturaNode = {
+                        "text": $(this).attr('tipo') + ' #' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                        "icon": 'fa fa-file-invoice',
+                        "a_attr": { "href": $(this).attr('url') },
+                        "children": []
+                    };
+
+                    // Aggiunta delle bolle per ciascuna fattura
+                    $(this).find('bol').each(function() {
+                        var bollaNode = {
+                            "text": $(this).attr('tipo') + ' #' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                            "icon": 'fa fa-truck',
+                            "a_attr": { "href": $(this).attr('url') },
+                            "children": []
+                        };
+
+                        // Aggiunta degli ordini per ciascuna bolla
+                        $(this).find('ods').each(function() {
+                            var ordineNode = {
+                                "text": $(this).attr('tipo') + ' #' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                                "icon": 'fa fa-box',
+                                "a_attr": { "href": $(this).attr('url') },
+                                "children": []
+                            };
+
+                            // Aggiunta degli ordini d'acquisto per ciascun ordine
+                            $(this).find('orc').each(function() {
+                                ordineNode.children.push({
+                                    "text": $(this).attr('tipo') + ' #' + $(this).attr('id') + ' - ' + $(this).attr('data'),
+                                    "icon": 'fa fa-cart-arrow-down',
+                                    "a_attr": { "href": $(this).attr('url') }
+                                });
+                            });
+
+                            bollaNode.children.push(ordineNode);
+                        });
+
+                        fatturaNode.children.push(bollaNode);
+                    });
+
+                    jsonResult.push(fatturaNode);
+                });
+
+                return jsonResult;
+            }
+
+            // Carica il file XML quando la pagina è pronta
+            loadXML();
+        });
+    </script>
+
+</body>
+</html>

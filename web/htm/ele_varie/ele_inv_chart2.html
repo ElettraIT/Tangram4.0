@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grafico di prova 2</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="./chart/jsc/chart.js"></script>
+</head>
+<body>
+
+    <canvas id="myChart" width="400" height="100"></canvas>
+    
+    <style>
+        canvas {
+            width: 60%;
+            border-spacing: 3;
+            border: 2px solid;
+            border-radius: 5px;
+            margin: 0 auto;
+            background-color: white;
+        }
+        td {
+            border: 1px solid;
+            border-radius: 5px;
+            padding: 6px;
+            text-align: center;
+        }
+        .center {
+            margin-top: 50px;
+        }
+        body {
+            background-color: #ccc;
+        }
+    </style>    
+    
+    
+    
+    
+<script>
+$(function ()
+{
+
+
+    
+       $("#myChart").width($(window).width()-30)
+       $("#myChart").height($(window).height()-30)
+    
+
+
+    var ctx = document.getElementById("myChart").getContext("2d");
+    // examine example_data.json for expected response data
+    var json_url = "ele_inv_chart2.json";
+
+    // draw empty chart
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+
+            datasets: [
+                {
+                    label: "Grafico di prova",
+                    fill: false,
+                    lineTension: 0.1,
+                    backgroundColor: "rgba(75,192,192,0.4)",
+                    borderColor: "rgba(75,192,192,1)",
+                    borderCapStyle: 'butt',
+                    borderDash: [],
+                    borderDashOffset: 0.0,
+                    borderJoinStyle: 'miter',
+                    pointBorderColor: "rgba(75,192,192,1)",
+                    pointBackgroundColor: "#fff",
+                    pointBorderWidth: 1,
+                    pointHoverRadius: 5,
+                    pointHoverBackgroundColor: "rgba(75,192,192,1)",
+                    pointHoverBorderColor: "rgba(220,220,220,1)",
+                    pointHoverBorderWidth: 2,
+                    pointRadius: 1,
+                    pointHitRadius: 10,
+                    data: [],
+                    spanGaps: false,
+                }
+            ]
+        },
+        options: {
+        
+            locale: "it-IT",
+        
+        
+            tooltips: {
+                mode: 'index',
+                intersect: false
+            },
+            scales: {
+                y: {
+                    ticks: {
+                        beginAtZero:true
+                    }
+                }
+            }
+        }
+    });
+
+    ajax_chart(myChart, json_url);
+
+    // function to update our chart
+    function ajax_chart(chart, url, data) {
+        var data = data || {};
+
+        $.getJSON(url, data).done(function(response) {
+            chart.data.labels = response.labels;
+            chart.data.datasets[0].data = response.data.quantity; // or you can iterate for multiple datasets
+            chart.update(); // finally update our chart
+        });
+    }
+});
+</script>
+</body>
+</html>
+
+
+
+
+

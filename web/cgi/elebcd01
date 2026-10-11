@@ -1,0 +1,60 @@
+#!/usr/bin/perl -w
+#==========================================*
+# Modulo CGI per generazione on fly di     *
+# barcode Code 39 e EAN13                  *
+#                                          *
+# ---------------------------------------- *
+# Versione originale:   001 del 31/10/12   *
+#   Ultima revisione:   NdK del 25/01/23   *
+# ---------------------------------------- *
+#             Autore:   Nicola de Kunovich *
+# ---------------------------------------- *
+#                                          *
+# In input : - tipo barcode (ean, c39)     *
+#            - valore numerico             *
+#                                          *
+# Utilizzato da 'eledcp01.cbl':            *
+#                                          *
+# <img border=0 src='./elebcd01?BAR=ean&   *
+# COD=codice                               *
+#==========================================*
+
+#==========================================*
+# Moduli Perl utilizzati                   *
+#------------------------------------------*
+use CGI                                   ;
+use GD::Barcode::EAN13                    ;
+use GD::Barcode::Code39                   ;
+
+#==========================================*
+# Standard output                          *
+#------------------------------------------*
+binmode(STDOUT)                           ;
+
+#==========================================*
+# Variabili lette in input                 *
+#------------------------------------------*
+my $cgi = new CGI;
+my $tipe = $cgi->param("BAR");
+my $code = $cgi->param("COD");
+
+#==========================================*
+# Deviazione in funzione del tipo barcode  *
+#------------------------------------------*
+if ($tipe eq "ean")
+{
+    print "Content-Type: image/png\n\n";
+    print GD::Barcode::EAN13->new($code)->plot->png;
+}
+ elsif ($tipe eq "c39")
+{
+    print "Content-Type: image/png\n\n";
+    print GD::Barcode::Code39->new($code)->plot->png;    
+}
+ else
+{
+    print "Content-Type: image/png\n\n";
+    print GD::Barcode::EAN13->new($code)->plot->png;
+}
+
+  
