@@ -200,6 +200,13 @@
       *    *===========================================================*
       *    * Area di comodo                                            *
       *    *-----------------------------------------------------------*
+      *    * Evidenza descrizione con dati nel modal eleodsS1.
+       01  w-com-evidenza.
+           05 w-com-presente             pic x.
+           05 w-com-num-prt              pic 9(11).
+           05 w-com-num-prg              pic 9(05).
+           05 w-com-osr-save             pic x(2048).
+
        01  w-exe.
       *        *-------------------------------------------------------*
       *        * Data di esecuzione                                    *
@@ -3859,18 +3866,16 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
        exe-cph-lv2-rig-200.
-      *              *-------------------------------------------------*
-      *              * Descrizione prodotto                            *
-      *              *-------------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "td"                 to   h-sub                  .
-           move      w-let-arc-dcp-des    to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "L"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
+      *    * Solo la descrizione viene evidenziata.
+           perform det-com-evid-000 thru det-com-evid-999.
+           if w-com-presente = "S"
+              display "<td class='descr-con-commenti' "
+              display "style='background-color:#fff1bf;" 
+              display "color:#563c00;cursor:pointer' "
+              display "title='Commenti SN disponibili'>"
+           else
+              display "<td style='cursor:default'>".
+           display "<b>" w-let-arc-dcp-des "</b></td>".
        exe-cph-lv2-rig-250.
       *              *-------------------------------------------------*
       *              * Codice prodotto per il Produttore               *
@@ -7402,6 +7407,47 @@ ______*                                   to   w-all-str-alf          .
       *    *===========================================================*
       *    * Determinazione righe spuntate ordine di spedizione        *
       *    *-----------------------------------------------------------*
+      *    *===========================================================*
+      *    * Presenza dati del modal: criterio di eleodsS1.
+      *    * Non modifica OSR; ripristina la riga prodotto al termine.
+      *    *-----------------------------------------------------------*
+       det-com-evid-000.
+           move "N" to w-com-presente.
+           move rf-osr to w-com-osr-save.
+           move rf-osr-num-prt to w-com-num-prt.
+           move rf-osr-num-prg to w-com-num-prg.
+           move "SK" to f-ope.
+           move "NUMPRT    " to f-key.
+           move "NL" to f-cfr.
+           move w-com-num-prt to rf-osr-num-prt.
+           move w-com-num-prg to rf-osr-num-prg.
+           move "pgm/ods/fls/ioc/obj/iofosr" to s-pat.
+           call "swd/mod/prg/obj/mfiltp" using s.
+           call s-pat using f rf-osr.
+           if f-sts not = e-not-err
+              go to det-com-evid-900.
+       det-com-evid-200.
+           move "RN" to f-ope.
+           move "pgm/ods/fls/ioc/obj/iofosr" to s-pat.
+           call "swd/mod/prg/obj/mfiltp" using s.
+           call s-pat using f rf-osr.
+           if f-sts not = e-not-err
+              go to det-com-evid-900.
+           if rf-osr-num-prt not = w-com-num-prt
+              go to det-com-evid-900.
+      *    * Ignora solo la riga richiesta; termina al prodotto dopo.
+           if rf-osr-num-prg <= w-com-num-prg
+              go to det-com-evid-200.
+           if rf-osr-tip-rig (01 : 01) not = "C"
+              go to det-com-evid-900.
+           if rf-osr-des-rig (01 : 02) not = "SN"
+              go to det-com-evid-200.
+           move "S" to w-com-presente.
+       det-com-evid-900.
+           move w-com-osr-save to rf-osr.
+       det-com-evid-999.
+           exit.
+
        det-rig-spn-000.
       *              *-------------------------------------------------*
       *              * Normalizzazioni iniziali                        *

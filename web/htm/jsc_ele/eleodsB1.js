@@ -845,12 +845,17 @@ function liv_002 ()
         /*================================*/
         /* Se colonna descrizione         */
         /*--------------------------------*/
-        if (num_cln == cln_des) 
+        if (num_cln == cln_des)
         {
+            /* Nessuna richiesta modal se non ci sono SN. */
+            if (!$(this).hasClass('descr-con-commenti')) {
+                return;
+            }
             /*----------------------------*/
             /* Parametri                  */
             /*----------------------------*/
             var row_rif = $(this).closest("tr");
+            var descr_cella = $(this);
             var num_prt = row_rif.find('#prt').val();
             var num_prg = row_rif.find('#prg').val();
             /*--------------------------------*/
@@ -876,7 +881,21 @@ function liv_002 ()
                 data: dat,
                 success: function (data) 
                 {
-                        title: `Prodotto: ${alf_pro}`,
+                    $('#dlg_com').dialog('option', 'title',
+                        'Prodotto: ' + alf_pro);
+                    /* Allinea il colore anche se i dati sono cambiati. */
+                    if (data.indexOf('<!-- eleods-sn:0 -->') !== -1) {
+                        descr_cella.removeClass('descr-con-commenti')
+                            .css({'background-color': '', 'color': '',
+                                  'cursor': 'default'}).removeAttr('title');
+                        return;
+                    }
+                    if (data.indexOf('<!-- eleods-sn:1 -->') !== -1) {
+                        descr_cella.addClass('descr-con-commenti')
+                            .css({'background-color': '#fff1bf',
+                                  'color': '#563c00', 'cursor': 'pointer'})
+                            .attr('title', 'Commenti SN disponibili');
+                    }
                     $("#dlg_com").html(data);
                     $('#dlg_com').dialog("open");                
                 }

@@ -288,6 +288,13 @@
       *              * Scansione righe di commento                     *
       *              *-------------------------------------------------*
            perform   exe-cph-spr-000      thru exe-cph-spr-999        .
+      *    * Prima header HTTP e body, poi qualsiasi contenuto HTML.
+           perform   emi-tes-000          thru emi-tes-999            .
+           if w-det-rig-com-ctr > zero
+              display "<!-- eleods-sn:1 -->"
+           else
+              display "<!-- eleods-sn:0 -->".
+
            if        w-det-rig-com-ctr    not  =    zero
                      go to exe-cph-200.
        exe-cph-100.
@@ -312,12 +319,13 @@
       *                  *---------------------------------------------*
       *                  * Ad uscita                                   *
       *                  *---------------------------------------------*
+           perform emi-pie-000 thru emi-pie-999.
            go to     exe-cph-900.
        exe-cph-200.
       *              *-------------------------------------------------*
       *              * Emissione testata                               *
       *              *-------------------------------------------------*
-           perform   emi-tes-000          thru emi-tes-999            .
+      *    * Testata gia emessa prima del marcatore SN.
       *              *-------------------------------------------------*
       *              * Emissione corpo documento                       *
       *              *-------------------------------------------------*
@@ -409,10 +417,9 @@
       *              *-------------------------------------------------*
       *              * Selezioni su [osr]                              *
       *              *-------------------------------------------------*
-           if        rf-osr-tip-rig
-                    (01 : 01)             =    "P" and
-                     w-det-rig-com-ctr    =    zero
-                     go to  exe-cph-spr-200.
+      *    * Salta solo la riga richiesta, non i prodotti successivi.
+           if rf-osr-num-prg <= w-exe-cnv-prg
+              go to exe-cph-spr-200.
            if        rf-osr-tip-rig
                     (01 : 01)             not  = "C"
                      go to  exe-cph-spr-900.

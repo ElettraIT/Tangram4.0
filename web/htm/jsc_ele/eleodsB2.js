@@ -353,6 +353,8 @@ function liv_002 () {
             focus_codice_prodotto();
         });
     });
+    abilita_codici_e_ubicazioni();
+    abilita_commenti_sn();
     focus_codice_prodotto();
 }
 function focus_codice_prodotto() {
@@ -1046,4 +1048,71 @@ function abilita_ok_fase_1() {
         distinta.value = numero; livello.value = '2';
         form.submit(); return false;
     };
+}
+
+/* Modal SN separato dalla spunta NBX e senza click sulle celle vuote. */
+function abilita_commenti_sn() {
+    $('#dlg_com').dialog({autoOpen: false, modal: true,
+        width: 600, height: 450, title: 'S/N prodotto',
+        close: function () { focus_codice_prodotto(); }
+    });
+    $('#rig').on('click', 'td.descr-con-commenti', function (event) {
+        event.stopPropagation();
+        var cella = $(this);
+        $.ajax({type: 'POST', url: './eleodsS1',
+            contentType: 'application/x-www-form-urlencoded',
+            data: {
+                num_prt: String(cella.attr('data-num-prt') || '').trim(),
+                num_prg: String(cella.attr('data-num-prg') || '').trim()
+            },
+            success: function (data) {
+                if (data.indexOf('<!-- eleods-sn:0 -->') !== -1) {
+                    cella.removeClass('descr-con-commenti')
+                        .css({'background-color': '', 'color': '',
+                              'cursor': 'default'}).removeAttr('title');
+                    focus_codice_prodotto();
+                    return;
+                }
+                $('#dlg_com').html(data).dialog('open');
+            },
+            error: function () {
+                $('#nbx_status').text('Impossibile leggere i commenti SN.');
+                focus_codice_prodotto();
+            }
+        });
+    });
+}
+
+/* Usa lo stesso evento change del campo in testata. */
+function abilita_codici_e_ubicazioni() {
+    $('#rig').on('click', 'td.codice-prodotto', function (event) {
+        event.stopPropagation();
+        var codice = $(this).text().trim();
+        if (codice) {
+            $('#alf_pro').val(codice).trigger('change');
+        }
+    });
+    $('#dialog').dialog({autoOpen: false, modal: true,
+        width: 950, height: 450,
+        close: function () { focus_codice_prodotto(); }
+    });
+    $('#rig').on('click', 'td.ubicazioni-prodotto', function (event) {
+        event.stopPropagation();
+        var codice = $(this).closest('tr')
+            .find('td.codice-prodotto').text().trim();
+        if (!codice) { return; }
+        $.ajax({type: 'POST', url: './eleodsg0',
+            contentType: 'application/x-www-form-urlencoded',
+            data: {alf_pro: codice},
+            success: function (data) {
+                $('#dialog').html(data)
+                    .dialog('option', 'title', 'Prodotto: ' + codice)
+                    .dialog('open');
+            },
+            error: function () {
+                $('#nbx_status').text('Impossibile leggere le ubicazioni.');
+                focus_codice_prodotto();
+            }
+        });
+    });
 }

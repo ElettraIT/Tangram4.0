@@ -200,6 +200,13 @@
       *    *===========================================================*
       *    * Area di comodo                                            *
       *    *-----------------------------------------------------------*
+      *    * Presenza commenti SN: evidenza della sola descrizione.
+       01  w-com-evidenza.
+           05 w-com-presente             pic x.
+           05 w-com-num-prt              pic 9(11).
+           05 w-com-num-prg              pic 9(05).
+           05 w-com-osr-save             pic x(2048).
+
        01  w-exe.
       *        *-------------------------------------------------------*
       *        * Data di esecuzione                                    *
@@ -3715,34 +3722,24 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
        exe-cph-lv2-rig-150.
-      *              *-------------------------------------------------*
-      *              * Codice prodotto                                 *
-      *              *-------------------------------------------------*
-      *                  *---------------------------------------------*
-      *                  * Preparazione                                *
-      *                  *---------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "td"                 to   h-sub                  .
-           move      rf-osr-alf-pro       to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "L"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
+      *    * Click codice = immissione nel campo prodotto in testata.
+           display "<td class='codice-prodotto' " .
+           display "style='cursor:pointer' " .
+           display "title='Cerca questo prodotto'><b>" .
+           display rf-osr-alf-pro.
+           display "</b></td>".
        exe-cph-lv2-rig-200.
-      *              *-------------------------------------------------*
-      *              * Descrizione prodotto                            *
-      *              *-------------------------------------------------*
-           move      "TD"                 to   h-ope                  .
-           move      "td"                 to   h-sub                  .
-           move      w-let-arc-dcp-des    to   h-alf                  .
-           move      "1"                  to   h-col                  .
-           move      "L"                  to   h-all                  .
-           move      "S"                  to   h-wdt                  .
-           move      "B"                  to   h-stl                  .
-           call      "swd/mod/prg/obj/mhtml0"
-                                         using h                      .
+           perform det-com-evid-000 thru det-com-evid-999.
+           if w-com-presente = "S"
+              display "<td class='descr-con-commenti' "
+              display "style='background-color:#fff1bf;"
+              display "color:#563c00;cursor:pointer' "
+              display "title='Commenti SN disponibili' "
+           else
+              display "<td style='cursor:default' ".
+           display "data-num-prt='" rf-osr-num-prt "' ".
+           display "data-num-prg='" rf-osr-num-prg "'>".
+           display "<b>" w-let-arc-dcp-des "</b></td>".
        exe-cph-lv2-rig-250.
       *              *-------------------------------------------------*
       *              * Codice prodotto per il Produttore               *
@@ -3790,6 +3787,47 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move "S" to h-wdt.
            move "B" to h-stl.
            call "swd/mod/prg/obj/mhtml0" using h.
+       exe-cph-lv2-rig-600.
+      *              *-------------------------------------------------*
+      *              * Determinazione buffer giacenze per ubicazione   *
+      *              *-------------------------------------------------*
+           move      "PU"                 to   d-sld-ubi-tip-ope      .
+           move      w-exe-dat-exe        to   d-sld-ubi-dat-ela      .
+           move      01                   to   d-sld-ubi-cod-dpz      .
+           move      01                   to   d-sld-ubi-tip-mag      .
+           move      rf-osr-num-pro       to   d-sld-ubi-num-mag      .
+           move      spaces               to   d-sld-ubi-cod-ubi      .
+           move      "#"                  to   d-sld-ubi-lit-ubi      .
+           perform   det-sld-ubi-cll-000  thru det-sld-ubi-cll-999    .
+      *              *-------------------------------------------------*
+      *              * Ubicazione                                      *
+      *              *-------------------------------------------------*
+      *                  *---------------------------------------------*
+      *                  * Apertura cella                              *
+      *                  *---------------------------------------------*
+           display "<td class='ubicazioni-prodotto' " .
+           display "style='cursor:pointer' " .
+           display "title='Consulta le ubicazioni'><b>" .
+      *                  *---------------------------------------------*
+      *                  * Valore                                      *
+      *                  *---------------------------------------------*
+           display   d-sld-ubi-lit-ubi                                .
+      *                  *---------------------------------------------*
+      *                  * Chiusura 'bold'                             *
+      *                  *---------------------------------------------*
+           move      "ET"                 to   h-ope                  .
+           move      "b"                  to   h-tag                  .
+           move      "C"                  to   h-sub                  .
+           call      "swd/mod/prg/obj/mhtml0"
+                                         using h                      .
+      *                  *---------------------------------------------*
+      *                  * Chiusura cella                              *
+      *                  *---------------------------------------------*
+           move      "ET"                 to   h-ope                  .
+           move      "td"                 to   h-tag                  .
+           move      "C"                  to   h-sub                  .
+           call      "swd/mod/prg/obj/mhtml0"
+                                         using h                      .
        exe-cph-lv2-rig-450.
            display "<td align='center'>".
            display "<input type='checkbox' class='osr-nbx' ".
@@ -3800,7 +3838,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
               display "checked ".
            display "></td>".
        exe-cph-lv2-rig-500.
-       exe-cph-lv2-rig-600.
        exe-cph-lv2-rig-700.
        exe-cph-lv2-rig-800.
       *              *-------------------------------------------------*
@@ -3912,7 +3949,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            display "<table class='bordotab' id='rig' width='100%'>".
            display "<tr><th>Riga</th><th>Codice</th>".
            display "<th>Descrizione</th><th>C.Produttore</th>".
-           display "<th>OS</th><th>Verificato</th><th>OK</th></tr>".
+           display "<th>OS</th><th>Verificato</th>".
+           display "<th>Ubicazione</th><th>OK</th></tr>".
        exe-cph-lv2-irg-900.
            go to exe-cph-lv2-irg-999.
        exe-cph-lv2-irg-999.
@@ -7053,6 +7091,46 @@ ______*                                   to   w-all-str-alf          .
       *    *===========================================================*
       *    * Determinazione righe spuntate ordine di spedizione        *
       *    *-----------------------------------------------------------*
+      *    *===========================================================*
+      *    * Commenti SN della riga: si ferma al prodotto successivo.
+      *    * Ripristina OSR per lasciare invariati dati e checkbox NBX.
+      *    *-----------------------------------------------------------*
+       det-com-evid-000.
+           move "N" to w-com-presente.
+           move rf-osr to w-com-osr-save.
+           move rf-osr-num-prt to w-com-num-prt.
+           move rf-osr-num-prg to w-com-num-prg.
+           move "SK" to f-ope.
+           move "NUMPRT    " to f-key.
+           move "NL" to f-cfr.
+           move w-com-num-prt to rf-osr-num-prt.
+           move w-com-num-prg to rf-osr-num-prg.
+           move "pgm/ods/fls/ioc/obj/iofosr" to s-pat.
+           call "swd/mod/prg/obj/mfiltp" using s.
+           call s-pat using f rf-osr.
+           if f-sts not = e-not-err
+              go to det-com-evid-900.
+       det-com-evid-200.
+           move "RN" to f-ope.
+           move "pgm/ods/fls/ioc/obj/iofosr" to s-pat.
+           call "swd/mod/prg/obj/mfiltp" using s.
+           call s-pat using f rf-osr.
+           if f-sts not = e-not-err
+              go to det-com-evid-900.
+           if rf-osr-num-prt not = w-com-num-prt
+              go to det-com-evid-900.
+           if rf-osr-num-prg <= w-com-num-prg
+              go to det-com-evid-200.
+           if rf-osr-tip-rig (01 : 01) not = "C"
+              go to det-com-evid-900.
+           if rf-osr-des-rig (01 : 02) not = "SN"
+              go to det-com-evid-200.
+           move "S" to w-com-presente.
+       det-com-evid-900.
+           move w-com-osr-save to rf-osr.
+       det-com-evid-999.
+           exit.
+
        det-rig-spn-000.
       *              *-------------------------------------------------*
       *              * Normalizzazioni iniziali                        *
