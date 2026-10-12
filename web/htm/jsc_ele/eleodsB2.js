@@ -1,7 +1,7 @@
 /*========================================*/
 /* eleodsB2 - Javascript - by N&A         */
 /* -------------------------------------- */
-/* Aggiornamento   : 09/10/2026           */
+/* Aggiornamento   : 12/10/2026           */
 /*========================================*/
 /*========================================*/
 /* Variabili statiche                     */
@@ -350,9 +350,11 @@ function liv_002 () {
                 'Salvataggio non confermato. Ricaricare per verificare.');
         }).always(function () {
             box.prop('disabled', false);
+            aggiorna_colore_nbx();
             focus_codice_prodotto();
         });
     });
+    aggiorna_colore_nbx();
     abilita_codici_e_ubicazioni();
     abilita_commenti_sn();
     focus_codice_prodotto();
@@ -1115,4 +1117,24 @@ function abilita_codici_e_ubicazioni() {
             }
         });
     });
+}
+
+/* Verde solo quando tutti gli NBX dell'elenco sono confermati. */
+function aggiorna_colore_nbx() {
+    if (!document.getElementById('stile-nbx-completi')) {
+        var stile = document.createElement('style');
+        stile.id = 'stile-nbx-completi';
+        stile.textContent = '#rig tr.nbx-completi > td' +
+            ':not(.descr-con-commenti) {' +
+            'background-color:#e3f3df !important;}';
+        document.head.appendChild(stile);
+    }
+    var boxes = $('#rig .osr-nbx');
+    var completi = boxes.length > 0;
+    boxes.each(function () {
+        if ($(this).data('saved-ok') !== true) {
+            completi = false;
+        }
+    });
+    boxes.closest('tr').toggleClass('nbx-completi', completi);
 }
