@@ -53,6 +53,8 @@ $num_doc = isset($_POST['num_doc']) ? $_POST['num_doc'] : '';
     <!----------------------------------------------------------------->
     <link rel="stylesheet" type="text/css" href="../css_ele/jquery-ui.min.css">
     <link rel="stylesheet" type="text/css" href="../css_ele/ele.css">
+    <!-- Navbar comune agli altri moduli Elettra. -->
+    <link rel="stylesheet" href="../css_ele/ele-navbar.css">
     <script src="../jsc_ele/jquery.min.js"></script>
     <script src="../jsc_ele/jquery-ui.min.js"></script>
     <script src="../jsc_ele/jquery.redirect.js"></script>
@@ -92,8 +94,14 @@ $num_doc = isset($_POST['num_doc']) ? $_POST['num_doc'] : '';
                 <!----------------------------------------------------->
                 <!-- Tabella per la selezione dell'Operatore         -->
                 <!----------------------------------------------------->
-                <table class="tes" id="key_lv0" name="key_lv0">
+                <table class="tes ele-navbar" id="key_lv0" name="key_lv0">
                 <tr>
+                    <!-- Logo Elettra: ritorno al menu principale. -->
+                    <td class="td_nb ele-navbar-brand">
+                        <a href="../ele.html" aria-label="Menu principale">
+                            <img class="ele-navbar-logo" src="../icons/logo-elettra-new.png" alt="Elettra">
+                        </a>
+                    </td>
                     <td id="cel_ute" name="cel_ute" align="center">
                         <h1> Operatore </h1>
                         <select name="rsp_doc" id="rsp_doc">
@@ -108,7 +116,12 @@ $num_doc = isset($_POST['num_doc']) ? $_POST['num_doc'] : '';
                             <?php endforeach; ?>
                         </select>
                     </td>
-                </tr>
+                
+                    <!-- Logo della funzione ABB dentro la stessa barra. -->
+                    <td class="td_nb ele-navbar-module">
+                        <img class="ele-navbar-icon" src="../icons/logo-abb.png" alt="Inbound ABB">
+                    </td>
+</tr>
                 </table>
             <?php
             break;            
@@ -118,14 +131,15 @@ $num_doc = isset($_POST['num_doc']) ? $_POST['num_doc'] : '';
             /*--------------------------------------------------------*/
             ?>
                 <!-- Tabella per i dati di base -->
-                <table class="tes" id="tes" name="tes">
+                <table class="tes ele-navbar" id="tes" name="tes">
                     <tr>
+                    <!-- Logo Elettra: ritorno al menu principale. -->
+                    <td class="td_nb ele-navbar-brand">
+                        <a href="../ele.html" aria-label="Menu principale">
+                            <img class="ele-navbar-logo" src="../icons/logo-elettra-new.png" alt="Elettra">
+                        </a>
+                    </td>
                         <!-- Visualizzazione immagine ABB -->
-                        <td>
-                            <b>
-                                <img src="../icons/logo-abb.png" width="70">
-                            </b>
-                        </td>
                         <!-- Visualizzazione nome operatore -->
                         <td>
                             <b><?php echo $rsp_des ? $rsp_des : "(Operatore non selezionato)"; ?></b>
@@ -162,13 +176,13 @@ $num_doc = isset($_POST['num_doc']) ? $_POST['num_doc'] : '';
                             </button>
                         </td>
                             <!-- Visualizzazione immagine ABB -->
-                            <td>
-                            <b>
-                                <img src="../icons/logo-abb.png" width="70">
-                            </b>
-                        </td>
 
-                    </tr>
+                    
+                    <!-- Logo della funzione ABB dentro la stessa barra. -->
+                    <td class="td_nb ele-navbar-module">
+                        <img class="ele-navbar-icon" src="../icons/logo-abb.png" alt="Inbound ABB">
+                    </td>
+</tr>
                 </table>
             <!--=====================================================-->
             <!-- Tabella per informazioni documento                  -->

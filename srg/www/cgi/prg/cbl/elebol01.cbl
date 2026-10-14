@@ -1542,7 +1542,7 @@
       *                  *---------------------------------------------*
       *                  * Eventuale evidenziazione                    *
       *                  *---------------------------------------------*
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Apertura Form                                   *
       *              *-------------------------------------------------*
@@ -1942,7 +1942,9 @@ ______*    perform   stp-cor-doc-hid-000  thru stp-cor-doc-hid-999    .
       *              *-------------------------------------------------*
       *              * Area di input testata ordine                    *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='tes2' name='tes2'>"      .
+      *    * Stessi identificatori tes2, con stile navbar.
+           display "<table class='tes ele-navbar'".
+           display "id='tes2' name='tes2'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -1954,6 +1956,12 @@ ______*    perform   stp-cor-doc-hid-000  thru stp-cor-doc-hid-999    .
       *              *-------------------------------------------------*
       *              * Responsabile                                    *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
            perform   int-pag-sta-rsm-000  thru int-pag-sta-rsm-999    .
       *              *-------------------------------------------------*
       *              * Numero ordine                                   *
@@ -1975,6 +1983,11 @@ ______*    perform   stp-cor-doc-hid-000  thru stp-cor-doc-hid-999    .
            display   "<img src='../icons/gomma.png' width='70'>"      .
            display   "</button>"                                      .
            display   "</td>"                                          .
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/7_Uscita_merce.png'".
+           display "alt='Uscita merce'>".
+           display "</td>".
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
@@ -2010,7 +2023,6 @@ ______*    perform   stp-cor-doc-hid-000  thru stp-cor-doc-hid-999    .
       *              *-------------------------------------------------*
       *              * Separatori                                      *
       *              *-------------------------------------------------*
-           display   "<hr>"                                           .
        int-pag-sta-999.
            exit.
 
@@ -2481,6 +2493,11 @@ ______*              go to int-pag-sta-rsm-900.
            move      "ele.css"            to   h-alf                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+      *    * Stile comune della navbar Elettra.
+           move "HC" to h-ope.
+           move "../css_ele/" to h-prm.
+           move "ele-navbar.css" to h-alf.
+           call "swd/mod/prg/obj/mhtml0" using h.
       *              *-------------------------------------------------*
       *              * Jquery min                                      *
       *              *-------------------------------------------------*
@@ -2552,7 +2569,6 @@ ______*              go to int-pag-sta-rsm-900.
       *              *-------------------------------------------------*
       *              * Linea di fondo                                  *
       *              *-------------------------------------------------*
-           display   "<hr>"                                           .
       *              *-------------------------------------------------*
       *              * Allineamento centrato                           *
       *              *-------------------------------------------------*

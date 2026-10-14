@@ -651,6 +651,11 @@
            move      "ele.css"            to   h-alf                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+      *    * Navbar comune Elettra - 13/10/2026.
+           move "HC" to h-ope.
+           move "../css_ele/" to h-prm.
+           move "ele-navbar.css" to h-alf.
+           call "swd/mod/prg/obj/mhtml0" using h.
       *              *-------------------------------------------------*
       *              * Jquery min                                      *
       *              *-------------------------------------------------*
@@ -723,7 +728,8 @@
       *              *-------------------------------------------------*
       *              * Tabella di input codice prodotto                *
       *              *-------------------------------------------------*
-           display   "<table class='tes'>"                            .
+           display "<table class='tes ele-navbar'".
+           display ">".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -732,6 +738,12 @@
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
       *              *-------------------------------------------------*
       *              * Responsabile                                    *
       *              *-------------------------------------------------*
@@ -793,13 +805,18 @@
            display   "<td id='cel_ref' name='cel_ref'>"               .
            display   "<button type='button' "                         .
            display   "id='but_ref' name='but_ref' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/refresh.png' width='40'>"    .
            display   "</button>"                                      .
            display   "</td>"                                          .
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/3_spostamento.png'".
+           display "alt='Spostamento prodotti'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .

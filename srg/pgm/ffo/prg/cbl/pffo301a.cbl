@@ -5277,8 +5277,8 @@
       *              *-------------------------------------------------*
            move      zero                 to   w-tot-gen-ctr          .
            move      zero                 to   w-tot-gen-tot          .
-           move      rf-fft-sgl-vpf       to   w-tot-gen-vlt          .
-           move      rf-fft-dec-vpf       to   w-tot-gen-ndv          .
+           move      spaces               to   w-tot-gen-vlt          .
+           move      zero                 to   w-tot-gen-ndv          .
       *              *-------------------------------------------------*
       *              * Intestazione per interrogazione                 *
       *              *-------------------------------------------------*
@@ -5541,6 +5541,13 @@
                                          using s                      .
            call      s-pat               using f
                                                rf-fft                 .
+       qry-liv-det-015.
+      *              *-------------------------------------------------*
+      *              * Aggiornamento valuta se primo passaggio         *
+      *              *-------------------------------------------------*
+           if        w-tot-gen-vlt        =    spaces
+                     move  rf-fft-sgl-vpf to   w-tot-gen-vlt
+                     move  rf-fft-dec-vpf to   w-tot-gen-ndv          .
        qry-liv-det-020.
       *              *-------------------------------------------------*
       *              * Determinazione work per importo documento       *

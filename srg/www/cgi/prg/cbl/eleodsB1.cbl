@@ -1281,7 +1281,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Area di input chiave                            *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='key_lv0' name='key_lv0'>".
+           display "<table class='tes ele-navbar'".
+           display "id='key_lv0' name='key_lv0'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -1290,6 +1291,12 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
       *              *-------------------------------------------------*
       *              * Responsabile                                    *
       *              *-------------------------------------------------*
@@ -1297,6 +1304,11 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/5_picking.png'".
+           display "alt='Picking ODS'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .
@@ -1495,7 +1507,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Area di input chiave                            *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='key_lv1' name='key_lv1'>".
+           display "<table class='tes ele-navbar ods-order-navbar'".
+           display "id='key_lv1' name='key_lv1'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -1504,6 +1517,12 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
        exe-cph-lv1-400.
       *              *-------------------------------------------------*
       *              * Operatore (responsabile di magazzino)           *
@@ -1516,7 +1535,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
       *                  * Emissione                                   *
       *                  *---------------------------------------------*
-           display   "<td>"                                           .
+      *    * Badge operatore uniforme nella testata.
+           display "<td class='ele-navbar-operator'>".
            display   "<b>"                                            .
            display   w-let-arc-zrm-des                                .
            display   "</b>"                                           .
@@ -1543,8 +1563,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_fip' name='but_fip' "                   .
-           display   "/>"                                             .
-           display   "<img src='../icons/check.png' width='40'>"      .
+           display   ">"                                             .
+           display   "<img src='../icons/check.png' width='70'>"      .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
       *                  * Chiusura cella                              *
@@ -1563,6 +1583,11 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/5_picking.png'".
+           display "alt='Picking ODS'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .
@@ -2510,16 +2535,9 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
       *                  * Emissione                                   *
       *                  *---------------------------------------------*
-           display   "<th align='center' colspan='6'>"                .
-      *
-           if        rf-hdr-prt-mag       not  = zero
-                     display "<h1>"                                   .
-      *
-           display   w-all-str-alf                                    .
-      *
-           if        rf-hdr-prt-mag       not  = zero
-                     display "</h1>"                                  .
-      *
+      *    * Check leggibile: nero, senza titolo h1.
+           display "<th class='ods-check-caption' colspan='6'>".
+           display w-all-str-alf.
            display   "</th>"                                          .
        exe-cph-lv1-iel-200.
       *              *-------------------------------------------------*
@@ -2943,7 +2961,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Area di input chiave                            *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='key_lv2' name='key_lv2'>".
+           display "<table class='tes ele-navbar'".
+           display "id='key_lv2' name='key_lv2'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -2952,6 +2971,12 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
       *              *-------------------------------------------------*
       *              * Cella per tasto di stampa etichetta Zebra       *
       *              *-------------------------------------------------*
@@ -2990,7 +3015,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
       *                  * Emissione                                   *
       *                  *---------------------------------------------*
-           display   "<td>"                                           .
+      *    * Badge operatore uniforme nella testata.
+           display "<td class='ele-navbar-operator'>".
            display   "<h1>"                                           .
            display   w-let-arc-zrm-des                                .
            display   "</h1>"                                          .
@@ -3009,7 +3035,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            display   "<button type='button' "                         .
            display   "id='but_inf' name='but_inf' "                   .
            display   "class='sem' "                                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/info.png' width='40'>"       .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -3110,7 +3136,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_fip' name='but_fip' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/stop.png' width='40'>"       .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -3130,7 +3156,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_ref' name='but_ref' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/refresh.png' width='40'>"    .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -3141,6 +3167,11 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/5_picking.png'".
+           display "alt='Picking ODS'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .
@@ -3798,7 +3829,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            if        rf-osr-snx-3qt       not  = 0
                      display  " class='spn' "                         .
       *
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Apertura Form                                   *
       *              *-------------------------------------------------*
@@ -4584,7 +4615,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Chiusura input                                  *
       *              *-------------------------------------------------*
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Chiusura cella                                  *
       *              *-------------------------------------------------*
@@ -5184,7 +5215,8 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Area di input chiave                            *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='key_lv2' name='key_lv2'>".
+           display "<table class='tes ele-navbar'".
+           display "id='key_lv2' name='key_lv2'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -5193,6 +5225,12 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
        exe-cph-lv3-vis-400.
       *              *-------------------------------------------------*
       *              * Codice ubicazione                               *
@@ -5211,7 +5249,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_fip' name='but_fip' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/stop.png' width='40'>"       .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -5231,7 +5269,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_ref' name='but_ref' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/refresh.png' width='40'>"    .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -5242,6 +5280,11 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/5_picking.png'".
+           display "alt='Picking ODS'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .
@@ -5721,7 +5764,7 @@ ______*              display  " class='sel' "                         .
 ______*    if        rf-osr-snx-3qt       not  = 0
 ______*              display  " class='spn' "                         .
       *
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Apertura Form                                   *
       *              *-------------------------------------------------*
@@ -6111,7 +6154,7 @@ ______*                                   to   w-all-str-alf          .
       *              *-------------------------------------------------*
       *              * Chiusura input                                  *
       *              *-------------------------------------------------*
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Chiusura cella                                  *
       *              *-------------------------------------------------*
@@ -7593,6 +7636,11 @@ ______*                                   to   w-all-str-alf          .
            move      "ele.css"            to   h-alf                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+      *    * Navbar comune Elettra - 13/10/2026.
+           move "HC" to h-ope.
+           move "../css_ele/" to h-prm.
+           move "ele-navbar.css" to h-alf.
+           call "swd/mod/prg/obj/mhtml0" using h.
       *              *-------------------------------------------------*
       *              * Jquery min                                      *
       *              *-------------------------------------------------*

@@ -1553,7 +1553,8 @@
       *              *-------------------------------------------------*
       *              * Area di input chiave                            *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='key_lv0' name='key_lv0'>".
+           display "<table class='tes ele-navbar'".
+           display "id='key_lv0' name='key_lv0'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -1562,6 +1563,12 @@
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
       *              *-------------------------------------------------*
       *              * Responsabile                                    *
       *              *-------------------------------------------------*
@@ -1569,6 +1576,11 @@
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/1_inbound.png'".
+           display "alt='Inbound BFO'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .
@@ -1803,7 +1815,8 @@
       *              *-------------------------------------------------*
       *              * Area di input chiave                            *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='tes' name='tes'>"        .
+           display "<table class='tes ele-navbar'".
+           display "id='tes' name='tes'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -1812,6 +1825,12 @@
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
        exe-cph-lv1-250.
       *              *-------------------------------------------------*
       *              * ATTUALMENTE INIBITO                             *
@@ -1828,7 +1847,7 @@
       *              *-------------------------------------------------*
       *              * Box per bottone di ritorno a menu               *
       *              *-------------------------------------------------*
-           perform   emi-htm-bck-000      thru emi-htm-bck-999        .
+      *    * Ritorno superiore tramite logo Elettra.
       *              *-------------------------------------------------*
       *              * Chiusura cella                                  *
       *              *-------------------------------------------------*
@@ -1849,7 +1868,8 @@
       *                  *---------------------------------------------*
       *                  * Emissione                                   *
       *                  *---------------------------------------------*
-           display   "<td>"                                           .
+      *    * Badge operatore uniforme nella testata.
+           display "<td class='ele-navbar-operator'>".
            display   "<b>"                                            .
            display   w-let-arc-zrm-des                                .
            display   "</b>"                                           .
@@ -1916,6 +1936,11 @@
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/1_inbound.png'".
+           display "alt='Inbound BFO'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .
@@ -3223,7 +3248,7 @@
       *                  *---------------------------------------------*
            if        w-exe-rig-sel         =    "S"
                      display  " class='sel' "                         .
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Apertura Form                                   *
       *              *-------------------------------------------------*
@@ -3790,7 +3815,7 @@
            display   "<td id='cel_ncf' name='cel_ncf' class='td_nb'>" .
            display   "<button type='button' "                         .
            display   " class='ncf' "                                  .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/new.png' width='40'>"        .
            display   "</button>"                                      .
            display   "</td>"                                          .
@@ -3828,7 +3853,7 @@
            move      "' "                 to   w-all-str-cat (3)      .
            perform   all-str-cat-000      thru all-str-cat-999        .
            display   w-all-str-alf                                    .
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Campi 'hidden' per la riga                      *
       *              *-------------------------------------------------*
@@ -3916,7 +3941,7 @@
            move      "' "                 to   w-all-str-cat (3)      .
            perform   all-str-cat-000      thru all-str-cat-999        .
            display   w-all-str-alf                                    .
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Campi 'hidden' per la riga                      *
       *              *-------------------------------------------------*
@@ -4418,7 +4443,7 @@ ______*    else      move  spaces         to   w-all-str-cat (1)      .
       *              *-------------------------------------------------*
       *              * Chiusura input                                  *
       *              *-------------------------------------------------*
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Chiusura cella                                  *
       *              *-------------------------------------------------*
@@ -5166,7 +5191,8 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
       *              *-------------------------------------------------*
       *              * Area di input chiave                            *
       *              *-------------------------------------------------*
-           display   "<table class='tes' id='key_lv2' name='key_lv2'>".
+           display "<table class='tes ele-navbar'".
+           display "id='key_lv2' name='key_lv2'>".
       *              *-------------------------------------------------*
       *              * Apertura riga                                   *
       *              *-------------------------------------------------*
@@ -5175,6 +5201,12 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
            move      "O"                  to   h-sub                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+           display "<td class='td_nb ele-navbar-brand'>".
+           display "<a href='../ele.html'".
+           display "aria-label='Menu principale'>".
+           display "<img class='ele-navbar-logo'".
+           display "src='../icons/logo-elettra-new.png' alt='Elettra'>".
+           display "</a></td>".
        exe-cph-lv2-vis-400.
       *              *-------------------------------------------------*
       *              * Codice ubicazione                               *
@@ -5193,7 +5225,7 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_fip' name='but_fip' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/stop.png' width='40'>"       .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -5213,7 +5245,7 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
       *                  *---------------------------------------------*
            display   "<button type='button' "                         .
            display   "id='but_ref' name='but_ref' "                   .
-           display   "/>"                                             .
+           display   ">"                                             .
            display   "<img src='../icons/refresh.png' width='40'>"    .
            display   "</button>"                                      .
       *                  *---------------------------------------------*
@@ -5224,6 +5256,11 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
+           display "<td class='td_nb ele-navbar-module'>".
+           display "<img class='ele-navbar-icon'".
+           display "src='../icons/1_inbound.png'".
+           display "alt='Inbound BFO'>".
+           display "</td>".
            move      "ET"                 to   h-ope                  .
            move      "tr"                 to   h-tag                  .
            move      "C"                  to   h-sub                  .
@@ -5817,7 +5854,7 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
       *                  *---------------------------------------------*
       *                  * Eventuale evidenziazione                    *
       *                  *---------------------------------------------*
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Apertura Form                                   *
       *              *-------------------------------------------------*
@@ -6049,7 +6086,7 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
       *              *-------------------------------------------------*
       *              * Chiusura input                                  *
       *              *-------------------------------------------------*
-           display   "/>"                                             .
+           display   ">"                                             .
       *              *-------------------------------------------------*
       *              * Chiusura cella                                  *
       *              *-------------------------------------------------*
@@ -6749,6 +6786,11 @@ ______*    add       rf-osr-qta-a03       to   w-exe-qta-spn          .
            move      "ele.css"            to   h-alf                  .
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
+      *    * Navbar comune Elettra - 13/10/2026.
+           move "HC" to h-ope.
+           move "../css_ele/" to h-prm.
+           move "ele-navbar.css" to h-alf.
+           call "swd/mod/prg/obj/mhtml0" using h.
       *              *-------------------------------------------------*
       *              * Jquery min                                      *
       *              *-------------------------------------------------*

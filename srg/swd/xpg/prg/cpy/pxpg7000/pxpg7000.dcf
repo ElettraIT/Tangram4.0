@@ -1,5 +1,5 @@
       *    *===========================================================*
-      *    * Area [dcf] Ultimo aggiornamento: 25/07/26                 *
+      *    * Area [dcf] Ultimo aggiornamento: 12/10/26                 *
       *    *===========================================================*
       *    *===========================================================*
       *    * Esportazione [aaf]                                        *
@@ -51,6 +51,19 @@
                                          using s                      .
            call      s-pat               using f
                                                rf-aaf                 .
+      *                  *---------------------------------------------*
+      *                  * [pdx]                                       *
+      *                  *                                             *
+      *                  * Per il controllo delle righe della descri-  *
+      *                  * zione estesa                 (12/10/26 NdK) *
+      *                  *---------------------------------------------*
+           move      "OP"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
       *                  *---------------------------------------------*
       *                  * Open generica file sequenziale di output    *
       *                  *---------------------------------------------*
@@ -249,7 +262,23 @@
            perform   cmp-sng-fld-000      thru cmp-sng-fld-999        .
       *                  *---------------------------------------------*
       *                  * Si/no descrizione estesa                    *
+      *                  *                                             *
+      *                  * Esportato a 1 solo se in [pdx] esistono le  *
+      *                  * righe (tipo record 13, fornitore, prodot-   *
+      *                  * to), come le legge rou-let-reg-aaf di       *
+      *                  * pdcp4000; altrimenti a 0, per non portare   *
+      *                  * in Tangram 5 un flag senza righe            *
+      *                  *                              (12/10/26 NdK) *
       *                  *---------------------------------------------*
+           move      spaces               to   w-let-arc-pdx-flg      .
+           if        rf-aaf-xdp-sfn       not  = zero
+                     move  13             to   w-let-arc-pdx-rec
+                     move  rf-aaf-cod-dcf to   w-let-arc-pdx-arc
+                     move  spaces         to   w-let-arc-pdx-lng
+                     move  rf-aaf-num-pro to   w-let-arc-pdx-pro
+                     move  spaces         to   w-let-arc-pdx-fmt
+                     perform let-arc-pdx-000
+                                          thru let-arc-pdx-999        .
            move      "ED"                 to   v-ope                  .
            move      "N"                  to   v-tip                  .
            move      01                   to   v-car                  .
@@ -257,6 +286,8 @@
            move      spaces               to   v-sgn                  .
            move      "9"                  to   v-edm                  .
            move      rf-aaf-xdp-sfn       to   v-num                  .
+           if        w-let-arc-pdx-flg    not  = spaces
+                     move  zero           to   v-num                  .
            call      "swd/mod/prg/obj/mvideo"
                                          using v                      .
       *
@@ -846,6 +877,16 @@
                                          using s                      .
            call      s-pat               using f
                                                rf-aaf                 .
+      *                  *---------------------------------------------*
+      *                  * [pdx]                        (12/10/26 NdK) *
+      *                  *---------------------------------------------*
+           move      "CL"                 to   f-ope                  .
+           move      "pgm/dcp/fls/ioc/obj/iofpdx"
+                                          to   s-pat                  .
+           call      "swd/mod/prg/obj/mfiltp"
+                                         using s                      .
+           call      s-pat               using f
+                                               rf-pdx                 .
        exe-exp-aaf-850.
       *              *-------------------------------------------------*
       *              * Visualizzazione nr records letti e scritti      *
