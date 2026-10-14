@@ -33,6 +33,24 @@ error_reporting(E_ALL);
   <script src='../jsc_ele/jquery.min.js'></script>
   <script src='../jsc_ele/jquery.redirect.js'></script>
   
+
+  <!-- *=================================* -->
+  <!-- * Logo Elettra uniforme           * -->
+  <!-- *=================================* -->
+  <style>
+    /* Regola limitata al logo di questa pagina. */
+    .eleabb-logo {
+      display: block;
+      width: 200px;
+      max-width: 70vw;
+      height: auto;
+      margin: 0 auto;
+      background: transparent;
+      filter: drop-shadow(0 0 1px rgba(255, 255, 255, .95))
+              drop-shadow(0 0 4px rgba(255, 255, 255, .45))
+              drop-shadow(0 3px 3px rgba(0, 0, 0, .40));
+    }
+  </style>
 </head>
 <body>
   <!-- *=================================* -->
@@ -43,7 +61,9 @@ error_reporting(E_ALL);
   <!-- * Logo                            * -->
   <!-- *=================================* -->
   <center>
-    <img src='../icons/logo-elettra.png' width='200'>
+    <!-- Logo pieno Elettra, come nella home. -->
+    <img class="eleabb-logo" src="../icons/logo-elettra-new.png"
+         alt="Elettra" width="200">
   </center>
   <hr size="3">
   
@@ -81,6 +101,7 @@ error_reporting(E_ALL);
             <a href="../ele.html">
                 <img src="../icons/next-blue-1.png" width="50">
             </a>
+  </div>
   <!-- *=================================* -->
   <!-- * Copyright                       * -->
   <!-- *=================================* -->

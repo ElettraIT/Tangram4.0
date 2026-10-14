@@ -1577,7 +1577,7 @@
       *              * Chiusura riga                                   *
       *              *-------------------------------------------------*
            display "<td class='td_nb ele-navbar-module'>".
-           display "<img class='ele-navbar-icon'".
+           display "<img class='ele-navbar-icon' ".
            display "src='../icons/1_inbound.png'".
            display "alt='Inbound BFO'>".
            display "</td>".
@@ -1868,8 +1868,7 @@
       *                  *---------------------------------------------*
       *                  * Emissione                                   *
       *                  *---------------------------------------------*
-      *    * Badge operatore uniforme nella testata.
-           display "<td class='ele-navbar-operator'>".
+           display   "<td>"                                           .
            display   "<b>"                                            .
            display   w-let-arc-zrm-des                                .
            display   "</b>"                                           .
@@ -1887,12 +1886,6 @@
            call      "swd/mod/prg/obj/mhtml0"
                                          using h                      .
       *              *-------------------------------------------------*
-      *              * Tasto di info                                   *
-      *              *-------------------------------------------------*
-           display   "<button type='button' id='inf' name='inf'>"     .
-           display   "<img src='../icons/info.png' width='70'>"       .
-           display   "</button>"                                      .
-      *              *-------------------------------------------------*
       *              * Tasto di reset                                  *
       *              *-------------------------------------------------*
            display   "<button type='button' id='res' name='res'>"     .
@@ -1903,6 +1896,17 @@
       *              * Numero documento del fornitore                  *
       *              *-------------------------------------------------*
            perform   exe-cph-lv1-num-000  thru exe-cph-lv1-num-999    .
+      *              *-------------------------------------------------*
+      *              * Info tra documento e prodotto                   *
+      *              *-------------------------------------------------*
+           display "<td class='td_nb' id='cel_inf' name='cel_inf'>".
+      *              *-------------------------------------------------*
+      *              * Tasto di info                                   *
+      *              *-------------------------------------------------*
+           display   "<button type='button' id='inf' name='inf'>"     .
+           display   "<img src='../icons/info.png' width='70'>"       .
+           display   "</button>"                                      .
+           display "</td>".
       *              *-------------------------------------------------*
       *              * Codice prodotto                                 *
       *              *-------------------------------------------------*
