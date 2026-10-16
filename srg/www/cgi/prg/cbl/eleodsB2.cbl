@@ -8,7 +8,7 @@
       *                                   Fase:    eleods              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 04/07/06    *
-      *                       Ultima revisione:    NdK del 05/10/26    *
+      *                       Ultima revisione:    NdK del 15/10/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -3050,12 +3050,6 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  * Chiusura cella                              *
       *                  *---------------------------------------------*
            display   "</td>"                                          .
-      *    * Icona carrello a destra della bottoniera.
-           display "<td align='right' style='padding-left:16px'>".
-           display "<img src='../icons/trolley-1.jpg' ".
-           display "width='64' height='64' alt='Ordini spedizione' ".
-           display "style='object-fit:contain;vertical-align:middle'>".
-           display "</td>".
        exe-cph-lv2-800.
       *              *-------------------------------------------------*
       *              * Chiusura riga                                   *

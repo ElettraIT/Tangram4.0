@@ -8,7 +8,7 @@
       *                                   Fase:    eleinv              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 10/05/26    *
-      *                       Ultima revisione:    NdK del 08/09/26    *
+      *                       Ultima revisione:    NdK del 16/10/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -2619,6 +2619,22 @@
       *              * Raccolta dati relativi al cliente commerciale   *
       *              *-------------------------------------------------*
       *                  *---------------------------------------------*
+      *                  * Lettura eventuale codice agente dipendenza  *
+      *                  *---------------------------------------------*
+           if        w-inp-spd-dpz        =    spaces
+                     go to wrt-rec-oct-050.
+      *                  *---------------------------------------------*
+      *                  * Lettura record [dcc] dipendenza             *
+      *                  *---------------------------------------------*
+           move      w-det-cod-cli-cod    to   w-let-arc-dcc-cli      .
+           move      w-inp-spd-dpz        to   w-let-arc-dcc-dpz      .
+           perform   let-arc-dcc-000      thru let-arc-dcc-999        .
+      *                  *---------------------------------------------*
+      *                  * Bufferizzazione codice agente               *
+      *                  *---------------------------------------------*
+           move      rf-dcc-cod-age       to   rf-oct-cod-age         .
+       wrt-rec-oct-050.
+      *                  *---------------------------------------------*
       *                  * Lettura record [dcc] cliente principale     *
       *                  *---------------------------------------------*
            move      w-det-cod-cli-cod    to   w-let-arc-dcc-cli      .
@@ -2876,7 +2892,8 @@
       *                  *---------------------------------------------*
       *                  * Codice agente                               *
       *                  *---------------------------------------------*
-           move      rf-dcc-cod-age       to   rf-oct-cod-age         .
+           if        rf-oct-cod-age       =    zero
+                     move  rf-dcc-cod-age to   rf-oct-cod-age         .
       *                  *---------------------------------------------*
       *                  * Significativita' provvigioni: si            *
       *                  *---------------------------------------------*

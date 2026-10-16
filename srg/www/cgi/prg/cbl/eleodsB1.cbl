@@ -8,7 +8,7 @@
       *                                   Fase:    eleods              *
       *                    ------------------------------------------- *
       *                     Versione originale:    001 del 04/07/06    *
-      *                       Ultima revisione:    NdK del 05/10/26    *
+      *                       Ultima revisione:    NdK del 15/10/26    *
       *                    ------------------------------------------- *
       *                                 Autore:    Nicola de Kunovich  *
       *================================================================*
@@ -3065,7 +3065,9 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *                  *---------------------------------------------*
       *                  * Apertura cella                              *
       *                  *---------------------------------------------*
-           display   "<td id='cel_sem' name='cel_sem'>"               .
+           display "<td id='cel_sem' name='cel_sem' " .
+           display "style='border:0!important;box-shadow:none;" .
+           display "border-radius:0;background:transparent'>" .
       *                  *---------------------------------------------*
       *                  * Apertura bottone                            *
       *                  *---------------------------------------------*
@@ -3122,7 +3124,7 @@ ______*    move      w-det-num-pro-des    to   w-exe-des-pro          .
       *              *-------------------------------------------------*
       *              * Codici prodotto da controllare                  *
       *              *-------------------------------------------------*
-           perform   exe-cph-lv2-pdv-000  thru exe-cph-lv2-pdv-999    .
+      *    * Select Da verificare e relativa cella rimosse.
        exe-cph-lv2-520.
       *              *-------------------------------------------------*
       *              * Bottone di conferma fine immissione protocolli  *
